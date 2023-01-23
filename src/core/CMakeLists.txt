@@ -1,0 +1,81 @@
+set(GRAPHICSAPI_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/graphicsAPI)
+set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
+
+set(GRAPHICSAPI_FILES
+    ${GRAPHICSAPI_DIRECTORY}/graphicsapi.h
+    ${GRAPHICSAPI_DIRECTORY}/graphicsapi.cpp
+)
+
+if (WIN32)
+    list(
+        APPEND
+        GRAPHICSAPI_FILES
+        ${GRAPHICSAPI_DIRECTORY}/openglapi.h
+        ${GRAPHICSAPI_DIRECTORY}/openglapi.cpp
+    )
+elseif (UNIX)
+    list(
+        APPEND
+        GRAPHICSAPI_FILES
+        ${GRAPHICSAPI_DIRECTORY}/openglapi.h
+        ${GRAPHICSAPI_DIRECTORY}/openglapi.cpp
+    )
+endif()
+
+set(HELPER_FILES
+    ${HELPER_DIRECTORY}/windowmanager.h
+    ${HELPER_DIRECTORY}/windowmanager.cpp
+)
+
+add_library(LAKOT_CORE
+    platform.h
+    platform.cpp
+    ${GRAPHICSAPI_FILES}
+    ${HELPER_FILES}
+)
+
+### add glfw - begin ###
+if (WIN32)
+    find_package(OpenGL REQUIRED)
+
+    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glfw GLFW_FILES)
+
+    include_directories(${OPENGL_INCLUDE_DIRS})
+
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
+    set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
+
+    target_link_libraries(LAKOT_CORE glfw)
+    include_directories(${THIRD_PARTY_DIRECTORY}/glfw/include)
+elseif (UNIX)
+    find_package(OpenGL REQUIRED)
+
+    include_directories(${OPENGL_INCLUDE_DIRS})
+
+    find_package(glfw3 REQUIRED)
+endif ()
+### add glfw - end ###
+
+### add glad - begin ###
+if (WIN32)
+    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad GLAD_FILES)
+    target_link_libraries(LAKOT_CORE glad)
+elseif (UNIX)
+    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad)
+#elseif(ANDROID)
+    #add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad)
+endif()
+### add glad - end ###
+
+### add glm - begin ###
+if (WIN32)
+    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glm GLM_FILES)
+    include_directories(${THIRD_PARTY_DIRECTORY}/glm)
+    target_link_libraries(LAKOT_CORE glm)
+elseif (UNIX)
+    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glm)
+    include_directories(${THIRD_PARTY_DIRECTORY}/glm)
+endif()
+### add glm - end ###
+
+target_include_directories(LAKOT_CORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
