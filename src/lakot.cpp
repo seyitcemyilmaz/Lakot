@@ -4,8 +4,6 @@ Lakot::Lakot() {
     mPlatform = nullptr;
     mWindowManager = nullptr;
 
-    //mShaderString = "";
-
     mApplication = nullptr;
 }
 
@@ -47,48 +45,6 @@ void Lakot::runApplication() {
     #endif
     std::cout << "Application is stopped." << std::endl;
 }
-
-/*
-void Lakot::createShaderString() {
-    OpenGLType tOpenGLType = mPlatform.getOpenGLType();
-    OpenGLMajor tOpenGLMajor = mPlatform.getOpenGLMajor();
-    OpenGLMinor tOpenGLMinor = mPlatform.getOpenGLMinor();
-
-    if (tOpenGLType == OpenGLType::eOpenGLTypeCORE) {
-        if (tOpenGLMajor == 3 && tOpenGLMinor == 3) {
-            mShaderString = "#version 330";
-            return;
-        }
-        throw "Undefined OpenGL major or minor version.";
-    }
-
-    if (tOpenGLType == OpenGLType::eOpenGLTypeES) {
-        if (tOpenGLMajor == 3 && tOpenGLMinor == 2) {
-            mShaderString = "#version 320 es";
-            return;
-        }
-        throw "Undefined OpenGL major or minor version.";
-    }
-
-    throw "Undefined OpenGLType";
-}
-
-void Lakot::initApplication() {
-    mApplication->initialization();
-}
-
-void Lakot::runApplication() {
-    #if LAKOT_OPENGL_CONTEXT_PROVIDER == LAKOT_OPENGL_CONTEXT_PROVIDER_GLFW
-    while (WindowManager::isWindowOpen()) {
-        mApplication->loopBody();
-    }
-    #elif LAKOT_OPENGL_CONTEXT_PROVIDER == LAKOT_OPENGL_CONTEXT_PROVIDER_GLFM
-        #error "GLFM is not implemented."
-    #elif LAKOT_OPENGL_CONTEXT_PROVIDER == LAKOT_OPENGL_CONTEXT_PROVIDER_NONE
-        #error "Context provider is not detected."
-    #endif
-}
-*/
 
 void Lakot::terminateApplication() {
     mPlatform->getGraphicsAPI()->terminateGraphicsAPI();

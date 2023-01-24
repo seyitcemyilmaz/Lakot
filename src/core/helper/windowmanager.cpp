@@ -106,3 +106,16 @@ void WindowManager::windowCloseCallback(ContextWindow* tWindow) {
 
     std::cout << "Exit button is clicked." << std::endl;
 }
+
+WindowManager::~WindowManager() {
+    #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
+        glfwDestroyWindow(mWindow);
+    #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
+        #error Not implemented.
+    #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
+        #error Graphics API is not found.
+    #else
+        #error Undefined Graphics API.
+    #endif
+
+}

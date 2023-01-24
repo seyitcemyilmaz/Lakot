@@ -26,7 +26,7 @@ private:
     void createWindow();
 public:
     WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor = glm::vec3(1.0f, 0.3f, 0.3f));
-
+    ~WindowManager();
     void initializateWindow();
 
     void updateWindow();

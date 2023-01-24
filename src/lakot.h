@@ -12,9 +12,6 @@ private:
     WindowManager* mWindowManager;
 
     Application* mApplication;
-
-    //std::string mShaderString;
-    //void createShaderString();
 public:
     Lakot();
     ~Lakot();
