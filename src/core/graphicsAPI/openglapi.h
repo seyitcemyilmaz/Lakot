@@ -13,6 +13,8 @@ public:
 
     void initializeGraphicsAPI();
     void terminateGraphicsAPI();
+
+
 };
 
 #endif

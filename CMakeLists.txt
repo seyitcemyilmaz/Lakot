@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.2)
 project(LAKOT)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(SRC_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
-    set(CORE_DIRECTORY ${SRC_DIRECTORY}/core)
-    set(GRAPHICS_DIRECTORY ${SRC_DIRECTORY}/graphics)
-    set(HELPER_DIRECTORY ${SRC_DIRECTORY}/helper)
+    set(APPLICATION_DIRECTORY ${SRC_DIRECTORY}/application)
+        set(GRAPHICS_DIRECTORY ${APPLICATION_DIRECTORY}/graphics)
+            set(RENDER_DIRECTORY ${GRAPHICS_DIRECTORY}/render)
+    set(CORE_DIRECTORY ${SRC_DIRECTORY}/core)    
 set(THIRD_PARTY_DIRECTORY ${CMAKE_SOURCE_DIR}/third_party)
 
 add_subdirectory(${CORE_DIRECTORY})
@@ -22,9 +23,18 @@ set(SRC_FILES
 )
 
     set(GRAPHICS_FILES
-        ${GRAPHICS_DIRECTORY}/renderer.h
-        ${GRAPHICS_DIRECTORY}/renderer.cpp
+        ${GRAPHICS_DIRECTORY}/gui.h
+        ${GRAPHICS_DIRECTORY}/gui.cpp
+        ${GRAPHICS_DIRECTORY}/shader.h
+        ${GRAPHICS_DIRECTORY}/shader.cpp
+        ${GRAPHICS_DIRECTORY}/shadermanager.h
+        ${GRAPHICS_DIRECTORY}/shadermanager.cpp
     )
+
+        set(RENDER_FILES
+            ${RENDER_DIRECTORY}/renderer.h
+            ${RENDER_DIRECTORY}/renderer.cpp
+        )
 #[[
     set(HELPER_FILES
         ${HELPER_DIRECTORY}/constants.h
@@ -44,8 +54,8 @@ include_directories(
 
 add_executable(LAKOT
     ${SRC_FILES}
-        ${HELPER_FILES}
         ${GRAPHICS_FILES}
+            ${RENDER_FILES}
 )
 
 target_link_libraries(LAKOT 

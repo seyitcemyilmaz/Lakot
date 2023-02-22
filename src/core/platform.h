@@ -19,8 +19,16 @@
     #define LAKOT_GRAPHICS_API_VERSION_MINOR    3
 
     #define ContextWindow                       GLFWwindow
+
+    #define LAKOT_SHADER_HEADER                 "#version 330 core\n"
     
     #include "graphicsAPI/openglapi.h"
+    #include <iostream>
+    #include <filesystem>
+    #include <fstream>
+    #include <vector>
+    #include <map>
+    #include <algorithm>
 
 #elif defined(UNIX) || defined(__unix__) || defined(LINUX) || defined(__linux__)
     #define LAKOT_PLATFORM                      LAKOT_PLATFORM_LINUX
@@ -37,8 +45,6 @@
     #define LAKOT_GRAPHICS_API                  LAKOT_GRAPHICS_API_OPENGLES
     #define LAKOT_GRAPHICS_API_VERSION_MAJOR    3
     #define LAKOT_GRAPHICS_API_VERSION_MINOR    2
-
-    #error ContextWindow is not defined.
 #else
     #define LAKOT_PLATFORM                      LAKOT_PLATFORM_NONE
     #define LAKOT_GRAPHICS_API                  LAKOT_GRAPHICS_API_NONE
@@ -59,6 +65,10 @@ public:
     ~Platform();
 
     GraphicsAPI* getGraphicsAPI();
+
+    static std::string getLakotRootPath();
+    static std::string getLakotAssetsPath();
+    static std::string readFileContent(std::string pFilePath);
 };
 
 
