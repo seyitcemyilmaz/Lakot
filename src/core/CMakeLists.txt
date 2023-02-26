@@ -1,5 +1,7 @@
 set(GRAPHICSAPI_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/graphicsAPI)
 set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
+    set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
+
 
 set(GRAPHICSAPI_FILES
     ${GRAPHICSAPI_DIRECTORY}/graphicsapi.h
@@ -27,11 +29,20 @@ set(HELPER_FILES
     ${HELPER_DIRECTORY}/windowmanager.cpp
 )
 
+    set(CONTROLS_FILES
+        ${CONTROLS_DIRECTORY}/keyboard.h
+        ${CONTROLS_DIRECTORY}/keyboard.cpp
+
+        ${CONTROLS_DIRECTORY}/mouse.h
+        ${CONTROLS_DIRECTORY}/mouse.cpp
+    )
+
 add_library(LAKOT_CORE
     platform.h
     platform.cpp
     ${GRAPHICSAPI_FILES}
     ${HELPER_FILES}
+        ${CONTROLS_FILES}
 )
 
 ### add glfw - begin ###

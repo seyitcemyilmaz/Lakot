@@ -12,6 +12,8 @@ private:
     WindowManager* mWindowManager;
 
     Application* mApplication;
+
+    void initializeCallbackFunctions();
 public:
     Lakot();
     ~Lakot();

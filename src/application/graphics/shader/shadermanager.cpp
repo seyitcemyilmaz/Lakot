@@ -1,7 +1,17 @@
 #include "shadermanager.h"
 
+ShaderManager* ShaderManager::mInstance = nullptr;
+
 ShaderManager::ShaderManager() {
-    mActiveShader = nullptr;
+    setActiveShaderNull();
+}
+
+ShaderManager* ShaderManager::getInstance() {
+    if (!mInstance) {
+        mInstance = new ShaderManager();
+    }
+
+    return mInstance;
 }
 
 void ShaderManager::addShader(std::string pShaderName, Shader* pShader) {
@@ -19,27 +29,25 @@ void ShaderManager::bindShader(std::string pShaderName) {
         throw "Shader cannot be nullptr.";
     }
 
-    if (mActiveShader != tShader) {
-        mActiveShader = tShader;
-        mActiveShader->bind();
+    Shader* tActiveShader = mActiveShader.second;
+
+    if (tActiveShader != tShader) {
+        tShader->bind();
+        mActiveShader = std::make_pair(pShaderName, tShader);
     }
 }
 
-void ShaderManager::bindShader(Shader* pShader) {
-    if (!pShader) {
-        throw "Shader cannot be nullptr.";
-    }
-
-    if (pShader != mActiveShader) {
-        mActiveShader = pShader;
-        mActiveShader->bind();
-    }
+void ShaderManager::setActiveShaderNull() {
+    mActiveShader = std::make_pair("", nullptr);
 }
 
-ShaderManager::~ShaderManager() {
+void ShaderManager::deleteShaders() {
     for (auto tIterator = mShaders.begin(); tIterator != mShaders.end(); tIterator++) {
         Shader* tShader = tIterator->second;
         delete tShader;
     }
+
     mShaders.clear();
+
+    setActiveShaderNull();
 }

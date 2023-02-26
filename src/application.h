@@ -1,16 +1,17 @@
 #ifndef LAKOT_APPLICATION_H
 #define LAKOT_APPLICATION_H
 
-#include "application/graphics/shadermanager.h"
-
 #include "application/graphics/render/renderer.h"
+#include "application/graphics/model.h"
 
 class Application {
 private:
     Renderer* mRenderer;
-    ShaderManager* mShaderManager;
+
+    std::vector<Model*> mModels;
 
     void initializeShaders();
+    void initializeCameras();
 public:
     Application();
     ~Application();

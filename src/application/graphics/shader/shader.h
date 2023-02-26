@@ -6,6 +6,7 @@
 class Shader {
 private:
     unsigned int mShaderProgramId;
+
     std::string mVertexShaderFilePath;
     std::string mFragmentShaderFilePath;
 

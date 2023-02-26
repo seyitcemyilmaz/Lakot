@@ -1,25 +1,38 @@
 #include "application.h"
 
+#include "application/graphics/shader/shadermanager.h"
+#include "application/graphics/camera/cameramanager.h"
+
 Application::Application() {
     mRenderer = nullptr;
-    mShaderManager = nullptr;
 }
 
 Application::~Application() {
     delete mRenderer;
-    delete mShaderManager;
+
+    ShaderManager::getInstance()->deleteShaders();
+    CameraManager::getInstance()->deleteCameras();
 }
 
 void Application::initialization() {
     mRenderer = new Renderer();
-    mShaderManager = new ShaderManager();
 
     initializeShaders();
+    initializeCameras();
 }
 
 void Application::initializeShaders() {
-    mShaderManager->addShader("shader", new Shader("vertex.shader", "fragment.shader"));
+    ShaderManager* tShaderManager = ShaderManager::getInstance();
+
+    tShaderManager->addShader("shader", new Shader("vertex.shader", "fragment.shader"));
 }
+
+void Application::initializeCameras() {
+    CameraManager* tCameraManager = CameraManager::getInstance();
+
+    tCameraManager->addCamera("mainCamera", glm::vec3(2.0f));
+}
+
 
 void Application::processInputs() {
 

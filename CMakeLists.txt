@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(SRC_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
     set(APPLICATION_DIRECTORY ${SRC_DIRECTORY}/application)
         set(GRAPHICS_DIRECTORY ${APPLICATION_DIRECTORY}/graphics)
+            set(CAMERA_DIRECTORY ${GRAPHICS_DIRECTORY}/camera)
             set(RENDER_DIRECTORY ${GRAPHICS_DIRECTORY}/render)
+            set(SHADER_DIRECTORY ${GRAPHICS_DIRECTORY}/shader)
     set(CORE_DIRECTORY ${SRC_DIRECTORY}/core)    
 set(THIRD_PARTY_DIRECTORY ${CMAKE_SOURCE_DIR}/third_party)
 
@@ -25,28 +27,34 @@ set(SRC_FILES
     set(GRAPHICS_FILES
         ${GRAPHICS_DIRECTORY}/gui.h
         ${GRAPHICS_DIRECTORY}/gui.cpp
-        ${GRAPHICS_DIRECTORY}/shader.h
-        ${GRAPHICS_DIRECTORY}/shader.cpp
-        ${GRAPHICS_DIRECTORY}/shadermanager.h
-        ${GRAPHICS_DIRECTORY}/shadermanager.cpp
+
+        ${GRAPHICS_DIRECTORY}/mesh.h
+        ${GRAPHICS_DIRECTORY}/mesh.cpp
+
+        ${GRAPHICS_DIRECTORY}/model.h
+        ${GRAPHICS_DIRECTORY}/model.cpp
     )
+
+        set(CAMERA_FILES
+            ${CAMERA_DIRECTORY}/camera.h
+            ${CAMERA_DIRECTORY}/camera.cpp
+
+            ${CAMERA_DIRECTORY}/cameramanager.h
+            ${CAMERA_DIRECTORY}/cameramanager.cpp
+        )
 
         set(RENDER_FILES
             ${RENDER_DIRECTORY}/renderer.h
             ${RENDER_DIRECTORY}/renderer.cpp
         )
-#[[
-    set(HELPER_FILES
-        ${HELPER_DIRECTORY}/constants.h
 
-        ${HELPER_DIRECTORY}/contextprovider.h
-        ${HELPER_DIRECTORY}/contextprovider.cpp
-        ${HELPER_DIRECTORY}/platform.h
-        ${HELPER_DIRECTORY}/platform.cpp
-        ${HELPER_DIRECTORY}/windowmanager.h
-        ${HELPER_DIRECTORY}/windowmanager.cpp
-    )
-]]
+        set(SHADER_FILES
+            ${SHADER_DIRECTORY}/shader.h
+            ${SHADER_DIRECTORY}/shader.cpp
+
+            ${SHADER_DIRECTORY}/shadermanager.h
+            ${SHADER_DIRECTORY}/shadermanager.cpp
+        )
 
 include_directories(
     ${SRC_DIRECTORY}
@@ -54,8 +62,11 @@ include_directories(
 
 add_executable(LAKOT
     ${SRC_FILES}
+        ${CONTROLS_FILES}
         ${GRAPHICS_FILES}
             ${RENDER_FILES}
+            ${SHADER_FILES}
+            ${CAMERA_FILES}
 )
 
 target_link_libraries(LAKOT 

@@ -1,5 +1,7 @@
 #include "lakot.h"
 
+#include "helper/controls/mouse.h"
+
 Lakot::Lakot() {
     mPlatform = nullptr;
     mWindowManager = nullptr;
@@ -19,6 +21,26 @@ void Lakot::initializeLakot() {
 
     mWindowManager = new WindowManager("Lakot", 800, 800);
     mWindowManager->initializateWindow();
+
+    initializeCallbackFunctions();
+}
+
+void Lakot::initializeCallbackFunctions() {
+#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
+    glfwSetWindowUserPointer(mWindowManager->getWindow(), mWindowManager);
+    glfwSetFramebufferSizeCallback(mWindowManager->getWindow(), WindowManager::frameBufferSizeCallback);
+    glfwSetWindowCloseCallback(mWindowManager->getWindow(), WindowManager::windowCloseCallback);
+    //glfwSetKeyCallback(mWindowManager->getWindow(), );
+    glfwSetMouseButtonCallback(mWindowManager->getWindow(), Mouse::mouseButtonCallback);
+    glfwSetScrollCallback(mWindowManager->getWindow(), Mouse::scrollCallback);
+    glfwSetCursorPosCallback(mWindowManager->getWindow(), Mouse::cursorPositionCallBack);
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
+    #error Not implemented.
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
+    #error Graphics API is not found.
+#else
+    #error Undefined Graphics API.
+#endif
 }
 
 void Lakot::initalizeApplication() {

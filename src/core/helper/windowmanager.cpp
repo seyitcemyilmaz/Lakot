@@ -27,11 +27,6 @@ void WindowManager::initializateWindow() {
 
     glfwMakeContextCurrent(mWindow);
 
-    glfwSetWindowUserPointer(mWindow, this);
-    glfwSetFramebufferSizeCallback(mWindow, frameBufferSizeCallback);
-
-    glfwSetWindowCloseCallback(mWindow, windowCloseCallback);
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         throw "GLAD is not initialized.";
     }

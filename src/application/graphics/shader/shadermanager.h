@@ -5,16 +5,21 @@
 
 class ShaderManager {
 private:
-    std::map<std::string, Shader*> mShaders;
+    static ShaderManager* mInstance;
 
-    Shader* mActiveShader;
-public:
+    std::map<std::string, Shader*> mShaders;
+    std::pair<std::string, Shader*> mActiveShader;
+
+    void setActiveShaderNull();
+
     ShaderManager();
-    ~ShaderManager();
+public:
+    static ShaderManager* getInstance();
 
     void addShader(std::string pShaderName, Shader* pShader);
     void bindShader(std::string pShaderName);
-    void bindShader(Shader* pShader);
+
+    void deleteShaders();
 };
 
 #endif
