@@ -50,6 +50,8 @@ public:
     int getWindowHeight();
     int getWindowWidth();
 
+    void closeWindow();
+
     static void frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight);
     static void windowCloseCallback(ContextWindow* tWindow);
 };

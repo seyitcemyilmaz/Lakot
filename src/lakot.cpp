@@ -1,5 +1,6 @@
 #include "lakot.h"
 
+#include "helper/controls/keyboard.h"
 #include "helper/controls/mouse.h"
 
 Lakot::Lakot() {
@@ -29,7 +30,7 @@ void Lakot::initializeCallbackFunctions() {
     glfwSetWindowUserPointer(tWindowManager->getWindow(), tWindowManager);
     glfwSetFramebufferSizeCallback(tWindowManager->getWindow(), WindowManager::frameBufferSizeCallback);
     glfwSetWindowCloseCallback(tWindowManager->getWindow(), WindowManager::windowCloseCallback);
-    //glfwSetKeyCallback(tWindowManager->getWindow(), );
+    glfwSetKeyCallback(tWindowManager->getWindow(), Keyboard::keyCallback);
     glfwSetMouseButtonCallback(tWindowManager->getWindow(), Mouse::mouseButtonCallback);
     glfwSetScrollCallback(tWindowManager->getWindow(), Mouse::scrollCallback);
     glfwSetCursorPosCallback(tWindowManager->getWindow(), Mouse::cursorPositionCallBack);

@@ -3,6 +3,8 @@
 #include "application/graphics/render/rendermanager.h"
 #include "application/graphics/shader/shadermanager.h"
 #include "application/graphics/camera/cameramanager.h"
+#include "helper/windowmanager.h"
+#include "helper/controls/keyboard.h"
 #include "helper/controls/mouse.h"
 
 Application::Application() {
@@ -77,6 +79,26 @@ void Application::processInputs() {
 
     if (tScrollDY != 0.0f) {
         CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE)) {
+        WindowManager::getInstance()->closeWindow();
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed('A')) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, 0.0001);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed('D')) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, 0.0001);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed('W')) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, 0.0001);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed('S')) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, 0.0001);
     }
 #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
     #error Not implemented.

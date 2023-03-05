@@ -105,6 +105,10 @@ int WindowManager::getWindowWidth() {
     return mWindowWidth;
 }
 
+void WindowManager::closeWindow() {
+    setIsWindowActive(false);
+}
+
 void WindowManager::frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight) {
     WindowManager* tWindowObject = (WindowManager*)glfwGetWindowUserPointer(tWindow);
 
