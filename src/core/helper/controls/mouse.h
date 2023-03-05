@@ -3,7 +3,9 @@
 
 #include "platform.h"
 
-#define LAKOT_MAXIMUM_MOUSE_BUTTON 8
+#define LAKOT_MOUSE_MAXIMUM_BUTTON      8
+
+#define LAKOT_MOUSE_DEFAULT_SENSIVITY   0.1f
 
 struct Button {
     bool isPressed;
@@ -26,9 +28,11 @@ private:
     double mScrollDX;
     double mScrollDY;
 
+    double mSensivity;
+
     bool mIsMouseInitialized;
 
-    Button mButtons[LAKOT_MAXIMUM_MOUSE_BUTTON];
+    Button mButtons[LAKOT_MOUSE_MAXIMUM_BUTTON];
 
     Mouse();
 public:
@@ -46,6 +50,8 @@ public:
 
     double getScrollDX();
     double getScrollDY();
+
+    double getSensivity();
 
     bool isButtonStateChanged(int pButtonId);
 

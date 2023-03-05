@@ -23,9 +23,11 @@ Mouse::Mouse() {
     mScrollDX = 0;
     mScrollDY = 0;
 
+    mSensivity = LAKOT_MOUSE_DEFAULT_SENSIVITY;
+
     mIsMouseInitialized = false;
 
-    for (int i = 0 ; i < LAKOT_MAXIMUM_MOUSE_BUTTON; i++) {
+    for (int i = 0 ; i < LAKOT_MOUSE_MAXIMUM_BUTTON; i++) {
         mButtons[i].isPressed = false;
         mButtons[i].isStateChanged = false;
     }
@@ -55,7 +57,7 @@ void Mouse::mouseButtonCallback(ContextWindow* pWindow, int pButtonId, int pActi
     Mouse* tMouse = Mouse::getInstance();
 
     #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-        if (!(pButtonId < LAKOT_MAXIMUM_MOUSE_BUTTON)) {
+        if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
             throw "Button ID must be less than maximum mouse button amount.";
         }
 
@@ -117,8 +119,12 @@ double Mouse::getScrollDY() {
     return tScrollDY;
 }
 
+double Mouse::getSensivity() {
+    return mSensivity;
+}
+
 bool Mouse::isButtonStateChanged(int pButtonId) {
-    if (!(pButtonId < LAKOT_MAXIMUM_MOUSE_BUTTON)) {
+    if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
         throw "Button ID must be less than maximum mouse button amount.";
     }
 
@@ -128,7 +134,7 @@ bool Mouse::isButtonStateChanged(int pButtonId) {
 }
 
 bool Mouse::isButtonPressed(int pButtonId) {
-    if (!(pButtonId < LAKOT_MAXIMUM_MOUSE_BUTTON)) {
+    if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
         throw "Button ID must be less than maximum mouse button amount.";
     }
 
@@ -136,7 +142,7 @@ bool Mouse::isButtonPressed(int pButtonId) {
 }
 
 bool Mouse::isButtonUp(int pButtonId) {
-    if (!(pButtonId < LAKOT_MAXIMUM_MOUSE_BUTTON)) {
+    if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
         throw "Button ID must be less than maximum mouse button amount.";
     }
 
@@ -144,7 +150,7 @@ bool Mouse::isButtonUp(int pButtonId) {
 }
 
 bool Mouse::isButtonDown(int pButtonId) {
-    if (!(pButtonId < LAKOT_MAXIMUM_MOUSE_BUTTON)) {
+    if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
         throw "Button ID must be less than maximum mouse button amount.";
     }
 

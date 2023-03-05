@@ -64,7 +64,7 @@ void CameraManager::deleteCameras() {
     setActiveCameraNull();
 }
 
-void CameraManager::changeActiveCameraPosition(CameraDirection pCameraDirection, float pDt) {
+void CameraManager::updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt) {
     Camera* tActiveCamera = getActiveCamera();
 
     if (!tActiveCamera) {
@@ -93,4 +93,27 @@ void CameraManager::changeActiveCameraPosition(CameraDirection pCameraDirection,
     }
 
     tActiveCamera->changePosition(pAmount);
+}
+
+void CameraManager::updateActiveCameraDirection(float pDX, float pDY) {
+    Camera* tActiveCamera = getActiveCamera();
+
+    if (!tActiveCamera) {
+        return;
+    }
+
+    tActiveCamera->changeYaw(pDX);
+    tActiveCamera->changePitch(pDY);
+
+    tActiveCamera->updateCameraVectors();
+}
+
+void CameraManager::updateActiveCameraZoom(float pAmount) {
+    Camera* tActiveCamera = getActiveCamera();
+
+    if (!tActiveCamera) {
+        return;
+    }
+
+    tActiveCamera->changeZoom(pAmount);
 }

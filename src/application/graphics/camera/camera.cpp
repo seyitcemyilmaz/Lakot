@@ -9,7 +9,6 @@ Camera::Camera(glm::vec3 pPosition) {
     mYaw = LAKOT_DEFAULT_CAMERA_YAW;
     mPitch = LAKOT_DEFAULT_CAMERA_PITCH;
 
-    mSensivity = LAKOT_DEFAULT_CAMERA_SENSIVITY;
     mZoom = LAKOT_DEFAULT_CAMERA_ZOOM;
 
     updateCameraVectors();
@@ -56,5 +55,21 @@ void Camera::changeZoom(float pAmount) {
 
     if (mZoom > LAKOT_CAMERA_MAX_ZOOM) {
         mZoom = LAKOT_CAMERA_MAX_ZOOM;
+    }
+}
+
+void Camera::changeYaw(float pAmount) {
+    mYaw += pAmount;
+}
+
+void Camera::changePitch(float pAmount) {
+    mPitch += pAmount;
+
+    if (mPitch > LAKOT_CAMERA_MAX_PITCH) {
+        mPitch = LAKOT_CAMERA_MAX_PITCH;
+    }
+
+    if (mPitch < LAKOT_CAMERA_MIN_PITCH) {
+        mPitch = LAKOT_CAMERA_MIN_PITCH;
     }
 }

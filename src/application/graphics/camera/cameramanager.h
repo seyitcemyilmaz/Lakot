@@ -39,7 +39,9 @@ public:
 
     void deleteCameras();
 
-    void changeActiveCameraPosition(CameraDirection pCameraDirection, float pDt);
+    void updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt);
+    void updateActiveCameraDirection(float pDX, float pDY);
+    void updateActiveCameraZoom(float pAmount);
 };
 
 #endif

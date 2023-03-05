@@ -10,11 +10,13 @@
 #define LAKOT_DEFAULT_CAMERA_YAW        270.0f
 #define LAKOT_DEFAULT_CAMERA_PITCH      0.0f
 
-#define LAKOT_DEFAULT_CAMERA_SENSIVITY  1.0f
 #define LAKOT_DEFAULT_CAMERA_ZOOM       45.0f
 
 #define LAKOT_CAMERA_MIN_ZOOM           1.0f
 #define LAKOT_CAMERA_MAX_ZOOM           45.0f
+
+#define LAKOT_CAMERA_MAX_PITCH          89.9f
+#define LAKOT_CAMERA_MIN_PITCH          -89.9f
 
 class Camera {
 private:
@@ -30,12 +32,10 @@ private:
     float mPitch;   // For y-axis
 
     float mZoom;
-
-    float mSensivity;
-
-    void updateCameraVectors();
 public:
     Camera(glm::vec3 pPosition);
+
+    void updateCameraVectors();
 
     glm::vec3 getPosition();
 
@@ -47,6 +47,9 @@ public:
 
     void changePosition(glm::vec3 pAmount);
     void changeZoom(float pAmount);
+
+    void changeYaw(float pAmount);
+    void changePitch(float pAmount);
 };
 
 #endif

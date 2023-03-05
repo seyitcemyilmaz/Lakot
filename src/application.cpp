@@ -3,6 +3,7 @@
 #include "application/graphics/render/rendermanager.h"
 #include "application/graphics/shader/shadermanager.h"
 #include "application/graphics/camera/cameramanager.h"
+#include "helper/controls/mouse.h"
 
 Application::Application() {
     mGUI = nullptr;
@@ -64,7 +65,26 @@ void Application::initializeModels() {
 
 
 void Application::processInputs() {
+#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
+    double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
+    double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
 
+    if (tDX != 0.0f || tDY != 0.0f) {
+        CameraManager::getInstance()->updateActiveCameraDirection(tDX, tDY);
+    }
+
+    double tScrollDY = Mouse::getInstance()->getScrollDY();
+
+    if (tScrollDY != 0.0f) {
+        CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
+    }
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
+    #error Not implemented.
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
+    #error Graphics API is not found.
+#else
+    #error Undefined Graphics API.
+#endif
 }
 
 void Application::render() {
