@@ -1,5 +1,18 @@
 #include "windowmanager.h"
 
+WindowManager* WindowManager::mInstance = nullptr;
+
+WindowManager* WindowManager::getInstance() {
+    if (!mInstance) {
+        mInstance = new WindowManager(LAKOT_DEFAULT_WINDOW_TITLE,
+                                      LAKOT_DEFAULT_WINDOW_WIDTH,
+                                      LAKOT_DEFAULT_WINDOW_HEIGHT,
+                                      LAKOT_DEFAULT_WINDOW_BACKGROUND);
+    }
+
+    return mInstance;
+}
+
 WindowManager::WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor) :
     mWindowTitle(tWindowTitle),
     mWindowWidth(tWindowWidth),
@@ -46,7 +59,7 @@ void WindowManager::initializateWindow() {
 
 void WindowManager::updateWindow() {
     glClearColor(mWindowBackgroundColor.r, mWindowBackgroundColor.g, mWindowBackgroundColor.b, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void WindowManager::createWindow() {
@@ -83,6 +96,15 @@ glm::vec3 WindowManager::getWindowBackgroundColor() {
 bool WindowManager::getIsWindowActive() {
     return mIsWindowActive;
 }
+
+int WindowManager::getWindowHeight() {
+    return mWindowHeight;
+}
+
+int WindowManager::getWindowWidth() {
+    return mWindowWidth;
+}
+
 void WindowManager::frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight) {
     WindowManager* tWindowObject = (WindowManager*)glfwGetWindowUserPointer(tWindow);
 
@@ -101,7 +123,7 @@ void WindowManager::windowCloseCallback(ContextWindow* tWindow) {
 
     std::cout << "Exit button is clicked." << std::endl;
 }
-
+/*
 WindowManager::~WindowManager() {
     #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
         glfwDestroyWindow(mWindow);
@@ -114,3 +136,4 @@ WindowManager::~WindowManager() {
     #endif
 
 }
+*/

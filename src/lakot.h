@@ -9,7 +9,6 @@
 class Lakot {
 private:
     Platform* mPlatform;
-    WindowManager* mWindowManager;
 
     Application* mApplication;
 

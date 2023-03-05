@@ -9,6 +9,7 @@ set(SRC_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
             set(CAMERA_DIRECTORY ${GRAPHICS_DIRECTORY}/camera)
             set(RENDER_DIRECTORY ${GRAPHICS_DIRECTORY}/render)
             set(SHADER_DIRECTORY ${GRAPHICS_DIRECTORY}/shader)
+        set(RESOURCES_DIRECTORY ${APPLICATION_DIRECTORY}/resources)
     set(CORE_DIRECTORY ${SRC_DIRECTORY}/core)    
 set(THIRD_PARTY_DIRECTORY ${CMAKE_SOURCE_DIR}/third_party)
 
@@ -27,12 +28,6 @@ set(SRC_FILES
     set(GRAPHICS_FILES
         ${GRAPHICS_DIRECTORY}/gui.h
         ${GRAPHICS_DIRECTORY}/gui.cpp
-
-        ${GRAPHICS_DIRECTORY}/mesh.h
-        ${GRAPHICS_DIRECTORY}/mesh.cpp
-
-        ${GRAPHICS_DIRECTORY}/model.h
-        ${GRAPHICS_DIRECTORY}/model.cpp
     )
 
         set(CAMERA_FILES
@@ -44,8 +39,8 @@ set(SRC_FILES
         )
 
         set(RENDER_FILES
-            ${RENDER_DIRECTORY}/renderer.h
-            ${RENDER_DIRECTORY}/renderer.cpp
+            ${RENDER_DIRECTORY}/rendermanager.h
+            ${RENDER_DIRECTORY}/rendermanager.cpp
         )
 
         set(SHADER_FILES
@@ -55,6 +50,16 @@ set(SRC_FILES
             ${SHADER_DIRECTORY}/shadermanager.h
             ${SHADER_DIRECTORY}/shadermanager.cpp
         )
+
+    set(RESOURCES_FILES
+        ${RESOURCES_DIRECTORY}/IDrawable.h
+
+        ${RESOURCES_DIRECTORY}/mesh.h
+        ${RESOURCES_DIRECTORY}/mesh.cpp
+
+        ${RESOURCES_DIRECTORY}/model.h
+        ${RESOURCES_DIRECTORY}/model.cpp
+    )
 
 include_directories(
     ${SRC_DIRECTORY}
@@ -67,6 +72,7 @@ add_executable(LAKOT
             ${RENDER_FILES}
             ${SHADER_FILES}
             ${CAMERA_FILES}
+        ${RESOURCES_FILES}
 )
 
 target_link_libraries(LAKOT 

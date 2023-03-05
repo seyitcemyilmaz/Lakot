@@ -1,12 +1,13 @@
 #include "shader.h"
 
-Shader::Shader() {
-    mShaderProgramId = 0;
-}
-
 Shader::Shader(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath) {
     mShaderProgramId = 0;
+
     createShaderProgram(pVertexShaderFilePath, pFragmentShaderFilePath);
+
+    mProjectionMatrixLocation = glGetUniformLocation(mShaderProgramId, "projection");
+    mViewMatrixLocation = glGetUniformLocation(mShaderProgramId, "view");
+    mModelMatrixLocation = glGetUniformLocation(mShaderProgramId, "model");
 }
 
 Shader::~Shader() {
@@ -65,4 +66,16 @@ unsigned int Shader::compileShader(std::string pShaderFilePath, unsigned int tSh
     }
 
     return tShaderId;
+}
+
+int Shader::getProjectionMatrixLocation() {
+    return mProjectionMatrixLocation;
+}
+
+int Shader::getViewMatrixLocation() {
+    return mViewMatrixLocation;
+}
+
+int Shader::getModelMatrixLocation() {
+    return mModelMatrixLocation;
 }

@@ -5,9 +5,15 @@
 
 #include "mesh.h"
 
-class Model {
+class Model : public IDrawable {
 private:
     std::vector<Mesh*> mMeshes;
+public:
+    Model();
+
+    void addMesh(Mesh* pMesh);
+
+    void draw();
 };
 
 #endif

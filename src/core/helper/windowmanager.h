@@ -1,12 +1,19 @@
 #ifndef LAKOT_WINDOWMANAGER_H
 #define LAKOT_WINDOWMANAGER_H
 
+#include <glm/glm.hpp>
+
 #include "platform.h"
 
-#include <glm/glm.hpp>
+#define LAKOT_DEFAULT_WINDOW_TITLE      "LAKOT"
+#define LAKOT_DEFAULT_WINDOW_WIDTH      800
+#define LAKOT_DEFAULT_WINDOW_HEIGHT     800
+#define LAKOT_DEFAULT_WINDOW_BACKGROUND glm::vec3(0.3f, 0.2f, 0.5f)
 
 class WindowManager {
 private:
+    static WindowManager* mInstance;
+
     ContextWindow* mWindow;
 
     bool mIsWindowActive;
@@ -24,9 +31,10 @@ private:
     void setIsWindowActive(bool tIsWindowActive);
 
     void createWindow();
+
+    WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor);
 public:
-    WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor = glm::vec3(0.2f, 0.3f, 0.3f));
-    ~WindowManager();
+    static WindowManager* getInstance();
 
     void initializateWindow();
 
@@ -38,6 +46,9 @@ public:
     glm::vec3 getWindowBackgroundColor();
 
     bool getIsWindowActive();
+
+    int getWindowHeight();
+    int getWindowWidth();
 
     static void frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight);
     static void windowCloseCallback(ContextWindow* tWindow);

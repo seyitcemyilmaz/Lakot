@@ -4,8 +4,6 @@
 
 Lakot::Lakot() {
     mPlatform = nullptr;
-    mWindowManager = nullptr;
-
     mApplication = nullptr;
 }
 
@@ -19,21 +17,22 @@ void Lakot::initializeLakot() {
 
     std::cout << "Lakot Graphics API: " << mPlatform->getGraphicsAPI()->getGraphicsAPIString() << std::endl;
 
-    mWindowManager = new WindowManager("Lakot", 800, 800);
-    mWindowManager->initializateWindow();
+    WindowManager::getInstance()->initializateWindow();
 
     initializeCallbackFunctions();
 }
 
 void Lakot::initializeCallbackFunctions() {
 #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-    glfwSetWindowUserPointer(mWindowManager->getWindow(), mWindowManager);
-    glfwSetFramebufferSizeCallback(mWindowManager->getWindow(), WindowManager::frameBufferSizeCallback);
-    glfwSetWindowCloseCallback(mWindowManager->getWindow(), WindowManager::windowCloseCallback);
-    //glfwSetKeyCallback(mWindowManager->getWindow(), );
-    glfwSetMouseButtonCallback(mWindowManager->getWindow(), Mouse::mouseButtonCallback);
-    glfwSetScrollCallback(mWindowManager->getWindow(), Mouse::scrollCallback);
-    glfwSetCursorPosCallback(mWindowManager->getWindow(), Mouse::cursorPositionCallBack);
+    WindowManager* tWindowManager = WindowManager::getInstance();
+
+    glfwSetWindowUserPointer(tWindowManager->getWindow(), tWindowManager);
+    glfwSetFramebufferSizeCallback(tWindowManager->getWindow(), WindowManager::frameBufferSizeCallback);
+    glfwSetWindowCloseCallback(tWindowManager->getWindow(), WindowManager::windowCloseCallback);
+    //glfwSetKeyCallback(tWindowManager->getWindow(), );
+    glfwSetMouseButtonCallback(tWindowManager->getWindow(), Mouse::mouseButtonCallback);
+    glfwSetScrollCallback(tWindowManager->getWindow(), Mouse::scrollCallback);
+    glfwSetCursorPosCallback(tWindowManager->getWindow(), Mouse::cursorPositionCallBack);
 #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
     #error Not implemented.
 #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
@@ -51,11 +50,13 @@ void Lakot::initalizeApplication() {
 void Lakot::runApplication() {
     std::cout << "Application is running." << std::endl;
     #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-        while (mWindowManager->getIsWindowActive()) {
+        WindowManager* tWindowManager = WindowManager::getInstance();
+
+        while (tWindowManager->getIsWindowActive()) {
             mApplication->processInputs();
+            tWindowManager->updateWindow();
             mApplication->render();
-            mWindowManager->updateWindow();
-            glfwSwapBuffers(mWindowManager->getWindow());
+            glfwSwapBuffers(tWindowManager->getWindow());
             glfwPollEvents();
         }
     #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
@@ -73,6 +74,5 @@ void Lakot::terminateApplication() {
 }
 
 Lakot::~Lakot() {
-    delete mWindowManager;
     delete mPlatform;
 }

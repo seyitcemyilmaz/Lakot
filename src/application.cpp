@@ -1,24 +1,26 @@
 #include "application.h"
 
+#include "application/graphics/render/rendermanager.h"
 #include "application/graphics/shader/shadermanager.h"
 #include "application/graphics/camera/cameramanager.h"
 
 Application::Application() {
-    mRenderer = nullptr;
+    mGUI = nullptr;
 }
 
 Application::~Application() {
-    delete mRenderer;
-
     ShaderManager::getInstance()->deleteShaders();
     CameraManager::getInstance()->deleteCameras();
 }
 
 void Application::initialization() {
-    mRenderer = new Renderer();
+    mGUI = new GUI();
 
     initializeShaders();
     initializeCameras();
+    initializeModels();
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Application::initializeShaders() {
@@ -30,7 +32,34 @@ void Application::initializeShaders() {
 void Application::initializeCameras() {
     CameraManager* tCameraManager = CameraManager::getInstance();
 
-    tCameraManager->addCamera("mainCamera", glm::vec3(2.0f));
+    tCameraManager->addCamera("mainCamera", glm::vec3(0.0f, 0.0f, 2.0f));
+}
+
+void Application::initializeModels() {
+    Model* tModel = new Model();
+
+    Mesh* tMesh = new Mesh();
+
+    std::vector<float> tVertices {
+        0.5f,  0.5f, 0.0f,  // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+       -0.5f, -0.5f, 0.0f,  // bottom left
+       -0.5f,  0.5f, 0.0f   // top left
+    };
+
+    std::vector<unsigned int> tIndices {
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
+    };
+
+    tMesh->setVertices(tVertices);
+    tMesh->setIndices(tIndices);
+
+    tMesh->initializeBuffers();
+
+    tModel->addMesh(tMesh);
+
+    mModels.push_back(tModel);
 }
 
 
@@ -39,5 +68,8 @@ void Application::processInputs() {
 }
 
 void Application::render() {
-    mRenderer->render();
+    // TODO: Add render function for scene
+    RenderManager::getInstance()->renderScene();    
+    mModels[0]->draw();
+    // TODO: Add render functi on for GUI
 }

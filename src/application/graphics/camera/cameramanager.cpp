@@ -2,16 +2,17 @@
 
 CameraManager* CameraManager::mInstance = nullptr;
 
-CameraManager::CameraManager() {
-    setActiveCameraNull();
-}
-
 CameraManager* CameraManager::getInstance() {
     if (!mInstance) {
         mInstance = new CameraManager();
     }
 
     return mInstance;
+}
+
+CameraManager::CameraManager() {
+    mCameraMovementSpeed = LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED;
+    setActiveCameraNull();
 }
 
 void CameraManager::addCamera(std::string pName, glm::vec3 pPosition) {
@@ -63,3 +64,33 @@ void CameraManager::deleteCameras() {
     setActiveCameraNull();
 }
 
+void CameraManager::changeActiveCameraPosition(CameraDirection pCameraDirection, float pDt) {
+    Camera* tActiveCamera = getActiveCamera();
+
+    if (!tActiveCamera) {
+        return;
+    }
+
+    glm::vec3 pAmount = glm::vec3(0.0f);
+
+    if (pCameraDirection == CameraDirection::eForward) {
+        pAmount = tActiveCamera->getFrontVector() * mCameraMovementSpeed * pDt;
+    }
+    else if (pCameraDirection == CameraDirection::eBackward) {
+        pAmount = -(tActiveCamera->getFrontVector() * mCameraMovementSpeed * pDt);
+    }
+    else if (pCameraDirection == CameraDirection::eRight) {
+        pAmount = tActiveCamera->getRightVector() * mCameraMovementSpeed * pDt;
+    }
+    else if (pCameraDirection == CameraDirection::eLeft) {
+        pAmount = -(tActiveCamera->getRightVector() * mCameraMovementSpeed * pDt);
+    }
+    else if (pCameraDirection == CameraDirection::eUp) {
+        pAmount = tActiveCamera->getUpVector() * mCameraMovementSpeed * pDt;
+    }
+    else if (pCameraDirection == CameraDirection::eDown) {
+        pAmount = -(tActiveCamera->getUpVector() * mCameraMovementSpeed * pDt);
+    }
+
+    tActiveCamera->changePosition(pAmount);
+}

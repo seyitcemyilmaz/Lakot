@@ -1,17 +1,18 @@
 #ifndef LAKOT_APPLICATION_H
 #define LAKOT_APPLICATION_H
 
-#include "application/graphics/render/renderer.h"
-#include "application/graphics/model.h"
+#include "application/resources/model.h"
+#include "application/graphics/gui.h"
 
 class Application {
 private:
-    Renderer* mRenderer;
+    GUI* mGUI;
 
     std::vector<Model*> mModels;
 
     void initializeShaders();
     void initializeCameras();
+    void initializeModels();
 public:
     Application();
     ~Application();
@@ -20,6 +21,5 @@ public:
     void processInputs();
     void render();
 };
-
 
 #endif
