@@ -1,6 +1,7 @@
 set(GRAPHICSAPI_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/graphicsAPI)
 set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
     set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
+set(RESOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resource)
 
 
 set(GRAPHICSAPI_FILES
@@ -25,8 +26,37 @@ elseif (UNIX)
 endif()
 
 set(HELPER_FILES
+    ${HELPER_DIRECTORY}/timer.h
+    ${HELPER_DIRECTORY}/timer.cpp
+
     ${HELPER_DIRECTORY}/windowmanager.h
     ${HELPER_DIRECTORY}/windowmanager.cpp
+)
+
+set(RESOURCE_FILES
+    ${RESOURCE_DIRECTORY}/boneresource.h
+    ${RESOURCE_DIRECTORY}/boneresource.cpp
+
+    ${RESOURCE_DIRECTORY}/meshresource.h
+    ${RESOURCE_DIRECTORY}/meshresource.cpp
+
+    ${RESOURCE_DIRECTORY}/modelloader.h
+    ${RESOURCE_DIRECTORY}/modelloader.cpp
+
+    ${RESOURCE_DIRECTORY}/modelresource.h
+    ${RESOURCE_DIRECTORY}/modelresource.cpp
+
+    ${RESOURCE_DIRECTORY}/noderesource.h
+    ${RESOURCE_DIRECTORY}/noderesource.cpp
+
+    ${RESOURCE_DIRECTORY}/resourcemanager.h
+    ${RESOURCE_DIRECTORY}/resourcemanager.cpp
+
+    ${RESOURCE_DIRECTORY}/textureloader.h
+    ${RESOURCE_DIRECTORY}/textureloader.cpp
+
+    ${RESOURCE_DIRECTORY}/textureresource.h
+    ${RESOURCE_DIRECTORY}/textureresource.cpp
 )
 
     set(CONTROLS_FILES
@@ -43,21 +73,22 @@ add_library(LAKOT_CORE
     ${GRAPHICSAPI_FILES}
     ${HELPER_FILES}
         ${CONTROLS_FILES}
+    ${RESOURCE_FILES}
 )
 
 ### add glfw - begin ###
 if (WIN32)
     find_package(OpenGL REQUIRED)
 
-    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glfw GLFW_FILES)
+    add_library(GLFW_LIBRARY SHARED IMPORTED)
 
-    include_directories(${OPENGL_INCLUDE_DIRS})
+    set_target_properties(GLFW_LIBRARY PROPERTIES
+      IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw3.dll
+      IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libglfw3dll.a
+    )
 
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
-    set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
-
-    target_link_libraries(LAKOT_CORE glfw)
-    include_directories(${THIRD_PARTY_DIRECTORY}/glfw/include)
+    target_include_directories(LAKOT_CORE PUBLIC ${THIRD_PARTY_DIRECTORY}/glfw/include)
+    target_link_libraries(LAKOT_CORE GLFW_LIBRARY)
 elseif (UNIX)
     find_package(OpenGL REQUIRED)
 
@@ -89,4 +120,32 @@ elseif (UNIX)
 endif()
 ### add glm - end ###
 
+### add assimp - begin ###
+if (WIN32)
+    add_library(ASSIMP_LIBRARY SHARED IMPORTED)
+
+    set_target_properties(ASSIMP_LIBRARY PROPERTIES
+      IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimp-5d.dll
+      IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimpd.dll.a
+    )
+
+    target_include_directories(LAKOT_CORE PUBLIC ${THIRD_PARTY_DIRECTORY}/assimp/include)
+    target_link_libraries(LAKOT_CORE ASSIMP_LIBRARY)
+elseif (UNIX)
+
+endif()
+### add assimp - end ###
+
+### add stb - begin ###
+if (WIN32)
+    add_library(STB_LIBRARY INTERFACE ${THIRD_PARTY_DIRECTORY}/stb/stb_image.h)
+
+    target_include_directories(STB_LIBRARY INTERFACE ${THIRD_PARTY_DIRECTORY}/stb)
+    target_link_libraries(LAKOT_CORE STB_LIBRARY)
+elseif (UNIX)
+
+endif()
+### add stb - end ###
+
 target_include_directories(LAKOT_CORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_directories(LAKOT_CORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib)

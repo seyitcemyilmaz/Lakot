@@ -8,11 +8,17 @@ class Application {
 private:
     GUI* mGUI;
 
+    float mCurrentTime;
+    float mPreviousTime;
+
     std::vector<Model*> mModels;
 
     void initializeShaders();
     void initializeCameras();
     void initializeModels();
+
+    void processKeyboardInputs(float pDt);
+    void processMouseInputs();
 public:
     Application();
     ~Application();

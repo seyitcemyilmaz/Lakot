@@ -12,6 +12,7 @@ CameraManager* CameraManager::getInstance() {
 
 CameraManager::CameraManager() {
     mCameraMovementSpeed = LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED;
+
     setActiveCameraNull();
 }
 

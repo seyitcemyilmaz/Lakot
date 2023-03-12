@@ -37,6 +37,11 @@ std::string Platform::getLakotAssetsPath() {
     return tLakotAssetsPath;
 }
 
+std::string Platform::getLakotModelsPath() {
+    std::string tLakotModelsPath = getLakotAssetsPath() + "/models";
+    return tLakotModelsPath;
+}
+
 std::string Platform::readFileContent(std::string pFilePath) {
     #if LAKOT_PLATFORM == LAKOT_PLATFORM_WINDOWS
         std::ifstream tFile(pFilePath);

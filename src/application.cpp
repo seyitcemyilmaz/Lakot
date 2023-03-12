@@ -7,6 +7,8 @@
 #include "helper/controls/keyboard.h"
 #include "helper/controls/mouse.h"
 
+#include "core/resource/resourcemanager.h"
+
 Application::Application() {
     mGUI = nullptr;
 }
@@ -19,9 +21,14 @@ Application::~Application() {
 void Application::initialization() {
     mGUI = new GUI();
 
+    mCurrentTime = 0.0f;
+    mPreviousTime = 0.0f;
+
     initializeShaders();
     initializeCameras();
     initializeModels();
+
+    ResourceManager::getInstance()->addModelResource("girl/source/girl.fbx");
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -68,6 +75,63 @@ void Application::initializeModels() {
 
 void Application::processInputs() {
 #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
+    mCurrentTime = glfwGetTime();
+
+    double tDt = mCurrentTime - mPreviousTime;
+
+    processMouseInputs();
+    processKeyboardInputs(tDt);
+
+    mPreviousTime = mCurrentTime;
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
+    #error Not implemented.
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
+    #error Graphics API is not found.
+#else
+    #error Undefined Graphics API.
+#endif
+}
+
+void Application::processKeyboardInputs(float pDt) {
+#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE)) {
+        WindowManager::getInstance()->closeWindow();
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_W)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, pDt);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_S)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, pDt);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_D)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, pDt);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_A)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, pDt);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_SPACE)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eUp, pDt);
+    }
+
+    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eDown, pDt);
+    }
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
+    #error Not implemented.
+#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
+    #error Graphics API is not found.
+#else
+    #error Undefined Graphics API.
+#endif
+}
+
+void Application::processMouseInputs() {
+#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
     double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
     double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
 
@@ -79,26 +143,6 @@ void Application::processInputs() {
 
     if (tScrollDY != 0.0f) {
         CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
-    }
-
-    if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE)) {
-        WindowManager::getInstance()->closeWindow();
-    }
-
-    if (Keyboard::getInstance()->isKeyPressed('A')) {
-        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, 0.0001);
-    }
-
-    if (Keyboard::getInstance()->isKeyPressed('D')) {
-        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, 0.0001);
-    }
-
-    if (Keyboard::getInstance()->isKeyPressed('W')) {
-        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, 0.0001);
-    }
-
-    if (Keyboard::getInstance()->isKeyPressed('S')) {
-        CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, 0.0001);
     }
 #elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
     #error Not implemented.

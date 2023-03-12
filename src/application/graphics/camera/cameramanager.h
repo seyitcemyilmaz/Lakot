@@ -5,7 +5,7 @@
 
 #include "camera.h"
 
-#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED      10.0f
+#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED      5.0f
 
 enum CameraDirection {
     eForward,

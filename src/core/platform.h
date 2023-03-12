@@ -68,6 +68,7 @@ public:
 
     static std::string getLakotRootPath();
     static std::string getLakotAssetsPath();
+    static std::string getLakotModelsPath();
     static std::string readFileContent(std::string pFilePath);
 };
 
