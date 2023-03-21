@@ -26,6 +26,9 @@ elseif (UNIX)
 endif()
 
 set(HELPER_FILES
+    ${HELPER_DIRECTORY}/FileManager.h
+    ${HELPER_DIRECTORY}/FileManager.cpp
+
     ${HELPER_DIRECTORY}/timer.h
     ${HELPER_DIRECTORY}/timer.cpp
 

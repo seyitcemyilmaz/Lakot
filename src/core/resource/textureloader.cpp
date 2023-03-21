@@ -1,6 +1,6 @@
 #include "textureloader.h"
 
-#include <filesystem>
+#include "helper/FileManager.h"
 
 TextureLoader::TextureLoader(std::string pSourcePath, std::string pTexturePath) {
     mTexturePath = pTexturePath;
@@ -8,15 +8,40 @@ TextureLoader::TextureLoader(std::string pSourcePath, std::string pTexturePath) 
 }
 
 TextureResource* TextureLoader::loadTexture() {
-    std::string tTextureFileName = getFileName(mTexturePath);
-    std::string tSourceDirectory = getDirectory(mSourcePath);
+    std::string tTexturePath = getTexturePath();
 
-    createPossibleTextureLocations(tSourceDirectory);
+    if (tTexturePath.empty()) {
+        std::cout << "TEXTURE BULUNAMADI: " << mTexturePath << std::endl;
+        return nullptr;
+    }
+
+    std::cout << "TEXTURE BULUNDU: " << tTexturePath << std::endl;
+
+
+    return nullptr;
+}
+
+void TextureLoader::createPossibleTextureLocations() {
+    std::string tSourceDirectory = FileManager::getInstance()->getDirectoryFromPath(mSourcePath);
+
+    mPossibleTextureLocations.push_back(tSourceDirectory);
+    mPossibleTextureLocations.push_back(FileManager::getInstance()->createPath(tSourceDirectory, "textures"));
+
+    if (FileManager::getInstance()->hasParentPath(tSourceDirectory)) {
+        std::string tParentDirectory = FileManager::getInstance()->getParentDirectory(tSourceDirectory);
+        mPossibleTextureLocations.push_back(tParentDirectory);
+        mPossibleTextureLocations.push_back(FileManager::getInstance()->createPath(tParentDirectory, "textures"));
+    }
+}
+
+std::string TextureLoader::getTexturePath() {
+    std::string tTextureFileName = FileManager::getInstance()->getFileNameFromPath(mTexturePath);
+
+    createPossibleTextureLocations();
 
     for (unsigned int i = 0; i < mPossibleTextureLocations.size(); i++) {
-        if (isFileExist(mPossibleTextureLocations[i], tTextureFileName)) {
-            // TODO: Will be continued.
-            std::cout << createPath(mPossibleTextureLocations[i], tTextureFileName) << std::endl;
+        if (FileManager::getInstance()->isFileExist(mPossibleTextureLocations[i], tTextureFileName)) {
+            return FileManager::getInstance()->createPath(mPossibleTextureLocations[i], tTextureFileName);
         }
     }
 
@@ -29,44 +54,10 @@ TextureResource* TextureLoader::loadTexture() {
 
 
     for (unsigned int i = 0; i < mPossibleTextureLocations.size(); i++) {
-        if (isFileExist(mPossibleTextureLocations[i], tTextureFileNameSpacesChangedWithUnderscore)) {
-            // TODO: Will be continued.
-            std::cout << createPath(mPossibleTextureLocations[i], tTextureFileNameSpacesChangedWithUnderscore) << std::endl;
+        if (FileManager::getInstance()->isFileExist(mPossibleTextureLocations[i], tTextureFileNameSpacesChangedWithUnderscore)) {
+            return FileManager::getInstance()->createPath(mPossibleTextureLocations[i], tTextureFileNameSpacesChangedWithUnderscore);
         }
     }
 
-    return nullptr;
-}
-
-void TextureLoader::createPossibleTextureLocations(std::string pDirectory) {
-    std::filesystem::path tBaseDirectory = pDirectory;
-
-    mPossibleTextureLocations.push_back(tBaseDirectory.string());
-    mPossibleTextureLocations.push_back(createDirectoryString(tBaseDirectory.string(), "textures"));
-
-    if (tBaseDirectory.has_parent_path()) {
-        std::filesystem::path tParentDirectory = tBaseDirectory.parent_path();
-        mPossibleTextureLocations.push_back(tParentDirectory.string());
-        mPossibleTextureLocations.push_back(createDirectoryString(tParentDirectory.string(), "textures"));
-    }
-}
-
-bool TextureLoader::isFileExist(std::string pDirectory, std::string pTextureFileName) {
-    return std::filesystem::exists(pDirectory + "/" + pTextureFileName);
-}
-
-std::string TextureLoader::createDirectoryString(std::string pPath, std::string pDirectory) {
-    return pPath + "/" + pDirectory;
-}
-
-std::string TextureLoader::createPath(std::string pDirectory, std::string pFileName) {
-    return pDirectory + "/" + pFileName;
-}
-
-std::string TextureLoader::getFileName(std::string pPath) {
-    return pPath.substr(pPath.find_last_of("/\\") + 1);
-}
-
-std::string TextureLoader::getDirectory(std::string pPath) {
-    return pPath.substr(0, pPath.find_last_of("/\\"));
+    return "";
 }

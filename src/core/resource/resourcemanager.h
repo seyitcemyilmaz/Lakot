@@ -15,7 +15,7 @@ private:
 public:
     static ResourceManager* getInstance();
 
-    void addModelResource(std::string pModelPath);
+    void addModelResource(std::string pModelFile);
 };
 
 #endif

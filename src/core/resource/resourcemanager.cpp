@@ -16,13 +16,13 @@ ResourceManager::ResourceManager() {
 
 }
 
-void ResourceManager::addModelResource(std::string pModelPath) {
-    if (mModelResources.contains(pModelPath)) {
+void ResourceManager::addModelResource(std::string pModelFile) {
+    if (mModelResources.contains(pModelFile)) {
         std::cout << "Model is already loaded." << std::endl;
         return;
     }
 
-    ModelLoader* tModelLoader = new ModelLoader(pModelPath);
+    ModelLoader* tModelLoader = new ModelLoader(pModelFile);
 
     if (!tModelLoader->loadModel()) {
         std::cout << "Model is not found." << std::endl;

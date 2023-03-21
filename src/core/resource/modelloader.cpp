@@ -27,11 +27,11 @@ ModelResource* ModelLoader::loadModel() {
 
     mModelResource = new ModelResource();
 
-    processNode(tScene->mRootNode, tScene, nullptr);
+    //processNode(tScene->mRootNode, tScene, nullptr);
 
     // TODO: Will be continued.
 
-    //extractMaterials(tScene);
+    extractMaterials(tScene);
 
     return nullptr;
 }
@@ -39,21 +39,34 @@ ModelResource* ModelLoader::loadModel() {
 void ModelLoader::extractMaterials(const aiScene* pScene) {
     unsigned int tMaterialCount = pScene->mNumMaterials;
 
+    aiString tTempFilePath;
+
     for (unsigned int i = 0; i < tMaterialCount; i++) {
         aiMaterial* tMaterial = pScene->mMaterials[i];
-        aiString tFilePath;
 
         // TODO: Add embedded texture support.
 
-        tMaterial->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), tFilePath);
+        tMaterial->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), tTempFilePath);
 
-        TextureLoader* tTextureLoader = new TextureLoader(mModelPath, tFilePath.C_Str());
+        std::string tFilePath = tTempFilePath.C_Str();
 
-        if (!tTextureLoader->loadTexture()) {
-            std::cout << tFilePath.C_Str() << " is not found." << std::endl;
+        if (!tFilePath.empty()) {
+            if ('*' == tFilePath[0])  {
+                std::cout << "Embedded !!!!!" << std::endl;
+            }
+            else {
+                TextureLoader* tTextureLoader = new TextureLoader(mModelPath, tFilePath);
+
+                if (!tTextureLoader->loadTexture()) {
+                    //std::cout << tFilePath.C_Str() << " is not found." << std::endl;
+                }
+
+                // TODO: Handle texture.
+            }
         }
-
-        // TODO: Handle texture.
+        else {
+            std::cout << "There is no diffuse texture." << std::endl;
+        }
     }
 }
 

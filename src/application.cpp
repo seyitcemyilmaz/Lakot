@@ -28,7 +28,7 @@ void Application::initialization() {
     initializeCameras();
     initializeModels();
 
-    ResourceManager::getInstance()->addModelResource("girl/source/girl.fbx");
+    ResourceManager::getInstance()->addModelResource("gun/source/SW500.fbx");
 
     glEnable(GL_DEPTH_TEST);
 }

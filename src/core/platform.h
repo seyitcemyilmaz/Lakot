@@ -21,6 +21,8 @@
     #define ContextWindow                       GLFWwindow
 
     #define LAKOT_SHADER_HEADER                 "#version 330 core\n"
+
+    #define LAKOT_FILE_PATH_SEPARATOR           "/"
     
     #include "graphicsAPI/openglapi.h"
     #include <iostream>
@@ -38,6 +40,8 @@
 
     #define ContextWindow                       GLFWwindow
 
+    #define LAKOT_FILE_PATH_SEPARATOR           "/"
+
     #include "graphicsAPI/openglapi.h"
 
 #elif defined(ANDROID) || defined(__ANDROID__)
@@ -45,11 +49,17 @@
     #define LAKOT_GRAPHICS_API                  LAKOT_GRAPHICS_API_OPENGLES
     #define LAKOT_GRAPHICS_API_VERSION_MAJOR    3
     #define LAKOT_GRAPHICS_API_VERSION_MINOR    2
+
+    #define LAKOT_FILE_PATH_SEPARATOR           "/"
+
 #else
     #define LAKOT_PLATFORM                      LAKOT_PLATFORM_NONE
     #define LAKOT_GRAPHICS_API                  LAKOT_GRAPHICS_API_NONE
     #define LAKOT_GRAPHICS_API_VERSION_MAJOR    0
     #define LAKOT_GRAPHICS_API_VERSION_MINOR    0
+
+    #define LAKOT_FILE_PATH_SEPARATOR           "/"
+
     #error "Platform is not detected."
 #endif
 

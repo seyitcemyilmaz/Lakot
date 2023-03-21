@@ -13,14 +13,9 @@ private:
 
     std::vector<std::string> mPossibleTextureLocations;
 
-    std::string getFileName(std::string pPath);
-    std::string getDirectory(std::string pPath);
+    void createPossibleTextureLocations();
 
-    void createPossibleTextureLocations(std::string pDirectory);
-
-    bool isFileExist(std::string pDirectory, std::string pTextureFileName);
-    std::string createDirectoryString(std::string pPath, std::string pDirectory);
-    std::string createPath(std::string pDirectory, std::string pFileName);
+    std::string getTexturePath();
 public:
     TextureLoader(std::string pSourcePath, std::string pTexturePath);
 
