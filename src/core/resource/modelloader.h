@@ -31,6 +31,7 @@ private:
 
     void processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource);
     void processMesh(aiMesh* pMesh, const aiScene* pScene, NodeResource* pConnectedNodeResource);
+
 public:
     ModelLoader(std::string pModelPath);
 

@@ -28,6 +28,7 @@ private:
     void setActiveCameraNull();
 
     CameraManager();
+
 public:
     static CameraManager* getInstance();
 

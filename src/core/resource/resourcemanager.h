@@ -12,6 +12,7 @@ private:
     std::map<std::string, ModelResource*> mModelResources;
 
     ResourceManager();
+
 public:
     static ResourceManager* getInstance();
 

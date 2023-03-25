@@ -10,9 +10,7 @@ FileManager* FileManager::getInstance() {
     return mInstance;
 }
 
-FileManager::FileManager() {
-
-}
+FileManager::FileManager() { }
 
 bool FileManager::hasParentPath(std::filesystem::path pPath) {
     return pPath.has_parent_path();

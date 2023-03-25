@@ -33,9 +33,7 @@ void RenderManager::renderScene() {
     tShaderManager->setModelMatrix(tModelMatrix);
 }
 
-void RenderManager::renderGUI() {
-
-}
+void RenderManager::renderGUI() { }
 
 glm::mat4 RenderManager::getProjectionMatrix() {
     Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();

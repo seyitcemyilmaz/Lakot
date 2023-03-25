@@ -40,6 +40,4 @@ bool GraphicsAPI::getIsGraphicsAPIInitialized() {
     return mIsGraphicsAPIInitialized;
 }
 
-GraphicsAPI::~GraphicsAPI() {
-
-}
+GraphicsAPI::~GraphicsAPI() { }

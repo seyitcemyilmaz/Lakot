@@ -32,6 +32,7 @@ private:
     float mPitch;   // For y-axis
 
     float mZoom;
+
 public:
     Camera(glm::vec3 pPosition);
 

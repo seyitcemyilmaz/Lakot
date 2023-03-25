@@ -1,9 +1,6 @@
 #include "model.h"
 
-Model::Model() {
-
-}
-
+Model::Model() { }
 
 void Model::addMesh(Mesh* pMesh) {
     mMeshes.push_back(pMesh);

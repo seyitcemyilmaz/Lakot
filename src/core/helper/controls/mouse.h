@@ -35,6 +35,7 @@ private:
     Button mButtons[LAKOT_MOUSE_MAXIMUM_BUTTON];
 
     Mouse();
+
 public:
     static Mouse* getInstance();
 

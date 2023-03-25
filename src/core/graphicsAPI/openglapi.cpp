@@ -3,9 +3,7 @@
 OpenGLAPI::OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor) :
     GraphicsAPI(GraphicsAPIType::eOpenGL, tGraphicsAPIMajor, tGraphicsAPIMinor) { }
 
-OpenGLAPI::~OpenGLAPI() {
-
-}
+OpenGLAPI::~OpenGLAPI() { }
 
 void OpenGLAPI::initializeGraphicsAPI() {
     std::cout << "OpenGL API is initalizing." << std::endl;
@@ -26,5 +24,3 @@ void OpenGLAPI::terminateGraphicsAPI() {
     }
     std::cout << "OpenGL API is terminated." << std::endl;
 }
-
-

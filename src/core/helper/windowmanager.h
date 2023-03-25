@@ -33,6 +33,7 @@ private:
     void createWindow();
 
     WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor);
+
 public:
     static WindowManager* getInstance();
 

@@ -12,9 +12,7 @@ ResourceManager* ResourceManager::getInstance() {
     return mInstance;
 }
 
-ResourceManager::ResourceManager() {
-
-}
+ResourceManager::ResourceManager() { }
 
 void ResourceManager::addModelResource(std::string pModelFile) {
     if (mModelResources.contains(pModelFile)) {
@@ -30,5 +28,4 @@ void ResourceManager::addModelResource(std::string pModelFile) {
     }
 
     std::cout << "Model is loaded successfully." << std::endl;
-
 }

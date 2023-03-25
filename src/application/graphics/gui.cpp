@@ -4,9 +4,7 @@ GUI::GUI() {
     mVisibility = false;
 }
 
-void GUI::initialize() {
-
-}
+void GUI::initialize() { }
 
 void GUI::setVisibility(bool pVisibility) {
     mVisibility = pVisibility;

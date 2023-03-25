@@ -16,6 +16,7 @@ private:
     std::vector<BoneResource*> mBones;
 
     std::map<std::string, BoneResource*> mBoneMap;
+
 protected:
     void addMeshResource(MeshResource* pMeshResource);
     void addBoneResource(BoneResource* pBoneResource);
