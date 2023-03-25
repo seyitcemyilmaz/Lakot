@@ -85,12 +85,17 @@ if (WIN32)
 
     add_library(GLFW_LIBRARY SHARED IMPORTED)
 
+    SET(GLFW_DIR ${THIRD_PARTY_DIRECTORY}/glfw)
+    set(GLFW_BUILD_DIR ${GLFW_DIR}/out/build/x64-Debug)
+
     set_target_properties(GLFW_LIBRARY PROPERTIES
-      IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw3.dll
-      IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libglfw3dll.a
+      #IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw3.dll
+      #IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libglfw3dll.a
+      IMPORTED_LOCATION ${GLFW_BUILD_DIR}/src/glfw3.dll
+      IMPORTED_IMPLIB ${GLFW_BUILD_DIR}/src/glfw3dll.lib
     )
 
-    target_include_directories(LAKOT_CORE PUBLIC ${THIRD_PARTY_DIRECTORY}/glfw/include)
+    target_include_directories(LAKOT_CORE PUBLIC ${GLFW_DIR}/include)
     target_link_libraries(LAKOT_CORE GLFW_LIBRARY)
 elseif (UNIX)
     find_package(OpenGL REQUIRED)
@@ -127,12 +132,18 @@ endif()
 if (WIN32)
     add_library(ASSIMP_LIBRARY SHARED IMPORTED)
 
+    set(ASSIMP_DIR ${THIRD_PARTY_DIRECTORY}/assimp)
+    set(ASSIMP_BUILD_DIR ${ASSIMP_DIR}/out/build/x64-Debug)
+
     set_target_properties(ASSIMP_LIBRARY PROPERTIES
-      IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimp-5d.dll
-      IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimpd.dll.a
+      #IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimp-5d.dll
+      #IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimpd.dll.a
+      IMPORTED_LOCATION ${ASSIMP_BUILD_DIR}/bin/assimp-vc143-mtd.dll
+      IMPORTED_IMPLIB ${ASSIMP_BUILD_DIR}/lib/assimp-vc143-mtd.lib
     )
 
-    target_include_directories(LAKOT_CORE PUBLIC ${THIRD_PARTY_DIRECTORY}/assimp/include)
+    target_include_directories(LAKOT_CORE PUBLIC ${ASSIMP_DIR}/include)
+    target_include_directories(LAKOT_CORE PUBLIC ${ASSIMP_BUILD_DIR}/include)
     target_link_libraries(LAKOT_CORE ASSIMP_LIBRARY)
 elseif (UNIX)
 

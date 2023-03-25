@@ -1,5 +1,8 @@
+/.vs
 /.vscode
 /build
 /CMakeLists.txt.user
 /assets/models/*
 /src/core/lib/*
+/out/*
+/third_party/
