@@ -157,5 +157,5 @@ void Application::render() {
     // TODO: Add render function for scene
     RenderManager::getInstance()->renderScene();    
     mModels[0]->draw();
-    // TODO: Add render functi on for GUI
+    // TODO: Add render function for GUI
 }

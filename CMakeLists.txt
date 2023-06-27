@@ -1,7 +1,11 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
+
+set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+#set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-windows/share)
+
 project(LAKOT)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -65,9 +69,22 @@ set(SRC_FILES
 
 include_directories(
     ${SRC_DIRECTORY}
+    $ENV{VCPKG_ROOT}/installed/x64-windows/include
 )
 
-add_executable(LAKOT
+if(CMAKE_BUILD_TYPE EQUAL "DEBUG")
+    link_directories(
+        $ENV{VCPKG_ROOT}/installed/x64-windows/debug/lib
+    )
+else()
+    link_directories(
+        $ENV{VCPKG_ROOT}/installed/x64-windows/lib
+    )
+endif()
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+
+add_executable(${CMAKE_PROJECT_NAME}
     ${SRC_FILES}
         ${CONTROLS_FILES}
         ${GRAPHICS_FILES}
@@ -77,7 +94,7 @@ add_executable(LAKOT
         ${RESOURCES_FILES}
 )
 
-target_link_libraries(LAKOT 
-    LAKOT_CORE
+target_link_libraries(${CMAKE_PROJECT_NAME} 
+    LAKOT_CORE_LIB
     ${OPENGL_LIBRARIES}
 )

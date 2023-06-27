@@ -2,6 +2,7 @@
 /.vscode
 /build
 /CMakeLists.txt.user
+/CMakeSettings.json
 /assets/models/*
 /src/core/lib/*
 /out/*

@@ -70,7 +70,7 @@ set(RESOURCE_FILES
         ${CONTROLS_DIRECTORY}/mouse.cpp
     )
 
-add_library(LAKOT_CORE
+add_library(LAKOT_CORE_LIB
     platform.h
     platform.cpp
     ${GRAPHICSAPI_FILES}
@@ -81,70 +81,35 @@ add_library(LAKOT_CORE
 
 ### add glfw - begin ###
 if (WIN32)
-    find_package(OpenGL REQUIRED)
-
-    add_library(GLFW_LIBRARY SHARED IMPORTED)
-
-    SET(GLFW_DIR ${THIRD_PARTY_DIRECTORY}/glfw)
-    set(GLFW_BUILD_DIR ${GLFW_DIR}/out/build/x64-Debug)
-
-    set_target_properties(GLFW_LIBRARY PROPERTIES
-      #IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw3.dll
-      #IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libglfw3dll.a
-      IMPORTED_LOCATION ${GLFW_BUILD_DIR}/src/glfw3.dll
-      IMPORTED_IMPLIB ${GLFW_BUILD_DIR}/src/glfw3dll.lib
-    )
-
-    target_include_directories(LAKOT_CORE PUBLIC ${GLFW_DIR}/include)
-    target_link_libraries(LAKOT_CORE GLFW_LIBRARY)
+    find_package(glfw3 CONFIG REQUIRED)
+    target_link_libraries(LAKOT_CORE_LIB PRIVATE glfw)
 elseif (UNIX)
-    find_package(OpenGL REQUIRED)
 
-    include_directories(${OPENGL_INCLUDE_DIRS})
-
-    find_package(glfw3 REQUIRED)
 endif ()
 ### add glfw - end ###
 
 ### add glad - begin ###
 if (WIN32)
-    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad GLAD_FILES)
-    target_link_libraries(LAKOT_CORE glad)
+    find_package(glad CONFIG REQUIRED)
+    target_link_libraries(LAKOT_CORE_LIB PRIVATE glad::glad)
 elseif (UNIX)
-    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad)
-#elseif(ANDROID)
-    #add_subdirectory(${THIRD_PARTY_DIRECTORY}/glad)
+
 endif()
 ### add glad - end ###
 
 ### add glm - begin ###
 if (WIN32)
-    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glm GLM_FILES)
-    include_directories(${THIRD_PARTY_DIRECTORY}/glm)
-    target_link_libraries(LAKOT_CORE glm)
+    find_package(glm CONFIG REQUIRED)
+    target_link_libraries(LAKOT_CORE_LIB PRIVATE glm::glm)
 elseif (UNIX)
-    add_subdirectory(${THIRD_PARTY_DIRECTORY}/glm)
-    include_directories(${THIRD_PARTY_DIRECTORY}/glm)
+
 endif()
 ### add glm - end ###
 
 ### add assimp - begin ###
 if (WIN32)
-    add_library(ASSIMP_LIBRARY SHARED IMPORTED)
-
-    set(ASSIMP_DIR ${THIRD_PARTY_DIRECTORY}/assimp)
-    set(ASSIMP_BUILD_DIR ${ASSIMP_DIR}/out/build/x64-Debug)
-
-    set_target_properties(ASSIMP_LIBRARY PROPERTIES
-      #IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimp-5d.dll
-      #IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/libassimpd.dll.a
-      IMPORTED_LOCATION ${ASSIMP_BUILD_DIR}/bin/assimp-vc143-mtd.dll
-      IMPORTED_IMPLIB ${ASSIMP_BUILD_DIR}/lib/assimp-vc143-mtd.lib
-    )
-
-    target_include_directories(LAKOT_CORE PUBLIC ${ASSIMP_DIR}/include)
-    target_include_directories(LAKOT_CORE PUBLIC ${ASSIMP_BUILD_DIR}/include)
-    target_link_libraries(LAKOT_CORE ASSIMP_LIBRARY)
+    find_package(assimp CONFIG REQUIRED)
+    target_link_libraries(LAKOT_CORE_LIB PRIVATE assimp::assimp)
 elseif (UNIX)
 
 endif()
@@ -152,14 +117,11 @@ endif()
 
 ### add stb - begin ###
 if (WIN32)
-    add_library(STB_LIBRARY INTERFACE ${THIRD_PARTY_DIRECTORY}/stb/stb_image.h)
-
-    target_include_directories(STB_LIBRARY INTERFACE ${THIRD_PARTY_DIRECTORY}/stb)
-    target_link_libraries(LAKOT_CORE STB_LIBRARY)
+    find_package(Stb REQUIRED)
+    target_include_directories(LAKOT_CORE_LIB PRIVATE ${Stb_INCLUDE_DIR})
 elseif (UNIX)
 
 endif()
 ### add stb - end ###
 
-target_include_directories(LAKOT_CORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_directories(LAKOT_CORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+target_include_directories(LAKOT_CORE_LIB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -13,6 +13,7 @@ private:
     Application* mApplication;
 
     void initializeCallbackFunctions();
+
 public:
     Lakot();
     ~Lakot();

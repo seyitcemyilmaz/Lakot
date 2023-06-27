@@ -58,7 +58,7 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
                 TextureLoader* tTextureLoader = new TextureLoader(mModelPath, tFilePath);
 
                 if (!tTextureLoader->loadTexture()) {
-                    //std::cout << tFilePath.C_Str() << " is not found." << std::endl;
+                    std::cout << tFilePath << " is not found." << std::endl;
                 }
 
                 // TODO: Handle texture.
