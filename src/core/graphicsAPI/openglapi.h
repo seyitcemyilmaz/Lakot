@@ -8,11 +8,11 @@
 
 class OpenGLAPI : public GraphicsAPI {
 public:
-    OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
-    ~OpenGLAPI();
+	OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
+	~OpenGLAPI();
 
-    void initializeGraphicsAPI();
-    void terminateGraphicsAPI();
+	void initializeGraphicsAPI();
+	void terminateGraphicsAPI();
 };
 
 #endif

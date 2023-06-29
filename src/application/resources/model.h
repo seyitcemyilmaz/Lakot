@@ -7,13 +7,13 @@
 
 class Model : public IDrawable {
 private:
-    std::vector<Mesh*> mMeshes;
+	std::vector<Mesh*> mMeshes;
 public:
-    Model();
+	Model();
 
-    void addMesh(Mesh* pMesh);
+	void addMesh(Mesh* pMesh);
 
-    void draw();
+	void draw();
 };
 
 #endif

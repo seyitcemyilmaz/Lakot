@@ -9,25 +9,25 @@
 
 class ShaderManager {
 private:
-    static ShaderManager* mInstance;
+	static ShaderManager* mInstance;
 
-    std::map<std::string, Shader*> mShaders;
-    std::pair<std::string, Shader*> mActiveShader;
+	std::map<std::string, Shader*> mShaders;
+	std::pair<std::string, Shader*> mActiveShader;
 
-    void setActiveShaderNull();
+	void setActiveShaderNull();
 
-    ShaderManager();
+	ShaderManager();
 public:
-    static ShaderManager* getInstance();
+	static ShaderManager* getInstance();
 
-    void addShader(std::string pShaderName, Shader* pShader);
-    void bindShader(std::string pShaderName);
+	void addShader(std::string pShaderName, Shader* pShader);
+	void bindShader(std::string pShaderName);
 
-    void deleteShaders();
+	void deleteShaders();
 
-    void setProjectionMatrix(glm::mat4& tProjectionMatrix);
-    void setViewMatrix(glm::mat4& tViewMatrix);
-    void setModelMatrix(glm::mat4& tModelMatrix);
+	void setProjectionMatrix(glm::mat4& tProjectionMatrix);
+	void setViewMatrix(glm::mat4& tViewMatrix);
+	void setModelMatrix(glm::mat4& tModelMatrix);
 };
 
 #endif

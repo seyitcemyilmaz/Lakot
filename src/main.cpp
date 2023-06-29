@@ -3,15 +3,15 @@
 #include "lakot.h"
 
 int main() {
-    Lakot lakot;
+	Lakot lakot;
 
-    lakot.initializeLakot();
+	lakot.initializeLakot();
 
-    lakot.initalizeApplication();
-    
-    lakot.runApplication();
+	lakot.initalizeApplication();
 
-    lakot.terminateApplication();
+	lakot.runApplication();
 
-    return 0;
+	lakot.terminateApplication();
+
+	return 0;
 }

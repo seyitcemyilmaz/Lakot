@@ -5,12 +5,12 @@
 
 class TextureResource {
 private:
-    unsigned int mTextureId;
+	unsigned int mTextureId;
 
-    std::string mTexturePath;
+	std::string mTexturePath;
 
 public:
-    TextureResource(std::string pTexturePath);
+	TextureResource(std::string pTexturePath);
 };
 
 

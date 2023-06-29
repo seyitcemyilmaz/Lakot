@@ -3,14 +3,14 @@
 
 class GUI {
 private:
-    bool mVisibility;
+	bool mVisibility;
 public:
-    GUI();
+	GUI();
 
-    void initialize();
+	void initialize();
 
-    void setVisibility(bool pVisibility);
-    bool getVisibility();
+	void setVisibility(bool pVisibility);
+	bool getVisibility();
 };
 
 #endif

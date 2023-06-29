@@ -8,18 +8,18 @@
 
 class TextureLoader {
 private:
-    std::string mTexturePath;
-    std::string mSourcePath;
+	std::string mTexturePath;
+	std::string mSourcePath;
 
-    std::vector<std::string> mPossibleTextureLocations;
+	std::vector<std::string> mPossibleTextureLocations;
 
-    void createPossibleTextureLocations();
+	void createPossibleTextureLocations();
 
-    std::string getTexturePath();
+	std::string getTexturePath();
 public:
-    TextureLoader(std::string pSourcePath, std::string pTexturePath);
+	TextureLoader(std::string pSourcePath, std::string pTexturePath);
 
-    TextureResource* loadTexture();
+	TextureResource* loadTexture();
 };
 
 #endif

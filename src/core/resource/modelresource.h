@@ -9,23 +9,23 @@
 
 class ModelResource {
 private:
-    std::vector<MeshResource*> mMeshResources;
+	std::vector<MeshResource*> mMeshResources;
 
-    NodeResource* mRootNode;
+	NodeResource* mRootNode;
 
-    std::vector<BoneResource*> mBones;
+	std::vector<BoneResource*> mBones;
 
-    std::map<std::string, BoneResource*> mBoneMap;
+	std::map<std::string, BoneResource*> mBoneMap;
 
 protected:
-    void addMeshResource(MeshResource* pMeshResource);
-    void addBoneResource(BoneResource* pBoneResource);
-    void setRootNode(NodeResource* pRootNode);
+	void addMeshResource(MeshResource* pMeshResource);
+	void addBoneResource(BoneResource* pBoneResource);
+	void setRootNode(NodeResource* pRootNode);
 
-    int getBoneId(std::string pBoneName);
-    friend class ModelLoader;
+	int getBoneId(std::string pBoneName);
+	friend class ModelLoader;
 public:
-    ModelResource();
+	ModelResource();
 };
 
 #endif

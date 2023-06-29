@@ -6,25 +6,25 @@
 
 #include "core/platform.h"
 
-#define LAKOT_DEFAULT_FAR_PLANE     100.0f
-#define LAKOT_DEFAULT_NEAR_PLANE    0.1f
+#define LAKOT_DEFAULT_FAR_PLANE				100.0f
+#define LAKOT_DEFAULT_NEAR_PLANE			0.1f
 
 class RenderManager {
 private:
-    static RenderManager* mInstance;
+	static RenderManager* mInstance;
 
-    float mFarPlaneDistance;
-    float mNearPlaneDistance;
+	float mFarPlaneDistance;
+	float mNearPlaneDistance;
 
-    glm::mat4 getProjectionMatrix();
-    glm::mat4 getViewMatrix();
+	glm::mat4 getProjectionMatrix();
+	glm::mat4 getViewMatrix();
 
-    RenderManager();
+	RenderManager();
 public:
-    static RenderManager* getInstance();
+	static RenderManager* getInstance();
 
-    void renderScene();
-    void renderGUI();
+	void renderScene();
+	void renderGUI();
 };
 
 #endif

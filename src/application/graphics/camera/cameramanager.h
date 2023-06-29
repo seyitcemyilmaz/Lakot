@@ -5,44 +5,44 @@
 
 #include "camera.h"
 
-#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED      5.0f
+#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			5.0f
 
 enum CameraDirection {
-    eForward,
-    eBackward,
-    eLeft,
-    eRight,
-    eUp,
-    eDown
+	eForward,
+	eBackward,
+	eLeft,
+	eRight,
+	eUp,
+	eDown
 };
 
 class CameraManager {
 private:
-    static CameraManager* mInstance;
+	static CameraManager* mInstance;
 
-    std::map<std::string, Camera*> mCameras;
-    std::pair<std::string, Camera*> mActiveCamera;
+	std::map<std::string, Camera*> mCameras;
+	std::pair<std::string, Camera*> mActiveCamera;
 
-    float mCameraMovementSpeed;
+	float mCameraMovementSpeed;
 
-    void setActiveCameraNull();
+	void setActiveCameraNull();
 
-    CameraManager();
+	CameraManager();
 
 public:
-    static CameraManager* getInstance();
+	static CameraManager* getInstance();
 
-    void setActiveCamera(std::string pName);
-    Camera* getActiveCamera();
-    std::string getActiveCameraName();
+	void setActiveCamera(std::string pName);
+	Camera* getActiveCamera();
+	std::string getActiveCameraName();
 
-    void addCamera(std::string pName, glm::vec3 pPosition);
+	void addCamera(std::string pName, glm::vec3 pPosition);
 
-    void deleteCameras();
+	void deleteCameras();
 
-    void updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt);
-    void updateActiveCameraDirection(float pDX, float pDY);
-    void updateActiveCameraZoom(float pAmount);
+	void updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt);
+	void updateActiveCameraDirection(float pDX, float pDY);
+	void updateActiveCameraZoom(float pAmount);
 };
 
 #endif

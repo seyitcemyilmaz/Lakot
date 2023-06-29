@@ -4,53 +4,53 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define LAKOT_CAMERA_WORLD_UP           glm::vec3(0.0f, 1.0f, 0.0f)
-#define LAKOT_CAMERA_FRONT              glm::vec3(0.0f, 0.0f, -1.0f)
+#define LAKOT_CAMERA_WORLD_UP				glm::vec3(0.0f, 1.0f, 0.0f)
+#define LAKOT_CAMERA_FRONT					glm::vec3(0.0f, 0.0f, -1.0f)
 
-#define LAKOT_DEFAULT_CAMERA_YAW        270.0f
-#define LAKOT_DEFAULT_CAMERA_PITCH      0.0f
+#define LAKOT_DEFAULT_CAMERA_YAW			270.0f
+#define LAKOT_DEFAULT_CAMERA_PITCH			0.0f
 
-#define LAKOT_DEFAULT_CAMERA_ZOOM       45.0f
+#define LAKOT_DEFAULT_CAMERA_ZOOM			45.0f
 
-#define LAKOT_CAMERA_MIN_ZOOM           1.0f
-#define LAKOT_CAMERA_MAX_ZOOM           45.0f
+#define LAKOT_CAMERA_MIN_ZOOM				1.0f
+#define LAKOT_CAMERA_MAX_ZOOM				45.0f
 
-#define LAKOT_CAMERA_MAX_PITCH          89.9f
-#define LAKOT_CAMERA_MIN_PITCH          -89.9f
+#define LAKOT_CAMERA_MAX_PITCH				89.9f
+#define LAKOT_CAMERA_MIN_PITCH				-89.9f
 
 class Camera {
 private:
-    glm::vec3 mPosition;
+	glm::vec3 mPosition;
 
-    glm::vec3 mFrontVector;
-    glm::vec3 mUpVector;
-    glm::vec3 mRightVector;
+	glm::vec3 mFrontVector;
+	glm::vec3 mUpVector;
+	glm::vec3 mRightVector;
 
-    glm::vec3 mWorldUp;
+	glm::vec3 mWorldUp;
 
-    float mYaw;     // For x-axis
-    float mPitch;   // For y-axis
+	float mYaw;     // For x-axis
+	float mPitch;   // For y-axis
 
-    float mZoom;
+	float mZoom;
 
 public:
-    Camera(glm::vec3 pPosition);
+	Camera(glm::vec3 pPosition);
 
-    void updateCameraVectors();
+	void updateCameraVectors();
 
-    glm::vec3 getPosition();
+	glm::vec3 getPosition();
 
-    glm::vec3 getFrontVector();
-    glm::vec3 getUpVector();
-    glm::vec3 getRightVector();
+	glm::vec3 getFrontVector();
+	glm::vec3 getUpVector();
+	glm::vec3 getRightVector();
 
-    float getZoom();
+	float getZoom();
 
-    void changePosition(glm::vec3 pAmount);
-    void changeZoom(float pAmount);
+	void changePosition(glm::vec3 pAmount);
+	void changeZoom(float pAmount);
 
-    void changeYaw(float pAmount);
-    void changePitch(float pAmount);
+	void changeYaw(float pAmount);
+	void changePitch(float pAmount);
 };
 
 #endif

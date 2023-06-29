@@ -9,23 +9,23 @@
 
 class Mesh : public IDrawable {
 private:
-    unsigned int mVAO;
-    unsigned int mVBO;
-    unsigned int mIBO;
+	unsigned int mVAO;
+	unsigned int mVBO;
+	unsigned int mIBO;
 
-    std::vector<float> mVertices;
-    std::vector<unsigned int> mIndices;
+	std::vector<float> mVertices;
+	std::vector<unsigned int> mIndices;
 public:
-    Mesh();
+	Mesh();
 
-    void setVertices(std::vector<float> pVertices);
-    void setIndices(std::vector<unsigned int> pIndices);
+	void setVertices(std::vector<float> pVertices);
+	void setIndices(std::vector<unsigned int> pIndices);
 
-    void initializeBuffers();
+	void initializeBuffers();
 
-    void bind();
+	void bind();
 
-    void draw();
+	void draw();
 };
 
 #endif

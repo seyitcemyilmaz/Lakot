@@ -3,31 +3,31 @@
 
 #include "platform.h"
 
-#define LAKOT_KEYBOARD_MAX_KEY  512
+#define LAKOT_KEYBOARD_MAX_KEY					512
 
 struct Key {
-    bool isPressed;
-    bool isStateChanged;
+	bool isPressed;
+	bool isStateChanged;
 };
 
 class Keyboard {
 private:
-    static Keyboard* mInstance;
+	static Keyboard* mInstance;
 
-    Key mKeys[LAKOT_KEYBOARD_MAX_KEY];
+	Key mKeys[LAKOT_KEYBOARD_MAX_KEY];
 
-    Keyboard();
+	Keyboard();
 public:
-    static Keyboard* getInstance();
+	static Keyboard* getInstance();
 
-    static void keyCallback(ContextWindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
+	static void keyCallback(ContextWindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
 
-    bool isKeyStateChanged(int pKeyId);
+	bool isKeyStateChanged(int pKeyId);
 
-    bool isKeyPressed(int pKeyId);
+	bool isKeyPressed(int pKeyId);
 
-    bool isKeyUp(int pKeyId);
-    bool isKeyDown(int pKeyId);
+	bool isKeyUp(int pKeyId);
+	bool isKeyDown(int pKeyId);
 };
 
 #endif

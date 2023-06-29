@@ -7,11 +7,11 @@
 
 class BoneResource {
 private:
-    std::string mName;
+	std::string mName;
 
-    glm::mat4 mOffsetMatrix;
+	glm::mat4 mOffsetMatrix;
 public:
-    BoneResource(std::string pName, glm::mat4 pOffsetMatrix);
+	BoneResource(std::string pName, glm::mat4 pOffsetMatrix);
 };
 
 #endif

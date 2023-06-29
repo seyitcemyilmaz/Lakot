@@ -8,23 +8,23 @@
 
 class Lakot {
 private:
-    Platform* mPlatform;
+	Platform* mPlatform;
 
-    Application* mApplication;
+	Application* mApplication;
 
-    void initializeCallbackFunctions();
+	void initializeCallbackFunctions();
 
 public:
-    Lakot();
-    ~Lakot();
+	Lakot();
+	~Lakot();
 
-    void initializeLakot();
+	void initializeLakot();
 
-    void initalizeApplication();
+	void initalizeApplication();
 
-    void runApplication();
+	void runApplication();
 
-    void terminateApplication();
+	void terminateApplication();
 };
 
 #endif

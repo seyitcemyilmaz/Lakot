@@ -8,20 +8,20 @@
 
 class NodeResource {
 private:
-    std::string mName;
+	std::string mName;
 
-    NodeResource* mParentNode;
+	NodeResource* mParentNode;
 
-    std::vector<NodeResource*> mChildNodes;
+	std::vector<NodeResource*> mChildNodes;
 
-    glm::mat4 mTransformationMatrix;
+	glm::mat4 mTransformationMatrix;
 protected:
-    void addChildNode(NodeResource* pChildNode);
-    friend class ModelLoader;
+	void addChildNode(NodeResource* pChildNode);
+	friend class ModelLoader;
 public:
-    NodeResource(std::string pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
+	NodeResource(std::string pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
 
-    std::string getName();
+	std::string getName();
 };
 
 #endif

@@ -6,11 +6,11 @@
 #include <string>
 
 enum GraphicsAPIType {
-    eNONE,
-    eOpenGL,
-    eOpenGLES,  /// TODO: will be implemented.
-    eVulkan,    /// TODO: will be implemented.
-    eD3Dx       /// TODO: will be implemented.
+	eNONE,
+	eOpenGL,
+	eOpenGLES,  /// TODO: will be implemented.
+	eVulkan,    /// TODO: will be implemented.
+	eD3Dx       /// TODO: will be implemented.
 };
 
 typedef int GraphicsAPIMajor;
@@ -18,25 +18,25 @@ typedef int GraphicsAPIMinor;
 
 class GraphicsAPI {
 private:
-    GraphicsAPIType mGraphicsAPIType;
-    GraphicsAPIMajor mGraphicsAPIMajor;
-    GraphicsAPIMinor mGraphicsAPIMinor;
+	GraphicsAPIType mGraphicsAPIType;
+	GraphicsAPIMajor mGraphicsAPIMajor;
+	GraphicsAPIMinor mGraphicsAPIMinor;
 
-    bool mIsGraphicsAPIInitialized;
+	bool mIsGraphicsAPIInitialized;
 public:
-    GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
-    virtual ~GraphicsAPI();
+	GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
+	virtual ~GraphicsAPI();
 
-    virtual void initializeGraphicsAPI() = 0;
-    virtual void terminateGraphicsAPI() = 0;
+	virtual void initializeGraphicsAPI() = 0;
+	virtual void terminateGraphicsAPI() = 0;
 
-    std::string getGraphicsAPIString();
+	std::string getGraphicsAPIString();
 
-    GraphicsAPIMajor getGraphicsAPIMajor();
-    GraphicsAPIMajor getGraphicsAPIMinor();
+	GraphicsAPIMajor getGraphicsAPIMajor();
+	GraphicsAPIMajor getGraphicsAPIMinor();
 
-    void setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized);
-    bool getIsGraphicsAPIInitialized();
+	void setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized);
+	bool getIsGraphicsAPIInitialized();
 };
 
 

@@ -6,26 +6,26 @@
 
 class Application {
 private:
-    GUI* mGUI;
+	GUI* mGUI;
 
-    float mCurrentTime;
-    float mPreviousTime;
+	float mCurrentTime;
+	float mPreviousTime;
 
-    std::vector<Model*> mModels;
+	std::vector<Model*> mModels;
 
-    void initializeShaders();
-    void initializeCameras();
-    void initializeModels();
+	void initializeShaders();
+	void initializeCameras();
+	void initializeModels();
 
-    void processKeyboardInputs(float pDt);
-    void processMouseInputs();
+	void processKeyboardInputs(float pDt);
+	void processMouseInputs();
 public:
-    Application();
-    ~Application();
+	Application();
+	~Application();
 
-    void initialization();
-    void processInputs();
-    void render();
+	void initialization();
+	void processInputs();
+	void render();
 };
 
 #endif

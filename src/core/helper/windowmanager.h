@@ -5,56 +5,56 @@
 
 #include "platform.h"
 
-#define LAKOT_DEFAULT_WINDOW_TITLE      "LAKOT"
-#define LAKOT_DEFAULT_WINDOW_WIDTH      800
-#define LAKOT_DEFAULT_WINDOW_HEIGHT     800
-#define LAKOT_DEFAULT_WINDOW_BACKGROUND glm::vec3(0.3f, 0.2f, 0.5f)
+#define LAKOT_DEFAULT_WINDOW_TITLE				"LAKOT"
+#define LAKOT_DEFAULT_WINDOW_WIDTH				800
+#define LAKOT_DEFAULT_WINDOW_HEIGHT				800
+#define LAKOT_DEFAULT_WINDOW_BACKGROUND			glm::vec3(0.3f, 0.2f, 0.5f)
 
 class WindowManager {
 private:
-    static WindowManager* mInstance;
+	static WindowManager* mInstance;
 
-    ContextWindow* mWindow;
+	ContextWindow* mWindow;
 
-    bool mIsWindowActive;
+	bool mIsWindowActive;
 
-    const char* mWindowTitle;
+	const char* mWindowTitle;
 
-    int mWindowWidth;
-    int mWindowHeight;
+	int mWindowWidth;
+	int mWindowHeight;
 
-    glm::vec3 mWindowBackgroundColor;
+	glm::vec3 mWindowBackgroundColor;
 
-    void setWindowWidth(int tWindowWidth);
-    void setWindowHeight(int tWindowHeight);
+	void setWindowWidth(int tWindowWidth);
+	void setWindowHeight(int tWindowHeight);
 
-    void setIsWindowActive(bool tIsWindowActive);
+	void setIsWindowActive(bool tIsWindowActive);
 
-    void createWindow();
+	void createWindow();
 
-    WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor);
+	WindowManager(const char* tWindowTitle, int tWindowWidth, int tWindowHeight, glm::vec3 tWindowBackgroundColor);
 
 public:
-    static WindowManager* getInstance();
+	static WindowManager* getInstance();
 
-    void initializateWindow();
+	void initializateWindow();
 
-    void updateWindow();
+	void updateWindow();
 
-    ContextWindow* getWindow();
+	ContextWindow* getWindow();
 
-    void setWindowBackgroundColor(glm::vec3 tWindowBackgroundColor);
-    glm::vec3 getWindowBackgroundColor();
+	void setWindowBackgroundColor(glm::vec3 tWindowBackgroundColor);
+	glm::vec3 getWindowBackgroundColor();
 
-    bool getIsWindowActive();
+	bool getIsWindowActive();
 
-    int getWindowHeight();
-    int getWindowWidth();
+	int getWindowHeight();
+	int getWindowWidth();
 
-    void closeWindow();
+	void closeWindow();
 
-    static void frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight);
-    static void windowCloseCallback(ContextWindow* tWindow);
+	static void frameBufferSizeCallback(ContextWindow* tWindow, int tWidth, int tHeight);
+	static void windowCloseCallback(ContextWindow* tWindow);
 };
 
 #endif

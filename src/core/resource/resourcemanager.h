@@ -7,16 +7,16 @@
 
 class ResourceManager {
 private:
-    static ResourceManager* mInstance;
+	static ResourceManager* mInstance;
 
-    std::map<std::string, ModelResource*> mModelResources;
+	std::map<std::string, ModelResource*> mModelResources;
 
-    ResourceManager();
+	ResourceManager();
 
 public:
-    static ResourceManager* getInstance();
+	static ResourceManager* getInstance();
 
-    void addModelResource(std::string pModelFile);
+	void addModelResource(std::string pModelFile);
 };
 
 #endif
