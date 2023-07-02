@@ -15,6 +15,7 @@ protected:
 	glm::vec3 mWindowBackgroundColor;
 
 	Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor);
+
 public:
 	virtual ~Window();
 

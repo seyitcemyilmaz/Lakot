@@ -10,6 +10,7 @@ private:
 	Window* mActiveWindow;
 
 	WindowManager();
+
 public:
 	static WindowManager* getInstance();
 

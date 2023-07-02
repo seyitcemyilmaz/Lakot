@@ -15,6 +15,7 @@ private:
 	WindowFactory();
 
 	static Window* createGLFWWindow();
+
 public:
 	static Window* createWindow();
 };

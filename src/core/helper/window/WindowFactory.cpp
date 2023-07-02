@@ -4,10 +4,7 @@
 
 #include "GLFWWindow.h"
 
-WindowFactory::WindowFactory()
-{
-
-}
+WindowFactory::WindowFactory() { }
 
 Window* WindowFactory::createWindow() {
 #ifdef LAKOT_PLATFORM_WINDOWS
