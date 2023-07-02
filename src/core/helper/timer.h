@@ -1,7 +1,6 @@
 #ifndef LAKOT_TIMER_H
 #define LAKOT_TIMER_H
 
-#include <iostream>
 #include <chrono>
 
 enum TimerType {

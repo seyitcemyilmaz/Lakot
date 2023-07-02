@@ -21,6 +21,8 @@ public:
 	std::string getDirectoryFromPath(std::filesystem::path pPath);
 
 	std::string createPath(std::filesystem::path pPath, std::string pFileOrDirectory);
+
+	std::string getFileContent(std::filesystem::path pPath);
 };
 
 #endif

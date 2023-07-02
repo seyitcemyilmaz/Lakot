@@ -54,11 +54,18 @@ std::string FileManager::createPath(std::filesystem::path pPath, std::string pFi
 	return pPath.string() + LAKOT_FILE_PATH_SEPARATOR + pFileOrDirectory;
 }
 
+std::string FileManager::getFileContent(std::filesystem::path pPath) {
+	std::ifstream tFile(pPath);
 
+	if (!tFile.is_open()) {
+		throw "File is not found.";
+	}
 
+	std::string tFileContent;
+	std::getline(tFile, tFileContent, '\0');
 
-
-
+	return tFileContent;
+}
 
 
 

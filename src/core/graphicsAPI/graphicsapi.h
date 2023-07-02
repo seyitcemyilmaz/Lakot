@@ -30,7 +30,7 @@ public:
 	virtual void initializeGraphicsAPI() = 0;
 	virtual void terminateGraphicsAPI() = 0;
 
-	std::string getGraphicsAPIString();
+	virtual std::string getGraphicsAPIString() = 0;
 
 	GraphicsAPIMajor getGraphicsAPIMajor();
 	GraphicsAPIMajor getGraphicsAPIMinor();

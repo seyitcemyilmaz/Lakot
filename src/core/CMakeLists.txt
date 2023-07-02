@@ -1,6 +1,8 @@
 set(GRAPHICSAPI_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/graphicsAPI)
 set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
+    set(CAMERA_DIRECTORY ${HELPER_DIRECTORY}/camera)
     set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
+    set(WINDOW_DIRECTORY ${HELPER_DIRECTORY}/window)
 set(RESOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resource)
 
 
@@ -36,6 +38,33 @@ set(HELPER_FILES
     ${HELPER_DIRECTORY}/windowmanager.cpp
 )
 
+    set(CAMERA_FILES
+        ${CAMERA_DIRECTORY}/camera.h
+        ${CAMERA_DIRECTORY}/camera.cpp
+
+        ${CAMERA_DIRECTORY}/cameramanager.h
+        ${CAMERA_DIRECTORY}/cameramanager.cpp
+    )
+
+    set(CONTROLS_FILES
+        ${CONTROLS_DIRECTORY}/keyboard.h
+        ${CONTROLS_DIRECTORY}/keyboard.cpp
+
+        ${CONTROLS_DIRECTORY}/mouse.h
+        ${CONTROLS_DIRECTORY}/mouse.cpp
+    )
+
+    set(WINDOW_FILES
+        ${WINDOW_DIRECTORY}/Window.h
+        ${WINDOW_DIRECTORY}/Window.cpp
+
+        ${WINDOW_DIRECTORY}/GLFWWindow.h
+        ${WINDOW_DIRECTORY}/GLFWWindow.cpp
+
+        ${WINDOW_DIRECTORY}/WindowFactory.h
+        ${WINDOW_DIRECTORY}/WindowFactory.cpp
+)
+
 set(RESOURCE_FILES
     ${RESOURCE_DIRECTORY}/boneresource.h
     ${RESOURCE_DIRECTORY}/boneresource.cpp
@@ -62,20 +91,18 @@ set(RESOURCE_FILES
     ${RESOURCE_DIRECTORY}/textureresource.cpp
 )
 
-    set(CONTROLS_FILES
-        ${CONTROLS_DIRECTORY}/keyboard.h
-        ${CONTROLS_DIRECTORY}/keyboard.cpp
-
-        ${CONTROLS_DIRECTORY}/mouse.h
-        ${CONTROLS_DIRECTORY}/mouse.cpp
-    )
-
 add_library(LAKOT_CORE_LIB
     platform.h
     platform.cpp
+    WindowsPlatform.h
+    WindowsPlatform.cpp
+    PlatformFactory.h
+    PlatformFactory.cpp
     ${GRAPHICSAPI_FILES}
     ${HELPER_FILES}
+        ${CAMERA_FILES}
         ${CONTROLS_FILES}
+        ${WINDOW_FILES}
     ${RESOURCE_FILES}
 )
 

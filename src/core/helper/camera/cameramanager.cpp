@@ -65,38 +65,38 @@ void CameraManager::deleteCameras() {
 	setActiveCameraNull();
 }
 
-void CameraManager::updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt) {
+void CameraManager::updateActiveCameraPosition(CameraDirection pCameraDirection, double pDt) {
 	Camera* tActiveCamera = getActiveCamera();
 
 	if (!tActiveCamera) {
 		return;
 	}
 
-	glm::vec3 pAmount = glm::vec3(0.0f);
+	glm::vec3 pAmount = glm::vec3(0.0);
 
 	if (pCameraDirection == CameraDirection::eForward) {
-		pAmount = tActiveCamera->getFrontVector() * mCameraMovementSpeed * pDt;
+		pAmount = tActiveCamera->getFrontVector() * float(mCameraMovementSpeed * pDt);
 	}
 	else if (pCameraDirection == CameraDirection::eBackward) {
-		pAmount = -(tActiveCamera->getFrontVector() * mCameraMovementSpeed * pDt);
+		pAmount = -(tActiveCamera->getFrontVector() * float(mCameraMovementSpeed * pDt));
 	}
 	else if (pCameraDirection == CameraDirection::eRight) {
-		pAmount = tActiveCamera->getRightVector() * mCameraMovementSpeed * pDt;
+		pAmount = tActiveCamera->getRightVector() * float(mCameraMovementSpeed * pDt);
 	}
 	else if (pCameraDirection == CameraDirection::eLeft) {
-		pAmount = -(tActiveCamera->getRightVector() * mCameraMovementSpeed * pDt);
+		pAmount = -(tActiveCamera->getRightVector() * float(mCameraMovementSpeed * pDt));
 	}
 	else if (pCameraDirection == CameraDirection::eUp) {
-		pAmount = tActiveCamera->getUpVector() * mCameraMovementSpeed * pDt;
+		pAmount = tActiveCamera->getUpVector() * float(mCameraMovementSpeed * pDt);
 	}
 	else if (pCameraDirection == CameraDirection::eDown) {
-		pAmount = -(tActiveCamera->getUpVector() * mCameraMovementSpeed * pDt);
+		pAmount = -(tActiveCamera->getUpVector() * float(mCameraMovementSpeed * pDt));
 	}
 
 	tActiveCamera->changePosition(pAmount);
 }
 
-void CameraManager::updateActiveCameraDirection(float pDX, float pDY) {
+void CameraManager::updateActiveCameraDirection(double pDX, double pDY) {
 	Camera* tActiveCamera = getActiveCamera();
 
 	if (!tActiveCamera) {
@@ -109,7 +109,7 @@ void CameraManager::updateActiveCameraDirection(float pDX, float pDY) {
 	tActiveCamera->updateCameraVectors();
 }
 
-void CameraManager::updateActiveCameraZoom(float pAmount) {
+void CameraManager::updateActiveCameraZoom(double pAmount) {
 	Camera* tActiveCamera = getActiveCamera();
 
 	if (!tActiveCamera) {

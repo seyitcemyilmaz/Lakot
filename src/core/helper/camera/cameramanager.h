@@ -5,7 +5,7 @@
 
 #include "camera.h"
 
-#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			5.0f
+#define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			5.0
 
 enum CameraDirection {
 	eForward,
@@ -23,7 +23,7 @@ private:
 	std::map<std::string, Camera*> mCameras;
 	std::pair<std::string, Camera*> mActiveCamera;
 
-	float mCameraMovementSpeed;
+	double mCameraMovementSpeed;
 
 	void setActiveCameraNull();
 
@@ -40,9 +40,9 @@ public:
 
 	void deleteCameras();
 
-	void updateActiveCameraPosition(CameraDirection pCameraDirection, float pDt);
-	void updateActiveCameraDirection(float pDX, float pDY);
-	void updateActiveCameraZoom(float pAmount);
+	void updateActiveCameraPosition(CameraDirection pCameraDirection, double pDt);
+	void updateActiveCameraDirection(double pDX, double pDY);
+	void updateActiveCameraZoom(double pAmount);
 };
 
 #endif

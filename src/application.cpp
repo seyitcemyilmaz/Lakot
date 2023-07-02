@@ -2,23 +2,29 @@
 
 #include "application/graphics/render/rendermanager.h"
 #include "application/graphics/shader/shadermanager.h"
-#include "application/graphics/camera/cameramanager.h"
-#include "helper/windowmanager.h"
-#include "helper/controls/keyboard.h"
-#include "helper/controls/mouse.h"
 
 #include "core/resource/resourcemanager.h"
+#include "core/helper/FileManager.h"
+#include "core/helper/camera/cameramanager.h"
+
+#include "PlatformFactory.h"
 
 Application::Application() {
+	mPlatform = nullptr;
 	mGUI = nullptr;
 }
 
 Application::~Application() {
 	ShaderManager::getInstance()->deleteShaders();
 	CameraManager::getInstance()->deleteCameras();
+
+	delete mPlatform;
+	delete mGUI;
 }
 
 void Application::initialization() {
+	mPlatform = PlatformFactory::createPlatformObject();
+
 	mGUI = new GUI();
 
 	mCurrentTime = 0.0f;
@@ -36,7 +42,8 @@ void Application::initialization() {
 void Application::initializeShaders() {
 	ShaderManager* tShaderManager = ShaderManager::getInstance();
 
-	tShaderManager->addShader("shader", new Shader("vertex.shader", "fragment.shader"));
+	tShaderManager->addShader("shader", new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "vertex.shader").c_str(),
+												   FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "fragment.shader").c_str()));
 }
 
 void Application::initializeCameras() {
@@ -74,83 +81,7 @@ void Application::initializeModels() {
 
 
 void Application::processInputs() {
-#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-	mCurrentTime = glfwGetTime();
-
-	double tDt = mCurrentTime - mPreviousTime;
-
-	processMouseInputs();
-	processKeyboardInputs(tDt);
-
-	mPreviousTime = mCurrentTime;
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
-#error Not implemented.
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
-#error Graphics API is not found.
-#else
-#error Undefined Graphics API.
-#endif
-}
-
-void Application::processKeyboardInputs(float pDt) {
-#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE)) {
-		WindowManager::getInstance()->closeWindow();
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_W)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, pDt);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_S)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, pDt);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_D)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, pDt);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_A)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, pDt);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_SPACE)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eUp, pDt);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eDown, pDt);
-	}
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
-#error Not implemented.
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
-#error Graphics API is not found.
-#else
-#error Undefined Graphics API.
-#endif
-}
-
-void Application::processMouseInputs() {
-#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-	double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
-	double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
-
-	if (tDX != 0.0f || tDY != 0.0f) {
-		CameraManager::getInstance()->updateActiveCameraDirection(tDX, tDY);
-	}
-
-	double tScrollDY = Mouse::getInstance()->getScrollDY();
-
-	if (tScrollDY != 0.0f) {
-		CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
-	}
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
-#error Not implemented.
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
-#error Graphics API is not found.
-#else
-#error Undefined Graphics API.
-#endif
+	mPlatform->processInputs(&mPreviousTime);
 }
 
 void Application::render() {
@@ -158,4 +89,8 @@ void Application::render() {
 	RenderManager::getInstance()->renderScene();
 	mModels[0]->draw();
 	// TODO: Add render function for GUI
+}
+
+void Application::terminate() {
+	mPlatform->getGraphicsAPI()->terminateGraphicsAPI();
 }

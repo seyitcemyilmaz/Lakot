@@ -4,21 +4,22 @@
 #include "application/resources/model.h"
 #include "application/graphics/gui.h"
 
+#include "platform.h"
+
 class Application {
 private:
+	Platform* mPlatform;
+
 	GUI* mGUI;
 
-	float mCurrentTime;
-	float mPreviousTime;
+	double mCurrentTime;
+	double mPreviousTime;
 
 	std::vector<Model*> mModels;
 
 	void initializeShaders();
 	void initializeCameras();
 	void initializeModels();
-
-	void processKeyboardInputs(float pDt);
-	void processMouseInputs();
 public:
 	Application();
 	~Application();
@@ -26,6 +27,7 @@ public:
 	void initialization();
 	void processInputs();
 	void render();
+	void terminate();
 };
 
 #endif

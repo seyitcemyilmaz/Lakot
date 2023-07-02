@@ -27,13 +27,13 @@ Mouse::Mouse() {
 
 	mIsMouseInitialized = false;
 
-	for (int i = 0 ; i < LAKOT_MOUSE_MAXIMUM_BUTTON; i++) {
+	for (int i = 0 ; i < GLFW_MOUSE_BUTTON_LAST; i++) {
 		mButtons[i].isPressed = false;
 		mButtons[i].isStateChanged = false;
 	}
 }
 
-void Mouse::cursorPositionCallBack(ContextWindow* pWindow, double pX, double pY) {
+void Mouse::cursorPositionCallBack(GLFWwindow* pWindow, double pX, double pY) {
 	Mouse* tMouse = Mouse::getInstance();
 
 	tMouse->mX = pX;
@@ -53,11 +53,10 @@ void Mouse::cursorPositionCallBack(ContextWindow* pWindow, double pX, double pY)
 	tMouse->mPreviousY = tMouse->mY;
 }
 
-void Mouse::mouseButtonCallback(ContextWindow* pWindow, int pButtonId, int pAction, int pMods) {
+void Mouse::mouseButtonCallback(GLFWwindow* pWindow, int pButtonId, int pAction, int pMods) {
 	Mouse* tMouse = Mouse::getInstance();
 
-#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
-	if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
+	if (!(pButtonId < GLFW_MOUSE_BUTTON_LAST)) {
 		throw "Button ID must be less than maximum mouse button amount.";
 	}
 
@@ -69,18 +68,9 @@ void Mouse::mouseButtonCallback(ContextWindow* pWindow, int pButtonId, int pActi
 	else {
 		tMouse->mButtons[pButtonId].isPressed = false;
 	}
-
-	tMouse->mButtons[pButtonId].isStateChanged = (pAction != GLFW_REPEAT);
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
-#error Not implemented.
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
-#error Graphics API is not found.
-#else
-#error Undefined Graphics API.
-#endif
 }
 
-void Mouse::scrollCallback(ContextWindow* pWindow, double pDX, double pDY) {
+void Mouse::scrollCallback(GLFWwindow* pWindow, double pDX, double pDY) {
 	Mouse* tMouse = Mouse::getInstance();
 
 	tMouse->mScrollDX = pDX;
@@ -124,7 +114,7 @@ double Mouse::getSensivity() {
 }
 
 bool Mouse::isButtonStateChanged(int pButtonId) {
-	if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
+	if (!(pButtonId < GLFW_MOUSE_BUTTON_LAST)) {
 		throw "Button ID must be less than maximum mouse button amount.";
 	}
 
@@ -134,7 +124,7 @@ bool Mouse::isButtonStateChanged(int pButtonId) {
 }
 
 bool Mouse::isButtonPressed(int pButtonId) {
-	if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
+	if (!(pButtonId < GLFW_MOUSE_BUTTON_LAST)) {
 		throw "Button ID must be less than maximum mouse button amount.";
 	}
 
@@ -142,7 +132,7 @@ bool Mouse::isButtonPressed(int pButtonId) {
 }
 
 bool Mouse::isButtonUp(int pButtonId) {
-	if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
+	if (!(pButtonId < GLFW_MOUSE_BUTTON_LAST)) {
 		throw "Button ID must be less than maximum mouse button amount.";
 	}
 
@@ -150,7 +140,7 @@ bool Mouse::isButtonUp(int pButtonId) {
 }
 
 bool Mouse::isButtonDown(int pButtonId) {
-	if (!(pButtonId < LAKOT_MOUSE_MAXIMUM_BUTTON)) {
+	if (!(pButtonId < GLFW_MOUSE_BUTTON_LAST)) {
 		throw "Button ID must be less than maximum mouse button amount.";
 	}
 

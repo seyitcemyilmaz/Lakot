@@ -3,8 +3,6 @@
 
 #include <vector>
 
-#include "core/platform.h"
-
 #include "IDrawable.h"
 
 class Mesh : public IDrawable {

@@ -11,17 +11,17 @@ Keyboard* Keyboard::getInstance() {
 }
 
 Keyboard::Keyboard() {
-	for (int i = 0 ; i < LAKOT_KEYBOARD_MAX_KEY; i++) {
+	for (int i = 0 ; i < GLFW_KEY_LAST; i++) {
 		mKeys[i].isPressed = false;
 		mKeys[i].isStateChanged = false;
 	}
 }
 
-void Keyboard::keyCallback(ContextWindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods) {
+void Keyboard::keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods) {
 #if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
 	Keyboard* tKeyboard = Keyboard::getInstance();
 
-	if (!(pKeyId < LAKOT_KEYBOARD_MAX_KEY)) {
+	if (!(pKeyId < GLFW_KEY_LAST)) {
 		throw "Key ID must be less than maximum key amount.";
 	}
 
@@ -44,7 +44,7 @@ void Keyboard::keyCallback(ContextWindow* pWindow, int pKeyId, int pScanCode, in
 }
 
 bool Keyboard::isKeyStateChanged(int pKeyId) {
-	if (!(pKeyId < LAKOT_KEYBOARD_MAX_KEY)) {
+	if (!(pKeyId < GLFW_KEY_LAST)) {
 		throw "Key ID must be less than maximum key amount.";
 	}
 
@@ -54,7 +54,7 @@ bool Keyboard::isKeyStateChanged(int pKeyId) {
 }
 
 bool Keyboard::isKeyPressed(int pKeyId) {
-	if (!(pKeyId < LAKOT_KEYBOARD_MAX_KEY)) {
+	if (!(pKeyId < GLFW_KEY_LAST)) {
 		throw "Key ID must be less than maximum key amount.";
 	}
 
@@ -62,7 +62,7 @@ bool Keyboard::isKeyPressed(int pKeyId) {
 }
 
 bool Keyboard::isKeyUp(int pKeyId) {
-	if (!(pKeyId < LAKOT_KEYBOARD_MAX_KEY)) {
+	if (!(pKeyId < GLFW_KEY_LAST)) {
 		throw "Key ID must be less than maximum key amount.";
 	}
 
@@ -70,7 +70,7 @@ bool Keyboard::isKeyUp(int pKeyId) {
 }
 
 bool Keyboard::isKeyDown(int pKeyId) {
-	if (!(pKeyId < LAKOT_KEYBOARD_MAX_KEY)) {
+	if (!(pKeyId < GLFW_KEY_LAST)) {
 		throw "Key ID must be less than maximum key amount.";
 	}
 

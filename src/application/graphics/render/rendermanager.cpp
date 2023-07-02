@@ -1,8 +1,11 @@
 #include "rendermanager.h"
 
-#include "application/graphics/camera/cameramanager.h"
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "application/graphics/shader/shadermanager.h"
+
 #include "core/helper/windowmanager.h"
+#include "core/helper/camera/cameramanager.h"
 
 RenderManager* RenderManager::mInstance = nullptr;
 
@@ -37,13 +40,13 @@ void RenderManager::renderGUI() { }
 
 glm::mat4 RenderManager::getProjectionMatrix() {
 	Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
-	float tZoom = tActiveCamera->getZoom();
+	double tZoom = tActiveCamera->getZoom();
 
 	int tWindowHeight = WindowManager::getInstance()->getWindowHeight();
 	int tWindowWidth = WindowManager::getInstance()->getWindowWidth();
 
 	return glm::perspective(glm::radians(tZoom),
-							(float) tWindowWidth / (float) tWindowHeight,
+							(double) tWindowWidth / (double) tWindowHeight,
 							mNearPlaneDistance,
 							mFarPlaneDistance);
 }

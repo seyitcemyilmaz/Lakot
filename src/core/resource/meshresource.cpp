@@ -1,5 +1,7 @@
 #include "meshresource.h"
 
+#include "platform.h"
+
 MeshResource::MeshResource(std::string pName, NodeResource* pConnectedNode) {
 	mName = pName;
 	mConnectedNode = pConnectedNode;

@@ -3,6 +3,17 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 #set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-windows/share)
 
+cmake_host_system_information(RESULT CMake_MSVC_PARALLEL QUERY NUMBER_OF_PHYSICAL_CORES)
+
+if(CMake_MSVC_PARALLEL)
+  if(CMake_MSVC_PARALLEL GREATER 0)
+      message(${CMake_MSVC_PARALLEL})
+    add_definitions(/MP${CMake_MSVC_PARALLEL})
+  else()
+    add_definitions(/MP)
+  endif()
+endif()
+
 project(LAKOT)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -12,7 +23,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SRC_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
     set(APPLICATION_DIRECTORY ${SRC_DIRECTORY}/application)
         set(GRAPHICS_DIRECTORY ${APPLICATION_DIRECTORY}/graphics)
-            set(CAMERA_DIRECTORY ${GRAPHICS_DIRECTORY}/camera)
             set(RENDER_DIRECTORY ${GRAPHICS_DIRECTORY}/render)
             set(SHADER_DIRECTORY ${GRAPHICS_DIRECTORY}/shader)
         set(RESOURCES_DIRECTORY ${APPLICATION_DIRECTORY}/resources)
@@ -35,14 +45,6 @@ set(SRC_FILES
         ${GRAPHICS_DIRECTORY}/gui.h
         ${GRAPHICS_DIRECTORY}/gui.cpp
     )
-
-        set(CAMERA_FILES
-            ${CAMERA_DIRECTORY}/camera.h
-            ${CAMERA_DIRECTORY}/camera.cpp
-
-            ${CAMERA_DIRECTORY}/cameramanager.h
-            ${CAMERA_DIRECTORY}/cameramanager.cpp
-        )
 
         set(RENDER_FILES
             ${RENDER_DIRECTORY}/rendermanager.h
@@ -90,7 +92,6 @@ add_executable(${CMAKE_PROJECT_NAME}
         ${GRAPHICS_FILES}
             ${RENDER_FILES}
             ${SHADER_FILES}
-            ${CAMERA_FILES}
         ${RESOURCES_FILES}
 )
 

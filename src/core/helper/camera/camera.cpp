@@ -38,7 +38,7 @@ glm::vec3 Camera::getRightVector() {
 	return mRightVector;
 }
 
-float Camera::getZoom() {
+double Camera::getZoom() {
 	return mZoom;
 }
 
@@ -46,7 +46,7 @@ void Camera::changePosition(glm::vec3 pAmount) {
 	mPosition += pAmount;
 }
 
-void Camera::changeZoom(float pAmount) {
+void Camera::changeZoom(double pAmount) {
 	mZoom -= pAmount;
 
 	if (mZoom < LAKOT_CAMERA_MIN_ZOOM) {
@@ -58,11 +58,11 @@ void Camera::changeZoom(float pAmount) {
 	}
 }
 
-void Camera::changeYaw(float pAmount) {
+void Camera::changeYaw(double pAmount) {
 	mYaw += pAmount;
 }
 
-void Camera::changePitch(float pAmount) {
+void Camera::changePitch(double pAmount) {
 	mPitch += pAmount;
 
 	if (mPitch > LAKOT_CAMERA_MAX_PITCH) {

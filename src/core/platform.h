@@ -18,8 +18,6 @@
 #define LAKOT_GRAPHICS_API_VERSION_MAJOR		3
 #define LAKOT_GRAPHICS_API_VERSION_MINOR		3
 
-#define ContextWindow							GLFWwindow
-
 #define LAKOT_SHADER_HEADER						"#version 330 core\n"
 
 #define LAKOT_FILE_PATH_SEPARATOR				"/"
@@ -37,8 +35,6 @@
 #define LAKOT_GRAPHICS_API						LAKOT_GRAPHICS_API_OPENGL
 #define LAKOT_GRAPHICS_API_VERSION_MAJOR		3
 #define LAKOT_GRAPHICS_API_VERSION_MINOR		3
-
-#define ContextWindow							GLFWwindow
 
 #define LAKOT_FILE_PATH_SEPARATOR				"/"
 
@@ -63,23 +59,20 @@
 #error "Platform is not detected."
 #endif
 
-#ifndef ContextWindow
-#error ContextWindow is not defined.
-#endif
-
 class Platform {
 private:
 	GraphicsAPI* mGraphicsAPI;
 public:
-	Platform();
-	~Platform();
+	Platform(GraphicsAPI* pGraphicsAPI);
+	virtual ~Platform();
 
 	GraphicsAPI* getGraphicsAPI();
 
-	static std::string getLakotRootPath();
-	static std::string getLakotAssetsPath();
-	static std::string getLakotModelsPath();
-	static std::string readFileContent(std::string pFilePath);
+	virtual std::string getRootPath() = 0;
+	std::string getAssetsPath();
+	std::string getModelsPath();
+
+	virtual void processInputs(double* pPreviousTime) = 0;
 };
 
 

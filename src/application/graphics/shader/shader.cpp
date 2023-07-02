@@ -1,5 +1,7 @@
 #include "shader.h"
 
+#include "helper/FileManager.h"
+
 Shader::Shader(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath) {
 	mShaderProgramId = 0;
 
@@ -19,8 +21,8 @@ void Shader::bind() {
 }
 
 void Shader::createShaderProgram(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath) {
-	mVertexShaderFilePath = Platform::getLakotAssetsPath() + "/" + pVertexShaderFilePath;
-	mFragmentShaderFilePath = Platform::getLakotAssetsPath() + "/" + pFragmentShaderFilePath;
+	mVertexShaderFilePath = pVertexShaderFilePath;
+	mFragmentShaderFilePath = pFragmentShaderFilePath;
 
 	unsigned int tVertexShaderId = compileShader(mVertexShaderFilePath, GL_VERTEX_SHADER);
 	unsigned int tFragmentShaderId = compileShader(mFragmentShaderFilePath, GL_FRAGMENT_SHADER);
@@ -49,7 +51,7 @@ void Shader::createShaderProgram(const char* pVertexShaderFilePath, const char* 
 unsigned int Shader::compileShader(std::string pShaderFilePath, unsigned int tShaderType) {
 	unsigned int tShaderId = glCreateShader(tShaderType);
 
-	std::string tShaderFileContent = LAKOT_SHADER_HEADER + Platform::readFileContent(pShaderFilePath);
+	std::string tShaderFileContent = LAKOT_SHADER_HEADER + FileManager::getInstance()->getFileContent(pShaderFilePath);
 	const char* tShaderFileContentCStr = tShaderFileContent.c_str();
 
 	glShaderSource(tShaderId, 1, &tShaderFileContentCStr, nullptr);

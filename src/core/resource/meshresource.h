@@ -1,11 +1,6 @@
 #ifndef LAKOT_MESHRESOURCE_H
 #define LAKOT_MESHRESOURCE_H
 
-#include <iostream>
-#include <vector>
-
-#include "platform.h"
-
 #include "noderesource.h"
 #include "textureresource.h"
 

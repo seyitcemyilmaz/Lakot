@@ -7,16 +7,16 @@
 #define LAKOT_CAMERA_WORLD_UP				glm::vec3(0.0f, 1.0f, 0.0f)
 #define LAKOT_CAMERA_FRONT					glm::vec3(0.0f, 0.0f, -1.0f)
 
-#define LAKOT_DEFAULT_CAMERA_YAW			270.0f
-#define LAKOT_DEFAULT_CAMERA_PITCH			0.0f
+#define LAKOT_DEFAULT_CAMERA_YAW			270.0
+#define LAKOT_DEFAULT_CAMERA_PITCH			0.0
 
-#define LAKOT_DEFAULT_CAMERA_ZOOM			45.0f
+#define LAKOT_DEFAULT_CAMERA_ZOOM			45.0
 
-#define LAKOT_CAMERA_MIN_ZOOM				1.0f
-#define LAKOT_CAMERA_MAX_ZOOM				45.0f
+#define LAKOT_CAMERA_MIN_ZOOM				1.0
+#define LAKOT_CAMERA_MAX_ZOOM				45.0
 
-#define LAKOT_CAMERA_MAX_PITCH				89.9f
-#define LAKOT_CAMERA_MIN_PITCH				-89.9f
+#define LAKOT_CAMERA_MAX_PITCH				89.9
+#define LAKOT_CAMERA_MIN_PITCH				-89.9
 
 class Camera {
 private:
@@ -28,10 +28,10 @@ private:
 
 	glm::vec3 mWorldUp;
 
-	float mYaw;     // For x-axis
-	float mPitch;   // For y-axis
+	double mYaw;     // For x-axis
+	double mPitch;   // For y-axis
 
-	float mZoom;
+	double mZoom;
 
 public:
 	Camera(glm::vec3 pPosition);
@@ -44,13 +44,13 @@ public:
 	glm::vec3 getUpVector();
 	glm::vec3 getRightVector();
 
-	float getZoom();
+	double getZoom();
 
 	void changePosition(glm::vec3 pAmount);
-	void changeZoom(float pAmount);
+	void changeZoom(double pAmount);
 
-	void changeYaw(float pAmount);
-	void changePitch(float pAmount);
+	void changeYaw(double pAmount);
+	void changePitch(double pAmount);
 };
 
 #endif

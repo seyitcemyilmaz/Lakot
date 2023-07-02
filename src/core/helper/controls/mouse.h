@@ -1,9 +1,8 @@
 #ifndef LAKOT_MOUSE_H
 #define LAKOT_MOUSE_H
 
-#include "platform.h"
-
-#define LAKOT_MOUSE_MAXIMUM_BUTTON				8
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #define LAKOT_MOUSE_DEFAULT_SENSIVITY			0.1f
 
@@ -32,16 +31,16 @@ private:
 
 	bool mIsMouseInitialized;
 
-	Button mButtons[LAKOT_MOUSE_MAXIMUM_BUTTON];
+	Button mButtons[GLFW_MOUSE_BUTTON_LAST];
 
 	Mouse();
 
 public:
 	static Mouse* getInstance();
 
-	static void cursorPositionCallBack(ContextWindow* pWindow, double pX, double pY);
-	static void mouseButtonCallback(ContextWindow* pWindow, int pButtonId, int pAction, int pMods);
-	static void scrollCallback(ContextWindow* pWindow, double pDX, double pDY);
+	static void cursorPositionCallBack(GLFWwindow* pWindow, double pX, double pY);
+	static void mouseButtonCallback(GLFWwindow* pWindow, int pButtonId, int pAction, int pMods);
+	static void scrollCallback(GLFWwindow* pWindow, double pDX, double pDY);
 
 	double getX();
 	double getY();

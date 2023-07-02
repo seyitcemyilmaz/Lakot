@@ -7,7 +7,7 @@
 #include "textureloader.h"
 
 ModelLoader::ModelLoader(std::string pModelPath) {
-	mModelPath = Platform::getLakotModelsPath() + "/" + pModelPath;
+	//mModelPath = Platform::getModelsPath() + "/" + pModelPath;
 
 	mFlags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_SplitByBoneCount;
 
@@ -152,9 +152,9 @@ void ModelLoader::extractVertexBoneWeights(aiBone* pBone, std::vector<Vertex>* p
 }
 
 void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>* pVertexList) {
-	unsigned int tVertexCount = pVertexList->size();
+	size_t tVertexCount = pVertexList->size();
 
-	for (unsigned int i = 0; i < tVertexCount; i++) {
+	for (size_t i = 0; i < tVertexCount; i++) {
 		Vertex* tVertex = &pVertexList->at(i);
 
 		if (tVertex->boneIds[0] != -1) {
@@ -178,7 +178,6 @@ void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>* pVertexList) {
 	}
 }
 
-
 void ModelLoader::setVertexBoneWeight(Vertex* pVertex, int pBoneId, float pWeight) {
 	if (pWeight == 0.0f) {
 		return;
@@ -196,7 +195,6 @@ void ModelLoader::setVertexBoneWeight(Vertex* pVertex, int pBoneId, float pWeigh
 		}
 	}
 }
-
 
 void ModelLoader::createVertexList(aiMesh* pMesh, std::vector<Vertex>* pVertexList) {
 	unsigned int tVertexCount = pMesh->mNumVertices;

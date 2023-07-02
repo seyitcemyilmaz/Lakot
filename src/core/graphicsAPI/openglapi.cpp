@@ -24,3 +24,10 @@ void OpenGLAPI::terminateGraphicsAPI() {
 	}
 	std::cout << "OpenGL API is terminated." << std::endl;
 }
+
+std::string OpenGLAPI::getGraphicsAPIString() {
+	std::ostringstream tGraphicsAPIString;
+
+	tGraphicsAPIString << "OpenGL " << getGraphicsAPIMajor() << "." << getGraphicsAPIMinor();
+	return tGraphicsAPIString.str();
+}

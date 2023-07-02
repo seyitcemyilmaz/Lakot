@@ -1,9 +1,8 @@
 #ifndef LAKOT_KEYBOARD_H
 #define LAKOT_KEYBOARD_H
 
-#include "platform.h"
-
-#define LAKOT_KEYBOARD_MAX_KEY					512
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 struct Key {
 	bool isPressed;
@@ -14,13 +13,13 @@ class Keyboard {
 private:
 	static Keyboard* mInstance;
 
-	Key mKeys[LAKOT_KEYBOARD_MAX_KEY];
+	Key mKeys[GLFW_KEY_LAST];
 
 	Keyboard();
 public:
 	static Keyboard* getInstance();
 
-	static void keyCallback(ContextWindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
+	static void keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
 
 	bool isKeyStateChanged(int pKeyId);
 
