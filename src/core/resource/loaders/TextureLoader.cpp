@@ -1,4 +1,4 @@
-#include "textureloader.h"
+#include "TextureLoader.h"
 
 #include "helper/FileManager.h"
 

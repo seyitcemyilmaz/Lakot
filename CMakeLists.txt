@@ -34,39 +34,39 @@ add_subdirectory(${CORE_DIRECTORY})
 set(SRC_FILES
     ${SRC_DIRECTORY}/main.cpp
 
-    ${SRC_DIRECTORY}/lakot.h
-    ${SRC_DIRECTORY}/lakot.cpp
+    ${SRC_DIRECTORY}/Lakot.h
+    ${SRC_DIRECTORY}/Lakot.cpp
 
-    ${SRC_DIRECTORY}/application.h
-    ${SRC_DIRECTORY}/application.cpp
+    ${SRC_DIRECTORY}/Application.h
+    ${SRC_DIRECTORY}/Application.cpp
 )
 
     set(GRAPHICS_FILES
-        ${GRAPHICS_DIRECTORY}/gui.h
-        ${GRAPHICS_DIRECTORY}/gui.cpp
+        ${GRAPHICS_DIRECTORY}/GUI.h
+        ${GRAPHICS_DIRECTORY}/GUI.cpp
     )
 
         set(RENDER_FILES
-            ${RENDER_DIRECTORY}/rendermanager.h
-            ${RENDER_DIRECTORY}/rendermanager.cpp
+            ${RENDER_DIRECTORY}/RenderManager.h
+            ${RENDER_DIRECTORY}/RenderManager.cpp
         )
 
         set(SHADER_FILES
-            ${SHADER_DIRECTORY}/shader.h
-            ${SHADER_DIRECTORY}/shader.cpp
+            ${SHADER_DIRECTORY}/Shader.h
+            ${SHADER_DIRECTORY}/Shader.cpp
 
-            ${SHADER_DIRECTORY}/shadermanager.h
-            ${SHADER_DIRECTORY}/shadermanager.cpp
+            ${SHADER_DIRECTORY}/ShaderManager.h
+            ${SHADER_DIRECTORY}/ShaderManager.cpp
         )
 
     set(RESOURCES_FILES
         ${RESOURCES_DIRECTORY}/IDrawable.h
 
-        ${RESOURCES_DIRECTORY}/mesh.h
-        ${RESOURCES_DIRECTORY}/mesh.cpp
+        ${RESOURCES_DIRECTORY}/Mesh.h
+        ${RESOURCES_DIRECTORY}/Mesh.cpp
 
-        ${RESOURCES_DIRECTORY}/model.h
-        ${RESOURCES_DIRECTORY}/model.cpp
+        ${RESOURCES_DIRECTORY}/Model.h
+        ${RESOURCES_DIRECTORY}/Model.cpp
     )
 
 include_directories(

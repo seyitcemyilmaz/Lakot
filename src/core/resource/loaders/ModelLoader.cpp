@@ -45,104 +45,16 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 
 	unsigned int tMaterialCount = pScene->mNumMaterials;
 
-	for (int i = 0; i < tMaterialCount; i++) {
+	for (unsigned int i = 0; i < tMaterialCount; i++) {
 		aiMaterial* tMaterial = pScene->mMaterials[i];
-
 		tMaterialLoader = new MaterialLoader(tMaterial, mModelPath);
 
 		MaterialResource* tMaterialResource = tMaterialLoader->loadMaterial();
-
 		mModelResource->addMaterialResource(tMaterialResource);
 
 		delete tMaterialLoader;
 	}
-
-
-	/*
-	if (pScene->HasTextures()) {
-		unsigned int tTextureCount = pScene->mNumTextures;
-
-		for (int i = 0; i < tTextureCount; i++) {
-			aiTexture* texture = pScene->mTextures[i];
-
-			std::cout << "x" << std::endl;
-		}
-
-
-
-		std::vector<TextureResource*> tTextureResourceDiffuse = extractTextures(pScene, aiTextureType_DIFFUSE);
-		std::vector<TextureResource*> tTextureResourceSpecular = extractTextures(pScene, aiTextureType_SPECULAR);
-		std::vector<TextureResource*> tTextureResourceAmbient = extractTextures(pScene, aiTextureType_AMBIENT);
-		std::vector<TextureResource*> tTextureResourceEmissive = extractTextures(pScene, aiTextureType_EMISSIVE);
-	}
-	*/
 }
-
-/*
-std::vector<TextureResource*> ModelLoader::extractTextures(const aiScene* pScene, aiTextureType pTextureType) {
-	unsigned int tMaterialCount = pScene->mNumMaterials;
-
-	std::vector<TextureResource*> tTextures;
-
-	if (tMaterialCount == 0) {
-		return tTextures;
-	}
-
-	TextureResource* tTexture = nullptr;
-
-	aiString tTempFilePath;
-
-	for (unsigned int i = 0; i < tMaterialCount; i++) {
-		aiMaterial* tMaterial = pScene->mMaterials[i];
-
-		// TODO: Add embedded texture support.
-
-		tMaterial->Get(AI_MATKEY_TEXTURE(pTextureType, 0), tTempFilePath);
-
-		std::string tFilePath = tTempFilePath.C_Str();
-
-		if (tFilePath.empty()) {
-			throw "Texture filepath cannot be empty.";
-		}
-
-		if ('*' == tFilePath[0])  {
-			tTexture = extractEmbeddedTexture();
-		}
-		else {
-			tTexture = extractReferencedTexture(tFilePath.c_str());
-		}
-
-		if (!tTexture) {
-			throw "Texture cannot be nullptr";
-		}
-
-		tTextures.push_back(tTexture);
-	}
-
-	return tTextures;
-}
-
-TextureResource* ModelLoader::extractReferencedTexture(std::string pFilePath) {
-	TextureLoader* tTextureLoader = new TextureLoader(mModelPath, pFilePath);
-
-	TextureResource* tTextureResource = tTextureLoader->loadTexture();
-
-	if (!tTextureResource) {
-		std::cout << pFilePath << " is not found." << std::endl;
-	}
-
-	std::cout << pFilePath << " is found." << std::endl;
-	return tTextureResource;
-}
-TextureResource* ModelLoader::extractEmbeddedTexture() {
-	std::cout << "Embedded !!!!!" << std::endl;
-
-	// TODO: add embedded texture support.
-
-	return nullptr;
-}
-
-*/
 
 void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource) {
 	std::string tNodeName = pNode->mName.C_Str();

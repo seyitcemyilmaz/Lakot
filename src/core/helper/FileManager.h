@@ -1,7 +1,7 @@
 #ifndef LAKOT_FILEMANAGER_H
 #define LAKOT_FILEMANAGER_H
 
-#include "platform.h"
+#include "platform/Platform.h"
 
 class FileManager {
 private:

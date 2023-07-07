@@ -1,4 +1,4 @@
-#include "lakot.h"
+#include "Lakot.h"
 
 int main() {
 	Lakot lakot;

@@ -3,28 +3,29 @@ set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
     set(CAMERA_DIRECTORY ${HELPER_DIRECTORY}/camera)
     set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
     set(WINDOW_DIRECTORY ${HELPER_DIRECTORY}/window)
+set(PLATFORM_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/platform)
 set(RESOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resource)
     set(LOADERS_DIRECTORY ${RESOURCE_DIRECTORY}/loaders)
 
 
 set(GRAPHICSAPI_FILES
-    ${GRAPHICSAPI_DIRECTORY}/graphicsapi.h
-    ${GRAPHICSAPI_DIRECTORY}/graphicsapi.cpp
+    ${GRAPHICSAPI_DIRECTORY}/GraphicsAPI.h
+    ${GRAPHICSAPI_DIRECTORY}/GraphicsAPI.cpp
 )
 
 if (WIN32)
     list(
         APPEND
         GRAPHICSAPI_FILES
-        ${GRAPHICSAPI_DIRECTORY}/openglapi.h
-        ${GRAPHICSAPI_DIRECTORY}/openglapi.cpp
+        ${GRAPHICSAPI_DIRECTORY}/OpenGLAPI.h
+        ${GRAPHICSAPI_DIRECTORY}/OpenGLAPI.cpp
     )
 elseif (UNIX)
     list(
         APPEND
         GRAPHICSAPI_FILES
-        ${GRAPHICSAPI_DIRECTORY}/openglapi.h
-        ${GRAPHICSAPI_DIRECTORY}/openglapi.cpp
+        ${GRAPHICSAPI_DIRECTORY}/OpenGLAPI.h
+        ${GRAPHICSAPI_DIRECTORY}/OpenGLAPI.cpp
     )
 endif()
 
@@ -32,27 +33,27 @@ set(HELPER_FILES
     ${HELPER_DIRECTORY}/FileManager.h
     ${HELPER_DIRECTORY}/FileManager.cpp
 
-    ${HELPER_DIRECTORY}/timer.h
-    ${HELPER_DIRECTORY}/timer.cpp
+    ${HELPER_DIRECTORY}/Timer.h
+    ${HELPER_DIRECTORY}/Timer.cpp
 
-    ${HELPER_DIRECTORY}/windowmanager.h
-    ${HELPER_DIRECTORY}/windowmanager.cpp
+    ${HELPER_DIRECTORY}/WindowManager.h
+    ${HELPER_DIRECTORY}/WindowManager.cpp
 )
 
     set(CAMERA_FILES
-        ${CAMERA_DIRECTORY}/camera.h
-        ${CAMERA_DIRECTORY}/camera.cpp
+        ${CAMERA_DIRECTORY}/Camera.h
+        ${CAMERA_DIRECTORY}/Camera.cpp
 
-        ${CAMERA_DIRECTORY}/cameramanager.h
-        ${CAMERA_DIRECTORY}/cameramanager.cpp
+        ${CAMERA_DIRECTORY}/CameraManager.h
+        ${CAMERA_DIRECTORY}/CameraManager.cpp
     )
 
     set(CONTROLS_FILES
-        ${CONTROLS_DIRECTORY}/keyboard.h
-        ${CONTROLS_DIRECTORY}/keyboard.cpp
+        ${CONTROLS_DIRECTORY}/Keyboard.h
+        ${CONTROLS_DIRECTORY}/Keyboard.cpp
 
-        ${CONTROLS_DIRECTORY}/mouse.h
-        ${CONTROLS_DIRECTORY}/mouse.cpp
+        ${CONTROLS_DIRECTORY}/Mouse.h
+        ${CONTROLS_DIRECTORY}/Mouse.cpp
     )
 
     set(WINDOW_FILES
@@ -66,27 +67,38 @@ set(HELPER_FILES
         ${WINDOW_DIRECTORY}/WindowFactory.cpp
 )
 
+set(PLATFORM_FILES
+    ${PLATFORM_DIRECTORY}/Platform.h
+    ${PLATFORM_DIRECTORY}/Platform.cpp
+
+    ${PLATFORM_DIRECTORY}/WindowsPlatform.h
+    ${PLATFORM_DIRECTORY}/WindowsPlatform.cpp
+
+    ${PLATFORM_DIRECTORY}/PlatformFactory.h
+    ${PLATFORM_DIRECTORY}/PlatformFactory.cpp
+)
+
 set(RESOURCE_FILES
-    ${RESOURCE_DIRECTORY}/boneresource.h
-    ${RESOURCE_DIRECTORY}/boneresource.cpp
+    ${RESOURCE_DIRECTORY}/BoneResource.h
+    ${RESOURCE_DIRECTORY}/BoneResource.cpp
 
     ${RESOURCE_DIRECTORY}/MaterialResource.h
     ${RESOURCE_DIRECTORY}/MaterialResource.cpp
 
-    ${RESOURCE_DIRECTORY}/meshresource.h
-    ${RESOURCE_DIRECTORY}/meshresource.cpp
+    ${RESOURCE_DIRECTORY}/MeshResource.h
+    ${RESOURCE_DIRECTORY}/MeshResource.cpp
 
-    ${RESOURCE_DIRECTORY}/modelresource.h
-    ${RESOURCE_DIRECTORY}/modelresource.cpp
+    ${RESOURCE_DIRECTORY}/ModelResource.h
+    ${RESOURCE_DIRECTORY}/ModelResource.cpp
 
-    ${RESOURCE_DIRECTORY}/noderesource.h
-    ${RESOURCE_DIRECTORY}/noderesource.cpp
+    ${RESOURCE_DIRECTORY}/NodeResource.h
+    ${RESOURCE_DIRECTORY}/NodeResource.cpp
 
-    ${RESOURCE_DIRECTORY}/resourcemanager.h
-    ${RESOURCE_DIRECTORY}/resourcemanager.cpp
+    ${RESOURCE_DIRECTORY}/ResourceManager.h
+    ${RESOURCE_DIRECTORY}/ResourceManager.cpp
 
-    ${RESOURCE_DIRECTORY}/textureresource.h
-    ${RESOURCE_DIRECTORY}/textureresource.cpp
+    ${RESOURCE_DIRECTORY}/TextureResource.h
+    ${RESOURCE_DIRECTORY}/TextureResource.cpp
 )
 
     set(LOADERS_FILES
@@ -98,21 +110,15 @@ set(RESOURCE_FILES
 
         ${LOADERS_DIRECTORY}/TextureLoader.h
         ${LOADERS_DIRECTORY}/TextureLoader.cpp
-
     )
 
 add_library(LAKOT_CORE_LIB
-    platform.h
-    platform.cpp
-    WindowsPlatform.h
-    WindowsPlatform.cpp
-    PlatformFactory.h
-    PlatformFactory.cpp
     ${GRAPHICSAPI_FILES}
     ${HELPER_FILES}
         ${CAMERA_FILES}
         ${CONTROLS_FILES}
         ${WINDOW_FILES}
+    ${PLATFORM_FILES}
     ${RESOURCE_FILES}
         ${LOADERS_FILES}
 )

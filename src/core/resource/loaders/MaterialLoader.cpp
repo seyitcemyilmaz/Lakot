@@ -8,7 +8,6 @@ MaterialLoader::MaterialLoader(aiMaterial* pMaterial, std::string pModelPath)
 	mModelPath = pModelPath;
 }
 
-
 MaterialResource* MaterialLoader::loadMaterial() {
 	MaterialResource* tMaterialResource = new MaterialResource();
 

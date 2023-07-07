@@ -1,6 +1,6 @@
-#include "meshresource.h"
+#include "MeshResource.h"
 
-#include "platform.h"
+#include "platform/Platform.h"
 
 MeshResource::MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode) {
 	mName = pName;

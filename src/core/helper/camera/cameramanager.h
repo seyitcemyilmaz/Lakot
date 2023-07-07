@@ -1,9 +1,10 @@
 #ifndef LAKOT_CAMERAMANAGER_H
 #define LAKOT_CAMERAMANAGER_H
 
-#include "platform.h"
+#include <map>
+#include <string>
 
-#include "camera.h"
+#include "Camera.h"
 
 #define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			5.0
 

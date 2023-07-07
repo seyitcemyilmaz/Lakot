@@ -1,7 +1,7 @@
 #ifndef LAKOT_MODEL_H
 #define LAKOT_MODEL_H
 
-#include "mesh.h"
+#include "Mesh.h"
 
 class Model : public IDrawable {
 private:

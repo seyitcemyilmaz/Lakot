@@ -1,4 +1,4 @@
-#include "cameramanager.h"
+#include "CameraManager.h"
 
 CameraManager* CameraManager::mInstance = nullptr;
 

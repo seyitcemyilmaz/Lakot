@@ -1,13 +1,13 @@
-#include "application.h"
+#include "Application.h"
 
-#include "application/graphics/render/rendermanager.h"
-#include "application/graphics/shader/shadermanager.h"
+#include "application/graphics/render/RenderManager.h"
+#include "application/graphics/shader/ShaderManager.h"
 
-#include "core/resource/resourcemanager.h"
+#include "core/resource/ResourceManager.h"
 #include "core/helper/FileManager.h"
-#include "core/helper/camera/cameramanager.h"
+#include "core/helper/camera/CameraManager.h"
 
-#include "PlatformFactory.h"
+#include "platform/PlatformFactory.h"
 
 Application::Application() {
 	mPlatform = nullptr;

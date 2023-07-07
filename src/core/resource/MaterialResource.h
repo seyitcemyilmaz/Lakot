@@ -1,7 +1,7 @@
 #ifndef MATERIALRESOURCE_H
 #define MATERIALRESOURCE_H
 
-#include "textureresource.h"
+#include "TextureResource.h"
 
 class MaterialResource
 {

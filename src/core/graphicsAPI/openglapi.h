@@ -1,7 +1,7 @@
 #ifndef LAKOT_OPENGLAPI_H
 #define LAKOT_OPENGLAPI_H
 
-#include "graphicsapi.h"
+#include "GraphicsAPI.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

@@ -1,7 +1,7 @@
 #ifndef LAKOT_TEXTURERESOURCE_H
 #define LAKOT_TEXTURERESOURCE_H
 
-#include <iostream>
+#include <string>
 
 class TextureResource {
 private:

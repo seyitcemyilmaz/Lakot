@@ -5,7 +5,7 @@
 
 #include <assimp/scene.h>
 
-#include "resource/modelresource.h"
+#include "resource/ModelResource.h"
 
 class ModelLoader {
 private:

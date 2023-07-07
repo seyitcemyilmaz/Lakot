@@ -4,7 +4,7 @@
 #include <assimp/scene.h>
 
 #include "resource/MaterialResource.h"
-#include "resource/textureresource.h"
+#include "resource/TextureResource.h"
 
 class MaterialLoader
 {

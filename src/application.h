@@ -1,10 +1,10 @@
 #ifndef LAKOT_APPLICATION_H
 #define LAKOT_APPLICATION_H
 
-#include "application/resources/model.h"
-#include "application/graphics/gui.h"
+#include "application/resources/Model.h"
+#include "application/graphics/GUI.h"
 
-#include "platform.h"
+#include "core/platform/Platform.h"
 
 class Application {
 private:

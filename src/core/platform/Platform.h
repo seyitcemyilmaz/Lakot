@@ -22,7 +22,8 @@
 
 #define LAKOT_FILE_PATH_SEPARATOR				"\\"
 
-#include "graphicsAPI/openglapi.h"
+#include "graphicsAPI/OpenGLAPI.h"
+
 #include <iostream>
 #include <filesystem>
 #include <fstream>

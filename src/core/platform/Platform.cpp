@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "Platform.h"
 
 #include "helper/FileManager.h"
 

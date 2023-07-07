@@ -1,6 +1,6 @@
-#include "resourcemanager.h"
+#include "ResourceManager.h"
 
-#include "loaders/modelloader.h"
+#include "loaders/ModelLoader.h"
 
 ResourceManager* ResourceManager::mInstance = nullptr;
 

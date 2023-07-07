@@ -1,7 +1,7 @@
 #ifndef WINDOWSPLATFORM_H
 #define WINDOWSPLATFORM_H
 
-#include "platform.h"
+#include "Platform.h"
 
 class WindowsPlatform : public Platform
 {

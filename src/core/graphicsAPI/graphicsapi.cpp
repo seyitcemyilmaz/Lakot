@@ -1,4 +1,4 @@
-#include "graphicsapi.h"
+#include "GraphicsAPI.h"
 
 GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor) :
 	mGraphicsAPIType(tGraphicsAPIType), mGraphicsAPIMajor(tGraphicsAPIMajor), mGraphicsAPIMinor(tGraphicsAPIMinor) {

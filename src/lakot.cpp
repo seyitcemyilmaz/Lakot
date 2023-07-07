@@ -1,4 +1,4 @@
-#include "lakot.h"
+#include "Lakot.h"
 
 Lakot::Lakot() {
 	mApplication = nullptr;

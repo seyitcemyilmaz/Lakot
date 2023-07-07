@@ -1,7 +1,7 @@
 #ifndef LAKOT_MESHRESOURCE_H
 #define LAKOT_MESHRESOURCE_H
 
-#include "noderesource.h"
+#include "NodeResource.h"
 
 #define LAKOT_VERTEX_MAX_BONE_COUNT				4
 

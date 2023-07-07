@@ -1,4 +1,4 @@
-#include "openglapi.h"
+#include "OpenGLAPI.h"
 
 OpenGLAPI::OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor) :
 	GraphicsAPI(GraphicsAPIType::eOpenGL, tGraphicsAPIMajor, tGraphicsAPIMinor) { }

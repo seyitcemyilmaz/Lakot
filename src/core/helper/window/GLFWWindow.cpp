@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include "helper/controls/keyboard.h"
-#include "helper/controls/mouse.h"
+#include "helper/controls/Keyboard.h"
+#include "helper/controls/Mouse.h"
 
-#include "platform.h"
+#include "platform/Platform.h"
 
 GLFWWindow::GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor) :
 	Window(pWindowTitle, pWindowWidth, pWindowHeight, pWindowBackgroundColor) { }

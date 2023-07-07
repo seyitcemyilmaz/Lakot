@@ -3,9 +3,9 @@
 
 #include <map>
 
-#include "noderesource.h"
-#include "meshresource.h"
-#include "boneresource.h"
+#include "NodeResource.h"
+#include "MeshResource.h"
+#include "BoneResource.h"
 #include "MaterialResource.h"
 
 class ModelResource {

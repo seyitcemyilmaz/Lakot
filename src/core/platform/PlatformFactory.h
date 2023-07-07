@@ -1,7 +1,7 @@
 #ifndef PLATFORMFACTORY_H
 #define PLATFORMFACTORY_H
 
-#include "platform.h"
+#include "Platform.h"
 
 class PlatformFactory
 {

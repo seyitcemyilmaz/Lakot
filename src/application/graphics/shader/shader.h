@@ -1,7 +1,7 @@
 #ifndef LAKOT_SHADER_H
 #define LAKOT_SHADER_H
 
-#include "core/platform.h"
+#include "core/platform/Platform.h"
 
 class Shader {
 private:

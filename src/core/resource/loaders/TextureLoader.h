@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "resource/textureresource.h"
+#include "resource/TextureResource.h"
 
 class TextureLoader {
 private:

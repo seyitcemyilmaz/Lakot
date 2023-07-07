@@ -1,4 +1,4 @@
-#include "modelresource.h"
+#include "ModelResource.h"
 
 ModelResource::ModelResource() {
 	mRootNode = nullptr;

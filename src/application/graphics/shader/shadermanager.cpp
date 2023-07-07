@@ -1,4 +1,4 @@
-#include "shadermanager.h"
+#include "ShaderManager.h"
 
 ShaderManager* ShaderManager::mInstance = nullptr;
 

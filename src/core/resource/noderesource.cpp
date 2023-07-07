@@ -1,4 +1,4 @@
-#include "noderesource.h"
+#include "NodeResource.h"
 
 NodeResource::NodeResource(std::string pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix) {
 	mName = pName;

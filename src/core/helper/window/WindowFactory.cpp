@@ -1,6 +1,6 @@
 #include "WindowFactory.h"
 
-#include "platform.h"
+#include "platform/Platform.h"
 
 #include "GLFWWindow.h"
 

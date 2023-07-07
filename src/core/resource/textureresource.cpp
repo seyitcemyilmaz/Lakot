@@ -1,4 +1,4 @@
-#include "textureresource.h"
+#include "TextureResource.h"
 
 TextureResource::TextureResource(unsigned int pTextureId, std::string pTexturePath) {
 	mTextureId = pTextureId;

@@ -1,11 +1,11 @@
-#include "rendermanager.h"
+#include "RenderManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "application/graphics/shader/shadermanager.h"
+#include "application/graphics/shader/ShaderManager.h"
 
-#include "core/helper/windowmanager.h"
-#include "core/helper/camera/cameramanager.h"
+#include "core/helper/WindowManager.h"
+#include "core/helper/camera/CameraManager.h"
 
 RenderManager* RenderManager::mInstance = nullptr;
 

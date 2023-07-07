@@ -3,19 +3,20 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "graphicsAPI/openglapi.h"
+#include "graphicsAPI/OpenGLAPI.h"
 
 #include "helper/windowmanager.h"
-#include "helper/camera/cameramanager.h"
+#include "helper/camera/CameraManager.h"
 
-#include "helper/controls/keyboard.h"
-#include "helper/controls/mouse.h"
+#include "helper/controls/Keyboard.h"
+#include "helper/controls/Mouse.h"
 
 WindowsPlatform::WindowsPlatform() : Platform(new OpenGLAPI(LAKOT_GRAPHICS_API_VERSION_MAJOR, LAKOT_GRAPHICS_API_VERSION_MINOR)) { }
 
 std::string WindowsPlatform::getRootPath() {
 	std::filesystem::path tPlatformFilePath = __FILE__;
-	std::filesystem::path tCorePath = tPlatformFilePath.parent_path();
+	std::filesystem::path tPlatformPath = tPlatformFilePath.parent_path();
+	std::filesystem::path tCorePath = tPlatformPath.parent_path();
 	std::filesystem::path tSrcPath = tCorePath.parent_path();
 	std::filesystem::path tLakotRootPath = tSrcPath.parent_path();
 	return tLakotRootPath.string();
