@@ -1,7 +1,10 @@
 #include "textureresource.h"
 
-TextureResource::TextureResource(std::string pTexturePath) {
+TextureResource::TextureResource(unsigned int pTextureId, std::string pTexturePath) {
+	mTextureId = pTextureId;
 	mTexturePath = pTexturePath;
+}
 
-	mTextureId = 0;
+std::string TextureResource::getTexturePath() {
+	return mTexturePath;
 }

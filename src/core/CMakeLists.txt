@@ -4,6 +4,7 @@ set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
     set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
     set(WINDOW_DIRECTORY ${HELPER_DIRECTORY}/window)
 set(RESOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resource)
+    set(LOADERS_DIRECTORY ${RESOURCE_DIRECTORY}/loaders)
 
 
 set(GRAPHICSAPI_FILES
@@ -69,11 +70,11 @@ set(RESOURCE_FILES
     ${RESOURCE_DIRECTORY}/boneresource.h
     ${RESOURCE_DIRECTORY}/boneresource.cpp
 
+    ${RESOURCE_DIRECTORY}/MaterialResource.h
+    ${RESOURCE_DIRECTORY}/MaterialResource.cpp
+
     ${RESOURCE_DIRECTORY}/meshresource.h
     ${RESOURCE_DIRECTORY}/meshresource.cpp
-
-    ${RESOURCE_DIRECTORY}/modelloader.h
-    ${RESOURCE_DIRECTORY}/modelloader.cpp
 
     ${RESOURCE_DIRECTORY}/modelresource.h
     ${RESOURCE_DIRECTORY}/modelresource.cpp
@@ -84,12 +85,21 @@ set(RESOURCE_FILES
     ${RESOURCE_DIRECTORY}/resourcemanager.h
     ${RESOURCE_DIRECTORY}/resourcemanager.cpp
 
-    ${RESOURCE_DIRECTORY}/textureloader.h
-    ${RESOURCE_DIRECTORY}/textureloader.cpp
-
     ${RESOURCE_DIRECTORY}/textureresource.h
     ${RESOURCE_DIRECTORY}/textureresource.cpp
 )
+
+    set(LOADERS_FILES
+        ${LOADERS_DIRECTORY}/MaterialLoader.h
+        ${LOADERS_DIRECTORY}/MaterialLoader.cpp
+
+        ${LOADERS_DIRECTORY}/ModelLoader.h
+        ${LOADERS_DIRECTORY}/ModelLoader.cpp
+
+        ${LOADERS_DIRECTORY}/TextureLoader.h
+        ${LOADERS_DIRECTORY}/TextureLoader.cpp
+
+    )
 
 add_library(LAKOT_CORE_LIB
     platform.h
@@ -104,6 +114,7 @@ add_library(LAKOT_CORE_LIB
         ${CONTROLS_FILES}
         ${WINDOW_FILES}
     ${RESOURCE_FILES}
+        ${LOADERS_FILES}
 )
 
 ### add glfw - begin ###

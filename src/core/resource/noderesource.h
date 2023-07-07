@@ -15,9 +15,11 @@ private:
 	std::vector<NodeResource*> mChildNodes;
 
 	glm::mat4 mTransformationMatrix;
+
 protected:
 	void addChildNode(NodeResource* pChildNode);
 	friend class ModelLoader;
+
 public:
 	NodeResource(std::string pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
 

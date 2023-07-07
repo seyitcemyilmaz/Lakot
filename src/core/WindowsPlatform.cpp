@@ -1,5 +1,8 @@
 #include "WindowsPlatform.h"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include "graphicsAPI/openglapi.h"
 
 #include "helper/windowmanager.h"
@@ -18,15 +21,15 @@ std::string WindowsPlatform::getRootPath() {
 	return tLakotRootPath.string();
 }
 
-void WindowsPlatform::processInputs(double* pPreviousTime) {
-	double tCurrentTime = glfwGetTime();
+void WindowsPlatform::processInputs() {
+	mCurrentTime = glfwGetTime();
 
-	double tDt = tCurrentTime - *pPreviousTime;
+	double tDt = mCurrentTime - mPreviousTime;
 
 	processMouseInputs();
 	processKeyboardInputs(tDt);
 
-	*pPreviousTime = tCurrentTime;
+	mPreviousTime = mCurrentTime;
 }
 
 void WindowsPlatform::processKeyboardInputs(double pDt) {
@@ -71,5 +74,17 @@ void WindowsPlatform::processMouseInputs() {
 
 	if (tScrollDY != 0.0f) {
 		CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
+	}
+}
+
+void WindowsPlatform::run(std::function<void()> pRenderFunction) {
+	WindowManager* tWindowManager = WindowManager::getInstance();
+
+	while (tWindowManager->getIsWindowActive()) {
+		processInputs();
+		tWindowManager->updateWindow();
+		pRenderFunction();
+		glfwSwapBuffers((GLFWwindow*)tWindowManager->getWindow());
+		glfwPollEvents();
 	}
 }

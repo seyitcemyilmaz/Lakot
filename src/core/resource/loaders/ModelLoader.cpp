@@ -1,13 +1,13 @@
-#include "modelloader.h"
+#include "ModelLoader.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#include "textureloader.h"
+#include "MaterialLoader.h"
 
 ModelLoader::ModelLoader(std::string pModelPath) {
-	//mModelPath = Platform::getModelsPath() + "/" + pModelPath;
+	mModelPath = pModelPath;
 
 	mFlags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_SplitByBoneCount;
 
@@ -27,17 +27,68 @@ ModelResource* ModelLoader::loadModel() {
 
 	mModelResource = new ModelResource();
 
-	//processNode(tScene->mRootNode, tScene, nullptr);
+	processNode(tScene->mRootNode, tScene, nullptr);
 
 	// TODO: Will be continued.
 
 	extractMaterials(tScene);
 
-	return nullptr;
+	return mModelResource;
 }
 
 void ModelLoader::extractMaterials(const aiScene* pScene) {
+	if (!pScene->HasMaterials()) {
+		return;
+	}
+
+	MaterialLoader* tMaterialLoader = nullptr;
+
 	unsigned int tMaterialCount = pScene->mNumMaterials;
+
+	for (int i = 0; i < tMaterialCount; i++) {
+		aiMaterial* tMaterial = pScene->mMaterials[i];
+
+		tMaterialLoader = new MaterialLoader(tMaterial, mModelPath);
+
+		MaterialResource* tMaterialResource = tMaterialLoader->loadMaterial();
+
+		mModelResource->addMaterialResource(tMaterialResource);
+
+		delete tMaterialLoader;
+	}
+
+
+	/*
+	if (pScene->HasTextures()) {
+		unsigned int tTextureCount = pScene->mNumTextures;
+
+		for (int i = 0; i < tTextureCount; i++) {
+			aiTexture* texture = pScene->mTextures[i];
+
+			std::cout << "x" << std::endl;
+		}
+
+
+
+		std::vector<TextureResource*> tTextureResourceDiffuse = extractTextures(pScene, aiTextureType_DIFFUSE);
+		std::vector<TextureResource*> tTextureResourceSpecular = extractTextures(pScene, aiTextureType_SPECULAR);
+		std::vector<TextureResource*> tTextureResourceAmbient = extractTextures(pScene, aiTextureType_AMBIENT);
+		std::vector<TextureResource*> tTextureResourceEmissive = extractTextures(pScene, aiTextureType_EMISSIVE);
+	}
+	*/
+}
+
+/*
+std::vector<TextureResource*> ModelLoader::extractTextures(const aiScene* pScene, aiTextureType pTextureType) {
+	unsigned int tMaterialCount = pScene->mNumMaterials;
+
+	std::vector<TextureResource*> tTextures;
+
+	if (tMaterialCount == 0) {
+		return tTextures;
+	}
+
+	TextureResource* tTexture = nullptr;
 
 	aiString tTempFilePath;
 
@@ -46,29 +97,52 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 
 		// TODO: Add embedded texture support.
 
-		tMaterial->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), tTempFilePath);
+		tMaterial->Get(AI_MATKEY_TEXTURE(pTextureType, 0), tTempFilePath);
 
 		std::string tFilePath = tTempFilePath.C_Str();
 
-		if (!tFilePath.empty()) {
-			if ('*' == tFilePath[0])  {
-				std::cout << "Embedded !!!!!" << std::endl;
-			}
-			else {
-				TextureLoader* tTextureLoader = new TextureLoader(mModelPath, tFilePath);
+		if (tFilePath.empty()) {
+			throw "Texture filepath cannot be empty.";
+		}
 
-				if (!tTextureLoader->loadTexture()) {
-					std::cout << tFilePath << " is not found." << std::endl;
-				}
-
-				// TODO: Handle texture.
-			}
+		if ('*' == tFilePath[0])  {
+			tTexture = extractEmbeddedTexture();
 		}
 		else {
-			std::cout << "There is no diffuse texture." << std::endl;
+			tTexture = extractReferencedTexture(tFilePath.c_str());
 		}
+
+		if (!tTexture) {
+			throw "Texture cannot be nullptr";
+		}
+
+		tTextures.push_back(tTexture);
 	}
+
+	return tTextures;
 }
+
+TextureResource* ModelLoader::extractReferencedTexture(std::string pFilePath) {
+	TextureLoader* tTextureLoader = new TextureLoader(mModelPath, pFilePath);
+
+	TextureResource* tTextureResource = tTextureLoader->loadTexture();
+
+	if (!tTextureResource) {
+		std::cout << pFilePath << " is not found." << std::endl;
+	}
+
+	std::cout << pFilePath << " is found." << std::endl;
+	return tTextureResource;
+}
+TextureResource* ModelLoader::extractEmbeddedTexture() {
+	std::cout << "Embedded !!!!!" << std::endl;
+
+	// TODO: add embedded texture support.
+
+	return nullptr;
+}
+
+*/
 
 void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource) {
 	std::string tNodeName = pNode->mName.C_Str();
@@ -98,27 +172,25 @@ void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource
 
 void ModelLoader::processMesh(aiMesh* pMesh, const aiScene* pScene, NodeResource* pConnectedNodeResource) {
 	std::string tMeshName = pMesh->mName.C_Str();
+	unsigned int tMaterialIndex = pMesh->mMaterialIndex;
 
-	MeshResource* tMeshResource = new MeshResource(tMeshName, pConnectedNodeResource);
+	std::vector<Vertex> tVertexList = createVertexList(pMesh);
+	std::vector<unsigned int> tIndexList = createIndexList(pMesh);
 
-	std::vector<Vertex> tVertexList;
-	createVertexList(pMesh, &tVertexList);
-
-	std::vector<unsigned int> tIndexList;
-	createIndexList(pMesh, &tIndexList);
+	MeshResource* tMeshResource = new MeshResource(tMeshName, tMaterialIndex, pConnectedNodeResource);
 
 	if (pMesh->HasBones()) {
-		extractBones(pMesh, &tVertexList);
-		normalizeVertexBoneWeights(&tVertexList);
+		extractBones(pMesh, tVertexList);
+		normalizeVertexBoneWeights(tVertexList);
 		tMeshResource->setHasBone(true);
 	}
 
-	tMeshResource->createBuffers(&tVertexList, &tIndexList);
+	tMeshResource->createBuffers(tVertexList, tIndexList);
 
 	mModelResource->addMeshResource(tMeshResource);
 }
 
-void ModelLoader::extractBones(aiMesh* pMesh, std::vector<Vertex>* pVertexList) {
+void ModelLoader::extractBones(aiMesh* pMesh, std::vector<Vertex>& pVertexList) {
 	aiBone** tBones = pMesh->mBones;
 	unsigned int tBoneCount = pMesh->mNumBones;
 
@@ -136,7 +208,7 @@ void ModelLoader::extractBones(aiMesh* pMesh, std::vector<Vertex>* pVertexList) 
 	}
 }
 
-void ModelLoader::extractVertexBoneWeights(aiBone* pBone, std::vector<Vertex>* pVertexList) {
+void ModelLoader::extractVertexBoneWeights(aiBone* pBone, std::vector<Vertex>& pVertexList) {
 	int tBoneId = mModelResource->getBoneId(pBone->mName.C_Str());
 
 	unsigned int tWeightCount = pBone->mNumWeights;
@@ -145,17 +217,17 @@ void ModelLoader::extractVertexBoneWeights(aiBone* pBone, std::vector<Vertex>* p
 	for (unsigned int i = 0; i < tWeightCount; i++) {
 		float tVertexWeight = tWeights[i].mWeight;
 		unsigned int tVertexIndex = tWeights[i].mVertexId;
-		Vertex* tVertex = &pVertexList->at(tVertexIndex);
+		Vertex* tVertex = &pVertexList[tVertexIndex];
 
 		setVertexBoneWeight(tVertex, tBoneId, tVertexWeight);
 	}
 }
 
-void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>* pVertexList) {
-	size_t tVertexCount = pVertexList->size();
+void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>& pVertexList) {
+	size_t tVertexCount = pVertexList.size();
 
 	for (size_t i = 0; i < tVertexCount; i++) {
-		Vertex* tVertex = &pVertexList->at(i);
+		Vertex* tVertex = &pVertexList[i];
 
 		if (tVertex->boneIds[0] != -1) {
 			unsigned int tVertexBoneCount = 0;
@@ -196,7 +268,8 @@ void ModelLoader::setVertexBoneWeight(Vertex* pVertex, int pBoneId, float pWeigh
 	}
 }
 
-void ModelLoader::createVertexList(aiMesh* pMesh, std::vector<Vertex>* pVertexList) {
+std::vector<Vertex> ModelLoader::createVertexList(aiMesh* pMesh) {
+	std::vector<Vertex> tVertexList;
 	unsigned int tVertexCount = pMesh->mNumVertices;
 
 	for (unsigned int i = 0; i < tVertexCount; i++) {
@@ -217,11 +290,14 @@ void ModelLoader::createVertexList(aiMesh* pMesh, std::vector<Vertex>* pVertexLi
 			tVertex.boneWeights[j] = 0.0f;
 		}
 
-		pVertexList->push_back(tVertex);
+		tVertexList.push_back(tVertex);
 	}
+
+	return tVertexList;
 }
 
-void ModelLoader::createIndexList(aiMesh* pMesh, std::vector<unsigned int>* pIndexList) {
+std::vector<unsigned int> ModelLoader::createIndexList(aiMesh* pMesh) {
+	std::vector<unsigned int> tIndexList;
 	unsigned int tPolygonCount = pMesh->mNumFaces;
 
 	for (unsigned int i = 0; i < tPolygonCount; i++) {
@@ -229,18 +305,20 @@ void ModelLoader::createIndexList(aiMesh* pMesh, std::vector<unsigned int>* pInd
 			throw "A polygon has not 3 indices";
 		}
 
-		pIndexList->push_back(pMesh->mFaces[i].mIndices[0]);
-		pIndexList->push_back(pMesh->mFaces[i].mIndices[1]);
-		pIndexList->push_back(pMesh->mFaces[i].mIndices[2]);
+		tIndexList.push_back(pMesh->mFaces[i].mIndices[0]);
+		tIndexList.push_back(pMesh->mFaces[i].mIndices[1]);
+		tIndexList.push_back(pMesh->mFaces[i].mIndices[2]);
 	}
+
+	return tIndexList;
 }
 
 glm::mat4 ModelLoader::assimpMatrixToGlmMatrix(aiMatrix4x4& pMatrix) {
 	return glm::mat4 {
 		pMatrix.a1, pMatrix.b1, pMatrix.c1, pMatrix.d1,
-				pMatrix.a2, pMatrix.b2, pMatrix.c2, pMatrix.d2,
-				pMatrix.a3, pMatrix.b3, pMatrix.c3, pMatrix.d3,
-				pMatrix.a4, pMatrix.b4, pMatrix.c4, pMatrix.d4
+		pMatrix.a2, pMatrix.b2, pMatrix.c2, pMatrix.d2,
+		pMatrix.a3, pMatrix.b3, pMatrix.c3, pMatrix.d3,
+		pMatrix.a4, pMatrix.b4, pMatrix.c4, pMatrix.d4
 	};
 }
 

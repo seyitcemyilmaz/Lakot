@@ -2,9 +2,10 @@
 
 #include "platform.h"
 
-MeshResource::MeshResource(std::string pName, NodeResource* pConnectedNode) {
+MeshResource::MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode) {
 	mName = pName;
 	mConnectedNode = pConnectedNode;
+	mMaterialIndex = pMaterialIndex;
 
 	mVAO = 0;
 	mVBO = 0;
@@ -17,11 +18,15 @@ std::string MeshResource::getName() {
 	return mName;
 }
 
+unsigned int MeshResource::getMaterialIndex() {
+	return mMaterialIndex;
+}
+
 void MeshResource::setHasBone(bool pHasBone) {
 	mHasBone = pHasBone;
 }
 
-void MeshResource::createBuffers(std::vector<Vertex>* tVertexList, std::vector<unsigned int>* tIndexList) {
+void MeshResource::createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList) {
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
 	glGenBuffers(1, &mIBO);
@@ -29,10 +34,10 @@ void MeshResource::createBuffers(std::vector<Vertex>* tVertexList, std::vector<u
 	glBindVertexArray(mVAO);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndexList->size() * sizeof(unsigned int), tIndexList->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndexList.size() * sizeof(unsigned int), tIndexList.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, tVertexList->size() * sizeof(Vertex), tVertexList->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, tVertexList.size() * sizeof(Vertex), tVertexList.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);

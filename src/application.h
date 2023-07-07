@@ -12,9 +12,6 @@ private:
 
 	GUI* mGUI;
 
-	double mCurrentTime;
-	double mPreviousTime;
-
 	std::vector<Model*> mModels;
 
 	void initializeShaders();
@@ -27,6 +24,7 @@ public:
 	void initialization();
 	void processInputs();
 	void render();
+	void run();
 	void terminate();
 };
 

@@ -27,14 +27,11 @@ void Application::initialization() {
 
 	mGUI = new GUI();
 
-	mCurrentTime = 0.0f;
-	mPreviousTime = 0.0f;
-
 	initializeShaders();
 	initializeCameras();
 	initializeModels();
 
-	ResourceManager::getInstance()->addModelResource("gun/source/SW500.fbx");
+	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -79,9 +76,8 @@ void Application::initializeModels() {
 	mModels.push_back(tModel);
 }
 
-
 void Application::processInputs() {
-	mPlatform->processInputs(&mPreviousTime);
+	mPlatform->processInputs();
 }
 
 void Application::render() {
@@ -89,6 +85,11 @@ void Application::render() {
 	RenderManager::getInstance()->renderScene();
 	mModels[0]->draw();
 	// TODO: Add render function for GUI
+}
+
+void Application::run() {
+	std::function<void()> tRenderFunction = std::bind(&Application::render, this);
+	mPlatform->run(tRenderFunction);
 }
 
 void Application::terminate() {

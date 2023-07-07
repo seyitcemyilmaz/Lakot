@@ -20,7 +20,7 @@
 
 #define LAKOT_SHADER_HEADER						"#version 330 core\n"
 
-#define LAKOT_FILE_PATH_SEPARATOR				"/"
+#define LAKOT_FILE_PATH_SEPARATOR				"\\"
 
 #include "graphicsAPI/openglapi.h"
 #include <iostream>
@@ -29,6 +29,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <functional>
 
 #elif defined(UNIX) || defined(__unix__) || defined(LINUX) || defined(__linux__)
 #define LAKOT_PLATFORM							LAKOT_PLATFORM_LINUX
@@ -62,6 +63,11 @@
 class Platform {
 private:
 	GraphicsAPI* mGraphicsAPI;
+
+protected:
+	double mCurrentTime;
+	double mPreviousTime;
+
 public:
 	Platform(GraphicsAPI* pGraphicsAPI);
 	virtual ~Platform();
@@ -72,7 +78,8 @@ public:
 	std::string getAssetsPath();
 	std::string getModelsPath();
 
-	virtual void processInputs(double* pPreviousTime) = 0;
+	virtual void processInputs() = 0;
+	virtual void run(std::function<void()> pRenderFunction) = 0;
 };
 
 

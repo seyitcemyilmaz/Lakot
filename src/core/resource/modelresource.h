@@ -6,21 +6,24 @@
 #include "noderesource.h"
 #include "meshresource.h"
 #include "boneresource.h"
+#include "MaterialResource.h"
 
 class ModelResource {
 private:
-	std::vector<MeshResource*> mMeshResources;
-
 	NodeResource* mRootNode;
 
-	std::vector<BoneResource*> mBones;
+	std::vector<MeshResource*> mMeshResources;
+	std::vector<BoneResource*> mBoneResources;
+	std::vector<MaterialResource*> mMaterialResources;
 
 	std::map<std::string, BoneResource*> mBoneMap;
 
 protected:
+	void setRootNode(NodeResource* pRootNode);
+
 	void addMeshResource(MeshResource* pMeshResource);
 	void addBoneResource(BoneResource* pBoneResource);
-	void setRootNode(NodeResource* pRootNode);
+	void addMaterialResource(MaterialResource* pMaterialResource);
 
 	int getBoneId(std::string pBoneName);
 	friend class ModelLoader;

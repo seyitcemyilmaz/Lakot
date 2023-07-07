@@ -4,20 +4,23 @@
 #include <iostream>
 #include <vector>
 
-#include "textureresource.h"
+#include "resource/textureresource.h"
 
 class TextureLoader {
 private:
 	std::string mTexturePath;
-	std::string mSourcePath;
+	std::string mModelPath;
 
 	std::vector<std::string> mPossibleTextureLocations;
 
 	void createPossibleTextureLocations();
 
 	std::string getTexturePath();
+
+	TextureResource* createEmbeddedTexture();
+	TextureResource* createReferencedTexture();
 public:
-	TextureLoader(std::string pSourcePath, std::string pTexturePath);
+	TextureLoader(std::string pModelPath, std::string pTexturePath);
 
 	TextureResource* loadTexture();
 };

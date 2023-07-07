@@ -9,7 +9,11 @@ void ModelResource::addMeshResource(MeshResource* pMeshResource) {
 }
 
 void ModelResource::addBoneResource(BoneResource* pBoneResource) {
-	mBones.push_back(pBoneResource);
+	mBoneResources.push_back(pBoneResource);
+}
+
+void ModelResource::addMaterialResource(MaterialResource* pMaterialResource) {
+	mMaterialResources.push_back(pMaterialResource);
 }
 
 void ModelResource::setRootNode(NodeResource* pRootNode) {
@@ -17,5 +21,5 @@ void ModelResource::setRootNode(NodeResource* pRootNode) {
 }
 
 int ModelResource::getBoneId(std::string pBoneName) {
-	return std::distance(mBones.begin(), std::find(mBones.begin(), mBones.end(), mBoneMap[pBoneName]));
+	return std::distance(mBoneResources.begin(), std::find(mBoneResources.begin(), mBoneResources.end(), mBoneMap[pBoneName]));
 }

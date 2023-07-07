@@ -1,9 +1,7 @@
 #ifndef LAKOT_RESOURCEMANAGER_H
 #define LAKOT_RESOURCEMANAGER_H
 
-#include <iostream>
-
-#include "modelloader.h"
+#include "modelresource.h"
 
 class ResourceManager {
 private:

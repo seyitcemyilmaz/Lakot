@@ -18,7 +18,6 @@ Keyboard::Keyboard() {
 }
 
 void Keyboard::keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods) {
-#if LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGL
 	Keyboard* tKeyboard = Keyboard::getInstance();
 
 	if (!(pKeyId < GLFW_KEY_LAST)) {
@@ -34,13 +33,6 @@ void Keyboard::keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int p
 		tKeyboard->mKeys[pKeyId].isPressed = false;
 	}
 	tKeyboard->mKeys[pKeyId].isStateChanged = pAction != GLFW_REPEAT;
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_OPENGLES
-#error Not implemented.
-#elif LAKOT_GRAPHICS_API == LAKOT_GRAPHICS_API_NONE
-#error Graphics API is not found.
-#else
-#error Undefined Graphics API.
-#endif
 }
 
 bool Keyboard::isKeyStateChanged(int pKeyId) {

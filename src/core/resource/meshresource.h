@@ -2,7 +2,6 @@
 #define LAKOT_MESHRESOURCE_H
 
 #include "noderesource.h"
-#include "textureresource.h"
 
 #define LAKOT_VERTEX_MAX_BONE_COUNT				4
 
@@ -20,21 +19,22 @@ private:
 
 	NodeResource* mConnectedNode;
 
-	TextureResource* mTextureResource;
-
 	unsigned int mVAO;
 	unsigned int mVBO;
 	unsigned int mIBO;
 
+	unsigned int mMaterialIndex;
+
 	bool mHasBone;
 protected:
 	void setHasBone(bool pHasBone);
-	void createBuffers(std::vector<Vertex>* tVertexList, std::vector<unsigned int>* tIndexList);
+	void createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList);
 	friend class ModelLoader;
 public:
-	MeshResource(std::string pName, NodeResource* pConnectedNode);
+	MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode);
 
 	std::string getName();
+	unsigned int getMaterialIndex();
 };
 
 #endif

@@ -13,7 +13,8 @@ public:
 
 	std::string getRootPath() override;
 
-	void processInputs(double* pPreviousTime) override;
+	void processInputs() override;
+	void run(std::function<void()> pRenderFunction) override;
 };
 
 #endif // WINDOWSPLATFORM_H

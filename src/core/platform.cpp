@@ -1,7 +1,12 @@
 #include "platform.h"
 
+#include "helper/FileManager.h"
+
 Platform::Platform(GraphicsAPI* pGraphicsAPI) {
 	mGraphicsAPI = pGraphicsAPI;
+
+	mCurrentTime = 0.0f;
+	mPreviousTime = 0.0f;
 }
 
 GraphicsAPI* Platform::getGraphicsAPI() {
@@ -9,12 +14,12 @@ GraphicsAPI* Platform::getGraphicsAPI() {
 }
 
 std::string Platform::getAssetsPath() {
-	std::string tLakotAssetsPath = getRootPath() + "/assets";
+	std::string tLakotAssetsPath = FileManager::getInstance()->createPath(getRootPath(), "assets");
 	return tLakotAssetsPath;
 }
 
 std::string Platform::getModelsPath() {
-	std::string tLakotModelsPath = getAssetsPath() + "/models";
+	std::string tLakotModelsPath = FileManager::getInstance()->createPath(getAssetsPath(), "models");
 	return tLakotModelsPath;
 }
 
