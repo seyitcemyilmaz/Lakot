@@ -13,3 +13,19 @@ std::string NodeResource::getName() {
 void NodeResource::addChildNode(NodeResource* pChildNode) {
 	mChildNodes.push_back(pChildNode);
 }
+
+std::vector<NodeResource*> NodeResource::getChildNodes() {
+	return mChildNodes;
+}
+
+void NodeResource::addChildMesh(MeshResource* pChildMesh) {
+	mChildMeshes.push_back(pChildMesh);
+}
+
+std::vector<MeshResource*> NodeResource::getChildMeshes() {
+	return mChildMeshes;
+}
+
+bool NodeResource::hasChildMesh() {
+	return mChildMeshes.size() > 0;
+}

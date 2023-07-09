@@ -11,6 +11,8 @@ MeshResource::MeshResource(std::string pName, unsigned int pMaterialIndex, NodeR
 	mVBO = 0;
 	mIBO = 0;
 
+	mIndexCount = 0;
+
 	mHasBone = false;
 }
 
@@ -27,6 +29,8 @@ void MeshResource::setHasBone(bool pHasBone) {
 }
 
 void MeshResource::createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList) {
+	mIndexCount = tIndexList.size();
+
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
 	glGenBuffers(1, &mIBO);
@@ -51,4 +55,9 @@ void MeshResource::createBuffers(std::vector<Vertex>& tVertexList, std::vector<u
 	glVertexAttribPointer(4, 4, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
 
 	glBindVertexArray(0);
+}
+
+void MeshResource::draw() {
+	glBindVertexArray(mVAO);
+	glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, nullptr);
 }

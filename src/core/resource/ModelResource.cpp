@@ -23,3 +23,7 @@ void ModelResource::setRootNode(NodeResource* pRootNode) {
 int ModelResource::getBoneId(std::string pBoneName) {
 	return std::distance(mBoneResources.begin(), std::find(mBoneResources.begin(), mBoneResources.end(), mBoneMap[pBoneName]));
 }
+
+NodeResource* ModelResource::getRootNodeResource() {
+	return mRootNode;
+}

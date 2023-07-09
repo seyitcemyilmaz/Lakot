@@ -1,6 +1,9 @@
 #include "Model.h"
 
-Model::Model() { }
+Model::Model(ModelResource* pModelResource, Node* pRootNode) {
+	mModelResource = pModelResource;
+	mRootNode = pRootNode;
+}
 
 void Model::addMesh(Mesh* pMesh) {
 	mMeshes.push_back(pMesh);

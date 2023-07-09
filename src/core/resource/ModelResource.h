@@ -29,6 +29,8 @@ protected:
 	friend class ModelLoader;
 public:
 	ModelResource();
+
+	NodeResource* getRootNodeResource();
 };
 
 #endif

@@ -99,6 +99,7 @@ void ModelLoader::processMesh(aiMesh* pMesh, const aiScene* pScene, NodeResource
 
 	tMeshResource->createBuffers(tVertexList, tIndexList);
 
+	pConnectedNodeResource->addChildMesh(tMeshResource);
 	mModelResource->addMeshResource(tMeshResource);
 }
 

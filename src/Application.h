@@ -1,7 +1,7 @@
 #ifndef LAKOT_APPLICATION_H
 #define LAKOT_APPLICATION_H
 
-#include "application/resources/Model.h"
+#include "application/graphics/model/Model.h"
 #include "application/graphics/GUI.h"
 
 #include "core/platform/Platform.h"

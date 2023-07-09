@@ -9,6 +9,8 @@
 
 #include "platform/PlatformFactory.h"
 
+#include "application/graphics/model/ModelFactory.h"
+
 Application::Application() {
 	mPlatform = nullptr;
 	mGUI = nullptr;
@@ -29,9 +31,7 @@ void Application::initialization() {
 
 	initializeShaders();
 	initializeCameras();
-	initializeModels();
-
-	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
+	initializeModels();	
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -50,30 +50,13 @@ void Application::initializeCameras() {
 }
 
 void Application::initializeModels() {
-	Model* tModel = new Model();
+	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
+	//Model* tModel = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
+	//mModels.push_back(tModel);
 
-	Mesh* tMesh = new Mesh();
-
-	std::vector<float> tVertices {
-		0.5f,  0.5f, 0.0f,  // top right
-		0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left
-	};
-
-	std::vector<unsigned int> tIndices {
-		0, 1, 3,  // first Triangle
-		1, 2, 3   // second Triangle
-	};
-
-	tMesh->setVertices(tVertices);
-	tMesh->setIndices(tIndices);
-
-	tMesh->initializeBuffers();
-
-	tModel->addMesh(tMesh);
-
-	mModels.push_back(tModel);
+	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+	Model* tModel2 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+	mModels.push_back(tModel2);
 }
 
 void Application::processInputs() {
@@ -83,7 +66,9 @@ void Application::processInputs() {
 void Application::render() {
 	// TODO: Add render function for scene
 	RenderManager::getInstance()->renderScene();
-	mModels[0]->draw();
+	for (int i = 0; i < mModels.size(); i++) {
+		mModels[i]->draw();
+	}
 	// TODO: Add render function for GUI
 }
 
