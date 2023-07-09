@@ -27,6 +27,7 @@ protected:
 
 	int getBoneId(std::string pBoneName);
 	friend class ModelLoader;
+
 public:
 	ModelResource();
 

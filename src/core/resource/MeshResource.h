@@ -33,10 +33,12 @@ private:
 	unsigned int mIndexCount;
 
 	bool mHasBone;
+
 protected:
 	void setHasBone(bool pHasBone);
 	void createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList);
 	friend class ModelLoader;
+
 public:
 	MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode);
 

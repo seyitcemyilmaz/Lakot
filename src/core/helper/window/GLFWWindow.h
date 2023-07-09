@@ -6,16 +6,17 @@
 
 #include "helper/window/Window.h"
 
-class GLFWWindow : public Window
-{
+class GLFWWindow : public Window {
 private:
 	GLFWwindow* mWindowObject;
 
 	void setCallbackFunctions();
 
 	GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor);
+
 protected:
 	friend class WindowFactory;
+
 public:
 	~GLFWWindow();
 

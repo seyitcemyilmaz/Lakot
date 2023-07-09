@@ -4,6 +4,7 @@
 class GUI {
 private:
 	bool mVisibility;
+
 public:
 	GUI();
 

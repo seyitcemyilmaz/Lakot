@@ -19,6 +19,7 @@ private:
 
 	TextureResource* createEmbeddedTexture();
 	TextureResource* createReferencedTexture();
+
 public:
 	TextureLoader(std::string pModelPath, std::string pTexturePath);
 

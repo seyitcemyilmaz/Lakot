@@ -13,9 +13,11 @@ private:
 	Node* mRootNode;
 
 	std::vector<Mesh*> mMeshes;
+
 protected:
 	void addMesh(Mesh* pMesh);
 	friend class ModelFactory;
+
 public:
 	Model(ModelResource* pModelResource, Node* pRootNode);
 

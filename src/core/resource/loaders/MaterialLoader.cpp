@@ -2,8 +2,7 @@
 
 #include "TextureLoader.h"
 
-MaterialLoader::MaterialLoader(aiMaterial* pMaterial, std::string pModelPath)
-{
+MaterialLoader::MaterialLoader(aiMaterial* pMaterial, std::string pModelPath) {
 	mMaterial = pMaterial;
 	mModelPath = pModelPath;
 }

@@ -17,6 +17,7 @@ private:
 	glm::mat4 getViewMatrix();
 
 	RenderManager();
+
 public:
 	static RenderManager* getInstance();
 

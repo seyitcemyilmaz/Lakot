@@ -3,8 +3,7 @@
 
 #include "TextureResource.h"
 
-class MaterialResource
-{
+class MaterialResource {
 private:
 	TextureResource* mDiffuseTexture;
 	TextureResource* mNormalTexture;

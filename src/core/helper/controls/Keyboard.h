@@ -16,6 +16,7 @@ private:
 	Key mKeys[GLFW_KEY_LAST];
 
 	Keyboard();
+
 public:
 	static Keyboard* getInstance();
 

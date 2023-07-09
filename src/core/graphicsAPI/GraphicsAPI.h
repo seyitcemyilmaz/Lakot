@@ -23,6 +23,7 @@ private:
 	GraphicsAPIMinor mGraphicsAPIMinor;
 
 	bool mIsGraphicsAPIInitialized;
+
 public:
 	GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
 	virtual ~GraphicsAPI();

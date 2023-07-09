@@ -10,6 +10,7 @@ private:
 	std::string mName;
 
 	glm::mat4 mOffsetMatrix;
+
 public:
 	BoneResource(std::string pName, glm::mat4 pOffsetMatrix);
 };

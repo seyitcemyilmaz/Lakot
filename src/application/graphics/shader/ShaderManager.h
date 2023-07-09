@@ -17,6 +17,7 @@ private:
 	void setActiveShaderNull();
 
 	ShaderManager();
+
 public:
 	static ShaderManager* getInstance();
 

@@ -16,6 +16,7 @@ private:
 
 	void createShaderProgram(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath);
 	unsigned int compileShader(std::string pShaderFilePath, unsigned int tShaderType);
+
 public:
 	Shader(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath);
 	~Shader();

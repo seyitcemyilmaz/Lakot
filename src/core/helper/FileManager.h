@@ -8,6 +8,7 @@ private:
 	static FileManager* mInstance;
 
 	FileManager();
+
 public:
 	static FileManager* getInstance();
 

@@ -6,8 +6,7 @@
 #include "resource/MaterialResource.h"
 #include "resource/TextureResource.h"
 
-class MaterialLoader
-{
+class MaterialLoader {
 private:
 	aiMaterial* mMaterial;
 

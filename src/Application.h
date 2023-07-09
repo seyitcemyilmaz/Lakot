@@ -17,6 +17,7 @@ private:
 	void initializeShaders();
 	void initializeCameras();
 	void initializeModels();
+
 public:
 	Application();
 	~Application();

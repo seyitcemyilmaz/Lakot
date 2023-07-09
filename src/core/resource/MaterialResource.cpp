@@ -1,7 +1,6 @@
 #include "MaterialResource.h"
 
-MaterialResource::MaterialResource()
-{
+MaterialResource::MaterialResource() {
 	mDiffuseTexture = nullptr;
 	mNormalTexture = nullptr;
 	mSpecularTexture = nullptr;

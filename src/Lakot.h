@@ -6,6 +6,7 @@
 class Lakot {
 private:
 	Application* mApplication;
+
 public:
 	Lakot();
 	~Lakot();
