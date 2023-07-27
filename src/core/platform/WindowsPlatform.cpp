@@ -78,14 +78,14 @@ void WindowsPlatform::processMouseInputs() {
 	}
 }
 
-void WindowsPlatform::run(std::function<void()> pRenderFunction) {
+void WindowsPlatform::run(const std::function<void()>& pRenderFunction) {
 	WindowManager* tWindowManager = WindowManager::getInstance();
 
 	while (tWindowManager->getIsWindowActive()) {
 		processInputs();
 		tWindowManager->updateWindow();
 		pRenderFunction();
-		glfwSwapBuffers((GLFWwindow*)tWindowManager->getWindow());
+		glfwSwapBuffers(static_cast<GLFWwindow*>(tWindowManager->getWindow()));
 		glfwPollEvents();
 	}
 }

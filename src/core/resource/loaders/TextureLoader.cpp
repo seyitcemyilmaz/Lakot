@@ -5,10 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-TextureLoader::TextureLoader(std::string pModelPath, std::string pTexturePath) {
-	mTexturePath = pTexturePath;
-	mModelPath = pModelPath;
-}
+TextureLoader::TextureLoader(const std::string& pModelPath, const std::string& pTexturePath) :
+	mTexturePath(pTexturePath), mModelPath(pModelPath) { }
 
 TextureResource* TextureLoader::loadTexture() {
 	if ('*' == mTexturePath[0])  {
@@ -62,9 +60,9 @@ TextureResource* TextureLoader::createReferencedTexture() {
 }
 
 void TextureLoader::createPossibleTextureLocations() {
-	std::string tSourceDirectory = FileManager::getInstance()->getDirectoryFromPath(mModelPath);
+	std::filesystem::path tSourceDirectory = FileManager::getInstance()->getDirectoryFromPath(mModelPath);
 
-	mPossibleTextureLocations.push_back(tSourceDirectory);
+	mPossibleTextureLocations.push_back(tSourceDirectory.string());
 	mPossibleTextureLocations.push_back(FileManager::getInstance()->createPath(tSourceDirectory, "textures"));
 
 	if (FileManager::getInstance()->hasParentPath(tSourceDirectory)) {
@@ -87,11 +85,7 @@ std::string TextureLoader::getTexturePath() {
 
 	std::string tTextureFileNameSpacesChangedWithUnderscore = tTextureFileName;
 
-	std::replace_if(tTextureFileNameSpacesChangedWithUnderscore.begin(),
-					tTextureFileNameSpacesChangedWithUnderscore.end(),
-					::isspace,
-					'_');
-
+	std::ranges::replace_if(tTextureFileNameSpacesChangedWithUnderscore.begin(), tTextureFileNameSpacesChangedWithUnderscore.end(), ::isspace, '_');
 
 	for (unsigned int i = 0; i < mPossibleTextureLocations.size(); i++) {
 		if (FileManager::getInstance()->isFileExist(mPossibleTextureLocations[i], tTextureFileNameSpacesChangedWithUnderscore)) {

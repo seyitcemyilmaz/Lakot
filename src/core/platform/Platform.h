@@ -80,7 +80,7 @@ public:
 	std::string getModelsPath();
 
 	virtual void processInputs() = 0;
-	virtual void run(std::function<void()> pRenderFunction) = 0;
+	virtual void run(const std::function<void()>& pRenderFunction) = 0;
 };
 
 

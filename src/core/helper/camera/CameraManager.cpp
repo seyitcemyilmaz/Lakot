@@ -72,7 +72,7 @@ void CameraManager::updateActiveCameraPosition(CameraDirection pCameraDirection,
 		return;
 	}
 
-	glm::vec3 pAmount = glm::vec3(0.0);
+	glm::vec3 pAmount(0.0);
 
 	if (pCameraDirection == CameraDirection::eForward) {
 		pAmount = tActiveCamera->getFrontVector() * float(mCameraMovementSpeed * pDt);

@@ -9,7 +9,7 @@ WindowFactory::WindowFactory() { }
 Window* WindowFactory::createWindow() {
 #ifdef LAKOT_PLATFORM_WINDOWS
 	return createGLFWWindow();
-#elif
+#else
 #error "Not implemented."
 #endif
 }

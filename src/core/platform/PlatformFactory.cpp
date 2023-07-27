@@ -4,12 +4,12 @@
 
 #include "WindowsPlatform.h"
 
-PlatformFactory::PlatformFactory() { }
+PlatformFactory::PlatformFactory() = default;
 
 Platform* PlatformFactory::createPlatformObject() {
 #ifdef LAKOT_PLATFORM_WINDOWS
 	return createWindowsPlatformObject();
-#elif
+#else
 #error "Not implemented."
 #endif
 }

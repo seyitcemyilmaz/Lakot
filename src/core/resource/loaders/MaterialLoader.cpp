@@ -2,10 +2,8 @@
 
 #include "TextureLoader.h"
 
-MaterialLoader::MaterialLoader(aiMaterial* pMaterial, std::string pModelPath) {
-	mMaterial = pMaterial;
-	mModelPath = pModelPath;
-}
+MaterialLoader::MaterialLoader(aiMaterial* pMaterial, const std::string& pModelPath) :
+	mMaterial(pMaterial), mModelPath(pModelPath) { }
 
 MaterialResource* MaterialLoader::loadMaterial() {
 	MaterialResource* tMaterialResource = new MaterialResource();

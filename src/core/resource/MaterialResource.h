@@ -5,11 +5,11 @@
 
 class MaterialResource {
 private:
-	TextureResource* mDiffuseTexture;
-	TextureResource* mNormalTexture;
-	TextureResource* mSpecularTexture;
-	TextureResource* mEmmisiveTexture;
-	TextureResource* mAmbientTexture;
+	TextureResource* mDiffuseTexture = nullptr;
+	TextureResource* mNormalTexture = nullptr;
+	TextureResource* mSpecularTexture = nullptr;
+	TextureResource* mEmmisiveTexture = nullptr;
+	TextureResource* mAmbientTexture = nullptr;
 
 protected:
 	void setDiffuseTexture(TextureResource* pDiffuseTexture);

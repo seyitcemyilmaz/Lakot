@@ -10,9 +10,9 @@ private:
 	std::string mTexturePath;
 
 public:
-	TextureResource(unsigned int pTextureId, std::string pTexturePath);
+	TextureResource(unsigned int pTextureId, const std::string& pTexturePath);
 
-	std::string getTexturePath();
+	std::string getTexturePath() const;
 };
 
 

@@ -5,11 +5,11 @@ GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGra
 	mIsGraphicsAPIInitialized = false;
 }
 
-GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMajor() {
+GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMajor() const {
 	return mGraphicsAPIMajor;
 }
 
-GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMinor() {
+GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMinor() const {
 	return mGraphicsAPIMinor;
 }
 
@@ -17,8 +17,8 @@ void GraphicsAPI::setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized) {
 	mIsGraphicsAPIInitialized = tIsGraphicsAPIInitialized;
 }
 
-bool GraphicsAPI::getIsGraphicsAPIInitialized() {
+bool GraphicsAPI::getIsGraphicsAPIInitialized() const {
 	return mIsGraphicsAPIInitialized;
 }
 
-GraphicsAPI::~GraphicsAPI() { }
+GraphicsAPI::~GraphicsAPI() = default;

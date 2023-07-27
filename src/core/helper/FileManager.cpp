@@ -10,25 +10,25 @@ FileManager* FileManager::getInstance() {
 	return mInstance;
 }
 
-FileManager::FileManager() { }
+FileManager::FileManager() = default;
 
-bool FileManager::hasParentPath(std::filesystem::path pPath) {
+bool FileManager::hasParentPath(const std::filesystem::path& pPath) const {
 	return pPath.has_parent_path();
 }
 
-std::string FileManager::getParentDirectory(std::filesystem::path pPath) {
+std::string FileManager::getParentDirectory(const std::filesystem::path& pPath) {
 	return pPath.parent_path().string();
 }
 
-bool FileManager::isFileExist(std::filesystem::path pPath) {
+bool FileManager::isFileExist(const std::filesystem::path& pPath) {
 	return std::filesystem::exists(pPath);
 }
 
-bool FileManager::isFileExist(std::filesystem::path pPath, std::string pFile) {
+bool FileManager::isFileExist(const std::filesystem::path& pPath, const std::string& pFile) {
 	return std::filesystem::exists(createPath(pPath, pFile));
 }
 
-std::string FileManager::getFileNameFromPath(std::filesystem::path pPath) {
+std::string FileManager::getFileNameFromPath(const std::filesystem::path& pPath) {
 	std::string tPath = pPath.string();
 
 	if (tPath.find('/') != std::string::npos) {
@@ -42,11 +42,11 @@ std::string FileManager::getFileNameFromPath(std::filesystem::path pPath) {
 	return tPath;
 }
 
-std::string FileManager::getDirectoryFromPath(std::filesystem::path pPath) {
+std::string FileManager::getDirectoryFromPath(const std::filesystem::path& pPath) {
 	return pPath.string().substr(0, pPath.string().find_last_of(LAKOT_FILE_PATH_SEPARATOR));
 }
 
-std::string FileManager::createPath(std::filesystem::path pPath, std::string pFileOrDirectory) {
+std::string FileManager::createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory) {
 	if (pPath.string().ends_with(LAKOT_FILE_PATH_SEPARATOR)) {
 		return pPath.string() + pFileOrDirectory;
 	}
@@ -54,7 +54,7 @@ std::string FileManager::createPath(std::filesystem::path pPath, std::string pFi
 	return pPath.string() + LAKOT_FILE_PATH_SEPARATOR + pFileOrDirectory;
 }
 
-std::string FileManager::getFileContent(std::filesystem::path pPath) {
+std::string FileManager::getFileContent(const std::filesystem::path& pPath) {
 	std::ifstream tFile(pPath);
 
 	if (!tFile.is_open()) {

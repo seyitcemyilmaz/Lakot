@@ -22,6 +22,9 @@ class MeshResource {
 private:
 	std::string mName;
 
+	std::vector<Vertex> mVertexList;
+	std::vector<unsigned int> mIndexList;
+
 	NodeResource* mConnectedNode;
 
 	unsigned int mVAO;
@@ -36,14 +39,15 @@ private:
 
 protected:
 	void setHasBone(bool pHasBone);
-	void createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList);
+	void setConnectedNode(NodeResource* pConnectedNode);
+	void createBuffers();
 	friend class ModelLoader;
 
 public:
-	MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode);
+	MeshResource(const std::string& pName, std::vector<Vertex> pVertexList, std::vector<unsigned int> pIndexList, unsigned int pMaterialIndex);
 
-	std::string getName();
-	unsigned int getMaterialIndex();
+	std::string getName() const;
+	unsigned int getMaterialIndex() const;
 
 	void draw();
 };

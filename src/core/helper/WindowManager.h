@@ -7,7 +7,7 @@ class WindowManager {
 private:
 	static WindowManager* mInstance;
 
-	Window* mActiveWindow;
+	Window* mActiveWindow = nullptr;
 
 	WindowManager();
 
@@ -29,6 +29,8 @@ public:
 	int getWindowWidth();
 
 	void closeWindow();
+
+	bool operator==(const WindowManager& other) = delete;
 };
 
 #endif

@@ -9,7 +9,7 @@
 class OpenGLAPI : public GraphicsAPI {
 public:
 	OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
-	~OpenGLAPI();
+	~OpenGLAPI() final;
 
 	void initializeGraphicsAPI() override;
 	void terminateGraphicsAPI() override;

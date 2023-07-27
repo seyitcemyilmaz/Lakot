@@ -2,7 +2,7 @@
 
 #include "core/resource/ResourceManager.h"
 
-ModelFactory::ModelFactory() { }
+ModelFactory::ModelFactory() = default;
 
 Model* ModelFactory::createModel(std::string pModelFilePath) {
 	ModelResource* tModelResource = ResourceManager::getInstance()->getModelResource(pModelFilePath);

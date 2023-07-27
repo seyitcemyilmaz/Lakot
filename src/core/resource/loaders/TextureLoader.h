@@ -21,7 +21,7 @@ private:
 	TextureResource* createReferencedTexture();
 
 public:
-	TextureLoader(std::string pModelPath, std::string pTexturePath);
+	TextureLoader(const std::string& pModelPath, const std::string& pTexturePath);
 
 	TextureResource* loadTexture();
 };

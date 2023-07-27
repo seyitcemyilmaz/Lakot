@@ -2,9 +2,7 @@
 
 #include "helper/FileManager.h"
 
-Platform::Platform(GraphicsAPI* pGraphicsAPI) {
-	mGraphicsAPI = pGraphicsAPI;
-
+Platform::Platform(GraphicsAPI* pGraphicsAPI) : mGraphicsAPI(pGraphicsAPI) {
 	mCurrentTime = 0.0f;
 	mPreviousTime = 0.0f;
 }

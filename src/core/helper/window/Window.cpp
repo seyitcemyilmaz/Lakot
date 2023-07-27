@@ -5,7 +5,7 @@ Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, gl
 	mIsWindowActive = false;
 }
 
-Window::~Window() { }
+Window::~Window() = default;
 
 void Window::setWindowWidth(int pWindowWidth) {
 	mWindowWidth = pWindowWidth;

@@ -2,11 +2,8 @@
 
 #include "platform/Platform.h"
 
-MeshResource::MeshResource(std::string pName, unsigned int pMaterialIndex, NodeResource* pConnectedNode) {
-	mName = pName;
-	mConnectedNode = pConnectedNode;
-	mMaterialIndex = pMaterialIndex;
-
+MeshResource::MeshResource(const std::string& pName, std::vector<Vertex> pVertexList, std::vector<unsigned int> pIndexList, unsigned int pMaterialIndex) :
+	mName(pName), mVertexList(pVertexList), mIndexList(pIndexList), mMaterialIndex(pMaterialIndex) {
 	mVAO = 0;
 	mVBO = 0;
 	mIBO = 0;
@@ -14,13 +11,14 @@ MeshResource::MeshResource(std::string pName, unsigned int pMaterialIndex, NodeR
 	mIndexCount = 0;
 
 	mHasBone = false;
+	mConnectedNode = nullptr;
 }
 
-std::string MeshResource::getName() {
+std::string MeshResource::getName() const {
 	return mName;
 }
 
-unsigned int MeshResource::getMaterialIndex() {
+unsigned int MeshResource::getMaterialIndex() const {
 	return mMaterialIndex;
 }
 
@@ -28,8 +26,12 @@ void MeshResource::setHasBone(bool pHasBone) {
 	mHasBone = pHasBone;
 }
 
-void MeshResource::createBuffers(std::vector<Vertex>& tVertexList, std::vector<unsigned int>& tIndexList) {
-	mIndexCount = tIndexList.size();
+void MeshResource::setConnectedNode(NodeResource* pConnectedNode) {
+	mConnectedNode = pConnectedNode;
+}
+
+void MeshResource::createBuffers() {
+	mIndexCount = static_cast<int>(mIndexList.size());
 
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
@@ -38,21 +40,21 @@ void MeshResource::createBuffers(std::vector<Vertex>& tVertexList, std::vector<u
 	glBindVertexArray(mVAO);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndexList.size() * sizeof(unsigned int), tIndexList.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndexList.size() * sizeof(unsigned int), mIndexList.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, tVertexList.size() * sizeof(Vertex), tVertexList.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mVertexList.size() * sizeof(Vertex), mVertexList.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, textureCoordinates));
+	glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, textureCoordinates)));
 	glEnableVertexAttribArray(3);
-	glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
+	glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, boneIds)));
 	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
+	glVertexAttribPointer(4, 4, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, boneWeights)));
 
 	glBindVertexArray(0);
 }

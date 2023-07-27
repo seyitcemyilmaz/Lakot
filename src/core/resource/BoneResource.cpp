@@ -1,6 +1,4 @@
 #include "BoneResource.h"
 
-BoneResource::BoneResource(std::string pName, glm::mat4 pOffsetMatrix) {
-	mName = pName;
-	mOffsetMatrix = pOffsetMatrix;
-}
+BoneResource::BoneResource(const std::string& pName, const glm::mat4& pOffsetMatrix) :
+	mName(pName), mOffsetMatrix(pOffsetMatrix) { }

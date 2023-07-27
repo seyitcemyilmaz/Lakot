@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-enum GraphicsAPIType {
+enum class GraphicsAPIType {
 	eNONE,
 	eOpenGL,
 	eOpenGLES,  /// TODO: will be implemented.
@@ -13,8 +13,8 @@ enum GraphicsAPIType {
 	eD3Dx       /// TODO: will be implemented.
 };
 
-typedef int GraphicsAPIMajor;
-typedef int GraphicsAPIMinor;
+using GraphicsAPIMajor = int;
+using GraphicsAPIMinor = int;
 
 class GraphicsAPI {
 private:
@@ -33,12 +33,11 @@ public:
 
 	virtual std::string getGraphicsAPIString() = 0;
 
-	GraphicsAPIMajor getGraphicsAPIMajor();
-	GraphicsAPIMajor getGraphicsAPIMinor();
+	GraphicsAPIMajor getGraphicsAPIMajor() const;
+	GraphicsAPIMajor getGraphicsAPIMinor() const;
 
 	void setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized);
-	bool getIsGraphicsAPIInitialized();
+	bool getIsGraphicsAPIInitialized() const;
 };
-
 
 #endif

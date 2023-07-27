@@ -4,11 +4,13 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
+#include "helper/AssimpToGLMHelper.h"
+
+#include "BoneWeightLoader.h"
 #include "MaterialLoader.h"
+#include "MeshLoader.h"
 
-ModelLoader::ModelLoader(std::string pModelPath) {
-	mModelPath = pModelPath;
-
+ModelLoader::ModelLoader(const std::string& pModelPath) : mModelPath(pModelPath) {
 	mFlags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_SplitByBoneCount;
 
 	mModelResource = nullptr;
@@ -58,7 +60,7 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 
 void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource) {
 	std::string tNodeName = pNode->mName.C_Str();
-	glm::mat4 tTransformationMatrix = assimpMatrixToGlmMatrix(pNode->mTransformation);
+	glm::mat4 tTransformationMatrix = AssimpToGLMHelper::toMat4(pNode->mTransformation);
 
 	NodeResource* tNodeResource = new NodeResource(tNodeName, pParentNodeResource, tTransformationMatrix);
 
@@ -72,7 +74,7 @@ void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource
 	unsigned int tMeshCount = pNode->mNumMeshes;
 
 	for (unsigned int i = 0; i < tMeshCount; i++) {
-		processMesh(pScene->mMeshes[pNode->mMeshes[i]], pScene, tNodeResource);
+		processMesh(pScene->mMeshes[pNode->mMeshes[i]], tNodeResource);
 	}
 
 	unsigned int tChildNodeCount = pNode->mNumChildren;
@@ -82,28 +84,24 @@ void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource
 	}
 }
 
-void ModelLoader::processMesh(aiMesh* pMesh, const aiScene* pScene, NodeResource* pConnectedNodeResource) {
-	std::string tMeshName = pMesh->mName.C_Str();
-	unsigned int tMaterialIndex = pMesh->mMaterialIndex;
-
-	std::vector<Vertex> tVertexList = createVertexList(pMesh);
-	std::vector<unsigned int> tIndexList = createIndexList(pMesh);
-
-	MeshResource* tMeshResource = new MeshResource(tMeshName, tMaterialIndex, pConnectedNodeResource);
+void ModelLoader::processMesh(aiMesh* pMesh, NodeResource* pConnectedNodeResource) {
+	MeshLoader tMeshLoader(pMesh);
+	MeshResource* tMeshResource = tMeshLoader.loadMesh();
 
 	if (pMesh->HasBones()) {
-		extractBones(pMesh, tVertexList);
-		normalizeVertexBoneWeights(tVertexList);
+		extractBones(pMesh, tMeshResource);
 		tMeshResource->setHasBone(true);
 	}
 
-	tMeshResource->createBuffers(tVertexList, tIndexList);
+	tMeshResource->createBuffers();
 
+	tMeshResource->setConnectedNode(pConnectedNodeResource);
 	pConnectedNodeResource->addChildMesh(tMeshResource);
+
 	mModelResource->addMeshResource(tMeshResource);
 }
 
-void ModelLoader::extractBones(aiMesh* pMesh, std::vector<Vertex>& pVertexList) {
+void ModelLoader::extractBones(aiMesh* pMesh, MeshResource* pMeshResource) {
 	aiBone** tBones = pMesh->mBones;
 	unsigned int tBoneCount = pMesh->mNumBones;
 
@@ -112,31 +110,21 @@ void ModelLoader::extractBones(aiMesh* pMesh, std::vector<Vertex>& pVertexList) 
 		std::string tBoneName = tBone->mName.C_Str();
 
 		if (!mModelResource->mBoneMap.contains(tBoneName)) {
-			BoneResource* tBoneResource = new BoneResource(tBoneName, assimpMatrixToGlmMatrix(tBone->mOffsetMatrix));
+			BoneResource* tBoneResource = new BoneResource(tBoneName, AssimpToGLMHelper::toMat4(tBone->mOffsetMatrix));
 			mModelResource->mBoneMap[tBoneName] = tBoneResource;
 			mModelResource->addBoneResource(tBoneResource);
 		}
 
-		extractVertexBoneWeights(tBone, pVertexList);
+		unsigned int tBoneId = mModelResource->getBoneId(tBoneName);
+
+		BoneWeightLoader tBoneWeightLoader(tBone, pMeshResource->mVertexList, tBoneId);
+		tBoneWeightLoader.load();
 	}
+
+	normalizeBoneWeights(pMeshResource->mVertexList);
 }
 
-void ModelLoader::extractVertexBoneWeights(aiBone* pBone, std::vector<Vertex>& pVertexList) {
-	int tBoneId = mModelResource->getBoneId(pBone->mName.C_Str());
-
-	unsigned int tWeightCount = pBone->mNumWeights;
-	aiVertexWeight* tWeights = pBone->mWeights;
-
-	for (unsigned int i = 0; i < tWeightCount; i++) {
-		float tVertexWeight = tWeights[i].mWeight;
-		unsigned int tVertexIndex = tWeights[i].mVertexId;
-		Vertex* tVertex = &pVertexList[tVertexIndex];
-
-		setVertexBoneWeight(tVertex, tBoneId, tVertexWeight);
-	}
-}
-
-void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>& pVertexList) {
+void ModelLoader::normalizeBoneWeights(std::vector<Vertex>& pVertexList) {
 	size_t tVertexCount = pVertexList.size();
 
 	for (size_t i = 0; i < tVertexCount; i++) {
@@ -161,82 +149,4 @@ void ModelLoader::normalizeVertexBoneWeights(std::vector<Vertex>& pVertexList) {
 			}
 		}
 	}
-}
-
-void ModelLoader::setVertexBoneWeight(Vertex* pVertex, int pBoneId, float pWeight) {
-	if (pWeight == 0.0f) {
-		return;
-	}
-
-	for (int i = 0; i < LAKOT_VERTEX_MAX_BONE_COUNT; i++) {
-		if (pVertex->boneIds[i] == pBoneId) {
-			break;
-		}
-
-		if (pVertex->boneIds[i] == -1) {
-			pVertex->boneIds[i] = pBoneId;
-			pVertex->boneWeights[i] = pWeight;
-			break;
-		}
-	}
-}
-
-std::vector<Vertex> ModelLoader::createVertexList(aiMesh* pMesh) {
-	std::vector<Vertex> tVertexList;
-	unsigned int tVertexCount = pMesh->mNumVertices;
-
-	for (unsigned int i = 0; i < tVertexCount; i++) {
-		Vertex tVertex {
-			assimp3DVectorToGlmVector(pMesh->mVertices[i]),
-					assimp3DVectorToGlmVector(pMesh->mNormals[i])
-		};
-
-		if (pMesh->mTextureCoords[0]) {
-			tVertex.textureCoordinates = glm::vec2(pMesh->mTextureCoords[0]->x, pMesh->mTextureCoords[0]->y);
-		}
-		else {
-			tVertex.textureCoordinates = glm::vec2(0.0f);
-		}
-
-		for (unsigned int j = 0; j < LAKOT_VERTEX_MAX_BONE_COUNT; j++) {
-			tVertex.boneIds[j] = -1;
-			tVertex.boneWeights[j] = 0.0f;
-		}
-
-		tVertexList.push_back(tVertex);
-	}
-
-	return tVertexList;
-}
-
-std::vector<unsigned int> ModelLoader::createIndexList(aiMesh* pMesh) {
-	std::vector<unsigned int> tIndexList;
-	unsigned int tPolygonCount = pMesh->mNumFaces;
-
-	for (unsigned int i = 0; i < tPolygonCount; i++) {
-		if (pMesh->mFaces[i].mNumIndices != 3) {
-			throw "A polygon has not 3 indices";
-		}
-
-		tIndexList.push_back(pMesh->mFaces[i].mIndices[0]);
-		tIndexList.push_back(pMesh->mFaces[i].mIndices[1]);
-		tIndexList.push_back(pMesh->mFaces[i].mIndices[2]);
-	}
-
-	return tIndexList;
-}
-
-glm::mat4 ModelLoader::assimpMatrixToGlmMatrix(aiMatrix4x4& pMatrix) {
-	return glm::mat4 {
-		pMatrix.a1, pMatrix.b1, pMatrix.c1, pMatrix.d1,
-		pMatrix.a2, pMatrix.b2, pMatrix.c2, pMatrix.d2,
-		pMatrix.a3, pMatrix.b3, pMatrix.c3, pMatrix.d3,
-		pMatrix.a4, pMatrix.b4, pMatrix.c4, pMatrix.d4
-	};
-}
-
-glm::vec3 ModelLoader::assimp3DVectorToGlmVector(aiVector3D& pVector) {
-	return glm::vec3 {
-		pVector.x, pVector.y, pVector.z
-	};
 }

@@ -25,7 +25,7 @@ protected:
 	void addBoneResource(BoneResource* pBoneResource);
 	void addMaterialResource(MaterialResource* pMaterialResource);
 
-	int getBoneId(std::string pBoneName);
+	unsigned int getBoneId(const std::string& pBoneName);
 	friend class ModelLoader;
 
 public:

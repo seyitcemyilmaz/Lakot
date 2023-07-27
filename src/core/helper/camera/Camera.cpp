@@ -1,8 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 pPosition) {
-	mPosition = pPosition;
-
+Camera::Camera(glm::vec3 pPosition) : mPosition(pPosition) {
 	mWorldUp = LAKOT_CAMERA_WORLD_UP;
 	mFrontVector = LAKOT_CAMERA_FRONT;
 

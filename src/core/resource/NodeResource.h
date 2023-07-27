@@ -20,19 +20,19 @@ private:
 	glm::mat4 mTransformationMatrix;
 
 protected:
-	void addChildNode(NodeResource* pChildNode);
 	void addChildMesh(MeshResource* pChildMesh);
+	void addChildNode(NodeResource* pChildNode);
 	friend class ModelLoader;
 
 public:
-	NodeResource(std::string pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
+	NodeResource(const std::string& pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
 
-	std::string getName();
+	std::string getName() const;
 
-	std::vector<NodeResource*> getChildNodes();
-	std::vector<MeshResource*> getChildMeshes();
+	std::vector<NodeResource*> getChildNodes() const;
+	std::vector<MeshResource*> getChildMeshes() const;
 
-	bool hasChildMesh();
+	bool hasChildMesh() const;
 };
 
 #endif

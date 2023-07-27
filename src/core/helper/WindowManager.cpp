@@ -14,9 +14,7 @@ WindowManager* WindowManager::getInstance() {
 	return mInstance;
 }
 
-WindowManager::WindowManager() {
-	mActiveWindow = nullptr;
-}
+WindowManager::WindowManager() = default;
 
 void WindowManager::initializateWindow() {
 	std::cout << "Window manager is inializating." << std::endl;

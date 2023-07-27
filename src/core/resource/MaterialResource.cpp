@@ -1,12 +1,6 @@
 #include "MaterialResource.h"
 
-MaterialResource::MaterialResource() {
-	mDiffuseTexture = nullptr;
-	mNormalTexture = nullptr;
-	mSpecularTexture = nullptr;
-	mEmmisiveTexture = nullptr;
-	mAmbientTexture = nullptr;
-}
+MaterialResource::MaterialResource() = default;
 
 void MaterialResource::setDiffuseTexture(TextureResource* pDiffuseTexture) {
 	mDiffuseTexture = pDiffuseTexture;

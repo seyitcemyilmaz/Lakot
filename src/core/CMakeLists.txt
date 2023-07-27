@@ -30,6 +30,9 @@ elseif (UNIX)
 endif()
 
 set(HELPER_FILES
+    ${HELPER_DIRECTORY}/AssimpToGLMHelper.h
+    ${HELPER_DIRECTORY}/AssimpToGLMHelper.cpp
+
     ${HELPER_DIRECTORY}/FileManager.h
     ${HELPER_DIRECTORY}/FileManager.cpp
 
@@ -102,8 +105,14 @@ set(RESOURCE_FILES
 )
 
     set(LOADERS_FILES
+        ${LOADERS_DIRECTORY}/BoneWeightLoader.h
+        ${LOADERS_DIRECTORY}/BoneWeightLoader.cpp
+
         ${LOADERS_DIRECTORY}/MaterialLoader.h
         ${LOADERS_DIRECTORY}/MaterialLoader.cpp
+
+        ${LOADERS_DIRECTORY}/MeshLoader.h
+        ${LOADERS_DIRECTORY}/MeshLoader.cpp
 
         ${LOADERS_DIRECTORY}/ModelLoader.h
         ${LOADERS_DIRECTORY}/ModelLoader.cpp

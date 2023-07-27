@@ -12,7 +12,7 @@ ResourceManager* ResourceManager::getInstance() {
 	return mInstance;
 }
 
-ResourceManager::ResourceManager() { }
+ResourceManager::ResourceManager() = default;
 
 void ResourceManager::addModelResource(std::string pModelFilePath) {
 	if (mModelResources.contains(pModelFilePath)) {

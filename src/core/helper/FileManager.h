@@ -12,18 +12,20 @@ private:
 public:
 	static FileManager* getInstance();
 
-	bool isFileExist(std::filesystem::path pPath);
-	bool isFileExist(std::filesystem::path pPath, std::string pFile);
+	bool isFileExist(const std::filesystem::path& pPath);
+	bool isFileExist(const std::filesystem::path& pPath, const std::string& pFile);
 
-	bool hasParentPath(std::filesystem::path pPath);
+	bool hasParentPath(const std::filesystem::path& pPath) const;
 
-	std::string getParentDirectory(std::filesystem::path pPath);
-	std::string getFileNameFromPath(std::filesystem::path pPath);
-	std::string getDirectoryFromPath(std::filesystem::path pPath);
+	std::string getParentDirectory(const std::filesystem::path& pPath);
+	std::string getFileNameFromPath(const std::filesystem::path& pPath);
+	std::string getDirectoryFromPath(const std::filesystem::path& pPath);
 
-	std::string createPath(std::filesystem::path pPath, std::string pFileOrDirectory);
+	std::string createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory);
 
-	std::string getFileContent(std::filesystem::path pPath);
+	std::string getFileContent(const std::filesystem::path& pPath);
+
+	bool operator==(const FileManager& other) = delete;
 };
 
 #endif

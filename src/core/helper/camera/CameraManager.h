@@ -8,7 +8,7 @@
 
 #define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			25.0
 
-enum CameraDirection {
+enum class CameraDirection {
 	eForward,
 	eBackward,
 	eLeft,
@@ -44,6 +44,8 @@ public:
 	void updateActiveCameraPosition(CameraDirection pCameraDirection, double pDt);
 	void updateActiveCameraDirection(double pDX, double pDY);
 	void updateActiveCameraZoom(double pAmount);
+
+	bool operator==(const CameraManager& other) = delete;
 };
 
 #endif

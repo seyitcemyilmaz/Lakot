@@ -12,6 +12,7 @@ GLFWWindow::GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHe
 
 GLFWWindow::~GLFWWindow() {
 	destroyWindow();
+    Window::~Window();
 }
 
 void GLFWWindow::initialize() {
@@ -69,7 +70,7 @@ void* GLFWWindow::getWindowInstance() {
 }
 
 void GLFWWindow::frameBufferSizeCallback(GLFWwindow* tWindow, int tWidth, int tHeight) {
-	GLFWWindow* tWindowObject = (GLFWWindow*)glfwGetWindowUserPointer(tWindow);
+	GLFWWindow* tWindowObject = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(tWindow));
 
 	tWindowObject->setWindowWidth(tWidth);
 	tWindowObject->setWindowHeight(tHeight);
@@ -80,7 +81,7 @@ void GLFWWindow::frameBufferSizeCallback(GLFWwindow* tWindow, int tWidth, int tH
 }
 
 void GLFWWindow::windowCloseCallback(GLFWwindow* tWindow) {
-	GLFWWindow* tWindowObject = (GLFWWindow*)glfwGetWindowUserPointer(tWindow);
+	GLFWWindow* tWindowObject = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(tWindow));
 
 	tWindowObject->setIsWindowActive(false);
 
