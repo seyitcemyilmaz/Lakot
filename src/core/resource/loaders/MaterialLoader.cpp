@@ -1,126 +1,132 @@
 #include "MaterialLoader.h"
 
+#include <glm/glm.hpp>
+
 #include "TextureLoader.h"
 
-MaterialLoader::MaterialLoader(aiMaterial* pMaterial, const std::string& pModelPath) :
-	mMaterial(pMaterial), mModelPath(pModelPath) { }
+MaterialLoader::MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath) :
+    mModelResource(pModelResource), mMaterial(pMaterial), mScene(pScene), mModelPath(pModelPath) { }
 
 MaterialResource* MaterialLoader::loadMaterial() {
-	MaterialResource* tMaterialResource = new MaterialResource();
+    glm::vec3 tDiffuseColor(0.0f);
+    glm::vec3 tSpecularColor(0.0f);
+    glm::vec3 tEmissiveColor(0.0f);
+    glm::vec3 tAmbientColor(0.0f);
 
-	TextureResource* tDiffuseTexture = loadDiffuseTexture();
-	TextureResource* tNormalTexture = loadNormalTexture();
-	TextureResource* tSpecularTexture = loadSpecularTexture();
-	TextureResource* tEmmisiveTexture = loadEmmisiveTexture();
-	TextureResource* tAmbientTexture = loadAmbientTexture();
+    float tShininess = 1.0f;
+    float tOpacity = 1.0f;
 
-	if (tDiffuseTexture) {
-		tMaterialResource->setDiffuseTexture(tDiffuseTexture);
-	}
+    aiColor3D tTempColor;
+    float tTempValue;
 
-	if (tNormalTexture) {
-		tMaterialResource->setNormalTexture(tNormalTexture);
-	}
+    if (mMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, tTempColor) == AI_SUCCESS) {
+        ;		tDiffuseColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
+    }
 
-	if (tSpecularTexture) {
-		tMaterialResource->setSpecularTexture(tSpecularTexture);
-	}
+    if (mMaterial->Get(AI_MATKEY_COLOR_SPECULAR, tTempColor) == AI_SUCCESS) {
+        tSpecularColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
+    }
 
-	if (tEmmisiveTexture) {
-		tMaterialResource->setEmissiveTexture(tEmmisiveTexture);
-	}
+    if (mMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, tTempColor) == AI_SUCCESS) {
+        tEmissiveColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
+    }
 
-	if (tAmbientTexture) {
-		tMaterialResource->setAmbientTexture(tAmbientTexture);
-	}
+    if (mMaterial->Get(AI_MATKEY_COLOR_AMBIENT, tTempColor) == AI_SUCCESS) {
+        tAmbientColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
+    }
 
-	return tMaterialResource;
+    if (mMaterial->Get(AI_MATKEY_SHININESS, tTempValue) == AI_SUCCESS) {
+        tShininess = tTempValue;
+    }
+
+    if (mMaterial->Get(AI_MATKEY_OPACITY, tTempValue) == AI_SUCCESS) {
+        tOpacity = tTempValue;
+    }
+
+    MaterialResource* tMaterialResource = new MaterialResource(
+        tDiffuseColor, tSpecularColor, tEmissiveColor, tAmbientColor,
+        tShininess, tOpacity);
+
+    TextureResource* tDiffuseTexture = extractTexture(aiTextureType_DIFFUSE, TextureType::eDiffuseTexture);
+    tMaterialResource->setDiffuseTexture(tDiffuseTexture);
+
+    TextureResource* tSpecularTexture = extractTexture(aiTextureType_SPECULAR, TextureType::eSpecularTexture);
+    tMaterialResource->setSpecularTexture(tSpecularTexture);
+
+    TextureResource* tAmbientTexture = extractTexture(aiTextureType_AMBIENT, TextureType::eAmbientTexture);
+    tMaterialResource->setAmbientTexture(tAmbientTexture);
+
+	TextureResource* tEmissiveTexture = extractTexture(aiTextureType_EMISSIVE, TextureType::eEmissiveTexture);
+    tMaterialResource->setEmissiveTexture(tEmissiveTexture);
+
+    TextureResource* tHeightTexture = extractTexture(aiTextureType_HEIGHT, TextureType::eHeightTexture);
+    tMaterialResource->setHeightTexture(tHeightTexture);
+
+    TextureResource* tNormalsTexture = extractTexture(aiTextureType_NORMALS, TextureType::eNormalsTexture);
+    tMaterialResource->setNormalsTexture(tNormalsTexture);
+
+    TextureResource* tShininessTexture = extractTexture(aiTextureType_SHININESS, TextureType::eShininessTexture);
+    TextureResource* tOpacityTexture = extractTexture(aiTextureType_OPACITY, TextureType::eOpacityTexture);
+    TextureResource* tDisplacementTexture = extractTexture(aiTextureType_DISPLACEMENT, TextureType::eDisplacementTexture);
+    TextureResource* tLightmapTexture = extractTexture(aiTextureType_LIGHTMAP, TextureType::eLightmapTexture);
+    TextureResource* tReflectionTexture = extractTexture(aiTextureType_REFLECTION, TextureType::eReflectionTexture);
+    TextureResource* tBaseColorTexture = extractTexture(aiTextureType_BASE_COLOR, TextureType::eBaseColorTexture);
+    TextureResource* tNormalCameraTexture = extractTexture(aiTextureType_NORMAL_CAMERA, TextureType::eNormalCameraTexture);
+    TextureResource* tEmissionColorTexture = extractTexture(aiTextureType_EMISSION_COLOR, TextureType::eEmissionColorTexture);
+    TextureResource* tMetalnessTexture = extractTexture(aiTextureType_METALNESS, TextureType::eMetalnessTexture);
+    TextureResource* tDiffuseRoughnessTexture = extractTexture(aiTextureType_DIFFUSE_ROUGHNESS, TextureType::eDiffuseRoughnessTexture);
+    TextureResource* tAmbientOcclusionTexture = extractTexture(aiTextureType_AMBIENT_OCCLUSION, TextureType::eAmbientOcclusionTexture);
+    TextureResource* tSheenTexture = extractTexture(aiTextureType_SHEEN, TextureType::eSheenTexture);
+    TextureResource* tClearcoatTexture = extractTexture(aiTextureType_CLEARCOAT, TextureType::eClearcoatTexture);
+    TextureResource* tTransmissionTexture = extractTexture(aiTextureType_TRANSMISSION, TextureType::eTransmissionTexture);
+
+    return tMaterialResource;
 }
 
-TextureResource* MaterialLoader::loadDiffuseTexture() {
-	unsigned int tDiffuseTextureCount = mMaterial->GetTextureCount(aiTextureType_DIFFUSE);
+TextureResource* MaterialLoader::extractTexture(aiTextureType pAiTextureType, TextureType pTextureType) {
+	unsigned int tTextureCount = mMaterial->GetTextureCount(pAiTextureType);
 
-	if (tDiffuseTextureCount == 0) {
+	if (tTextureCount == 0) {
 		return nullptr;
 	}
 
-	if (tDiffuseTextureCount > 1) {
-		throw "Diffuse texture count is bigger than 1";
+	if (tTextureCount > 1) {
+		throw "Texture count is bigger than 1";
 	}
 
-	return extractTexture(aiTextureType_DIFFUSE);
-}
-
-TextureResource* MaterialLoader::loadNormalTexture() {
-	unsigned int tNormalTextureCount = mMaterial->GetTextureCount(aiTextureType_NORMALS);
-
-	if (tNormalTextureCount == 0) {
-		return nullptr;
-	}
-
-	if (tNormalTextureCount > 1) {
-		throw "Normal texture count is bigger than 1";
-	}
-
-	return extractTexture(aiTextureType_NORMALS);
-}
-
-TextureResource* MaterialLoader::loadSpecularTexture() {
-	unsigned int tSpecularTextureCount = mMaterial->GetTextureCount(aiTextureType_SPECULAR);
-
-	if (tSpecularTextureCount == 0) {
-		return nullptr;
-	}
-
-	if (tSpecularTextureCount > 1) {
-		throw "Specular Texture count is bigger than 1";
-	}
-
-	return extractTexture(aiTextureType_SPECULAR);
-}
-
-TextureResource* MaterialLoader::loadEmmisiveTexture() {
-	unsigned int tEmissiveTextureCount = mMaterial->GetTextureCount(aiTextureType_EMISSIVE);
-
-	if (tEmissiveTextureCount == 0) {
-		return nullptr;
-	}
-
-	if (tEmissiveTextureCount > 1) {
-		throw "Emissive texture count is bigger than 1";
-	}
-
-	return extractTexture(aiTextureType_EMISSIVE);
-}
-
-TextureResource* MaterialLoader::loadAmbientTexture() {
-	unsigned int tAmbientTextureCount = mMaterial->GetTextureCount(aiTextureType_AMBIENT);
-
-	if (tAmbientTextureCount == 0) {
-		return nullptr;
-	}
-
-	if (tAmbientTextureCount > 1) {
-		throw "Ambient texture count is bigger than 1";
-	}
-
-	return extractTexture(aiTextureType_AMBIENT);
-}
-
-TextureResource* MaterialLoader::extractTexture(aiTextureType pTextureType) {
 	aiString tTempFilePath;
 
-	if (mMaterial->Get(AI_MATKEY_TEXTURE(pTextureType, 0), tTempFilePath) != AI_SUCCESS) {
+	if (mMaterial->Get(AI_MATKEY_TEXTURE(pAiTextureType, 0), tTempFilePath) != AI_SUCCESS) {
 		throw "Texture is not found.";
 	}
 
 	if (tTempFilePath.length == 0) {
 		throw "Texture file path cannot be empty.";
-	}
+    }
 
 	std::string tTexturePath = tTempFilePath.C_Str();
 
-	TextureLoader tTextureLoader(mModelPath, tTexturePath);
+    TextureResource* tTexture = nullptr;
 
-	return tTextureLoader.loadTexture();
+    const std::vector<TextureResource*>& tTextureResources = mModelResource->getTextureResources();
+
+    size_t tTextureResourceCount = tTextureResources.size();
+
+    for (size_t i = 0; i < tTextureResourceCount; i++) {
+        TextureResource* tTextureResource = tTextureResources[i];
+        const std::string tTextureResourceName = tTextureResource->getTexturePath();
+
+        if (tTexturePath == tTextureResourceName) {
+            tTexture = tTextureResource;
+            break;
+        }
+    }
+
+    if (!tTexture) {
+        TextureLoader tTextureLoader(mScene, mModelPath, pTextureType, tTexturePath);
+        tTexture = tTextureLoader.loadTexture();
+        mModelResource->mTextureResources.push_back(tTexture);
+    }
+
+    return tTexture;
 }

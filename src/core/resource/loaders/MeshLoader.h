@@ -5,15 +5,19 @@
 
 #include "resource/MeshResource.h"
 
+class ModelResource;
+
 class MeshLoader {
 private:
 	aiMesh* mMeshObject;
+
+	ModelResource* mModelResource;
 
 	std::vector<Vertex> createVertexList();
 	std::vector<unsigned int> createIndexList();
 
 public:
-	MeshLoader(aiMesh* pMeshObject);
+	MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource);
 
 	MeshResource* loadMesh();
 };

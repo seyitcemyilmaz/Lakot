@@ -2,7 +2,8 @@
 
 #include "helper/AssimpToGLMHelper.h"
 
-MeshLoader::MeshLoader(aiMesh* pMeshObject) : mMeshObject(pMeshObject) { }
+MeshLoader::MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource) : 
+	mMeshObject(pMeshObject), mModelResource(pModelResource) { }
 
 MeshResource* MeshLoader::loadMesh() {
 	std::string tMeshName = mMeshObject->mName.C_Str();
@@ -11,7 +12,7 @@ MeshResource* MeshLoader::loadMesh() {
 	std::vector<Vertex> tVertexList = createVertexList();
 	std::vector<unsigned int> tIndexList = createIndexList();
 
-	return new MeshResource(tMeshName, tVertexList, tIndexList, tMaterialIndex);
+	return new MeshResource(tMeshName, mModelResource, tVertexList, tIndexList, tMaterialIndex);
 }
 
 std::vector<Vertex> MeshLoader::createVertexList() {
@@ -25,7 +26,7 @@ std::vector<Vertex> MeshLoader::createVertexList() {
 		};
 
 		if (mMeshObject->mTextureCoords[0]) {
-			tVertex.textureCoordinates = glm::vec2(mMeshObject->mTextureCoords[0]->x, mMeshObject->mTextureCoords[0]->y);
+            tVertex.textureCoordinates = glm::vec2(mMeshObject->mTextureCoords[0][i].x, mMeshObject->mTextureCoords[0][i].y);
 		}
 		else {
 			tVertex.textureCoordinates = glm::vec2(0.0f);

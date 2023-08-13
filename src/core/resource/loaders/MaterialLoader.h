@@ -3,25 +3,22 @@
 
 #include <assimp/scene.h>
 
-#include "resource/MaterialResource.h"
-#include "resource/TextureResource.h"
+#include "resource/ModelResource.h"
 
 class MaterialLoader {
 private:
+    ModelResource* mModelResource;
+
 	aiMaterial* mMaterial;
+
+    const aiScene* mScene;
 
 	std::string mModelPath;
 
-	TextureResource* loadDiffuseTexture();
-	TextureResource* loadNormalTexture();
-	TextureResource* loadSpecularTexture();
-	TextureResource* loadEmmisiveTexture();
-	TextureResource* loadAmbientTexture();
-
-	TextureResource* extractTexture(aiTextureType pTextureType);
+	TextureResource* extractTexture(aiTextureType pAiTextureType, TextureType pTextureType);
 
 public:
-	MaterialLoader(aiMaterial* pMaterial, const std::string& pModelPath);
+    MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);
 
 	MaterialResource* loadMaterial();
 };

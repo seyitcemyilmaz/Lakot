@@ -16,7 +16,7 @@ Shader::~Shader() {
 	glDeleteProgram(mShaderProgramId);
 }
 
-void Shader::bind() {
+void Shader::bind() const {
 	glUseProgram(mShaderProgramId);
 }
 
@@ -48,7 +48,7 @@ void Shader::createShaderProgram(const char* pVertexShaderFilePath, const char* 
 	glDeleteShader(tFragmentShaderId);
 }
 
-unsigned int Shader::compileShader(std::string pShaderFilePath, unsigned int tShaderType) {
+unsigned int Shader::compileShader(const std::string& pShaderFilePath, unsigned int tShaderType) {
 	unsigned int tShaderId = glCreateShader(tShaderType);
 
 	std::string tShaderFileContent = LAKOT_SHADER_HEADER + FileManager::getInstance()->getFileContent(pShaderFilePath);
@@ -70,14 +70,14 @@ unsigned int Shader::compileShader(std::string pShaderFilePath, unsigned int tSh
 	return tShaderId;
 }
 
-int Shader::getProjectionMatrixLocation() {
+int Shader::getProjectionMatrixLocation() const {
 	return mProjectionMatrixLocation;
 }
 
-int Shader::getViewMatrixLocation() {
+int Shader::getViewMatrixLocation() const {
 	return mViewMatrixLocation;
 }
 
-int Shader::getModelMatrixLocation() {
+int Shader::getModelMatrixLocation() const {
 	return mModelMatrixLocation;
 }

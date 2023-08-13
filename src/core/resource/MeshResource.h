@@ -16,26 +16,29 @@ struct Vertex {
 	float boneWeights[LAKOT_VERTEX_MAX_BONE_COUNT];
 };
 
+class ModelResource;
 class NodeResource;
 
 class MeshResource {
 private:
 	std::string mName;
 
+	ModelResource* mModelResource;
+
 	std::vector<Vertex> mVertexList;
 	std::vector<unsigned int> mIndexList;
 
-	NodeResource* mConnectedNode;
+	NodeResource* mConnectedNode = nullptr;
 
-	unsigned int mVAO;
-	unsigned int mVBO;
-	unsigned int mIBO;
+	unsigned int mVAO = 0;
+	unsigned int mVBO = 0;
+	unsigned int mIBO = 0;
 
-	unsigned int mMaterialIndex;
+	unsigned int mMaterialIndex = -1;
 
-	unsigned int mIndexCount;
+	unsigned int mIndexCount = 0;
 
-	bool mHasBone;
+	bool mHasBone = false;
 
 protected:
 	void setHasBone(bool pHasBone);
@@ -44,7 +47,7 @@ protected:
 	friend class ModelLoader;
 
 public:
-	MeshResource(const std::string& pName, std::vector<Vertex> pVertexList, std::vector<unsigned int> pIndexList, unsigned int pMaterialIndex);
+	MeshResource(const std::string& pName, ModelResource* pModelResource, const std::vector<Vertex>& pVertexList, const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex);
 
 	std::string getName() const;
 	unsigned int getMaterialIndex() const;

@@ -1,23 +1,50 @@
 #include "TextureLoader.h"
 
-#include "helper/FileManager.h"
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-TextureLoader::TextureLoader(const std::string& pModelPath, const std::string& pTexturePath) :
-	mTexturePath(pTexturePath), mModelPath(pModelPath) { }
+#include "helper/FileManager.h"
+
+TextureLoader::TextureLoader(const aiScene* pScene, const std::string& pModelPath, TextureType pTextureType, const std::string& pTexturePath) :
+    mScene(pScene), mTexturePath(pTexturePath), mTextureType(pTextureType), mModelPath(pModelPath) { }
 
 TextureResource* TextureLoader::loadTexture() {
-	if ('*' == mTexturePath[0])  {
-		return createEmbeddedTexture();
-	}
+    TextureResource* tTexture = nullptr;
 
-	return createReferencedTexture();
+    try {
+        tTexture = createReferencedTexture();
+    }
+    catch(...) {
+        tTexture = createEmbeddedTexture();
+    }
+
+    if (!tTexture) {
+        throw "Undefined texture";
+    }
+
+    return tTexture;
 }
 
 TextureResource* TextureLoader::createEmbeddedTexture() {
-	throw "Not implemented";
+    const aiTexture* tTexture = mScene->GetEmbeddedTexture(mTexturePath.c_str());
+
+    int tWidth = -1;
+    int tHeight = -1;
+    int tChannelCount = -1;
+
+    unsigned char* tTextureData = nullptr;
+
+    if (tTexture->mHeight == 0) {
+        tTextureData = stbi_load_from_memory(reinterpret_cast<unsigned char*>(tTexture->pcData), tTexture->mWidth, &tWidth, &tHeight, &tChannelCount, 0);
+    }
+    else {
+        tTextureData = stbi_load_from_memory(reinterpret_cast<unsigned char*>(tTexture->pcData), tTexture->mWidth * tTexture->mHeight, &tWidth, &tHeight, &tChannelCount, 0);
+    }
+
+    return createTexture(tTextureData, tWidth, tHeight, tChannelCount);
 }
 
 TextureResource* TextureLoader::createReferencedTexture() {
@@ -27,36 +54,63 @@ TextureResource* TextureLoader::createReferencedTexture() {
 		throw "Texture path is not found.";
 	}
 
-	int tWidth;
-	int tHeight;
-	int tChannels;
+    int tWidth = -1;
+    int tHeight = -1;
+    int tChannelCount = -1;
 
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* tTextureData = stbi_load(tTexturePath.c_str(), &tWidth, &tHeight, &tChannels, 0);
+    //stbi_set_flip_vertically_on_load(true);
+    unsigned char* tTextureData = stbi_load(tTexturePath.c_str(), &tWidth, &tHeight, &tChannelCount, 0);
 
-	if (!tTextureData) {
-		throw "Texture data is not found.";
-	}
+    return createTexture(tTextureData, tWidth, tHeight, tChannelCount);
+}
 
-	unsigned int tTextureId;
+TextureResource* TextureLoader::createTexture(unsigned char* pTextureData, int pWidth, int pHeight, int pChannelCount) {
+    unsigned int tColorMode = getColorMode(pChannelCount);
 
-	glGenTextures(1, &tTextureId);
-	glBindTexture(GL_TEXTURE_2D, tTextureId);
+    unsigned int tTextureId;
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glGenTextures(1, &tTextureId);
+    glBindTexture(GL_TEXTURE_2D, tTextureId);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, tColorMode, pWidth, pHeight, 0, tColorMode, GL_UNSIGNED_BYTE, pTextureData);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tWidth, tHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, tTextureData);
-	glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	stbi_image_free(tTextureData);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-	std::cout << "Texture is found: " << tTexturePath << std::endl;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	return new TextureResource(tTextureId, tTexturePath);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    stbi_image_free(pTextureData);
+
+    std::cout << "Texture: ${" << mTexturePath << "} is created." << std::endl;
+
+    return new TextureResource(tTextureId, mTexturePath);
+}
+
+unsigned int TextureLoader::getColorMode(int pChannelCount) {
+    unsigned int tColorMode = GL_RGB;
+
+    if (pChannelCount == 1) {
+        tColorMode = GL_RED;
+    }
+    else if (pChannelCount == 2) {
+        tColorMode = GL_RG;
+    }
+    else if (pChannelCount == 3) {
+        tColorMode = GL_RGB;
+    }
+    else if (pChannelCount == 4) {
+        tColorMode = GL_RGBA;
+    }
+    else {
+        throw "Undefined channel count.";
+    }
+
+    return tColorMode;
 }
 
 void TextureLoader::createPossibleTextureLocations() {

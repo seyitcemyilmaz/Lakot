@@ -49,7 +49,7 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 
 	for (unsigned int i = 0; i < tMaterialCount; i++) {
 		aiMaterial* tMaterial = pScene->mMaterials[i];
-		tMaterialLoader = new MaterialLoader(tMaterial, mModelPath);
+        tMaterialLoader = new MaterialLoader(mModelResource, tMaterial, pScene, mModelPath);
 
 		MaterialResource* tMaterialResource = tMaterialLoader->loadMaterial();
 		mModelResource->addMaterialResource(tMaterialResource);
@@ -85,7 +85,7 @@ void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource
 }
 
 void ModelLoader::processMesh(aiMesh* pMesh, NodeResource* pConnectedNodeResource) {
-	MeshLoader tMeshLoader(pMesh);
+	MeshLoader tMeshLoader(pMesh, mModelResource);
 	MeshResource* tMeshResource = tMeshLoader.loadMesh();
 
 	if (pMesh->HasBones()) {

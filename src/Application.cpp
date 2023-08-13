@@ -50,17 +50,33 @@ void Application::initializeCameras() {
 }
 
 void Application::initializeModels() {
-	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
-	//Model* tModel = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
-	//mModels.push_back(tModel);
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
+    Model* tModel0 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bear\\source\\bear.fbx"));
+    mModels.push_back(tModel0);
 
-	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
-	//Model* tModel2 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
-	//mModels.push_back(tModel2);
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "test\\untitled.gltf"));
+    Model* tModel1 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "test\\untitled.gltf"));
+    mModels.push_back(tModel1);
 
-	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
-	Model* tModel3 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
-	mModels.push_back(tModel3);
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+    Model* tModel2 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+    mModels.push_back(tModel2);
+
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
+    Model* tModel3 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
+    mModels.push_back(tModel3);
+
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
+    Model* tModel4 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
+    mModels.push_back(tModel4);
+
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "axe\\source\\axe.fbx"));
+    Model* tModel5 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "axe\\source\\axe.fbx"));
+    mModels.push_back(tModel5);
+
+    ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "sword\\scene.gltf"));
+    Model* tModel6 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "sword\\scene.gltf"));
+    mModels.push_back(tModel6);
 }
 
 void Application::processInputs() {

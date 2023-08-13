@@ -10,11 +10,12 @@
 
 class ModelResource {
 private:
-	NodeResource* mRootNode;
+	NodeResource* mRootNode = nullptr;
 
 	std::vector<MeshResource*> mMeshResources;
 	std::vector<BoneResource*> mBoneResources;
 	std::vector<MaterialResource*> mMaterialResources;
+    std::vector<TextureResource*> mTextureResources;
 
 	std::map<std::string, BoneResource*> mBoneMap;
 
@@ -27,11 +28,15 @@ protected:
 
 	unsigned int getBoneId(const std::string& pBoneName);
 	friend class ModelLoader;
+    friend class MaterialLoader;
 
 public:
 	ModelResource();
 
 	NodeResource* getRootNodeResource();
+	MaterialResource* getMaterialResource(int pMaterialIndex);
+
+    const std::vector<TextureResource*>& getTextureResources();
 };
 
 #endif

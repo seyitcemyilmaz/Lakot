@@ -61,6 +61,10 @@
 #error "Platform is not detected."
 #endif
 
+#if !defined(LAKOT_SHADER_HEADER)
+#error "Shader header is not defined."
+#endif
+
 class Platform {
 private:
 	GraphicsAPI* mGraphicsAPI;

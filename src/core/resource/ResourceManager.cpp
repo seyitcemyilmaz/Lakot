@@ -14,7 +14,7 @@ ResourceManager* ResourceManager::getInstance() {
 
 ResourceManager::ResourceManager() = default;
 
-void ResourceManager::addModelResource(std::string pModelFilePath) {
+void ResourceManager::addModelResource(const std::string& pModelFilePath) {
 	if (mModelResources.contains(pModelFilePath)) {
 		std::cout << "Model is already loaded." << std::endl;
 		return;
@@ -34,7 +34,7 @@ void ResourceManager::addModelResource(std::string pModelFilePath) {
 	std::cout << "Model is loaded successfully." << std::endl;
 }
 
-ModelResource* ResourceManager::getModelResource(std::string pModelFilePath) {
+ModelResource* ResourceManager::getModelResource(const std::string& pModelFilePath) {
 	if (mModelResources.contains(pModelFilePath)) {
 		return mModelResources[pModelFilePath];
 	}

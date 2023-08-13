@@ -15,17 +15,17 @@ private:
 	int mModelMatrixLocation;
 
 	void createShaderProgram(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath);
-	unsigned int compileShader(std::string pShaderFilePath, unsigned int tShaderType);
+	unsigned int compileShader(const std::string& pShaderFilePath, unsigned int tShaderType);
 
 public:
 	Shader(const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath);
 	~Shader();
 
-	void bind();
+	void bind() const;
 
-	int getProjectionMatrixLocation();
-	int getViewMatrixLocation();
-	int getModelMatrixLocation();
+	int getProjectionMatrixLocation() const;
+	int getViewMatrixLocation() const;
+	int getModelMatrixLocation() const;
 };
 
 #endif
