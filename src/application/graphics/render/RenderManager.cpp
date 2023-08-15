@@ -23,17 +23,16 @@ RenderManager::RenderManager() {
 }
 
 void RenderManager::renderScene() {
-	ShaderManager* tShaderManager = ShaderManager::getInstance();
-
-	tShaderManager->bindShader("shader");
+    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eShader);
+    ShaderManager::getInstance()->bindShader(tShader);
 
 	glm::mat4 tProjectionMatrix = getProjectionMatrix();
 	glm::mat4 tViewMatrix = getViewMatrix();
 	glm::mat4 tModelMatrix = glm::mat4(1.0f);
 
-	tShaderManager->setProjectionMatrix(tProjectionMatrix);
-	tShaderManager->setViewMatrix(tViewMatrix);
-	tShaderManager->setModelMatrix(tModelMatrix);
+    tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
+    tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
+    tShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(tModelMatrix);
 }
 
 void RenderManager::renderGUI() { }

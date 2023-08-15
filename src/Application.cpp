@@ -11,6 +11,8 @@
 
 #include "application/graphics/model/ModelFactory.h"
 
+#include <application/graphics/shader/ShaderModel.h>
+
 Application::Application() {
 	mPlatform = nullptr;
 	mGUI = nullptr;
@@ -37,10 +39,12 @@ void Application::initialization() {
 }
 
 void Application::initializeShaders() {
-	ShaderManager* tShaderManager = ShaderManager::getInstance();
-
-	tShaderManager->addShader("shader", new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "vertex.shader").c_str(),
-												   FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "fragment.shader").c_str()));
+    ShaderManager::getInstance()->addShader(
+        new ShaderModel(
+            ShaderName::eShader,
+            FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.vsh").c_str(),
+            FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.fsh").c_str())
+        );
 }
 
 void Application::initializeCameras() {

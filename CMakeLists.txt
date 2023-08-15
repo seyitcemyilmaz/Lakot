@@ -71,11 +71,17 @@ set(SRC_FILES
         )
 
         set(SHADER_FILES
-            ${SHADER_DIRECTORY}/Shader.h
-            ${SHADER_DIRECTORY}/Shader.cpp
+            ${SHADER_DIRECTORY}/IShader.h
+            ${SHADER_DIRECTORY}/IShader.cpp
+
+            ${SHADER_DIRECTORY}/ShaderModel.h
+            ${SHADER_DIRECTORY}/ShaderModel.cpp
 
             ${SHADER_DIRECTORY}/ShaderManager.h
             ${SHADER_DIRECTORY}/ShaderManager.cpp
+
+            ${SHADER_DIRECTORY}/ShaderVariable.h
+            ${SHADER_DIRECTORY}/ShaderVariable.cpp
         )
 
 include_directories(

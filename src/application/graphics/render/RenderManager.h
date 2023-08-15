@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-#define LAKOT_DEFAULT_FAR_PLANE				100.0
+#define LAKOT_DEFAULT_FAR_PLANE				1000.0
 #define LAKOT_DEFAULT_NEAR_PLANE			0.1
 
 class RenderManager {

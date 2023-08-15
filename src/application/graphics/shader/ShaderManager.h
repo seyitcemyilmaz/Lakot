@@ -1,34 +1,34 @@
 #ifndef LAKOT_SHADERMANAGER_H
 #define LAKOT_SHADERMANAGER_H
 
+#include <vector>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Shader.h"
+#include "IShader.h"
 
 class ShaderManager {
 private:
-	static ShaderManager* mInstance;
+    static ShaderManager* mInstance;
 
-	std::map<std::string, Shader*> mShaders;
-	std::pair<std::string, Shader*> mActiveShader;
+    std::vector<IShader*> mShaders;
+    IShader* mActiveShader = nullptr;
 
-	void setActiveShaderNull();
+    void setActiveShaderNull();
 
-	ShaderManager();
+    ShaderManager();
 
 public:
-	static ShaderManager* getInstance();
+    static ShaderManager* getInstance();
 
-	void addShader(std::string pShaderName, Shader* pShader);
-	void bindShader(std::string pShaderName);
+    IShader* getShader(ShaderName pShaderName);
 
-	void deleteShaders();
+    void addShader(IShader* pShader);
+    void bindShader(IShader* pShader);
 
-	void setProjectionMatrix(glm::mat4& tProjectionMatrix);
-	void setViewMatrix(glm::mat4& tViewMatrix);
-	void setModelMatrix(glm::mat4& tModelMatrix);
+    void deleteShaders();
 };
 
 #endif

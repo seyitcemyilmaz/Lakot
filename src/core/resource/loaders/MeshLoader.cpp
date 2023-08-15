@@ -1,5 +1,7 @@
 #include "MeshLoader.h"
 
+#include <iostream>
+
 #include "helper/AssimpToGLMHelper.h"
 
 MeshLoader::MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource) : 
@@ -48,8 +50,9 @@ std::vector<unsigned int> MeshLoader::createIndexList() {
 	unsigned int tPolygonCount = mMeshObject->mNumFaces;
 
 	for (unsigned int i = 0; i < tPolygonCount; i++) {
-		if (mMeshObject->mFaces[i].mNumIndices != 3) {
-			throw "A polygon has not 3 indices";
+        if (mMeshObject->mFaces[i].mNumIndices != 3) {
+            std::cout << "A polygon has not 3 indices" << std::endl;
+            continue;
 		}
 
 		tIndexList.push_back(mMeshObject->mFaces[i].mIndices[0]);
