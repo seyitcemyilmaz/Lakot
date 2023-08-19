@@ -19,6 +19,14 @@ int ShaderVariable::getLocation() const {
     return mLocation;
 }
 
+void ShaderVariable::setBool(bool pValue) {
+    if (mDataType != ShaderVariableDataType::eBool) {
+        throw "Invalid data type";
+    }
+
+    glUniform1i(mLocation, pValue);
+}
+
 void ShaderVariable::setMat4(const glm::mat4& pValue) const {
     if (mDataType != ShaderVariableDataType::eMat4) {
         throw "Invalid data type";

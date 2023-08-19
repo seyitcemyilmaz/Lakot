@@ -2,14 +2,29 @@ out vec4 FragColor;
 
 in vec2 TextureCoordinates;
 
-uniform sampler2D diffuseTexture;
-uniform sampler2D normalsTexture;
-uniform sampler2D specularTexture;
-uniform sampler2D emissiveTexture;
-uniform sampler2D ambientTexture;
-uniform sampler2D metalnessTexture;
+struct Material {
+    sampler2D diffuseTexture;
+    sampler2D normalsTexture;
+    sampler2D specularTexture;
+    sampler2D emissiveTexture;
+    sampler2D ambientTexture;
+    sampler2D metalnessTexture;
+
+    bool hasDiffuseTexture;
+    bool hasNormalsTexture;
+    bool hasSpecularTexture;
+    bool hasEmissiveTexture;
+    bool hasAmbientTexture;
+    bool hasMetalnessTexture;
+};
+
+uniform Material material;
 
 void main() {
-    //FragColor = vec4(0.1f, 0.6f, 0.4f, 1.0f);
-    FragColor = texture(diffuseTexture, TextureCoordinates);
+    if (material.hasNormalsTexture) {
+        FragColor = texture(material.normalsTexture, TextureCoordinates);
+    }
+    else {
+        FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+    }
 }
