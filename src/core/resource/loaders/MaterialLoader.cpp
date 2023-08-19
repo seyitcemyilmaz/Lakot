@@ -66,19 +66,47 @@ MaterialResource* MaterialLoader::loadMaterial() {
     tMaterialResource->setNormalsTexture(tNormalsTexture);
 
     TextureResource* tShininessTexture = extractTexture(aiTextureType_SHININESS, TextureType::eShininessTexture);
+    tMaterialResource->setShininessTexture(tShininessTexture);
+
     TextureResource* tOpacityTexture = extractTexture(aiTextureType_OPACITY, TextureType::eOpacityTexture);
+    tMaterialResource->setOpacityTexture(tOpacityTexture);
+
     TextureResource* tDisplacementTexture = extractTexture(aiTextureType_DISPLACEMENT, TextureType::eDisplacementTexture);
+    tMaterialResource->setDisplacementTexture(tDisplacementTexture);
+
     TextureResource* tLightmapTexture = extractTexture(aiTextureType_LIGHTMAP, TextureType::eLightmapTexture);
+    tMaterialResource->setLightmapTexture(tLightmapTexture);
+
     TextureResource* tReflectionTexture = extractTexture(aiTextureType_REFLECTION, TextureType::eReflectionTexture);
+    tMaterialResource->setReflectionTexture(tReflectionTexture);
+
     TextureResource* tBaseColorTexture = extractTexture(aiTextureType_BASE_COLOR, TextureType::eBaseColorTexture);
+    tMaterialResource->setBaseColorTexture(tBaseColorTexture);
+
     TextureResource* tNormalCameraTexture = extractTexture(aiTextureType_NORMAL_CAMERA, TextureType::eNormalCameraTexture);
+    tMaterialResource->setNormalCameraTexture(tNormalCameraTexture);
+
     TextureResource* tEmissionColorTexture = extractTexture(aiTextureType_EMISSION_COLOR, TextureType::eEmissionColorTexture);
+    tMaterialResource->setEmissionColorTexture(tEmissionColorTexture);
+
     TextureResource* tMetalnessTexture = extractTexture(aiTextureType_METALNESS, TextureType::eMetalnessTexture);
+    tMaterialResource->setMetalnessTexture(tMetalnessTexture);
+
     TextureResource* tDiffuseRoughnessTexture = extractTexture(aiTextureType_DIFFUSE_ROUGHNESS, TextureType::eDiffuseRoughnessTexture);
+    tMaterialResource->setDiffuseRoughnessTexture(tDiffuseRoughnessTexture);
+
     TextureResource* tAmbientOcclusionTexture = extractTexture(aiTextureType_AMBIENT_OCCLUSION, TextureType::eAmbientOcclusionTexture);
+    tMaterialResource->setAmbientOcclusionTexture(tAmbientOcclusionTexture);
+
     TextureResource* tSheenTexture = extractTexture(aiTextureType_SHEEN, TextureType::eSheenTexture);
+    tMaterialResource->setSheenTexture(tSheenTexture);
+
     TextureResource* tClearcoatTexture = extractTexture(aiTextureType_CLEARCOAT, TextureType::eClearcoatTexture);
+    tMaterialResource->setClearcoatTexture(tClearcoatTexture);
+
     TextureResource* tTransmissionTexture = extractTexture(aiTextureType_TRANSMISSION, TextureType::eTransmissionTexture);
+    tMaterialResource->setTransmissionTexture(tTransmissionTexture);
+
 
     return tMaterialResource;
 }

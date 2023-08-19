@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
-#set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-windows/share)
+set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-windows/share)
 
 cmake_host_system_information(RESULT CMake_MSVC_PARALLEL QUERY NUMBER_OF_PHYSICAL_CORES)
 
@@ -19,6 +19,11 @@ project(LAKOT)
 set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+option(LAKOT_USE_GPU "Use GPU" OFF)
+if (LAKOT_USE_GPU)
+    add_definitions(-DLAKOT_USE_GPU)
+endif()
 
 set(SRC_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
     set(APPLICATION_DIRECTORY ${SRC_DIRECTORY}/application)
@@ -71,17 +76,8 @@ set(SRC_FILES
         )
 
         set(SHADER_FILES
-            ${SHADER_DIRECTORY}/IShader.h
-            ${SHADER_DIRECTORY}/IShader.cpp
-
             ${SHADER_DIRECTORY}/ShaderModel.h
             ${SHADER_DIRECTORY}/ShaderModel.cpp
-
-            ${SHADER_DIRECTORY}/ShaderManager.h
-            ${SHADER_DIRECTORY}/ShaderManager.cpp
-
-            ${SHADER_DIRECTORY}/ShaderVariable.h
-            ${SHADER_DIRECTORY}/ShaderVariable.cpp
         )
 
 include_directories(

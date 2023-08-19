@@ -9,8 +9,8 @@ void Model::addMesh(Mesh* pMesh) {
 	mMeshes.push_back(pMesh);
 }
 
-void Model::draw() {
+void Model::draw(IShader* pShader) {
 	for (int i = 0; i < mMeshes.size(); i++) {
-		mMeshes[i]->draw();
+        mMeshes[i]->draw(pShader);
 	}
 }

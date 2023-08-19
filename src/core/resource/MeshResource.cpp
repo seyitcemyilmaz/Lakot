@@ -54,66 +54,64 @@ void MeshResource::createBuffers() {
 	glBindVertexArray(0);
 }
 
-void MeshResource::draw() {
+void MeshResource::draw(IShader* pShader) {
 	MaterialResource* tMaterialResource = mModelResource->getMaterialResource(mMaterialIndex);
-
-    // TODO: CHECK glUniform1i(_textureUniform, 0);
-    // https://stackoverflow.com/questions/9661878/set-the-texture-for-by-gluniform1i
 
     if (tMaterialResource) {
 		TextureResource* tDiffuseTexture = tMaterialResource->getDiffuseTexture();
 
-        glActiveTexture(GL_TEXTURE0);
+        unsigned int tUnit = 0;
 
         if (tDiffuseTexture) {
-            glBindTexture(GL_TEXTURE_2D, tDiffuseTexture->getTextureId());
+            pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
         }
         else {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, -1);
         }
 
         TextureResource* tNormalsTexture = tMaterialResource->getNormalsTexture();
 
-        glActiveTexture(GL_TEXTURE1);
-
         if (tNormalsTexture) {
-            glBindTexture(GL_TEXTURE_2D, tNormalsTexture->getTextureId());
+            pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
         }
         else {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, -1);
         }
 
         TextureResource* tSpecularTexture = tMaterialResource->getSpecularTexture();
 
-        glActiveTexture(GL_TEXTURE2);
-
         if (tSpecularTexture) {
-            glBindTexture(GL_TEXTURE_2D, tSpecularTexture->getTextureId());
+            pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
         }
         else {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, -1);
         }
 
         TextureResource* tEmissiveTexture = tMaterialResource->getEmissiveTexture();
 
-        glActiveTexture(GL_TEXTURE3);
-
         if (tEmissiveTexture) {
-            glBindTexture(GL_TEXTURE_2D, tEmissiveTexture->getTextureId());
+            pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
         }
         else {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, -1);
         }
 
         TextureResource* tAmbientTexture = tMaterialResource->getAmbientTexture();
 
-        glActiveTexture(GL_TEXTURE4);
-
         if (tAmbientTexture) {
-            glBindTexture(GL_TEXTURE_2D, tAmbientTexture->getTextureId());
+            pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
         }
         else {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, -1);
+        }
+
+        TextureResource* tMetalnessTexture = tMaterialResource->getMetalnessTexture();
+
+        if (tMetalnessTexture) {
+            pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
+        }
+        else {
+            pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, -1);
         }
 	}
 

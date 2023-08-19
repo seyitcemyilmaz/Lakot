@@ -1,7 +1,7 @@
 #ifndef LAKOT_SHADER_H
 #define LAKOT_SHADER_H
 
-#include "IShader.h"
+#include "core/helper/shader/IShader.h"
 
 class ShaderModel final : public IShader {
 public:

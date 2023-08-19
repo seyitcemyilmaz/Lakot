@@ -8,10 +8,19 @@
 enum class ShaderVariableName {
     eView,
     eProjection,
-    eModel
+    eModel,
+
+    eDiffuseTexture,
+    eNormalsTexture,
+    eSpecularTexture,
+    eEmissiveTexture,
+    eAmbientTexture,
+    eMetalnessTexture
 };
 
 enum class ShaderVariableDataType {
+    eSampler2D,
+
     eMat4,
     eVec3,
 };
@@ -32,6 +41,7 @@ public:
     void setLocation(int pLocation);
 
     void setMat4(const glm::mat4& pValue) const;
+    void setTexture(unsigned int pUnit, int pTextureId) const;
 };
 
 #endif // SHADERVARIABLE_H

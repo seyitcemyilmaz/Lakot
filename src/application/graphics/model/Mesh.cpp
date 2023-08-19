@@ -8,6 +8,6 @@ std::string Mesh::getName() {
 	return mMeshResource->getName();
 }
 
-void Mesh::draw() {
-	mMeshResource->draw();
+void Mesh::draw(IShader* pShader) {
+    mMeshResource->draw(pShader);
 }

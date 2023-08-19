@@ -8,6 +8,8 @@
 
 #include <glm/glm.hpp>
 
+#include "helper/shader/IShader.h"
+
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
@@ -52,7 +54,7 @@ public:
 	std::string getName() const;
 	unsigned int getMaterialIndex() const;
 
-	void draw();
+    void draw(IShader* pShader);
 };
 
 #endif

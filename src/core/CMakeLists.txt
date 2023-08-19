@@ -2,6 +2,7 @@ set(GRAPHICSAPI_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/graphicsAPI)
 set(HELPER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/helper)
     set(CAMERA_DIRECTORY ${HELPER_DIRECTORY}/camera)
     set(CONTROLS_DIRECTORY ${HELPER_DIRECTORY}/controls)
+    set(SHADER_DIRECTORY ${HELPER_DIRECTORY}/shader)
     set(WINDOW_DIRECTORY ${HELPER_DIRECTORY}/window)
 set(PLATFORM_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/platform)
 set(RESOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resource)
@@ -57,6 +58,17 @@ set(HELPER_FILES
 
         ${CONTROLS_DIRECTORY}/Mouse.h
         ${CONTROLS_DIRECTORY}/Mouse.cpp
+    )
+
+    set(SHADER_FILES
+        ${SHADER_DIRECTORY}/IShader.h
+        ${SHADER_DIRECTORY}/IShader.cpp
+
+        ${SHADER_DIRECTORY}/ShaderManager.h
+        ${SHADER_DIRECTORY}/ShaderManager.cpp
+
+        ${SHADER_DIRECTORY}/ShaderVariable.h
+        ${SHADER_DIRECTORY}/ShaderVariable.cpp
     )
 
     set(WINDOW_FILES
@@ -126,6 +138,7 @@ add_library(LAKOT_CORE_LIB
     ${HELPER_FILES}
         ${CAMERA_FILES}
         ${CONTROLS_FILES}
+		${SHADER_FILES}
         ${WINDOW_FILES}
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}

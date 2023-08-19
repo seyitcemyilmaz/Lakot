@@ -16,7 +16,7 @@ public:
 
 	std::string getName();
 
-	void draw();
+    void draw(IShader* pShader) override;
 };
 
 #endif

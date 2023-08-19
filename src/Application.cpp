@@ -1,11 +1,11 @@
 #include "Application.h"
 
 #include "application/graphics/render/RenderManager.h"
-#include "application/graphics/shader/ShaderManager.h"
 
 #include "core/resource/ResourceManager.h"
 #include "core/helper/FileManager.h"
 #include "core/helper/camera/CameraManager.h"
+#include "core/helper/shader/ShaderManager.h"
 
 #include "platform/PlatformFactory.h"
 
@@ -90,8 +90,11 @@ void Application::processInputs() {
 void Application::render() {
 	// TODO: Add render function for scene
 	RenderManager::getInstance()->renderScene();
+
+    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eShader);
+
 	for (int i = 0; i < mModels.size(); i++) {
-		mModels[i]->draw();
+        mModels[i]->draw(tShader);
 	}
 	// TODO: Add render function for GUI
 }

@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "application/graphics/shader/ShaderManager.h"
+#include "core/helper/shader/ShaderManager.h"
 
 #include "core/helper/WindowManager.h"
 #include "core/helper/camera/CameraManager.h"

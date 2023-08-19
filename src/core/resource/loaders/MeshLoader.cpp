@@ -12,7 +12,7 @@ MeshResource* MeshLoader::loadMesh() {
 	unsigned int tMaterialIndex = mMeshObject->mMaterialIndex;
 
 	std::vector<Vertex> tVertexList = createVertexList();
-	std::vector<unsigned int> tIndexList = createIndexList();
+    std::vector<unsigned int> tIndexList = createIndexList();
 
 	return new MeshResource(tMeshName, mModelResource, tVertexList, tIndexList, tMaterialIndex);
 }

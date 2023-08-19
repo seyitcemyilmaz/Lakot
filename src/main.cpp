@@ -1,13 +1,13 @@
 #include "Lakot.h"
 
 int main() {
-	Lakot lakot;
+    Lakot lakot;
 
-	lakot.initalizeApplication();
+    lakot.initalizeApplication();
 
-	lakot.runApplication();
+    lakot.runApplication();
 
-	lakot.terminateApplication();
+    lakot.terminateApplication();
 
-	return 0;
+    return 0;
 }

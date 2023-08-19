@@ -2,7 +2,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "core/platform/Platform.h"
+#include "platform/Platform.h"
 
 ShaderVariable::ShaderVariable(const std::string& pName, ShaderVariableDataType pDataType) :
     mName(pName), mDataType(pDataType) { }
@@ -25,4 +25,14 @@ void ShaderVariable::setMat4(const glm::mat4& pValue) const {
     }
 
     glUniformMatrix4fv(mLocation, 1, false, glm::value_ptr(pValue));
+}
+
+void ShaderVariable::setTexture(unsigned int pUnit, int pTextureId) const {
+    if (mDataType != ShaderVariableDataType::eSampler2D) {
+        throw "Invalid data type";
+    }
+
+    glActiveTexture(GL_TEXTURE0 + pUnit);
+    glBindTexture(GL_TEXTURE_2D, pTextureId);
+    glUniform1i(mLocation, pUnit);
 }
