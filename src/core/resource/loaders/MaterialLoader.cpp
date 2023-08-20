@@ -20,7 +20,7 @@ MaterialResource* MaterialLoader::loadMaterial() {
     float tTempValue;
 
     if (mMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, tTempColor) == AI_SUCCESS) {
-        ;		tDiffuseColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
+        tDiffuseColor = glm::vec3(tTempColor.r, tTempColor.g, tTempColor.b);
     }
 
     if (mMaterial->Get(AI_MATKEY_COLOR_SPECULAR, tTempColor) == AI_SUCCESS) {
@@ -106,7 +106,6 @@ MaterialResource* MaterialLoader::loadMaterial() {
 
     TextureResource* tTransmissionTexture = extractTexture(aiTextureType_TRANSMISSION, TextureType::eTransmissionTexture);
     tMaterialResource->setTransmissionTexture(tTransmissionTexture);
-
 
     return tMaterialResource;
 }

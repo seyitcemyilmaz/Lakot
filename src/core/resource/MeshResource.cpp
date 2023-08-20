@@ -68,6 +68,7 @@ void MeshResource::draw(IShader* pShader) {
         }
         else {
             pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
+            pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
             tUnit++;
         }
 

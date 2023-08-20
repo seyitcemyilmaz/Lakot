@@ -16,15 +16,26 @@ struct Material {
     bool hasEmissiveTexture;
     bool hasAmbientTexture;
     bool hasMetalnessTexture;
+
+    vec3 diffuseColor;
+    vec3 specularColor;
+    vec3 emissiveColor;
+    vec3 ambientColor;
+    vec3 transparentColor;
 };
 
 uniform Material material;
 
 void main() {
-    if (material.hasNormalsTexture) {
-        FragColor = texture(material.normalsTexture, TextureCoordinates);
+    if (material.hasMetalnessTexture) {
+        FragColor = texture(material.metalnessTexture, TextureCoordinates);
     }
     else {
-        FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+        if (material.hasDiffuseTexture) {
+            FragColor = texture(material.diffuseTexture, TextureCoordinates);
+        }
+        else {
+            FragColor = vec4(material.diffuseColor, 1.0f);
+        }
     }
 }

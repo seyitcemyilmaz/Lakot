@@ -12,7 +12,7 @@ private:
 	ModelResource* mModelResource;
 
 	std::string mModelPath;
-	unsigned int mFlags;
+	unsigned int mModelImportFlags;
 
 	void extractBones(aiMesh* pMesh, MeshResource* pMeshResource);
 	void extractMaterials(const aiScene* pScene);

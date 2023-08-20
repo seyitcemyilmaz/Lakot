@@ -1,8 +1,8 @@
 #include "ModelLoader.h"
 
 #include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
 #include <assimp/cimport.h>
+#include <assimp/postprocess.h>
 
 #include "helper/AssimpToGLMHelper.h"
 
@@ -10,8 +10,9 @@
 #include "MaterialLoader.h"
 #include "MeshLoader.h"
 
-ModelLoader::ModelLoader(const std::string& pModelPath) : mModelPath(pModelPath) {
-	mFlags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_SplitByBoneCount;
+ModelLoader::ModelLoader(const std::string& pModelPath)
+	: mModelPath(pModelPath) {
+	mModelImportFlags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_SplitByBoneCount;
 
 	mModelResource = nullptr;
 }
@@ -19,7 +20,7 @@ ModelLoader::ModelLoader(const std::string& pModelPath) : mModelPath(pModelPath)
 ModelResource* ModelLoader::loadModel() {
 	Assimp::Importer tImporter;
 
-	const aiScene* tScene = tImporter.ReadFile(mModelPath, mFlags);
+	const aiScene* tScene = tImporter.ReadFile(mModelPath, mModelImportFlags);
 
 	if (!tScene) {
 		tImporter.FreeScene();
@@ -49,7 +50,7 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 
 	for (unsigned int i = 0; i < tMaterialCount; i++) {
 		aiMaterial* tMaterial = pScene->mMaterials[i];
-        tMaterialLoader = new MaterialLoader(mModelResource, tMaterial, pScene, mModelPath);
+		tMaterialLoader = new MaterialLoader(mModelResource, tMaterial, pScene, mModelPath);
 
 		MaterialResource* tMaterialResource = tMaterialLoader->loadMaterial();
 		mModelResource->addMaterialResource(tMaterialResource);

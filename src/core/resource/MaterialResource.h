@@ -62,10 +62,10 @@ protected:
 
 public:
     MaterialResource(
-		glm::vec3 pDiffuseColor,
-		glm::vec3 pSpecularColor,
-		glm::vec3 pEmissiveColor,
-		glm::vec3 pAmbientColor,
+        const glm::vec3& pDiffuseColor,
+        const glm::vec3& pSpecularColor,
+        const glm::vec3& pEmissiveColor,
+        const glm::vec3& pAmbientColor,
 
 		float pShininess,
 		float pOpacity);
@@ -91,10 +91,10 @@ public:
     TextureResource* getClearcoatTexture();
     TextureResource* getTransmissionTexture();
 
-	glm::vec3 getDiffuseColor();
-	glm::vec3 getSpecularColor();
-	glm::vec3 getEmissiveColor();
-	glm::vec3 getAmbientColor();
+    const glm::vec3& getDiffuseColor();
+    const glm::vec3& getSpecularColor();
+    const glm::vec3& getEmissiveColor();
+    const glm::vec3& getAmbientColor();
 
 	float getShininess();
 	float getOpacity();

@@ -138,7 +138,7 @@ add_library(LAKOT_CORE_LIB
     ${HELPER_FILES}
         ${CAMERA_FILES}
         ${CONTROLS_FILES}
-		${SHADER_FILES}
+        ${SHADER_FILES}
         ${WINDOW_FILES}
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}

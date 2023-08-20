@@ -27,6 +27,14 @@ void ShaderVariable::setBool(bool pValue) {
     glUniform1i(mLocation, pValue);
 }
 
+void ShaderVariable::setVec3(const glm::vec3& pValue) {
+    if (mDataType != ShaderVariableDataType::eVec3) {
+        throw "Invalid data type";
+    }
+
+    glUniform3fv(mLocation, 1, glm::value_ptr(pValue));
+}
+
 void ShaderVariable::setMat4(const glm::mat4& pValue) const {
     if (mDataType != ShaderVariableDataType::eMat4) {
         throw "Invalid data type";
@@ -38,6 +46,10 @@ void ShaderVariable::setMat4(const glm::mat4& pValue) const {
 void ShaderVariable::setTexture(unsigned int pUnit, int pTextureId) const {
     if (mDataType != ShaderVariableDataType::eSampler2D) {
         throw "Invalid data type";
+    }
+
+    if (pTextureId == -1) {
+        throw "Invalid Texture ID.";
     }
 
     glActiveTexture(GL_TEXTURE0 + pUnit);

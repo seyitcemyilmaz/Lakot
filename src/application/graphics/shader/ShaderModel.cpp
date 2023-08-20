@@ -20,6 +20,12 @@ ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePa
     addShaderVariable(ShaderVariableName::eHasEmissiveTexture, new ShaderVariable("material.hasEmissiveTexture", ShaderVariableDataType::eBool));
     addShaderVariable(ShaderVariableName::eHasAmbientTexture, new ShaderVariable("material.hasAmbientTexture", ShaderVariableDataType::eBool));
     addShaderVariable(ShaderVariableName::eHasMetalnessTexture, new ShaderVariable("material.hasMetalnessTexture", ShaderVariableDataType::eBool));
+
+    addShaderVariable(ShaderVariableName::eDiffuseColor, new ShaderVariable("material.diffuseColor", ShaderVariableDataType::eVec3));
+    addShaderVariable(ShaderVariableName::eSpecularColor, new ShaderVariable("material.specularColor", ShaderVariableDataType::eVec3));
+    addShaderVariable(ShaderVariableName::eEmissiveColor, new ShaderVariable("material.emissiveColor", ShaderVariableDataType::eVec3));
+    addShaderVariable(ShaderVariableName::eAmbientColor, new ShaderVariable("material.ambientColor", ShaderVariableDataType::eVec3));
+    addShaderVariable(ShaderVariableName::eTransparentColor, new ShaderVariable("material.transparentColor", ShaderVariableDataType::eVec3));
 }
 
 ShaderModel::~ShaderModel() {

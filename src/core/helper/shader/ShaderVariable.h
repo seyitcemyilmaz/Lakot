@@ -23,14 +23,20 @@ enum class ShaderVariableName {
     eHasEmissiveTexture,
     eHasAmbientTexture,
     eHasMetalnessTexture,
+
+    eDiffuseColor,
+    eSpecularColor,
+    eEmissiveColor,
+    eAmbientColor,
+    eTransparentColor,
 };
 
 enum class ShaderVariableDataType {
     eSampler2D,
 
-    eMat4,
+    eBool,
     eVec3,
-    eBool
+    eMat4
 };
 
 class ShaderVariable {
@@ -49,6 +55,7 @@ public:
     void setLocation(int pLocation);
 
     void setBool(bool pValue);
+    void setVec3(const glm::vec3& pValue);
     void setMat4(const glm::mat4& pValue) const;
 
     void setTexture(unsigned int pUnit, int pTextureId) const;

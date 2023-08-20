@@ -1,10 +1,10 @@
 #include "MaterialResource.h"
 
 MaterialResource::MaterialResource(
-	glm::vec3 pDiffuseColor,
-	glm::vec3 pSpecularColor,
-	glm::vec3 pEmissiveColor,
-	glm::vec3 pAmbientColor,
+    const glm::vec3& pDiffuseColor,
+    const glm::vec3& pSpecularColor,
+    const glm::vec3& pEmissiveColor,
+    const glm::vec3& pAmbientColor,
 
 	float pShininess,
 	float pOpacity) :
@@ -178,19 +178,19 @@ TextureResource* MaterialResource::getTransmissionTexture() {
     return mTransmissionTexture;
 }
 
-glm::vec3 MaterialResource::getDiffuseColor() {
+const glm::vec3& MaterialResource::getDiffuseColor() {
 	return mDiffuseColor;
 }
 
-glm::vec3 MaterialResource::getSpecularColor() {
+const glm::vec3& MaterialResource::getSpecularColor() {
 	return mSpecularColor;
 }
 
-glm::vec3 MaterialResource::getEmissiveColor() {
+const glm::vec3& MaterialResource::getEmissiveColor() {
 	return mEmissiveColor;
 }
 
-glm::vec3 MaterialResource::getAmbientColor() {
+const glm::vec3& MaterialResource::getAmbientColor() {
 	return mAmbientColor;
 }
 
