@@ -7,12 +7,12 @@
 
 #include "platform/Platform.h"
 
-GLFWWindow::GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor) :
-	Window(pWindowTitle, pWindowWidth, pWindowHeight, pWindowBackgroundColor) { }
+GLFWWindow::GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor)
+	: Window(pWindowTitle, pWindowWidth, pWindowHeight, pWindowBackgroundColor) { }
 
 GLFWWindow::~GLFWWindow() {
 	destroyWindow();
-    Window::~Window();
+	Window::~Window();
 }
 
 void GLFWWindow::initialize() {
@@ -30,7 +30,7 @@ void GLFWWindow::initialize() {
 
 	glfwMakeContextCurrent(mWindowObject);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
 		throw "GLAD is not initialized.";
 	}
 

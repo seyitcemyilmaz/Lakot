@@ -1,11 +1,10 @@
 #include "Node.h"
 
-Node::Node(NodeResource* pNodeResource, Node* pParentNode) {
-	mNodeResource = pNodeResource;
-	mParentNode = pParentNode;
-}
+Node::Node(NodeResource* pNodeResource, Node* pParentNode)
+	: mNodeResource(pNodeResource)
+	, mParentNode(pParentNode) { }
 
-std::string Node::getName() {
+const std::string& Node::getName() {
 	return mNodeResource->getName();
 }
 

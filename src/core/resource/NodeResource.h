@@ -27,10 +27,10 @@ protected:
 public:
 	NodeResource(const std::string& pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
 
-	std::string getName() const;
+	const std::string& getName() const;
 
-	std::vector<NodeResource*> getChildNodes() const;
-	std::vector<MeshResource*> getChildMeshes() const;
+	const std::vector<NodeResource*>& getChildNodes() const;
+	const std::vector<MeshResource*>& getChildMeshes() const;
 
 	bool hasChildMesh() const;
 };

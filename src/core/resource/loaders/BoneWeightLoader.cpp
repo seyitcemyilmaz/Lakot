@@ -1,7 +1,9 @@
 #include "BoneWeightLoader.h"
 
-BoneWeightLoader::BoneWeightLoader(aiBone* pBone, std::vector<Vertex>& pVertexList, unsigned int pBoneId) :
-	mBone(pBone), mVertexList(pVertexList), mBoneId(pBoneId) { }
+BoneWeightLoader::BoneWeightLoader(aiBone* pBone, std::vector<Vertex>& pVertexList, unsigned int pBoneId)
+	: mBone(pBone)
+	, mVertexList(pVertexList)
+	, mBoneId(pBoneId) { }
 
 void BoneWeightLoader::load() {
 	unsigned int tWeightCount = mBone->mNumWeights;

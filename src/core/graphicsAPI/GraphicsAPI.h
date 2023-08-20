@@ -8,9 +8,9 @@
 enum class GraphicsAPIType {
 	eNONE,
 	eOpenGL,
-	eOpenGLES,  /// TODO: will be implemented.
-	eVulkan,    /// TODO: will be implemented.
-	eD3Dx       /// TODO: will be implemented.
+	eOpenGLES, /// TODO: will be implemented.
+	eVulkan,   /// TODO: will be implemented.
+	eD3Dx	   /// TODO: will be implemented.
 };
 
 using GraphicsAPIMajor = int;

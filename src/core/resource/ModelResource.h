@@ -3,10 +3,10 @@
 
 #include <map>
 
-#include "NodeResource.h"
-#include "MeshResource.h"
 #include "BoneResource.h"
 #include "MaterialResource.h"
+#include "MeshResource.h"
+#include "NodeResource.h"
 
 class ModelResource {
 private:
@@ -15,7 +15,7 @@ private:
 	std::vector<MeshResource*> mMeshResources;
 	std::vector<BoneResource*> mBoneResources;
 	std::vector<MaterialResource*> mMaterialResources;
-    std::vector<TextureResource*> mTextureResources;
+	std::vector<TextureResource*> mTextureResources;
 
 	std::map<std::string, BoneResource*> mBoneMap;
 
@@ -28,7 +28,7 @@ protected:
 
 	unsigned int getBoneId(const std::string& pBoneName);
 	friend class ModelLoader;
-    friend class MaterialLoader;
+	friend class MaterialLoader;
 
 public:
 	ModelResource();
@@ -36,7 +36,7 @@ public:
 	NodeResource* getRootNodeResource();
 	MaterialResource* getMaterialResource(int pMaterialIndex);
 
-    const std::vector<TextureResource*>& getTextureResources();
+	const std::vector<TextureResource*>& getTextureResources();
 };
 
 #endif

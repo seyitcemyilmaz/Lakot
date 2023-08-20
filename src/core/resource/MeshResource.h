@@ -1,10 +1,10 @@
 #ifndef LAKOT_MESHRESOURCE_H
 #define LAKOT_MESHRESOURCE_H
 
-#define LAKOT_VERTEX_MAX_BONE_COUNT				4
+#define LAKOT_VERTEX_MAX_BONE_COUNT 4
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -51,10 +51,10 @@ protected:
 public:
 	MeshResource(const std::string& pName, ModelResource* pModelResource, const std::vector<Vertex>& pVertexList, const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex);
 
-	std::string getName() const;
+	const std::string& getName() const;
 	unsigned int getMaterialIndex() const;
 
-    void draw(IShader* pShader);
+	void draw(IShader* pShader);
 };
 
 #endif

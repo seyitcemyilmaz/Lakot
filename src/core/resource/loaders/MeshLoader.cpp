@@ -4,15 +4,16 @@
 
 #include "helper/AssimpToGLMHelper.h"
 
-MeshLoader::MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource) : 
-	mMeshObject(pMeshObject), mModelResource(pModelResource) { }
+MeshLoader::MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource)
+	: mMeshObject(pMeshObject)
+	, mModelResource(pModelResource) { }
 
 MeshResource* MeshLoader::loadMesh() {
 	std::string tMeshName = mMeshObject->mName.C_Str();
 	unsigned int tMaterialIndex = mMeshObject->mMaterialIndex;
 
 	std::vector<Vertex> tVertexList = createVertexList();
-    std::vector<unsigned int> tIndexList = createIndexList();
+	std::vector<unsigned int> tIndexList = createIndexList();
 
 	return new MeshResource(tMeshName, mModelResource, tVertexList, tIndexList, tMaterialIndex);
 }
@@ -22,13 +23,10 @@ std::vector<Vertex> MeshLoader::createVertexList() {
 	unsigned int tVertexCount = mMeshObject->mNumVertices;
 
 	for (unsigned int i = 0; i < tVertexCount; i++) {
-		Vertex tVertex {
-			AssimpToGLMHelper::toVec3(mMeshObject->mVertices[i]),
-			AssimpToGLMHelper::toVec3(mMeshObject->mNormals[i])
-		};
+		Vertex tVertex{AssimpToGLMHelper::toVec3(mMeshObject->mVertices[i]), AssimpToGLMHelper::toVec3(mMeshObject->mNormals[i])};
 
 		if (mMeshObject->mTextureCoords[0]) {
-            tVertex.textureCoordinates = glm::vec2(mMeshObject->mTextureCoords[0][i].x, mMeshObject->mTextureCoords[0][i].y);
+			tVertex.textureCoordinates = glm::vec2(mMeshObject->mTextureCoords[0][i].x, mMeshObject->mTextureCoords[0][i].y);
 		}
 		else {
 			tVertex.textureCoordinates = glm::vec2(0.0f);
@@ -50,9 +48,9 @@ std::vector<unsigned int> MeshLoader::createIndexList() {
 	unsigned int tPolygonCount = mMeshObject->mNumFaces;
 
 	for (unsigned int i = 0; i < tPolygonCount; i++) {
-        if (mMeshObject->mFaces[i].mNumIndices != 3) {
-            std::cout << "A polygon has not 3 indices" << std::endl;
-            continue;
+		if (mMeshObject->mFaces[i].mNumIndices != 3) {
+			std::cout << "A polygon has not 3 indices" << std::endl;
+			continue;
 		}
 
 		tIndexList.push_back(mMeshObject->mFaces[i].mIndices[0]);

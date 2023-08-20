@@ -4,10 +4,16 @@
 
 #include "platform/Platform.h"
 
-MeshResource::MeshResource(const std::string& pName, ModelResource* pModelResource, const std::vector<Vertex>& pVertexList,
-						   const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex) :
-	mName(pName), mModelResource(pModelResource), mVertexList(pVertexList), 
-	mIndexList(pIndexList), mMaterialIndex(pMaterialIndex) { }
+MeshResource::MeshResource(const std::string& pName,
+						   ModelResource* pModelResource,
+						   const std::vector<Vertex>& pVertexList,
+						   const std::vector<unsigned int>& pIndexList,
+						   unsigned int pMaterialIndex)
+	: mName(pName)
+	, mModelResource(pModelResource)
+	, mVertexList(pVertexList)
+	, mIndexList(pIndexList)
+	, mMaterialIndex(pMaterialIndex) { }
 
 std::string MeshResource::getName() const {
 	return mName;
@@ -57,75 +63,75 @@ void MeshResource::createBuffers() {
 void MeshResource::draw(IShader* pShader) {
 	MaterialResource* tMaterialResource = mModelResource->getMaterialResource(mMaterialIndex);
 
-    if (tMaterialResource) {
+	if (tMaterialResource) {
 		TextureResource* tDiffuseTexture = tMaterialResource->getDiffuseTexture();
 
-        unsigned int tUnit = 0;
+		unsigned int tUnit = 0;
 
-        if (tDiffuseTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
-            pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
-            tUnit++;
-        }
+		if (tDiffuseTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
+			pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
+			tUnit++;
+		}
 
-        TextureResource* tNormalsTexture = tMaterialResource->getNormalsTexture();
+		TextureResource* tNormalsTexture = tMaterialResource->getNormalsTexture();
 
-        if (tNormalsTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(false);
-            tUnit++;
-        }
+		if (tNormalsTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(false);
+			tUnit++;
+		}
 
-        TextureResource* tSpecularTexture = tMaterialResource->getSpecularTexture();
+		TextureResource* tSpecularTexture = tMaterialResource->getSpecularTexture();
 
-        if (tSpecularTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(false);
-            tUnit++;
-        }
+		if (tSpecularTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(false);
+			tUnit++;
+		}
 
-        TextureResource* tEmissiveTexture = tMaterialResource->getEmissiveTexture();
+		TextureResource* tEmissiveTexture = tMaterialResource->getEmissiveTexture();
 
-        if (tEmissiveTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(false);
-            tUnit++;
-        }
+		if (tEmissiveTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(false);
+			tUnit++;
+		}
 
-        TextureResource* tAmbientTexture = tMaterialResource->getAmbientTexture();
+		TextureResource* tAmbientTexture = tMaterialResource->getAmbientTexture();
 
-        if (tAmbientTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(false);
-            tUnit++;
-        }
+		if (tAmbientTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(false);
+			tUnit++;
+		}
 
-        TextureResource* tMetalnessTexture = tMaterialResource->getMetalnessTexture();
+		TextureResource* tMetalnessTexture = tMaterialResource->getMetalnessTexture();
 
-        if (tMetalnessTexture) {
-            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
-        }
-        else {
-            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
-            tUnit++;
-        }
+		if (tMetalnessTexture) {
+			pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(true);
+			pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
+		}
+		else {
+			pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
+			tUnit++;
+		}
 	}
 
 	glBindVertexArray(mVAO);

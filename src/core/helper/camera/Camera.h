@@ -28,8 +28,8 @@ private:
 
 	glm::vec3 mWorldUp;
 
-	double mYaw;     // For x-axis
-	double mPitch;   // For y-axis
+	double mYaw;   // For x-axis
+	double mPitch; // For y-axis
 
 	double mZoom;
 

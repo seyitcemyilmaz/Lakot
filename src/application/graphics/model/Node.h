@@ -22,7 +22,7 @@ protected:
 public:
 	Node(NodeResource* pNodeResource, Node* pParentNode);
 
-	std::string getName();
+	const std::string& getName();
 };
 
 #endif // NODE_H

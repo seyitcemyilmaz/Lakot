@@ -7,18 +7,18 @@
 
 class MaterialLoader {
 private:
-    ModelResource* mModelResource;
+	ModelResource* mModelResource;
 
 	aiMaterial* mMaterial;
 
-    const aiScene* mScene;
+	const aiScene* mScene;
 
 	std::string mModelPath;
 
 	TextureResource* extractTexture(aiTextureType pAiTextureType, TextureType pTextureType);
 
 public:
-    MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);
+	MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);
 
 	MaterialResource* loadMaterial();
 };

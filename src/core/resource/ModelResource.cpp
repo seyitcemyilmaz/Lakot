@@ -1,5 +1,4 @@
 #include "ModelResource.h"
-#include "ModelResource.h"
 
 ModelResource::ModelResource() = default;
 
@@ -27,8 +26,7 @@ NodeResource* ModelResource::getRootNodeResource() {
 	return mRootNode;
 }
 
-MaterialResource* ModelResource::getMaterialResource(int pMaterialIndex)
-{
+MaterialResource* ModelResource::getMaterialResource(int pMaterialIndex) {
 	if (pMaterialIndex >= mMaterialResources.size() || pMaterialIndex < 0) {
 		throw "Wrong material index.";
 	}
@@ -37,5 +35,5 @@ MaterialResource* ModelResource::getMaterialResource(int pMaterialIndex)
 }
 
 const std::vector<TextureResource*>& ModelResource::getTextureResources() {
-    return mTextureResources;
+	return mTextureResources;
 }

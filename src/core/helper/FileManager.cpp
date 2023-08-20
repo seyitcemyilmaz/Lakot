@@ -66,13 +66,3 @@ std::string FileManager::getFileContent(const std::filesystem::path& pPath) {
 
 	return tFileContent;
 }
-
-
-
-
-
-
-
-
-
-

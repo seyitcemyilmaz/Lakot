@@ -1,7 +1,9 @@
 #include "GraphicsAPI.h"
 
-GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor) :
-	mGraphicsAPIType(tGraphicsAPIType), mGraphicsAPIMajor(tGraphicsAPIMajor), mGraphicsAPIMinor(tGraphicsAPIMinor) {
+GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor)
+	: mGraphicsAPIType(tGraphicsAPIType)
+	, mGraphicsAPIMajor(tGraphicsAPIMajor)
+	, mGraphicsAPIMinor(tGraphicsAPIMinor) {
 	mIsGraphicsAPIInitialized = false;
 }
 

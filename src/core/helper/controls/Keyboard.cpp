@@ -11,7 +11,7 @@ Keyboard* Keyboard::getInstance() {
 }
 
 Keyboard::Keyboard() {
-	for (int i = 0 ; i < GLFW_KEY_LAST; i++) {
+	for (int i = 0; i < GLFW_KEY_LAST; i++) {
 		mKeys[i].isPressed = false;
 		mKeys[i].isStateChanged = false;
 	}

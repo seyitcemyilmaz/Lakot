@@ -5,13 +5,14 @@
 
 #include "graphicsAPI/OpenGLAPI.h"
 
-#include "helper/windowmanager.h"
 #include "helper/camera/CameraManager.h"
+#include "helper/windowmanager.h"
 
 #include "helper/controls/Keyboard.h"
 #include "helper/controls/Mouse.h"
 
-WindowsPlatform::WindowsPlatform() : Platform(new OpenGLAPI(LAKOT_GRAPHICS_API_VERSION_MAJOR, LAKOT_GRAPHICS_API_VERSION_MINOR)) { }
+WindowsPlatform::WindowsPlatform()
+	: Platform(new OpenGLAPI(LAKOT_GRAPHICS_API_VERSION_MAJOR, LAKOT_GRAPHICS_API_VERSION_MINOR)) { }
 
 std::string WindowsPlatform::getRootPath() {
 	std::filesystem::path tPlatformFilePath = __FILE__;

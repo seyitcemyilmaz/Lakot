@@ -5,7 +5,7 @@
 
 class IRenderable {
 public:
-    virtual void draw(IShader* pShader) = 0;
+	virtual void draw(IShader* pShader) = 0;
 };
 
 #endif

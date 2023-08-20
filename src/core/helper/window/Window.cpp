@@ -1,7 +1,10 @@
 #include "Window.h"
 
-Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor) :
-	mWindowTitle(pWindowTitle), mWindowWidth(pWindowWidth), mWindowHeight(pWindowHeight), mWindowBackgroundColor(pWindowBackgroundColor) {
+Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor)
+	: mWindowTitle(pWindowTitle)
+	, mWindowWidth(pWindowWidth)
+	, mWindowHeight(pWindowHeight)
+	, mWindowBackgroundColor(pWindowBackgroundColor) {
 	mIsWindowActive = false;
 }
 

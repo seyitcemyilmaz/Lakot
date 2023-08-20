@@ -27,7 +27,7 @@ Mouse::Mouse() {
 
 	mIsMouseInitialized = false;
 
-	for (int i = 0 ; i < GLFW_MOUSE_BUTTON_LAST; i++) {
+	for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; i++) {
 		mButtons[i].isPressed = false;
 		mButtons[i].isStateChanged = false;
 	}

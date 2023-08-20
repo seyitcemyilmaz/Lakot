@@ -9,8 +9,7 @@
 #define LAKOT_DEFAULT_GLFW_WINDOW_WIDTH			800
 #define LAKOT_DEFAULT_GLFW_WINDOW_HEIGHT		800
 
-class WindowFactory
-{
+class WindowFactory {
 private:
 	WindowFactory();
 

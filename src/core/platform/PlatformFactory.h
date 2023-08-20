@@ -8,6 +8,7 @@ private:
 	PlatformFactory();
 
 	static Platform* createWindowsPlatformObject();
+
 public:
 	static Platform* createPlatformObject();
 };

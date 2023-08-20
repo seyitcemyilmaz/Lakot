@@ -21,7 +21,7 @@ protected:
 public:
 	Model(ModelResource* pModelResource, Node* pRootNode);
 
-    void draw(IShader* pShader);
+	void draw(IShader* pShader);
 };
 
 #endif

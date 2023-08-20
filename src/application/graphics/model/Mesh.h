@@ -14,9 +14,9 @@ private:
 public:
 	Mesh(MeshResource* pMeshResource);
 
-	std::string getName();
+	const std::string& getName();
 
-    void draw(IShader* pShader) override;
+	void draw(IShader* pShader) override;
 };
 
 #endif

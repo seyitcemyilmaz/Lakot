@@ -11,16 +11,11 @@ Model* ModelFactory::createModel(std::string pModelFilePath) {
 		return nullptr;
 	}
 
-
 	NodeResource* tRootNodeResource = tModelResource->getRootNodeResource();
 	Node* tRootNode = new Node(tRootNodeResource, nullptr);
 
 	Model* tModel = new Model(tModelResource, tRootNode);
 	processNode(tModel, tRootNodeResource, tRootNode);
-
-
-
-
 
 	return tModel;
 }

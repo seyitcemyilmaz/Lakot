@@ -24,5 +24,4 @@ public:
 	std::string getTime(TimerType pTimerType = TimerType::eMilliseconds);
 };
 
-
 #endif
