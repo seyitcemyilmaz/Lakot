@@ -15,7 +15,7 @@ MeshResource::MeshResource(const std::string& pName,
 	, mIndexList(pIndexList)
 	, mMaterialIndex(pMaterialIndex) { }
 
-std::string MeshResource::getName() const {
+const std::string& MeshResource::getName() const {
 	return mName;
 }
 
