@@ -28,7 +28,6 @@ enum class ShaderVariableName {
 	eSpecularColor,
 	eEmissiveColor,
 	eAmbientColor,
-	eTransparentColor,
 };
 
 enum class ShaderVariableDataType {

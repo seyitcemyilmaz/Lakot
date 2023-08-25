@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define LAKOT_MOUSE_DEFAULT_SENSIVITY			0.1f
+#define LAKOT_MOUSE_DEFAULT_SENSIVITY 0.5f
 
 struct Button {
 	bool isPressed;

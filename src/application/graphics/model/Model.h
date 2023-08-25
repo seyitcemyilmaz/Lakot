@@ -6,7 +6,9 @@
 #include "Mesh.h"
 #include "Node.h"
 
-class Model {
+#include "interface/ITransformable.h"
+
+class Model : public ITransformable {
 private:
 	ModelResource* mModelResource;
 
@@ -22,6 +24,9 @@ public:
 	Model(ModelResource* pModelResource, Node* pRootNode);
 
 	void draw(IShader* pShader);
+
+
+
 };
 
 #endif

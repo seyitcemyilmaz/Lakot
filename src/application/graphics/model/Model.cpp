@@ -1,7 +1,8 @@
 #include "Model.h"
 
 Model::Model(ModelResource* pModelResource, Node* pRootNode)
-	: mModelResource(pModelResource)
+	: ITransformable(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f))
+	, mModelResource(pModelResource)
 	, mRootNode(pRootNode) { }
 
 void Model::addMesh(Mesh* pMesh) {

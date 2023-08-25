@@ -21,21 +21,19 @@ struct Material {
     vec3 specularColor;
     vec3 emissiveColor;
     vec3 ambientColor;
-    vec3 transparentColor;
 };
 
 uniform Material material;
 
 void main() {
-    if (material.hasMetalnessTexture) {
-        FragColor = texture(material.metalnessTexture, TextureCoordinates);
+    if (material.hasDiffuseTexture) {
+	FragColor = vec4(material.diffuseColor, 1.0f) * texture(material.diffuseTexture, TextureCoordinates);
     }
     else {
-        if (material.hasDiffuseTexture) {
-            FragColor = texture(material.diffuseTexture, TextureCoordinates);
-        }
-        else {
-            FragColor = vec4(material.diffuseColor, 1.0f);
-        }
+	FragColor = vec4(material.diffuseColor, 1.0f);
+    }
+
+    if (material.hasMetalnessTexture) {
+	FragColor *= texture(material.metalnessTexture, TextureCoordinates);
     }
 }

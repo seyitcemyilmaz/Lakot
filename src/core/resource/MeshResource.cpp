@@ -74,7 +74,6 @@ void MeshResource::draw(IShader* pShader) {
 		}
 		else {
 			pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
-			pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
 			tUnit++;
 		}
 
@@ -132,6 +131,11 @@ void MeshResource::draw(IShader* pShader) {
 			pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
 			tUnit++;
 		}
+
+		pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
+		pShader->getShaderVariable(ShaderVariableName::eSpecularColor)->setVec3(tMaterialResource->getSpecularColor());
+		pShader->getShaderVariable(ShaderVariableName::eEmissiveColor)->setVec3(tMaterialResource->getEmissiveColor());
+		pShader->getShaderVariable(ShaderVariableName::eAmbientColor)->setVec3(tMaterialResource->getAmbientColor());
 	}
 
 	glBindVertexArray(mVAO);

@@ -28,11 +28,9 @@ void RenderManager::renderScene() {
 
 	glm::mat4 tProjectionMatrix = getProjectionMatrix();
 	glm::mat4 tViewMatrix = getViewMatrix();
-	glm::mat4 tModelMatrix = glm::mat4(1.0f);
 
     tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
-    tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
-    tShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(tModelMatrix);
+	tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
 }
 
 void RenderManager::renderGUI() { }
