@@ -5,18 +5,23 @@
 
 #include "core/resource/MeshResource.h"
 
-#include "IRenderable.h"
-
-class Mesh : public IRenderable {
+class Mesh {
 private:
 	MeshResource* mMeshResource;
 
+	unsigned int mMaterialIndex = -1;
+
+protected:
+	friend class RenderManager;
+
 public:
-	Mesh(MeshResource* pMeshResource);
+	Mesh(MeshResource* pMeshResource, unsigned int pMaterialIndex);
 
 	const std::string& getName();
 
-	void draw(IShader* pShader) override;
+	MeshResource* getMeshResource();
+
+	unsigned int getMaterialIndex();
 };
 
 #endif

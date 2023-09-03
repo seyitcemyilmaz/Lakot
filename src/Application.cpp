@@ -1,7 +1,5 @@
 #include "Application.h"
 
-#include "application/graphics/render/RenderManager.h"
-
 #include "core/resource/ResourceManager.h"
 #include "core/helper/FileManager.h"
 #include "core/helper/camera/CameraManager.h"
@@ -10,8 +8,8 @@
 #include "platform/PlatformFactory.h"
 
 #include "application/graphics/model/ModelFactory.h"
-
-#include <application/graphics/shader/ShaderModel.h>
+#include "application/graphics/shader/ShaderModel.h"
+#include "application/graphics/render/RenderManager.h"
 
 Application::Application() {
 	mPlatform = nullptr;
@@ -41,7 +39,7 @@ void Application::initialization() {
 void Application::initializeShaders() {
     ShaderManager::getInstance()->addShader(
         new ShaderModel(
-            ShaderName::eShader,
+			ShaderName::eModelShader,
             FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.vsh").c_str(),
             FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.fsh").c_str())
         );
@@ -95,13 +93,13 @@ void Application::render() {
 	// TODO: Add render function for scene
 	RenderManager::getInstance()->renderScene();
 
-    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eShader);
+	IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
 
 	for (int i = 0; i < mModels.size(); i++) {
 		mModels[i]->calculateModelMatrix();
 		const glm::mat4& tModelMatrix = mModels[i]->getModelMatrix();
 		tShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(tModelMatrix);
-        mModels[i]->draw(tShader);
+		RenderManager::getInstance()->renderModel(mModels[i], tShader);
 	}
 	// TODO: Add render function for GUI
 }

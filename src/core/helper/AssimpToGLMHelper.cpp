@@ -2,7 +2,7 @@
 
 AssimpToGLMHelper::AssimpToGLMHelper() { }
 
-glm::mat4 AssimpToGLMHelper::toMat4(aiMatrix4x4& pMatrix) {
+glm::mat4 AssimpToGLMHelper::toMat4(const aiMatrix4x4& pMatrix) {
 	return glm::mat4 {
 		pMatrix.a1, pMatrix.b1, pMatrix.c1, pMatrix.d1,
 		pMatrix.a2, pMatrix.b2, pMatrix.c2, pMatrix.d2,
@@ -11,8 +11,12 @@ glm::mat4 AssimpToGLMHelper::toMat4(aiMatrix4x4& pMatrix) {
 	};
 }
 
-glm::vec3 AssimpToGLMHelper::toVec3(aiVector3D& pVector) {
+glm::vec3 AssimpToGLMHelper::toVec3(const aiVector3D& pVector) {
 	return glm::vec3 {
 		pVector.x, pVector.y, pVector.z
 	};
+}
+
+glm::quat AssimpToGLMHelper::toQuat(const aiQuaternion& pAiQuaternion) {
+	return glm::quat(pAiQuaternion.w, pAiQuaternion.x, pAiQuaternion.y, pAiQuaternion.z);
 }

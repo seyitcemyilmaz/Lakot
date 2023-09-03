@@ -1,5 +1,5 @@
-#ifndef MESHLOADER_H
-#define MESHLOADER_H
+#ifndef LAKOT_MESHLOADER_H
+#define LAKOT_MESHLOADER_H
 
 #include <assimp/scene.h>
 

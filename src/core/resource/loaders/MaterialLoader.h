@@ -1,5 +1,5 @@
-#ifndef MATERIALLOADER_H
-#define MATERIALLOADER_H
+#ifndef LAKOT_MATERIALLOADER_H
+#define LAKOT_MATERIALLOADER_H
 
 #include <assimp/scene.h>
 

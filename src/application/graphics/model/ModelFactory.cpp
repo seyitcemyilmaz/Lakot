@@ -42,7 +42,7 @@ void ModelFactory::processNode(Model* pModel, NodeResource* pNodeResource, Node*
 }
 
 void ModelFactory::processMesh(Model* pModel, Node* pConnectedNode, MeshResource* pMeshResource) {
-	Mesh* tMesh = new Mesh(pMeshResource);
+	Mesh* tMesh = new Mesh(pMeshResource, pMeshResource->getMaterialIndex());
 
 	pConnectedNode->addChildMesh(tMesh);
 

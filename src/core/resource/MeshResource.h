@@ -38,14 +38,14 @@ private:
 
 	unsigned int mMaterialIndex = -1;
 
-	unsigned int mIndexCount = 0;
+	unsigned int mIndiceCount = 0;
 
 	bool mHasBone = false;
 
 protected:
 	void setHasBone(bool pHasBone);
 	void setConnectedNode(NodeResource* pConnectedNode);
-	void createBuffers();
+	//void createBuffers();
 	friend class ModelLoader;
 
 public:
@@ -54,7 +54,8 @@ public:
 	const std::string& getName() const;
 	unsigned int getMaterialIndex() const;
 
-	void draw(IShader* pShader);
+	unsigned int getVAO();
+	unsigned int getIndiceCount();
 };
 
 #endif

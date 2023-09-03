@@ -14,8 +14,16 @@ void ModelResource::addMaterialResource(MaterialResource* pMaterialResource) {
 	mMaterialResources.push_back(pMaterialResource);
 }
 
+void ModelResource::addAnimationResource(AnimationResource* pAnimationResource) {
+	mAnimationResources.push_back(pAnimationResource);
+}
+
 void ModelResource::setRootNode(NodeResource* pRootNode) {
 	mRootNode = pRootNode;
+}
+
+void ModelResource::setGlobalInverseTransform(const glm::mat4& pGlobalInverseTransform) {
+	mGlobalInverseTransform = pGlobalInverseTransform;
 }
 
 unsigned int ModelResource::getBoneId(const std::string& pBoneName) {
@@ -36,4 +44,8 @@ MaterialResource* ModelResource::getMaterialResource(int pMaterialIndex) {
 
 const std::vector<TextureResource*>& ModelResource::getTextureResources() {
 	return mTextureResources;
+}
+
+const std::vector<AnimationResource*>& ModelResource::getAnimationResources() {
+	return mAnimationResources;
 }

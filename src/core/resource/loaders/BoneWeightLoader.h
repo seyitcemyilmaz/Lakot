@@ -1,5 +1,5 @@
-#ifndef BONELOADER_H
-#define BONELOADER_H
+#ifndef LAKOT_BONELOADER_H
+#define LAKOT_BONELOADER_H
 
 #include <assimp/scene.h>
 

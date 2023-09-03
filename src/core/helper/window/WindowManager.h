@@ -1,7 +1,7 @@
 #ifndef LAKOT_WINDOWMANAGER_H
 #define LAKOT_WINDOWMANAGER_H
 
-#include "window/Window.h"
+#include "Window.h"
 
 class WindowManager {
 private:

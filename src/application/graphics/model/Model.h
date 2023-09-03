@@ -23,10 +23,9 @@ protected:
 public:
 	Model(ModelResource* pModelResource, Node* pRootNode);
 
-	void draw(IShader* pShader);
+	ModelResource* getModelResource();
 
-
-
+	const std::vector<Mesh*>& getMeshes();
 };
 
 #endif

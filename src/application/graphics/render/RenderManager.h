@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+#include "../model/Model.h"
+
 #define LAKOT_DEFAULT_FAR_PLANE				1000.0
 #define LAKOT_DEFAULT_NEAR_PLANE			0.1
 
@@ -18,11 +20,15 @@ private:
 
 	RenderManager();
 
+	void renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader);
+	void useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader);
+
 public:
 	static RenderManager* getInstance();
 
 	void renderScene();
 	void renderGUI();
+	void renderModel(Model* pModel, IShader* pShader);
 };
 
 #endif

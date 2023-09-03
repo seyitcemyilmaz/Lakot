@@ -40,9 +40,6 @@ set(HELPER_FILES
 
     ${HELPER_DIRECTORY}/Timer.h
     ${HELPER_DIRECTORY}/Timer.cpp
-
-    ${HELPER_DIRECTORY}/WindowManager.h
-    ${HELPER_DIRECTORY}/WindowManager.cpp
 )
 
     set(CAMERA_FILES
@@ -81,6 +78,9 @@ set(HELPER_FILES
 
         ${WINDOW_DIRECTORY}/WindowFactory.h
         ${WINDOW_DIRECTORY}/WindowFactory.cpp
+
+	${WINDOW_DIRECTORY}/WindowManager.h
+	${WINDOW_DIRECTORY}/WindowManager.cpp
 )
 
 set(INTERFACE_FILES
@@ -100,8 +100,14 @@ set(PLATFORM_FILES
 )
 
 set(RESOURCE_FILES
+    ${RESOURCE_DIRECTORY}/AnimationResource.h
+    ${RESOURCE_DIRECTORY}/AnimationResource.cpp
+
     ${RESOURCE_DIRECTORY}/BoneResource.h
     ${RESOURCE_DIRECTORY}/BoneResource.cpp
+
+    ${RESOURCE_DIRECTORY}/KeyFrameChannel.h
+    ${RESOURCE_DIRECTORY}/KeyFrameChannel.cpp
 
     ${RESOURCE_DIRECTORY}/MaterialResource.h
     ${RESOURCE_DIRECTORY}/MaterialResource.cpp
@@ -123,6 +129,9 @@ set(RESOURCE_FILES
 )
 
     set(LOADERS_FILES
+	${LOADERS_DIRECTORY}/AnimationLoader.h
+	${LOADERS_DIRECTORY}/AnimationLoader.cpp
+
         ${LOADERS_DIRECTORY}/BoneWeightLoader.h
         ${LOADERS_DIRECTORY}/BoneWeightLoader.cpp
 
@@ -149,7 +158,7 @@ add_library(LAKOT_CORE_LIB
     ${INTERFACE_FILES}
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}
-        ${LOADERS_FILES}
+	${LOADERS_FILES}
 )
 
 ### add glfw - begin ###

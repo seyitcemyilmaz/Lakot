@@ -8,7 +8,7 @@
 
 enum class ShaderName {
 	eNULLShader,
-	eShader
+	eModelShader
 };
 
 class IShader {

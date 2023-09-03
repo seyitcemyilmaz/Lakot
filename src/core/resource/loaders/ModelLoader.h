@@ -21,6 +21,11 @@ private:
 
 	void processMesh(aiMesh* pMesh, NodeResource* pConnectedNodeResource);
 	void processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource);
+	void processAnimations(const aiScene* pScene);
+
+	void createMeshBuffers(MeshResource* pMeshResource);
+
+	void applyAxisCorrection(const aiScene* pScene);
 
 public:
 	ModelLoader(const std::string& pModelPath);

@@ -6,7 +6,7 @@
 #include "graphicsAPI/OpenGLAPI.h"
 
 #include "helper/camera/CameraManager.h"
-#include "helper/windowmanager.h"
+#include "helper/window/WindowManager.h"
 
 #include "helper/controls/Keyboard.h"
 #include "helper/controls/Mouse.h"

@@ -27,7 +27,7 @@ uniform Material material;
 
 void main() {
     if (material.hasDiffuseTexture) {
-	FragColor = vec4(material.diffuseColor, 1.0f) * texture(material.diffuseTexture, TextureCoordinates);
+	FragColor = texture(material.diffuseTexture, TextureCoordinates);
     }
     else {
 	FragColor = vec4(material.diffuseColor, 1.0f);

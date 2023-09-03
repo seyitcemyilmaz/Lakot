@@ -5,12 +5,14 @@ Model::Model(ModelResource* pModelResource, Node* pRootNode)
 	, mModelResource(pModelResource)
 	, mRootNode(pRootNode) { }
 
+ModelResource* Model::getModelResource() {
+	return mModelResource;
+}
+
 void Model::addMesh(Mesh* pMesh) {
 	mMeshes.push_back(pMesh);
 }
 
-void Model::draw(IShader* pShader) {
-	for (int i = 0; i < mMeshes.size(); i++) {
-		mMeshes[i]->draw(pShader);
-	}
+const std::vector<Mesh*>& Model::getMeshes() {
+	return mMeshes;
 }

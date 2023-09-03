@@ -1,6 +1,6 @@
 #include "PlatformFactory.h"
 
-#include "helper/WindowManager.h"
+#include "helper/window/WindowManager.h"
 
 #include "WindowsPlatform.h"
 
