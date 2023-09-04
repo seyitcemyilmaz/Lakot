@@ -15,6 +15,11 @@ private:
 public:
 	AnimationResource(const std::string& pName, double pDuration, double pTicksPerSeconds);
 
+	const std::string& getName();
+
+	double getDuration();
+	double getTicksPerSeconds();
+
 	const std::vector<KeyFrameChannel*>& getKeyFrameChannels();
 
 	void addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel);

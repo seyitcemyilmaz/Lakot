@@ -11,7 +11,7 @@ private:
 
 	static void processNode(Model* pModel, NodeResource* pNodeResource, Node* pNode);
 	static void processMesh(Model* pModel, Node* pConnectedNode, MeshResource* pMeshResource);
-	static void processAnimation(Model* pModel, AnimationResource* pAnimationResource);
+	static void processAnimations(Model* pModel);
 
 public:
 	static Model* createModel(std::string pModelFilePath);

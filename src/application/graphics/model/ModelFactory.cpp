@@ -17,7 +17,7 @@ Model* ModelFactory::createModel(std::string pModelFilePath) {
 	Model* tModel = new Model(tModelResource, tRootNode);
 	processNode(tModel, tRootNodeResource, tRootNode);
 
-
+	processAnimations(tModel);
 
 	return tModel;
 }
@@ -51,6 +51,14 @@ void ModelFactory::processMesh(Model* pModel, Node* pConnectedNode, MeshResource
 	pModel->addMesh(tMesh);
 }
 
-void ModelFactory::processAnimation(Model* pModel, AnimationResource* pAnimationResource) {
+void ModelFactory::processAnimations(Model* pModel) {
+	ModelResource* tModelResource = pModel->getModelResource();
 
+	const std::vector<AnimationResource*>& tAnimationResources = tModelResource->getAnimationResources();
+	unsigned int tAnimationCount = tModelResource->getAnimationCount();
+
+	for (unsigned int i = 0; i < tAnimationCount; i++) {
+		Animation* tAnimation = new Animation(tAnimationResources[i]);
+		pModel->mAnimations.push_back(tAnimation);
+	}
 }

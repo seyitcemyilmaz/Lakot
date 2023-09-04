@@ -5,6 +5,7 @@
 
 #include "Mesh.h"
 #include "Node.h"
+#include "Animation.h"
 
 #include "interface/ITransformable.h"
 
@@ -15,6 +16,7 @@ private:
 	Node* mRootNode;
 
 	std::vector<Mesh*> mMeshes;
+	std::vector<Animation*> mAnimations;
 
 protected:
 	void addMesh(Mesh* pMesh);
