@@ -20,16 +20,16 @@ void KeyFrameChannel::addToKeyFrameScales(KeyFrameScale* pKeyFrameScale) {
 	mKeyFrameScales.push_back(pKeyFrameScale);
 }
 
-int KeyFrameChannel::getKeyFramePositionsCount() const {
-	return static_cast<int>(mKeyFramePositions.size());
+unsigned int KeyFrameChannel::getKeyFramePositionsCount() const {
+	return static_cast<unsigned int>(mKeyFramePositions.size());
 }
 
-int KeyFrameChannel::getKeyFrameRotationsCount() const {
-	return static_cast<int>(mKeyFrameRotations.size());
+unsigned int KeyFrameChannel::getKeyFrameRotationsCount() const {
+	return static_cast<unsigned int>(mKeyFrameRotations.size());
 }
 
-int KeyFrameChannel::getKeyFrameScalesCount() const {
-	return static_cast<int>(mKeyFrameScales.size());
+unsigned int KeyFrameChannel::getKeyFrameScalesCount() const {
+	return static_cast<unsigned int>(mKeyFrameScales.size());
 }
 
 const std::vector<KeyFramePosition*>& KeyFrameChannel::getKeyFramePositions() const {

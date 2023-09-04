@@ -15,11 +15,10 @@ private:
 
 	std::vector<MeshResource*> mMeshResources;
 	std::vector<BoneResource*> mBoneResources;
+	std::vector<NodeResource*> mNodeResources;
 	std::vector<MaterialResource*> mMaterialResources;
 	std::vector<TextureResource*> mTextureResources;
 	std::vector<AnimationResource*> mAnimationResources;
-
-	std::map<std::string, BoneResource*> mBoneMap;
 
 	glm::mat4 mGlobalInverseTransform;
 
@@ -32,16 +31,21 @@ protected:
 	void addMaterialResource(MaterialResource* pMaterialResource);
 	void addAnimationResource(AnimationResource* pAnimationResource);
 
-	unsigned int getBoneId(const std::string& pBoneName);
+	unsigned int getBoneId(BoneResource* pBoneResource);
 	friend class ModelLoader;
 	friend class MaterialLoader;
 
 public:
 	ModelResource();
 
+	unsigned int getMeshCount();
+	unsigned int getNodeCount();
+	unsigned int getAnimationCount();
+
 	NodeResource* getRootNodeResource();
 	MaterialResource* getMaterialResource(int pMaterialIndex);
 
+	const std::vector<BoneResource*>& getBoneResources();
 	const std::vector<TextureResource*>& getTextureResources();
 	const std::vector<AnimationResource*>& getAnimationResources();
 };

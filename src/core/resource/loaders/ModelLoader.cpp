@@ -72,6 +72,8 @@ void ModelLoader::processNode(aiNode* pNode, const aiScene* pScene, NodeResource
 
 	NodeResource* tNodeResource = new NodeResource(tNodeName, pParentNodeResource, tTransformationMatrix);
 
+	mModelResource->mNodeResources.push_back(tNodeResource);
+
 	if (pParentNodeResource) {
 		pParentNodeResource->addChildNode(tNodeResource);
 	}
@@ -224,17 +226,38 @@ void ModelLoader::extractBones(aiMesh* pMesh, MeshResource* pMeshResource) {
 	aiBone** tBones = pMesh->mBones;
 	unsigned int tBoneCount = pMesh->mNumBones;
 
+	std::vector<NodeResource*>& tNodeResources = mModelResource->mNodeResources;
+	unsigned int tNodeCount = mModelResource->getNodeCount();
+
 	for (unsigned int i = 0; i < tBoneCount; i++) {
 		aiBone* tBone = tBones[i];
 		std::string tBoneName = tBone->mName.C_Str();
 
-		if (!mModelResource->mBoneMap.contains(tBoneName)) {
-			BoneResource* tBoneResource = new BoneResource(tBoneName, AssimpToGLMHelper::toMat4(tBone->mOffsetMatrix));
-			mModelResource->mBoneMap[tBoneName] = tBoneResource;
-			mModelResource->addBoneResource(tBoneResource);
+		NodeResource* tNodeResource = nullptr;
+
+		bool tIsNodeFound = false;
+
+		for (unsigned int i = 0; i < tNodeCount; i++) {
+			if (tNodeResources[i]->getName() == tBoneName) {
+				tNodeResource = tNodeResources[i];
+				tIsNodeFound = true;
+				break;
+			}
 		}
 
-		unsigned int tBoneId = mModelResource->getBoneId(tBoneName);
+		if (!tIsNodeFound) {
+			throw "Undefined behaviour";
+		}
+
+		BoneResource* tBoneResource = tNodeResource->getBone();
+
+		if (!tBoneResource) {
+			BoneResource* tBoneResource = new BoneResource(tBoneName, AssimpToGLMHelper::toMat4(tBone->mOffsetMatrix));
+			mModelResource->addBoneResource(tBoneResource);
+			tNodeResource->setBoneResource(tBoneResource);
+		}
+
+		unsigned int tBoneId = mModelResource->getBoneId(tBoneResource);
 
 		BoneWeightLoader tBoneWeightLoader(tBone, pMeshResource->mVertexList, tBoneId);
 		tBoneWeightLoader.load();

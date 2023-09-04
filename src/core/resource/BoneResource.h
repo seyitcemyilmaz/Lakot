@@ -1,7 +1,7 @@
 #ifndef LAKOT_BONERESOURCE_H
 #define LAKOT_BONERESOURCE_H
 
-#include <iostream>
+#include <string>
 
 #include <glm/glm.hpp>
 
@@ -13,6 +13,10 @@ private:
 
 public:
 	BoneResource(const std::string& pName, const glm::mat4& pOffsetMatrix);
+
+	const std::string& getName();
+
+	const glm::mat4& getOffsetMatrix();
 };
 
 #endif

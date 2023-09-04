@@ -9,10 +9,6 @@ const std::string& NodeResource::getName() const {
 	return mName;
 }
 
-void NodeResource::addChildNode(NodeResource* pChildNode) {
-	mChildNodes.push_back(pChildNode);
-}
-
 const std::vector<NodeResource*>& NodeResource::getChildNodes() const {
 	return mChildNodes;
 }
@@ -21,10 +17,22 @@ const std::vector<MeshResource*>& NodeResource::getChildMeshes() const {
 	return mChildMeshes;
 }
 
+BoneResource* NodeResource::getBone() {
+	return mBoneResource;
+}
+
 bool NodeResource::hasChildMesh() const {
 	return !mChildMeshes.empty();
 }
 
+void NodeResource::setBoneResource(BoneResource* pBoneResource) {
+	mBoneResource = pBoneResource;
+}
+
 void NodeResource::addChildMesh(MeshResource* pChildMesh) {
 	mChildMeshes.push_back(pChildMesh);
+}
+
+void NodeResource::addChildNode(NodeResource* pChildNode) {
+	mChildNodes.push_back(pChildNode);
 }

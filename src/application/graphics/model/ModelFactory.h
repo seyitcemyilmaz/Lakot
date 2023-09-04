@@ -1,5 +1,5 @@
-#ifndef MODELFACTORY_H
-#define MODELFACTORY_H
+#ifndef LAKOT_MODELFACTORY_H
+#define LAKOT_MODELFACTORY_H
 
 #include <string>
 
@@ -11,6 +11,7 @@ private:
 
 	static void processNode(Model* pModel, NodeResource* pNodeResource, Node* pNode);
 	static void processMesh(Model* pModel, Node* pConnectedNode, MeshResource* pMeshResource);
+	static void processAnimation(Model* pModel, AnimationResource* pAnimationResource);
 
 public:
 	static Model* createModel(std::string pModelFilePath);

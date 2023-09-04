@@ -17,6 +17,8 @@ Model* ModelFactory::createModel(std::string pModelFilePath) {
 	Model* tModel = new Model(tModelResource, tRootNode);
 	processNode(tModel, tRootNodeResource, tRootNode);
 
+
+
 	return tModel;
 }
 
@@ -47,4 +49,8 @@ void ModelFactory::processMesh(Model* pModel, Node* pConnectedNode, MeshResource
 	pConnectedNode->addChildMesh(tMesh);
 
 	pModel->addMesh(tMesh);
+}
+
+void ModelFactory::processAnimation(Model* pModel, AnimationResource* pAnimationResource) {
+
 }

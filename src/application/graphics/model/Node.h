@@ -1,5 +1,5 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef LAKOT_NODE_H
+#define LAKOT_NODE_H
 
 #include "core/resource/NodeResource.h"
 

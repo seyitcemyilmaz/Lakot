@@ -2,6 +2,18 @@
 
 ModelResource::ModelResource() = default;
 
+unsigned int ModelResource::getMeshCount() {
+	return static_cast<unsigned int>(mMeshResources.size());
+}
+
+unsigned int ModelResource::getNodeCount() {
+	return static_cast<unsigned int>(mNodeResources.size());
+}
+
+unsigned int ModelResource::getAnimationCount() {
+	return static_cast<unsigned int>(mAnimationResources.size());
+}
+
 void ModelResource::addMeshResource(MeshResource* pMeshResource) {
 	mMeshResources.push_back(pMeshResource);
 }
@@ -26,8 +38,8 @@ void ModelResource::setGlobalInverseTransform(const glm::mat4& pGlobalInverseTra
 	mGlobalInverseTransform = pGlobalInverseTransform;
 }
 
-unsigned int ModelResource::getBoneId(const std::string& pBoneName) {
-	return static_cast<unsigned int>(std::distance(mBoneResources.begin(), std::ranges::find(mBoneResources, mBoneMap[pBoneName])));
+unsigned int ModelResource::getBoneId(BoneResource* pBoneResource) {
+	return static_cast<unsigned int>(std::distance(mBoneResources.begin(), std::ranges::find(mBoneResources, pBoneResource)));
 }
 
 NodeResource* ModelResource::getRootNodeResource() {
@@ -40,6 +52,10 @@ MaterialResource* ModelResource::getMaterialResource(int pMaterialIndex) {
 	}
 
 	return mMaterialResources[pMaterialIndex];
+}
+
+const std::vector<BoneResource*>& ModelResource::getBoneResources() {
+	return mBoneResources;
 }
 
 const std::vector<TextureResource*>& ModelResource::getTextureResources() {

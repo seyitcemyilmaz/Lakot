@@ -142,7 +142,7 @@ TextureResource* MaterialLoader::extractTexture(aiTextureType pAiTextureType, Te
 
 	for (size_t i = 0; i < tTextureResourceCount; i++) {
 		TextureResource* tTextureResource = tTextureResources[i];
-		const std::string tTextureResourceName = tTextureResource->getTexturePath();
+		const std::string& tTextureResourceName = tTextureResource->getTexturePath();
 
 		if (tTexturePath == tTextureResourceName) {
 			tTexture = tTextureResource;

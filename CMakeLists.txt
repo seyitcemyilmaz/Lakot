@@ -52,30 +52,33 @@ set(SRC_FILES
     )
 
 	set(MODEL_FILES
-            ${MODEL_DIRECTORY}/Material.h
-            ${MODEL_DIRECTORY}/Material.cpp
+	    ${MODEL_DIRECTORY}/Animation.h
+	    ${MODEL_DIRECTORY}/Animation.cpp
 
-            ${MODEL_DIRECTORY}/Mesh.h
-            ${MODEL_DIRECTORY}/Mesh.cpp
+	    ${MODEL_DIRECTORY}/Material.h
+	    ${MODEL_DIRECTORY}/Material.cpp
 
-            ${MODEL_DIRECTORY}/Model.h
-            ${MODEL_DIRECTORY}/Model.cpp
+	    ${MODEL_DIRECTORY}/Mesh.h
+	    ${MODEL_DIRECTORY}/Mesh.cpp
 
-            ${MODEL_DIRECTORY}/Node.h
-            ${MODEL_DIRECTORY}/Node.cpp
+	    ${MODEL_DIRECTORY}/Model.h
+	    ${MODEL_DIRECTORY}/Model.cpp
 
-            ${MODEL_DIRECTORY}/ModelFactory.h
-            ${MODEL_DIRECTORY}/ModelFactory.cpp
+	    ${MODEL_DIRECTORY}/Node.h
+	    ${MODEL_DIRECTORY}/Node.cpp
+
+	    ${MODEL_DIRECTORY}/ModelFactory.h
+	    ${MODEL_DIRECTORY}/ModelFactory.cpp
         )
 
         set(RENDER_FILES
-            ${RENDER_DIRECTORY}/RenderManager.h
-            ${RENDER_DIRECTORY}/RenderManager.cpp
+	    ${RENDER_DIRECTORY}/RenderManager.h
+	    ${RENDER_DIRECTORY}/RenderManager.cpp
         )
 
         set(SHADER_FILES
-            ${SHADER_DIRECTORY}/ShaderModel.h
-            ${SHADER_DIRECTORY}/ShaderModel.cpp
+	    ${SHADER_DIRECTORY}/ShaderModel.h
+	    ${SHADER_DIRECTORY}/ShaderModel.cpp
         )
 
 include_directories(
@@ -101,7 +104,7 @@ add_executable(${CMAKE_PROJECT_NAME}
         ${GRAPHICS_FILES}
             ${MODEL_FILES}
             ${RENDER_FILES}
-            ${SHADER_FILES}
+	    ${SHADER_FILES}
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} 

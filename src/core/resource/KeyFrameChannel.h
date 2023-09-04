@@ -41,9 +41,9 @@ public:
 
 	const std::string& getNodeName() const;
 
-	int getKeyFramePositionsCount() const;
-	int getKeyFrameRotationsCount() const;
-	int getKeyFrameScalesCount() const;
+	unsigned int getKeyFramePositionsCount() const;
+	unsigned int getKeyFrameRotationsCount() const;
+	unsigned int getKeyFrameScalesCount() const;
 
 	void addToKeyFramePositions(KeyFramePosition* pKeyFramePosition);
 	void addToKeyFrameRotations(KeyFrameRotation* pKeyFrameRotation);

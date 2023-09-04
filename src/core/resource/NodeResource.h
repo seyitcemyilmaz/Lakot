@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "MeshResource.h"
+#include "BoneResource.h"
 
 class NodeResource {
 private:
@@ -19,7 +20,11 @@ private:
 
 	glm::mat4 mTransformationMatrix;
 
+	BoneResource* mBoneResource = nullptr;
+
 protected:
+	void setBoneResource(BoneResource* pBoneResource);
+
 	void addChildMesh(MeshResource* pChildMesh);
 	void addChildNode(NodeResource* pChildNode);
 	friend class ModelLoader;
@@ -31,6 +36,8 @@ public:
 
 	const std::vector<NodeResource*>& getChildNodes() const;
 	const std::vector<MeshResource*>& getChildMeshes() const;
+
+	BoneResource* getBone();
 
 	bool hasChildMesh() const;
 };
