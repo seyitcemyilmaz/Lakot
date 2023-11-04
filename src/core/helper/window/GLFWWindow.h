@@ -6,7 +6,7 @@
 
 #include "helper/window/Window.h"
 
-class GLFWWindow : public Window {
+class GLFWWindow final : public Window {
 private:
 	GLFWwindow* mWindowObject;
 

@@ -23,6 +23,8 @@ ModelLoader::ModelLoader(const std::string& pModelPath)
 ModelResource* ModelLoader::loadModel() {
 	Assimp::Importer tImporter;
 
+	tImporter.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+
 	const aiScene* tScene = tImporter.ReadFile(mModelPath, mModelImportFlags);
 
 	if (!tScene) {
@@ -60,7 +62,7 @@ void ModelLoader::extractMaterials(const aiScene* pScene) {
 		tMaterialLoader = new MaterialLoader(mModelResource, tMaterial, pScene, mModelPath);
 
 		MaterialResource* tMaterialResource = tMaterialLoader->loadMaterial();
-		mModelResource->addMaterialResource(tMaterialResource);
+		mModelResource->mMaterialResources.push_back(tMaterialResource);
 
 		delete tMaterialLoader;
 	}
@@ -120,13 +122,11 @@ void ModelLoader::processAnimations(const aiScene* pScene) {
 		AnimationLoader tAnimationLoader(mModelResource, tAnimation);
 		AnimationResource* tAnimationResource = tAnimationLoader.load();
 
-		mModelResource->addAnimationResource(tAnimationResource);
+		mModelResource->mAnimationResources.push_back(tAnimationResource);
 	}
 }
 
 void ModelLoader::createMeshBuffers(MeshResource* pMeshResource) {
-	pMeshResource->mIndiceCount = static_cast<int>(pMeshResource->mIndexList.size());
-
 	glGenVertexArrays(1, &pMeshResource->mVAO);
 	glGenBuffers(1, &pMeshResource->mVBO);
 	glGenBuffers(1, &pMeshResource->mIBO);
@@ -149,6 +149,9 @@ void ModelLoader::createMeshBuffers(MeshResource* pMeshResource) {
 	glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), reinterpret_cast<const void*>(offsetof(Vertex, boneIds)));
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 4, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<const void*>(offsetof(Vertex, boneWeights)));
+
+	pMeshResource->mVertexList.clear();
+	pMeshResource->mIndexList.clear();
 
 	glBindVertexArray(0);
 }
@@ -235,18 +238,16 @@ void ModelLoader::extractBones(aiMesh* pMesh, MeshResource* pMeshResource) {
 
 		NodeResource* tNodeResource = nullptr;
 
-		bool tIsNodeFound = false;
-
-		for (unsigned int i = 0; i < tNodeCount; i++) {
-			if (tNodeResources[i]->getName() == tBoneName) {
-				tNodeResource = tNodeResources[i];
-				tIsNodeFound = true;
+		for (unsigned int j = 0; j < tNodeCount; j++) {
+			if (tNodeResources[j]->getName() == tBoneName) {
+				tNodeResource = tNodeResources[j];
 				break;
 			}
 		}
 
-		if (!tIsNodeFound) {
-			throw "Undefined behaviour";
+		if (!tNodeResource) {
+			std::cout << "Node: " << tBoneName << " is not found" << std::endl;
+			continue;
 		}
 
 		BoneResource* tBoneResource = tNodeResource->getBone();

@@ -8,8 +8,6 @@
 
 #include <glm/glm.hpp>
 
-#include "helper/shader/IShader.h"
-
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
@@ -39,6 +37,7 @@ private:
 	unsigned int mMaterialIndex = -1;
 
 	unsigned int mIndiceCount = 0;
+	unsigned int mVertexCount = 0;
 
 	bool mHasBone = false;
 
@@ -56,6 +55,9 @@ public:
 
 	unsigned int getVAO();
 	unsigned int getIndiceCount();
+	unsigned int getVertexCount();
+
+	bool getHasBone() const;
 };
 
 #endif

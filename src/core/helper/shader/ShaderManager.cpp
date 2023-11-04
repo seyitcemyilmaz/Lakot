@@ -39,7 +39,8 @@ void ShaderManager::setActiveShaderNull() {
 
 void ShaderManager::deleteShaders() {
 	for (auto tShaderElement = mShaders.begin(); tShaderElement != mShaders.end(); tShaderElement++) {
-		delete *tShaderElement;
+		IShader* tShader = *tShaderElement;
+		delete tShader;
 	}
 
 	mShaders.clear();

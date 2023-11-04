@@ -1,12 +1,12 @@
 #include "BoneResource.h"
 
-BoneResource::BoneResource(const std::string& pName, const glm::mat4& pOffsetMatrix) :
-	mName(pName), mOffsetMatrix(pOffsetMatrix) { }
+BoneResource::BoneResource(const std::string& pName, const glm::mat4& pTransformation) :
+	mName(pName), mTransformation(pTransformation) { }
 
 const std::string& BoneResource::getName() {
 	return mName;
 }
 
-const glm::mat4& BoneResource::getOffsetMatrix() {
-	return mOffsetMatrix;
+const glm::mat4& BoneResource::getTransformationMatrix() {
+	return mTransformation;
 }

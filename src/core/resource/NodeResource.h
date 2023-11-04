@@ -40,6 +40,8 @@ public:
 	BoneResource* getBone();
 
 	bool hasChildMesh() const;
+
+	const glm::mat4& getTransformationMatrix();
 };
 
 #endif

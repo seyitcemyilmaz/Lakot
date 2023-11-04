@@ -1,6 +1,6 @@
 #include "Window.h"
 
-Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor)
+Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor)
 	: mWindowTitle(pWindowTitle)
 	, mWindowWidth(pWindowWidth)
 	, mWindowHeight(pWindowHeight)
@@ -22,7 +22,7 @@ void Window::setIsWindowActive(bool pIsWindowActive) {
 	mIsWindowActive = pIsWindowActive;
 }
 
-void Window::setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor) {
+void Window::setWindowBackgroundColor(const glm::vec3& pWindowBackgroundColor) {
 	mWindowBackgroundColor = pWindowBackgroundColor;
 }
 
@@ -38,6 +38,6 @@ bool Window::getIsWindowActive() {
 	return mIsWindowActive;
 }
 
-glm::vec3 Window::getWindowBackgroundColor() {
+const glm::vec3& Window::getWindowBackgroundColor() {
 	return mWindowBackgroundColor;
 }

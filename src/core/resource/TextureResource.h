@@ -3,6 +3,7 @@
 
 #include <string>
 
+/*
 enum class TextureType {
 	eNoneTexture,
 	eDiffuseTexture,
@@ -27,6 +28,7 @@ enum class TextureType {
 	eTransmissionTexture,
 	eUnknownTexture
 };
+*/
 
 class TextureResource {
 private:

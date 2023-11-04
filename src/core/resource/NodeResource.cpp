@@ -25,6 +25,10 @@ bool NodeResource::hasChildMesh() const {
 	return !mChildMeshes.empty();
 }
 
+const glm::mat4& NodeResource::getTransformationMatrix() {
+	return mTransformationMatrix;
+}
+
 void NodeResource::setBoneResource(BoneResource* pBoneResource) {
 	mBoneResource = pBoneResource;
 }

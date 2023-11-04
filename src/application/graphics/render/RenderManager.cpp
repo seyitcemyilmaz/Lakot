@@ -30,8 +30,6 @@ void RenderManager::renderScene() {
 
 	tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
 	tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
-
-
 }
 
 void RenderManager::renderGUI() { }
@@ -58,15 +56,29 @@ glm::mat4 RenderManager::getViewMatrix() {
 
 void RenderManager::renderModel(Model* pModel, IShader* pShader) {
 	const std::vector<Mesh*> pMeshes = pModel->getMeshes();
-	size_t tMeshCount = pMeshes.size();
+	unsigned int tMeshCount = pModel->getMeshCount();
 
-	for (size_t i = 0; i < tMeshCount; i++) {
+	for (unsigned int i = 0; i < tMeshCount; i++) {
 		renderMesh(pModel, pMeshes[i], pShader);
 	}
 }
 
 void RenderManager::renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader) {
 	useMaterial(pModel, pMesh, pShader);
+
+	if (pMesh->getHasBone() && pModel->getHasActiveAnimation()) {
+		pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(1);
+
+		const std::vector<glm::mat4>& tBoneMatrices = pModel->getBoneMatrices();
+		pShader->getShaderVariable(ShaderVariableName::eBoneTransformations)
+			->setMat4Array(tBoneMatrices.data(), static_cast<unsigned int>(tBoneMatrices.size()));
+
+		pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+	}
+	else {
+		pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(0);
+		pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+	}
 
 	glBindVertexArray(pMesh->getMeshResource()->getVAO());
 	glDrawElements(GL_TRIANGLES, pMesh->getMeshResource()->getIndiceCount(), GL_UNSIGNED_INT, nullptr);

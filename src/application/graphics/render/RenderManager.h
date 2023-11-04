@@ -4,9 +4,10 @@
 #include <glm/glm.hpp>
 
 #include "../model/Model.h"
+#include "helper/shader/IShader.h"
 
-#define LAKOT_DEFAULT_FAR_PLANE				1000.0
-#define LAKOT_DEFAULT_NEAR_PLANE			0.1
+#define LAKOT_DEFAULT_FAR_PLANE				1000000.0
+#define LAKOT_DEFAULT_NEAR_PLANE			0.01
 
 class RenderManager {
 private:

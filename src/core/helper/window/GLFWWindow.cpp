@@ -11,8 +11,7 @@ GLFWWindow::GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHe
 	: Window(pWindowTitle, pWindowWidth, pWindowHeight, pWindowBackgroundColor) { }
 
 GLFWWindow::~GLFWWindow() {
-	destroyWindow();
-	Window::~Window();
+
 }
 
 void GLFWWindow::initialize() {

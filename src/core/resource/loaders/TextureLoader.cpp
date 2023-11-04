@@ -8,10 +8,9 @@
 
 #include "helper/FileManager.h"
 
-TextureLoader::TextureLoader(const aiScene* pScene, const std::string& pModelPath, TextureType pTextureType, const std::string& pTexturePath)
+TextureLoader::TextureLoader(const aiScene* pScene, const std::string& pModelPath, const std::string& pTexturePath)
 	: mTexturePath(pTexturePath)
 	, mModelPath(pModelPath)
-	, mTextureType(pTextureType)
 	, mScene(pScene) { }
 
 TextureResource* TextureLoader::loadTexture() {
@@ -24,15 +23,15 @@ TextureResource* TextureLoader::loadTexture() {
 		tTexture = createEmbeddedTexture();
 	}
 
-	if (!tTexture) {
-		throw "Undefined texture";
-	}
-
 	return tTexture;
 }
 
 TextureResource* TextureLoader::createEmbeddedTexture() {
 	const aiTexture* tTexture = mScene->GetEmbeddedTexture(mTexturePath.c_str());
+
+	if (!tTexture) {
+		return nullptr;
+	}
 
 	int tWidth = -1;
 	int tHeight = -1;

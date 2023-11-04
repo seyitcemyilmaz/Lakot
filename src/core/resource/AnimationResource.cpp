@@ -17,10 +17,14 @@ double AnimationResource::getTicksPerSeconds() {
 	return mTicksPerSeconds;
 }
 
-void AnimationResource::addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel) {
-	mKeyFrameChannels.push_back(pKeyFrameChannel);
+const std::vector<KeyFrameChannelResource*>& AnimationResource::getKeyFrameChannelResources() {
+	return mKeyFrameChannelResources;
 }
 
-const std::vector<KeyFrameChannel*>& AnimationResource::getKeyFrameChannels() {
-	return mKeyFrameChannels;
+unsigned int AnimationResource::getKeyFrameChannelCount() {
+	return static_cast<int>(mKeyFrameChannelResources.size());
+}
+
+void AnimationResource::addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource) {
+	mKeyFrameChannelResources.push_back(pKeyFrameChannelResource);
 }

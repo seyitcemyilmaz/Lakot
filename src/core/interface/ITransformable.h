@@ -10,6 +10,7 @@ private:
 	glm::vec3 mRotation;
 
 	glm::mat4 mModelMatrix;
+	glm::mat3 mInverseTransposeModelMatrix;
 
 public:
 	ITransformable(const glm::vec3& pPosition, const glm::vec3& pScale, const glm::vec3& pRotation);
@@ -45,7 +46,8 @@ public:
 	void changeRotation(float pAmountX, float pAmountY, float pAmountZ);
 
 	void calculateModelMatrix();
-	const glm::mat4& getModelMatrix();
+	const glm::mat4& getModelMatrix() const;
+	const glm::mat3& getInverseTransposeModelMatrix() const;
 };
 
 #endif

@@ -19,16 +19,16 @@ AnimationResource* AnimationLoader::load() {
 	for (unsigned int j = 0; j < tChannelCount; j++) {
 		aiNodeAnim* tChannel = mAnimation->mChannels[j];
 		std::string tNodeName = tChannel->mNodeName.C_Str();
-
-		KeyFrameChannel* tKeyFrameChannel = new KeyFrameChannel(tNodeName);
+		
+		KeyFrameChannelResource* tKeyFrameChannel = new KeyFrameChannelResource(tNodeName);
 		processKeyFrameChannel(tChannel, tKeyFrameChannel);
-		tAnimationResource->addKeyFrameChannel(tKeyFrameChannel);
+		tAnimationResource->addKeyFrameChannelResource(tKeyFrameChannel);
 	}
 
 	return tAnimationResource;
 }
 
-void AnimationLoader::processKeyFrameChannel(aiNodeAnim* pAiKeyFrameChannel, KeyFrameChannel* pKeyFrameChannel) {
+void AnimationLoader::processKeyFrameChannel(aiNodeAnim* pAiKeyFrameChannel, KeyFrameChannelResource* pKeyFrameChannel) {
 	unsigned int tKeyFramePositionCount = pAiKeyFrameChannel->mNumPositionKeys;
 
 	for (unsigned int tKeyFramePositionIndex = 0; tKeyFramePositionIndex < tKeyFramePositionCount; tKeyFramePositionIndex++) {

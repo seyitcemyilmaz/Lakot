@@ -1,7 +1,5 @@
 #include "MeshResource.h"
 
-#include "ModelResource.h"
-
 MeshResource::MeshResource(const std::string& pName,
 						   ModelResource* pModelResource,
 						   const std::vector<Vertex>& pVertexList,
@@ -11,7 +9,10 @@ MeshResource::MeshResource(const std::string& pName,
 	, mModelResource(pModelResource)
 	, mVertexList(pVertexList)
 	, mIndexList(pIndexList)
-	, mMaterialIndex(pMaterialIndex) { }
+	, mMaterialIndex(pMaterialIndex) {
+	mIndiceCount = static_cast<unsigned int>(mIndexList.size());
+	mVertexCount = static_cast<unsigned int>(mVertexList.size());
+}
 
 const std::string& MeshResource::getName() const {
 	return mName;
@@ -35,4 +36,12 @@ unsigned int MeshResource::getVAO() {
 
 unsigned int MeshResource::getIndiceCount() {
 	return mIndiceCount;
+}
+
+unsigned int MeshResource::getVertexCount() {
+	return mVertexCount;
+}
+
+bool MeshResource::getHasBone() const {
+	return mHasBone;
 }

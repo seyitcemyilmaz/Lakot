@@ -1,5 +1,5 @@
-#ifndef LAKOT_KEYFRAMECHANNEL_H
-#define LAKOT_KEYFRAMECHANNEL_H
+#ifndef LAKOT_KEYFRAMECHANNELRESOURCE_H
+#define LAKOT_KEYFRAMECHANNELRESOURCE_H
 
 #include <string>
 #include <vector>
@@ -22,7 +22,7 @@ struct KeyFrameScale {
 	double timeStamp;
 };
 
-class KeyFrameChannel {
+class KeyFrameChannelResource {
 private:
 	std::string mNodeName;
 
@@ -37,7 +37,7 @@ private:
 	int getScaleIndex(double pAnimationTime) const;
 
 public:
-	KeyFrameChannel(std::string pNodeName);
+	KeyFrameChannelResource(std::string pNodeName);
 
 	const std::string& getNodeName() const;
 
@@ -58,4 +58,4 @@ public:
 	glm::mat4 interpolateScale(double pAnimationTime) const;
 };
 
-#endif // KEYFRAMECHANNEL_H
+#endif

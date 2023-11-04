@@ -60,17 +60,29 @@ void Application::initializeModels() {
 	//Model* tModel1 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "test\\untitled.gltf"));
 	//mModels.push_back(tModel1);
 
-	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
-	//Model* tModel2 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
-	//mModels.push_back(tModel2);
+//	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+//	Model* tModel2 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "troll\\scene.gltf"));
+//	mModels.push_back(tModel2);
 
-	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
-    Model* tModel3 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
-    mModels.push_back(tModel3);
+//	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
+//	Model* tModel3 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "magnum\\source\\magnum.fbx"));
+//	mModels.push_back(tModel3);
 
-	tModel3->setPosition(0.0f, 0.0f, -40.0f);
+	ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
+	Model* tModel3 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
+	mModels.push_back(tModel3);
 
-	tModel3->changeRotationY(90);
+	tModel3->setScale(30.0f, 30.0f, 30.0f);
+
+	tModel3->playAnimationContinuously(0);
+
+	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "test.fbx"));
+	//Model* tModel0 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "test.fbx"));
+	//mModels.push_back(tModel0);
+
+	//tModel0->setPosition(0.0f, 0.0f, -40.0f);
+
+	//tModel0->changeRotationY(90);
 
 	//ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
 	//Model* tModel4 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "soldier\\scene.gltf"));
@@ -93,10 +105,16 @@ void Application::render() {
 	// TODO: Add render function for scene
 	RenderManager::getInstance()->renderScene();
 
+	double static tPreviousTime = glfwGetTime();
+	double tCurrentTime = glfwGetTime();
+	double tTimeDifference = tCurrentTime - tPreviousTime;
+	tPreviousTime = tCurrentTime;
+
 	IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
 
 	for (int i = 0; i < mModels.size(); i++) {
 		mModels[i]->calculateModelMatrix();
+		mModels[i]->update(tTimeDifference);
 		const glm::mat4& tModelMatrix = mModels[i]->getModelMatrix();
 		tShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(tModelMatrix);
 		RenderManager::getInstance()->renderModel(mModels[i], tShader);

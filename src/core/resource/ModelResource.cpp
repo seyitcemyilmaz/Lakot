@@ -6,12 +6,24 @@ unsigned int ModelResource::getMeshCount() {
 	return static_cast<unsigned int>(mMeshResources.size());
 }
 
+unsigned int ModelResource::getBoneCount() {
+	return static_cast<unsigned int>(mBoneResources.size());
+}
+
 unsigned int ModelResource::getNodeCount() {
 	return static_cast<unsigned int>(mNodeResources.size());
 }
 
+unsigned int ModelResource::getMaterialCount() {
+	return static_cast<unsigned int>(mMaterialResources.size());
+}
+
 unsigned int ModelResource::getAnimationCount() {
 	return static_cast<unsigned int>(mAnimationResources.size());
+}
+
+const glm::mat4& ModelResource::getGlobalInverseTransform() {
+	return mGlobalInverseTransform;
 }
 
 void ModelResource::addMeshResource(MeshResource* pMeshResource) {
@@ -20,14 +32,6 @@ void ModelResource::addMeshResource(MeshResource* pMeshResource) {
 
 void ModelResource::addBoneResource(BoneResource* pBoneResource) {
 	mBoneResources.push_back(pBoneResource);
-}
-
-void ModelResource::addMaterialResource(MaterialResource* pMaterialResource) {
-	mMaterialResources.push_back(pMaterialResource);
-}
-
-void ModelResource::addAnimationResource(AnimationResource* pAnimationResource) {
-	mAnimationResources.push_back(pAnimationResource);
 }
 
 void ModelResource::setRootNode(NodeResource* pRootNode) {
@@ -60,6 +64,10 @@ const std::vector<BoneResource*>& ModelResource::getBoneResources() {
 
 const std::vector<TextureResource*>& ModelResource::getTextureResources() {
 	return mTextureResources;
+}
+
+const std::vector<MaterialResource*>& ModelResource::getMaterialResources() {
+	return mMaterialResources;
 }
 
 const std::vector<AnimationResource*>& ModelResource::getAnimationResources() {

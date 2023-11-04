@@ -48,70 +48,70 @@ MaterialResource* MaterialLoader::loadMaterial() {
 
 	MaterialResource* tMaterialResource = new MaterialResource(tDiffuseColor, tSpecularColor, tEmissiveColor, tAmbientColor, tShininess, tOpacity);
 
-	TextureResource* tDiffuseTexture = extractTexture(aiTextureType_DIFFUSE, TextureType::eDiffuseTexture);
+	TextureResource* tDiffuseTexture = extractTexture(aiTextureType_DIFFUSE);
 	tMaterialResource->setDiffuseTexture(tDiffuseTexture);
 
-	TextureResource* tSpecularTexture = extractTexture(aiTextureType_SPECULAR, TextureType::eSpecularTexture);
+	TextureResource* tSpecularTexture = extractTexture(aiTextureType_SPECULAR);
 	tMaterialResource->setSpecularTexture(tSpecularTexture);
 
-	TextureResource* tAmbientTexture = extractTexture(aiTextureType_AMBIENT, TextureType::eAmbientTexture);
+	TextureResource* tAmbientTexture = extractTexture(aiTextureType_AMBIENT);
 	tMaterialResource->setAmbientTexture(tAmbientTexture);
 
-	TextureResource* tEmissiveTexture = extractTexture(aiTextureType_EMISSIVE, TextureType::eEmissiveTexture);
+	TextureResource* tEmissiveTexture = extractTexture(aiTextureType_EMISSIVE);
 	tMaterialResource->setEmissiveTexture(tEmissiveTexture);
 
-	TextureResource* tHeightTexture = extractTexture(aiTextureType_HEIGHT, TextureType::eHeightTexture);
+	TextureResource* tHeightTexture = extractTexture(aiTextureType_HEIGHT);
 	tMaterialResource->setHeightTexture(tHeightTexture);
 
-	TextureResource* tNormalsTexture = extractTexture(aiTextureType_NORMALS, TextureType::eNormalsTexture);
+	TextureResource* tNormalsTexture = extractTexture(aiTextureType_NORMALS);
 	tMaterialResource->setNormalsTexture(tNormalsTexture);
 
-	TextureResource* tShininessTexture = extractTexture(aiTextureType_SHININESS, TextureType::eShininessTexture);
+	TextureResource* tShininessTexture = extractTexture(aiTextureType_SHININESS);
 	tMaterialResource->setShininessTexture(tShininessTexture);
 
-	TextureResource* tOpacityTexture = extractTexture(aiTextureType_OPACITY, TextureType::eOpacityTexture);
+	TextureResource* tOpacityTexture = extractTexture(aiTextureType_OPACITY);
 	tMaterialResource->setOpacityTexture(tOpacityTexture);
 
-	TextureResource* tDisplacementTexture = extractTexture(aiTextureType_DISPLACEMENT, TextureType::eDisplacementTexture);
+	TextureResource* tDisplacementTexture = extractTexture(aiTextureType_DISPLACEMENT);
 	tMaterialResource->setDisplacementTexture(tDisplacementTexture);
 
-	TextureResource* tLightmapTexture = extractTexture(aiTextureType_LIGHTMAP, TextureType::eLightmapTexture);
+	TextureResource* tLightmapTexture = extractTexture(aiTextureType_LIGHTMAP);
 	tMaterialResource->setLightmapTexture(tLightmapTexture);
 
-	TextureResource* tReflectionTexture = extractTexture(aiTextureType_REFLECTION, TextureType::eReflectionTexture);
+	TextureResource* tReflectionTexture = extractTexture(aiTextureType_REFLECTION);
 	tMaterialResource->setReflectionTexture(tReflectionTexture);
 
-	TextureResource* tBaseColorTexture = extractTexture(aiTextureType_BASE_COLOR, TextureType::eBaseColorTexture);
+	TextureResource* tBaseColorTexture = extractTexture(aiTextureType_BASE_COLOR);
 	tMaterialResource->setBaseColorTexture(tBaseColorTexture);
 
-	TextureResource* tNormalCameraTexture = extractTexture(aiTextureType_NORMAL_CAMERA, TextureType::eNormalCameraTexture);
+	TextureResource* tNormalCameraTexture = extractTexture(aiTextureType_NORMAL_CAMERA);
 	tMaterialResource->setNormalCameraTexture(tNormalCameraTexture);
 
-	TextureResource* tEmissionColorTexture = extractTexture(aiTextureType_EMISSION_COLOR, TextureType::eEmissionColorTexture);
+	TextureResource* tEmissionColorTexture = extractTexture(aiTextureType_EMISSION_COLOR);
 	tMaterialResource->setEmissionColorTexture(tEmissionColorTexture);
 
-	TextureResource* tMetalnessTexture = extractTexture(aiTextureType_METALNESS, TextureType::eMetalnessTexture);
+	TextureResource* tMetalnessTexture = extractTexture(aiTextureType_METALNESS);
 	tMaterialResource->setMetalnessTexture(tMetalnessTexture);
 
-	TextureResource* tDiffuseRoughnessTexture = extractTexture(aiTextureType_DIFFUSE_ROUGHNESS, TextureType::eDiffuseRoughnessTexture);
+	TextureResource* tDiffuseRoughnessTexture = extractTexture(aiTextureType_DIFFUSE_ROUGHNESS);
 	tMaterialResource->setDiffuseRoughnessTexture(tDiffuseRoughnessTexture);
 
-	TextureResource* tAmbientOcclusionTexture = extractTexture(aiTextureType_AMBIENT_OCCLUSION, TextureType::eAmbientOcclusionTexture);
+	TextureResource* tAmbientOcclusionTexture = extractTexture(aiTextureType_AMBIENT_OCCLUSION);
 	tMaterialResource->setAmbientOcclusionTexture(tAmbientOcclusionTexture);
 
-	TextureResource* tSheenTexture = extractTexture(aiTextureType_SHEEN, TextureType::eSheenTexture);
+	TextureResource* tSheenTexture = extractTexture(aiTextureType_SHEEN);
 	tMaterialResource->setSheenTexture(tSheenTexture);
 
-	TextureResource* tClearcoatTexture = extractTexture(aiTextureType_CLEARCOAT, TextureType::eClearcoatTexture);
+	TextureResource* tClearcoatTexture = extractTexture(aiTextureType_CLEARCOAT);
 	tMaterialResource->setClearcoatTexture(tClearcoatTexture);
 
-	TextureResource* tTransmissionTexture = extractTexture(aiTextureType_TRANSMISSION, TextureType::eTransmissionTexture);
+	TextureResource* tTransmissionTexture = extractTexture(aiTextureType_TRANSMISSION);
 	tMaterialResource->setTransmissionTexture(tTransmissionTexture);
 
 	return tMaterialResource;
 }
 
-TextureResource* MaterialLoader::extractTexture(aiTextureType pAiTextureType, TextureType pTextureType) {
+TextureResource* MaterialLoader::extractTexture(aiTextureType pAiTextureType) {
 	unsigned int tTextureCount = mMaterial->GetTextureCount(pAiTextureType);
 
 	if (tTextureCount == 0) {
@@ -151,9 +151,12 @@ TextureResource* MaterialLoader::extractTexture(aiTextureType pAiTextureType, Te
 	}
 
 	if (!tTexture) {
-		TextureLoader tTextureLoader(mScene, mModelPath, pTextureType, tTexturePath);
+		TextureLoader tTextureLoader(mScene, mModelPath, tTexturePath);
 		tTexture = tTextureLoader.loadTexture();
-		mModelResource->mTextureResources.push_back(tTexture);
+
+		if (tTexture) {
+			mModelResource->mTextureResources.push_back(tTexture);
+		}
 	}
 
 	return tTexture;

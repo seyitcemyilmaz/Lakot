@@ -7,6 +7,10 @@ ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePa
     addShaderVariable(ShaderVariableName::eView, new ShaderVariable("view", ShaderVariableDataType::eMat4));
     addShaderVariable(ShaderVariableName::eModel, new ShaderVariable("model", ShaderVariableDataType::eMat4));
 
+	addShaderVariable(ShaderVariableName::eBoneTransformations, new ShaderVariable("boneTransformations", ShaderVariableDataType::eMat4Array));
+
+	addShaderVariable(ShaderVariableName::eAnimationType, new ShaderVariable("animationType", ShaderVariableDataType::eInt));
+
     addShaderVariable(ShaderVariableName::eDiffuseTexture, new ShaderVariable("material.diffuseTexture", ShaderVariableDataType::eSampler2D));
     addShaderVariable(ShaderVariableName::eNormalsTexture, new ShaderVariable("material.normalsTexture", ShaderVariableDataType::eSampler2D));
     addShaderVariable(ShaderVariableName::eSpecularTexture, new ShaderVariable("material.specularTexture", ShaderVariableDataType::eSampler2D));
@@ -28,5 +32,5 @@ ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePa
 }
 
 ShaderModel::~ShaderModel() {
-    IShader::~IShader();
+
 }

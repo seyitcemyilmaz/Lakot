@@ -4,6 +4,17 @@
 
 IShader::~IShader() {
 	glDeleteProgram(mShaderProgramId);
+
+	for (auto tShaderVariableIterator = mShaderVariables.begin(); tShaderVariableIterator != mShaderVariables.end(); tShaderVariableIterator++) {
+		ShaderVariableName tShaderVariableName = tShaderVariableIterator->first;
+
+		ShaderVariable* tShaderVariable = tShaderVariableIterator->second;
+		delete tShaderVariable;
+
+		mShaderVariables[tShaderVariableName] = nullptr;
+	}
+
+	mShaderVariables.clear();
 }
 
 IShader::IShader(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath)
@@ -62,6 +73,7 @@ void IShader::createShaderProgram() {
 	if (!tIsShaderProgramLinked) {
 		char tErrorInfo[512];
 		glGetProgramInfoLog(mShaderProgramId, 512, nullptr, tErrorInfo);
+		std::cout << tErrorInfo << std::endl;
 		throw "Linking error in shader program:" + std::string(tErrorInfo);
 	}
 
@@ -85,6 +97,8 @@ unsigned int IShader::compileShader(const std::string& pShaderFilePath, unsigned
 	if (!tIsShaderCompiled) {
 		char tErrorInfo[512];
 		glGetShaderInfoLog(tShaderId, 512, nullptr, tErrorInfo);
+
+		std::cout << tErrorInfo << std::endl;
 		throw pShaderFilePath + " does not compiled.";
 	}
 

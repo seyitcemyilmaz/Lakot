@@ -14,7 +14,7 @@ protected:
 
 	glm::vec3 mWindowBackgroundColor;
 
-	Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor);
+	Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor);
 
 public:
 	virtual ~Window();
@@ -29,12 +29,12 @@ public:
 	void setWindowWidth(int pWindowWidth);
 	void setWindowHeight(int pWindowHeight);
 	void setIsWindowActive(bool pIsWindowActive);
-	void setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor);
+	void setWindowBackgroundColor(const glm::vec3& pWindowBackgroundColor);
 
 	int getWindowWidth();
 	int getWindowHeight();
 	bool getIsWindowActive();
-	glm::vec3 getWindowBackgroundColor();
+	const glm::vec3& getWindowBackgroundColor();
 };
 
 #endif

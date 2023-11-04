@@ -1,50 +1,50 @@
-#include "KeyFrameChannel.h"
+#include "KeyFrameChannelResource.h"
 
 #include "glm/gtx/quaternion.hpp"
 
-KeyFrameChannel::KeyFrameChannel(std::string pNodeName) : mNodeName(pNodeName) { }
+KeyFrameChannelResource::KeyFrameChannelResource(std::string pNodeName) : mNodeName(pNodeName) { }
 
-const std::string& KeyFrameChannel::getNodeName() const {
+const std::string& KeyFrameChannelResource::getNodeName() const {
 	return mNodeName;
 }
 
-void KeyFrameChannel::addToKeyFramePositions(KeyFramePosition* pKeyFramePosition) {
+void KeyFrameChannelResource::addToKeyFramePositions(KeyFramePosition* pKeyFramePosition) {
 	mKeyFramePositions.push_back(pKeyFramePosition);
 }
 
-void KeyFrameChannel::addToKeyFrameRotations(KeyFrameRotation* pKeyFrameRotation) {
+void KeyFrameChannelResource::addToKeyFrameRotations(KeyFrameRotation* pKeyFrameRotation) {
 	mKeyFrameRotations.push_back(pKeyFrameRotation);
 }
 
-void KeyFrameChannel::addToKeyFrameScales(KeyFrameScale* pKeyFrameScale) {
+void KeyFrameChannelResource::addToKeyFrameScales(KeyFrameScale* pKeyFrameScale) {
 	mKeyFrameScales.push_back(pKeyFrameScale);
 }
 
-unsigned int KeyFrameChannel::getKeyFramePositionsCount() const {
+unsigned int KeyFrameChannelResource::getKeyFramePositionsCount() const {
 	return static_cast<unsigned int>(mKeyFramePositions.size());
 }
 
-unsigned int KeyFrameChannel::getKeyFrameRotationsCount() const {
+unsigned int KeyFrameChannelResource::getKeyFrameRotationsCount() const {
 	return static_cast<unsigned int>(mKeyFrameRotations.size());
 }
 
-unsigned int KeyFrameChannel::getKeyFrameScalesCount() const {
+unsigned int KeyFrameChannelResource::getKeyFrameScalesCount() const {
 	return static_cast<unsigned int>(mKeyFrameScales.size());
 }
 
-const std::vector<KeyFramePosition*>& KeyFrameChannel::getKeyFramePositions() const {
+const std::vector<KeyFramePosition*>& KeyFrameChannelResource::getKeyFramePositions() const {
 	return mKeyFramePositions;
 }
 
-const std::vector<KeyFrameRotation*>& KeyFrameChannel::getKeyFrameRotations() const {
+const std::vector<KeyFrameRotation*>& KeyFrameChannelResource::getKeyFrameRotations() const {
 	return mKeyFrameRotations;
 }
 
-const std::vector<KeyFrameScale*>& KeyFrameChannel::getKeyFrameScales() const {
+const std::vector<KeyFrameScale*>& KeyFrameChannelResource::getKeyFrameScales() const {
 	return mKeyFrameScales;
 }
 
-int KeyFrameChannel::getPositionIndex(double pAnimationTime) const {
+int KeyFrameChannelResource::getPositionIndex(double pAnimationTime) const {
 	for (int tIndex = 0; tIndex < mKeyFramePositions.size() - 1; tIndex++) {		///TODO: "- 1" may cause some problems, it should be checked.
 		if (pAnimationTime < mKeyFramePositions[tIndex + 1]->timeStamp) {
 			return tIndex;
@@ -53,7 +53,7 @@ int KeyFrameChannel::getPositionIndex(double pAnimationTime) const {
 	return -1;
 }
 
-int KeyFrameChannel::getRotationIndex(double pAnimationTime) const {
+int KeyFrameChannelResource::getRotationIndex(double pAnimationTime) const {
 	for (int tIndex = 0; tIndex < mKeyFrameRotations.size() - 1; tIndex++) {		///TODO: "- 1" may cause some problems, it should be checked.
 		if (pAnimationTime < mKeyFrameRotations[tIndex + 1]->timeStamp) {
 			return tIndex;
@@ -62,7 +62,7 @@ int KeyFrameChannel::getRotationIndex(double pAnimationTime) const {
 	return -1;
 }
 
-int KeyFrameChannel::getScaleIndex(double pAnimationTime) const {
+int KeyFrameChannelResource::getScaleIndex(double pAnimationTime) const {
 	for (int tIndex = 0; tIndex < mKeyFrameScales.size() - 1; tIndex++) {			///TODO: "- 1" may cause some problems, it should be checked.
 		if (pAnimationTime < mKeyFrameScales[tIndex + 1]->timeStamp) {
 			return tIndex;
@@ -71,7 +71,7 @@ int KeyFrameChannel::getScaleIndex(double pAnimationTime) const {
 	return -1;
 }
 
-double KeyFrameChannel::getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const {
+double KeyFrameChannelResource::getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const {
 	double tScaleFactor = 0.0;
 
 	double tMidWayLength = std::abs(pAnimationTime - pLastTimeStamp);
@@ -82,7 +82,7 @@ double KeyFrameChannel::getScaleFactor(double pLastTimeStamp, double pNextTimeSt
 	return tScaleFactor;
 }
 
-glm::mat4 KeyFrameChannel::interpolatePosition(double pAnimationTime) const {
+glm::mat4 KeyFrameChannelResource::interpolatePosition(double pAnimationTime) const {
 	if (getKeyFramePositionsCount() == 1) {
 		return glm::translate(glm::mat4(1.0f), mKeyFramePositions[0]->position);
 	}
@@ -100,7 +100,7 @@ glm::mat4 KeyFrameChannel::interpolatePosition(double pAnimationTime) const {
 	return glm::translate(glm::mat4(1.0f), tFinalPosition);
 }
 
-glm::mat4 KeyFrameChannel::interpolateRotation(double pAnimationTime) const {
+glm::mat4 KeyFrameChannelResource::interpolateRotation(double pAnimationTime) const {
 	if (getKeyFrameRotationsCount() == 1) {
 		auto tRotation = glm::normalize(mKeyFrameRotations[0]->orientation);
 		return glm::toMat4(tRotation);
@@ -120,7 +120,7 @@ glm::mat4 KeyFrameChannel::interpolateRotation(double pAnimationTime) const {
 	return glm::toMat4(tFinalRotation);
 }
 
-glm::mat4 KeyFrameChannel::interpolateScale(double pAnimationTime) const {
+glm::mat4 KeyFrameChannelResource::interpolateScale(double pAnimationTime) const {
 	if (getKeyFrameScalesCount() == 1) {
 		return glm::scale(glm::mat4(1.0f), mKeyFrameScales[0]->scale);
 	}

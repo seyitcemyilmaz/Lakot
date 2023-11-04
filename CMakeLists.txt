@@ -16,7 +16,7 @@ endif()
 
 project(LAKOT)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -55,6 +55,15 @@ set(SRC_FILES
 	    ${MODEL_DIRECTORY}/Animation.h
 	    ${MODEL_DIRECTORY}/Animation.cpp
 
+#	    ${MODEL_DIRECTORY}/Animator.h
+#	    ${MODEL_DIRECTORY}/Animator.cpp
+
+	    ${MODEL_DIRECTORY}/Bone.h
+	    ${MODEL_DIRECTORY}/Bone.cpp
+
+	    ${MODEL_DIRECTORY}/KeyFrameChannel.h
+	    ${MODEL_DIRECTORY}/KeyFrameChannel.cpp
+
 	    ${MODEL_DIRECTORY}/Material.h
 	    ${MODEL_DIRECTORY}/Material.cpp
 
@@ -69,6 +78,9 @@ set(SRC_FILES
 
 	    ${MODEL_DIRECTORY}/ModelFactory.h
 	    ${MODEL_DIRECTORY}/ModelFactory.cpp
+
+	    ${MODEL_DIRECTORY}/Texture.h
+	    ${MODEL_DIRECTORY}/Texture.cpp
         )
 
         set(RENDER_FILES

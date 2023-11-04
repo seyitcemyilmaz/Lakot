@@ -9,14 +9,14 @@ class BoneResource {
 private:
 	std::string mName;
 
-	glm::mat4 mOffsetMatrix;
+	glm::mat4 mTransformation;
 
 public:
-	BoneResource(const std::string& pName, const glm::mat4& pOffsetMatrix);
+	BoneResource(const std::string& pName, const glm::mat4& pTransformation);
 
 	const std::string& getName();
 
-	const glm::mat4& getOffsetMatrix();
+	const glm::mat4& getTransformationMatrix();
 };
 
 #endif

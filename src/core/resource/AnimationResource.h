@@ -1,7 +1,7 @@
 #ifndef LAKOT_ANIMATIONRESOURCE_H
 #define LAKOT_ANIMATIONRESOURCE_H
 
-#include "KeyFrameChannel.h"
+#include "KeyFrameChannelResource.h"
 
 class AnimationResource {
 private:
@@ -9,8 +9,8 @@ private:
 
 	double mDuration;
 	double mTicksPerSeconds;
-
-	std::vector<KeyFrameChannel*> mKeyFrameChannels;
+	
+	std::vector<KeyFrameChannelResource*> mKeyFrameChannelResources;
 
 public:
 	AnimationResource(const std::string& pName, double pDuration, double pTicksPerSeconds);
@@ -19,10 +19,11 @@ public:
 
 	double getDuration();
 	double getTicksPerSeconds();
-
-	const std::vector<KeyFrameChannel*>& getKeyFrameChannels();
-
-	void addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel);
+	
+	const std::vector<KeyFrameChannelResource*>& getKeyFrameChannelResources();
+	unsigned int getKeyFrameChannelCount();
+	
+	void addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource);
 };
 
 #endif

@@ -1,5 +1,6 @@
 out vec4 FragColor;
 
+in vec3 Normal;
 in vec2 TextureCoordinates;
 
 struct Material {
@@ -31,9 +32,5 @@ void main() {
     }
     else {
 	FragColor = vec4(material.diffuseColor, 1.0f);
-    }
-
-    if (material.hasMetalnessTexture) {
-	FragColor *= texture(material.metalnessTexture, TextureCoordinates);
     }
 }

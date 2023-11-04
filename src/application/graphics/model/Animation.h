@@ -3,35 +3,44 @@
 
 #include "resource/AnimationResource.h"
 
-enum class AnimationStatus {
-	eStop,
-	ePlay,
-	ePause
-};
+#include "interface/IAnimation.h"
 
-class Animation {
+#include "KeyFrameChannel.h"
+
+class Animation : public IAnimation {
 private:
 	AnimationResource* mAnimationResource;
 
-	AnimationStatus mAnimationStatus = AnimationStatus::eStop;
+	AnimationStatus mAnimationStatus;
+	AnimationPlayType mAnimationPlayType;
 
-	double mCurrentAnimationTime = 0.0;
+	double mCurrentAnimationTime;
+
+	std::vector<KeyFrameChannel*> mKeyFrameChannels;
 
 public:
 	Animation(AnimationResource* pAnimationResource);
+
+	void playAnimation(AnimationPlayType pAnimationPlayType) override;
+	void pauseAnimation() override;
+	void stopAnimation() override;
+
+	AnimationStatus getAnimationStatus() override;
+	AnimationPlayType getAnimationPlayType() override;
 
 	AnimationResource* getAnimationResource();
 
 	const std::string& getName();
 
+	unsigned int getKeyFrameChannelsCount();
+
 	double getDuration();
 	double getTicksPerSecond();
 
-	void playAnimation();
-	void pauseAnimation();
-	void stopAnimation();
-
 	void increaseTime(double pTimeDifference);
+	void update(double pTimeDifference);
+
+	void addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel);
 };
 
-#endif // ANIMATION_H
+#endif

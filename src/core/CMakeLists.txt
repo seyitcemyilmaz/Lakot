@@ -84,6 +84,15 @@ set(HELPER_FILES
 )
 
 set(INTERFACE_FILES
+    ${INTERFACE_DIRECTORY}/IAnimated.h
+    ${INTERFACE_DIRECTORY}/IAnimated.cpp
+
+    ${INTERFACE_DIRECTORY}/IAnimation.h
+    ${INTERFACE_DIRECTORY}/IAnimation.cpp
+
+    ${INTERFACE_DIRECTORY}/INode.h
+    ${INTERFACE_DIRECTORY}/INode.cpp
+
     ${INTERFACE_DIRECTORY}/ITransformable.h
     ${INTERFACE_DIRECTORY}/ITransformable.cpp
 )
@@ -106,8 +115,8 @@ set(RESOURCE_FILES
     ${RESOURCE_DIRECTORY}/BoneResource.h
     ${RESOURCE_DIRECTORY}/BoneResource.cpp
 
-    ${RESOURCE_DIRECTORY}/KeyFrameChannel.h
-    ${RESOURCE_DIRECTORY}/KeyFrameChannel.cpp
+    ${RESOURCE_DIRECTORY}/KeyFrameChannelResource.h
+    ${RESOURCE_DIRECTORY}/KeyFrameChannelResource.cpp
 
     ${RESOURCE_DIRECTORY}/MaterialResource.h
     ${RESOURCE_DIRECTORY}/MaterialResource.cpp
@@ -159,6 +168,7 @@ add_library(LAKOT_CORE_LIB
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}
 	${LOADERS_FILES}
+	interface/IBone.h interface/IBone.cpp
 )
 
 ### add glfw - begin ###

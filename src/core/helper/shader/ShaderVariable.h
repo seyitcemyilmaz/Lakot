@@ -28,14 +28,19 @@ enum class ShaderVariableName {
 	eSpecularColor,
 	eEmissiveColor,
 	eAmbientColor,
+
+	eAnimationType,
+	eBoneTransformations
 };
 
 enum class ShaderVariableDataType {
 	eSampler2D,
 
 	eBool,
+	eInt,
+	eMat4,
+	eMat4Array,
 	eVec3,
-	eMat4
 };
 
 class ShaderVariable {
@@ -49,14 +54,16 @@ private:
 public:
 	ShaderVariable(const std::string& pName, ShaderVariableDataType pDataType);
 
-	const std::string& getName();
+	const std::string& getName() const;
 
 	int getLocation() const;
 	void setLocation(int pLocation);
 
-	void setBool(bool pValue);
-	void setVec3(const glm::vec3& pValue);
+	void setBool(bool pValue) const;
+	void setInt(int pValue) const;
 	void setMat4(const glm::mat4& pValue) const;
+	void setMat4Array(const glm::mat4* pArray, unsigned int pCount) const;
+	void setVec3(const glm::vec3& pValue) const;
 
 	void setTexture(unsigned int pUnit, int pTextureId) const;
 };

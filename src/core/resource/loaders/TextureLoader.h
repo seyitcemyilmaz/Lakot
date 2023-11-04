@@ -13,8 +13,6 @@ private:
 	std::string mTexturePath;
 	std::string mModelPath;
 
-	TextureType mTextureType;
-
 	const aiScene* mScene;
 
 	std::vector<std::string> mPossibleTextureLocations;
@@ -31,7 +29,7 @@ private:
 	unsigned int getColorMode(int tChannelCount);
 
 public:
-	TextureLoader(const aiScene* pScene, const std::string& pModelPath, TextureType pTextureType, const std::string& pTexturePath);
+	TextureLoader(const aiScene* pScene, const std::string& pModelPath, const std::string& pTexturePath);
 
 	TextureResource* loadTexture();
 };

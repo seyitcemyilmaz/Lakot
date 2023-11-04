@@ -15,7 +15,7 @@ private:
 
 	std::string mModelPath;
 
-	TextureResource* extractTexture(aiTextureType pAiTextureType, TextureType pTextureType);
+	TextureResource* extractTexture(aiTextureType pAiTextureType);
 
 public:
 	MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);

@@ -5,23 +5,31 @@
 
 #include "core/resource/MeshResource.h"
 
+class Node;
+
 class Mesh {
 private:
 	MeshResource* mMeshResource;
 
+	Node* mConnectedNode;
+
 	unsigned int mMaterialIndex = -1;
 
-protected:
-	friend class RenderManager;
+	glm::mat4 mTransformationMatrix;
 
 public:
-	Mesh(MeshResource* pMeshResource, unsigned int pMaterialIndex);
+	Mesh(MeshResource* pMeshResource, Node* pConnectedNode, unsigned int pMaterialIndex);
 
-	const std::string& getName();
+	const std::string& getName() const;
 
 	MeshResource* getMeshResource();
 
-	unsigned int getMaterialIndex();
+	const glm::mat4& getTransformationMatrix() const;
+
+	unsigned int getMaterialIndex() const;
+	bool getHasBone() const;
+
+	void calculateTransformationMatrix();
 };
 
 #endif

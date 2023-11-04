@@ -49,7 +49,7 @@ std::vector<unsigned int> MeshLoader::createIndexList() {
 
 	for (unsigned int i = 0; i < tPolygonCount; i++) {
 		if (mMeshObject->mFaces[i].mNumIndices != 3) {
-			std::cout << "A polygon has not 3 indices" << std::endl;
+			std::cout << "A polygon has not 3 indices." << std::endl;
 			continue;
 		}
 
