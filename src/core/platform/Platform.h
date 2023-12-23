@@ -66,31 +66,36 @@
 
 class Platform {
 private:
-	GraphicsAPI* mGraphicsAPI;
+    GraphicsAPI* mGraphicsAPI;
 
 protected:
-	double mCurrentTime;
-	double mPreviousTime;
+    double mCurrentTime;
+    double mPreviousTime;
 
-	std::function<void ()> mRenderFunction;
-	std::function<void (double)> mProcessInputsFunction;
+    double mTimeDifference;
+
+    std::function<void ()> mRenderFunction;
+    std::function<void ()> mProcessInputsFunction;
 
 public:
-	virtual ~Platform();
-	Platform(GraphicsAPI* pGraphicsAPI);
+    virtual ~Platform();
+    Platform(GraphicsAPI* pGraphicsAPI);
 
-	virtual void processInputs() = 0;
-	virtual void run() = 0;
+    virtual void run() = 0;
 
-	virtual std::string getRootPath() = 0;
+    virtual std::string getRootPath() = 0;
 
-	GraphicsAPI* getGraphicsAPI();
+    virtual void updateTimeDifference() = 0;
 
-	std::string getAssetsPath();
-	std::string getModelsPath();
+    GraphicsAPI* getGraphicsAPI();
 
-	void setRenderFunction(std::function<void()> pRenderFunction);
-	void setProcessInputFunction(std::function<void (double)> pProcessInputFunction);
+    std::string getAssetsPath();
+    std::string getModelsPath();
+
+    double getTimeDifference();
+
+    void setRenderFunction(std::function<void ()> pRenderFunction);
+    void setProcessInputFunction(std::function<void ()> pProcessInputFunction);
 };
 
 #endif

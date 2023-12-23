@@ -23,24 +23,31 @@ std::string WindowsPlatform::getRootPath()
 	return tLakotRootPath.string();
 }
 
-void WindowsPlatform::processInputs() {
-	mCurrentTime = glfwGetTime();
-
-	double tDt = mCurrentTime - mPreviousTime;
-
-	mProcessInputsFunction(tDt);
-
-	mPreviousTime = mCurrentTime;
-}
-
 void WindowsPlatform::run() {
 	WindowManager* tWindowManager = WindowManager::getInstance();
 
 	while (tWindowManager->getIsWindowActive()) {
-		processInputs();
+		updateTimeDifference();
+		mProcessInputsFunction();
 		tWindowManager->updateWindow();
 		mRenderFunction();
 		glfwSwapBuffers(static_cast<GLFWwindow*>(tWindowManager->getWindow()));
 		glfwPollEvents();
+	}
+}
+
+void WindowsPlatform::updateTimeDifference()
+{
+	if (mCurrentTime == 0.0)
+	{
+		mTimeDifference = 1.0 / 60.0;
+		mCurrentTime = glfwGetTime();
+		mPreviousTime = mCurrentTime;
+	}
+	else
+	{
+		mCurrentTime = glfwGetTime();
+		mTimeDifference = mCurrentTime - mPreviousTime;
+		mPreviousTime = mCurrentTime;
 	}
 }

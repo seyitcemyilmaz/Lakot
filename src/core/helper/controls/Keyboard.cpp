@@ -32,6 +32,7 @@ void Keyboard::keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int p
 	else {
 		tKeyboard->mKeys[pKeyId].isPressed = false;
 	}
+
 	tKeyboard->mKeys[pKeyId].isStateChanged = pAction != GLFW_REPEAT;
 }
 

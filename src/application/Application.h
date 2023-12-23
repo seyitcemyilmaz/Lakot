@@ -19,11 +19,11 @@ private:
 	void initializeModels();
 
 public:
+	virtual ~Application();
 	Application();
-	~Application();
 
 	void initialization();
-	void processInputs(double pTimeDifference);
+	void processInputs();
 	void render();
 	void run();
 	void terminate();

@@ -20,37 +20,37 @@
 
 class Camera {
 private:
-	glm::vec3 mPosition;
+    glm::vec3 mPosition;
 
-	glm::vec3 mFrontVector;
-	glm::vec3 mUpVector;
-	glm::vec3 mRightVector;
+    glm::vec3 mFrontVector;
+    glm::vec3 mUpVector;
+    glm::vec3 mRightVector;
 
-	glm::vec3 mWorldUp;
+    glm::vec3 mWorldUp;
 
-	double mYaw;   // For x-axis
-	double mPitch; // For y-axis
+    double mYaw;   // For x-axis
+    double mPitch; // For y-axis
 
-	double mZoom;
+    double mZoom;
 
 public:
-	Camera(glm::vec3 pPosition);
+    Camera(const glm::vec3& pPosition);
 
-	void updateCameraVectors();
+    void updateCameraVectors();
 
-	glm::vec3 getPosition();
+    glm::vec3 getPosition();
 
-	glm::vec3 getFrontVector();
-	glm::vec3 getUpVector();
-	glm::vec3 getRightVector();
+    glm::vec3 getFrontVector();
+    glm::vec3 getUpVector();
+    glm::vec3 getRightVector();
 
-	double getZoom();
+    double getZoom();
 
-	void changePosition(glm::vec3 pAmount);
-	void changeZoom(double pAmount);
+    void changePosition(glm::vec3 pAmount);
+    void changeZoom(double pAmount);
 
-	void changeYaw(double pAmount);
-	void changePitch(double pAmount);
+    void changeYaw(double pAmount);
+    void changePitch(double pAmount);
 };
 
 #endif

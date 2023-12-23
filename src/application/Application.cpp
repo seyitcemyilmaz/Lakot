@@ -15,10 +15,7 @@
 #include "helper/controls/Keyboard.h"
 #include "helper/controls/Mouse.h"
 
-Application::Application() {
-	mPlatform = nullptr;
-	mGUI = nullptr;
-}
+#include <spdlog/spdlog.h>
 
 Application::~Application() {
 	ShaderManager::getInstance()->deleteShaders();
@@ -26,6 +23,11 @@ Application::~Application() {
 
 	delete mPlatform;
 	delete mGUI;
+}
+
+Application::Application() {
+	mPlatform = nullptr;
+	mGUI = nullptr;
 }
 
 void Application::initialization() {
@@ -41,7 +43,7 @@ void Application::initialization() {
 	glEnable(GL_DEPTH_TEST);
 
 	mPlatform->setRenderFunction(std::bind(&Application::render, this));
-	mPlatform->setProcessInputFunction(std::bind(&Application::processInputs, this, std::placeholders::_1));
+	mPlatform->setProcessInputFunction(std::bind(&Application::processInputs, this));
 }
 
 void Application::initializeShaders() {
@@ -65,46 +67,61 @@ void Application::initializeModels() {
 	mModels.push_back(tModel0);
 }
 
-void Application::processInputs(double pTimeDifference) {
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE)) {
-		WindowManager::getInstance()->closeWindow();
+void Application::processInputs() {
+	if (!mGUI->isKeyboardEventInGUI())
+	{
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE))
+		{
+			WindowManager::getInstance()->closeWindow();
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_W))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, mPlatform->getTimeDifference());
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_S))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, mPlatform->getTimeDifference());
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_D))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, mPlatform->getTimeDifference());
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_A))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, mPlatform->getTimeDifference());
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_SPACE))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eUp, mPlatform->getTimeDifference());
+		}
+
+		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+		{
+			CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eDown, mPlatform->getTimeDifference());
+		}
 	}
 
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_W)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, pTimeDifference);
-	}
+	if (!mGUI->isMouseEventInGUI())
+	{
+		double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
+		double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
 
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_S)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, pTimeDifference);
-	}
+		if (tDX != 0.0f || tDY != 0.0f)
+		{
+			CameraManager::getInstance()->updateActiveCameraDirection(tDX, tDY);
+		}
 
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_D)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, pTimeDifference);
-	}
+		double tScrollDY = Mouse::getInstance()->getScrollDY();
 
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_A)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, pTimeDifference);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_SPACE)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eUp, pTimeDifference);
-	}
-
-	if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-		CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eDown, pTimeDifference);
-	}
-
-	double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
-	double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
-
-	if (tDX != 0.0f || tDY != 0.0f) {
-		CameraManager::getInstance()->updateActiveCameraDirection(tDX, tDY);
-	}
-
-	double tScrollDY = Mouse::getInstance()->getScrollDY();
-
-	if (tScrollDY != 0.0f) {
-		CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
+		if (tScrollDY != 0.0f)
+		{
+			CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
+		}
 	}
 }
 

@@ -4,41 +4,48 @@
 
 Platform::~Platform()
 {
-	delete mGraphicsAPI;
+    delete mGraphicsAPI;
 }
 
 Platform::Platform(GraphicsAPI* pGraphicsAPI)
-	: mGraphicsAPI(pGraphicsAPI)
-	, mRenderFunction(nullptr)
-	, mProcessInputsFunction(nullptr)
+    : mGraphicsAPI(pGraphicsAPI)
+    , mCurrentTime(0.0)
+    , mPreviousTime(0.0)
+    , mTimeDifference(0.0)
+    , mRenderFunction(nullptr)
+    , mProcessInputsFunction(nullptr)
 {
-	mCurrentTime = 0.0f;
-	mPreviousTime = 0.0f;
+
 }
 
 GraphicsAPI* Platform::getGraphicsAPI()
 {
-	return mGraphicsAPI;
+    return mGraphicsAPI;
 }
 
 std::string Platform::getAssetsPath()
 {
-	std::string tLakotAssetsPath = FileManager::getInstance()->createPath(getRootPath(), "assets");
-	return tLakotAssetsPath;
+    std::string tLakotAssetsPath = FileManager::getInstance()->createPath(getRootPath(), "assets");
+    return tLakotAssetsPath;
 }
 
 std::string Platform::getModelsPath()
 {
-	std::string tLakotModelsPath = FileManager::getInstance()->createPath(getAssetsPath(), "models");
-	return tLakotModelsPath;
+    std::string tLakotModelsPath = FileManager::getInstance()->createPath(getAssetsPath(), "models");
+    return tLakotModelsPath;
+}
+
+double Platform::getTimeDifference()
+{
+    return mTimeDifference;
 }
 
 void Platform::setRenderFunction(std::function<void ()> pRenderFunction)
 {
-	mRenderFunction = pRenderFunction;
+    mRenderFunction = pRenderFunction;
 }
 
-void Platform::setProcessInputFunction(std::function<void (double)> pProcessInputFunction)
+void Platform::setProcessInputFunction(std::function<void ()> pProcessInputFunction)
 {
-	mProcessInputsFunction = pProcessInputFunction;
+    mProcessInputsFunction = pProcessInputFunction;
 }

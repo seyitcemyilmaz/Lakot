@@ -9,8 +9,9 @@ public:
 
 	std::string getRootPath() override;
 
-	void processInputs() override;
 	void run() override;
+
+	void updateTimeDifference() override;
 };
 
 #endif // WINDOWSPLATFORM_H
