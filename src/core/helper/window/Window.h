@@ -7,12 +7,13 @@ class Window {
 protected:
 	const char* mWindowTitle;
 
-	bool mIsWindowActive;
-
 	int mWindowWidth;
 	int mWindowHeight;
 
-	glm::vec3 mWindowBackgroundColor;
+    bool mIsWindowActive;
+    bool mIsWindowFocused;
+
+    glm::vec3 mWindowBackgroundColor;
 
 	Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor);
 
@@ -28,12 +29,18 @@ public:
 
 	void setWindowWidth(int pWindowWidth);
 	void setWindowHeight(int pWindowHeight);
+
 	void setIsWindowActive(bool pIsWindowActive);
+    void setIsWindowFocused(bool pIsWindowFocused);
+
 	void setWindowBackgroundColor(const glm::vec3& pWindowBackgroundColor);
 
 	int getWindowWidth();
 	int getWindowHeight();
+
 	bool getIsWindowActive();
+    bool getIsWindowFocused();
+
 	const glm::vec3& getWindowBackgroundColor();
 };
 

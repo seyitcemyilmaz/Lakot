@@ -8,27 +8,31 @@
 
 class GLFWWindow final : public Window {
 private:
-	GLFWwindow* mWindowObject;
+    GLFWwindow* mWindowObject;
 
-	void setCallbackFunctions();
+    void setCallbackFunctions();
 
-	GLFWWindow(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, glm::vec3 pWindowBackgroundColor);
+    GLFWWindow(const char* pWindowTitle,
+               int pWindowWidth,
+               int pWindowHeight,
+               const glm::vec3& pWindowBackgroundColor);
 
 protected:
-	friend class WindowFactory;
+    friend class WindowFactory;
 
 public:
-	~GLFWWindow();
+    ~GLFWWindow();
 
-	void initialize() override;
-	void createWindow() override;
-	void updateWindow() override;
-	void destroyWindow() override;
+    void initialize() override;
+    void createWindow() override;
+    void updateWindow() override;
+    void destroyWindow() override;
 
-	void* getWindowInstance() override;
+    void* getWindowInstance() override;
 
-	static void frameBufferSizeCallback(GLFWwindow* tWindow, int tWidth, int tHeight);
-	static void windowCloseCallback(GLFWwindow* tWindow);
+    static void frameBufferSizeCallback(GLFWwindow* pWindow, int pWidth, int pHeight);
+    static void windowCloseCallback(GLFWwindow* pWindow);
+    static void windowFocusCallback(GLFWwindow* pWindow, int pFocused);
 };
 
 #endif

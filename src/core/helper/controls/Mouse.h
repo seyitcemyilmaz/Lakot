@@ -39,6 +39,7 @@ public:
 	static Mouse* getInstance();
 
 	static void cursorPositionCallBack(GLFWwindow* pWindow, double pX, double pY);
+    static void cursorEnterCallback(GLFWwindow* pWindow, int pIsEntered);
 	static void mouseButtonCallback(GLFWwindow* pWindow, int pButtonId, int pAction, int pMods);
 	static void scrollCallback(GLFWwindow* pWindow, double pDX, double pDY);
 

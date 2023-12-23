@@ -5,32 +5,32 @@
 
 class WindowManager {
 private:
-	static WindowManager* mInstance;
+    static WindowManager* mInstance;
 
-	Window* mActiveWindow = nullptr;
+    Window* mActiveWindow;
 
-	WindowManager();
-
+    WindowManager();
 public:
-	static WindowManager* getInstance();
+    static WindowManager* getInstance();
 
-	void initializateWindow();
+    void initializateWindow();
 
-	void updateWindow();
+    void updateWindow();
 
-	void* getWindow();
+    void* getWindow();
 
-	void setWindowBackgroundColor(glm::vec3 tWindowBackgroundColor);
-	glm::vec3 getWindowBackgroundColor();
+    void setWindowBackgroundColor(glm::vec3 tWindowBackgroundColor);
+    glm::vec3 getWindowBackgroundColor();
 
-	bool getIsWindowActive();
+    bool getIsWindowActive();
+    bool getIsWindowFocused();
 
-	int getWindowHeight();
-	int getWindowWidth();
+    int getWindowHeight();
+    int getWindowWidth();
 
-	void closeWindow();
+    void closeWindow();
 
-	bool operator==(const WindowManager& other) = delete;
+    bool operator==(const WindowManager& other) = delete;
 };
 
 #endif

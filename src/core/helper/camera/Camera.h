@@ -46,7 +46,7 @@ public:
 
     double getZoom();
 
-    void changePosition(glm::vec3 pAmount);
+    void changePosition(const glm::vec3& pAmount);
     void changeZoom(double pAmount);
 
     void changeYaw(double pAmount);

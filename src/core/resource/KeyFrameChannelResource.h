@@ -37,7 +37,7 @@ private:
 	int getScaleIndex(double pAnimationTime) const;
 
 public:
-	KeyFrameChannelResource(std::string pNodeName);
+    KeyFrameChannelResource(const std::string& pNodeName);
 
 	const std::string& getNodeName() const;
 

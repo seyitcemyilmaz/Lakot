@@ -7,53 +7,62 @@
 WindowManager* WindowManager::mInstance = nullptr;
 
 WindowManager* WindowManager::getInstance() {
-	if (!mInstance) {
-		mInstance = new WindowManager();
-	}
+    if (!mInstance) {
+        mInstance = new WindowManager();
+    }
 
-	return mInstance;
+    return mInstance;
 }
 
-WindowManager::WindowManager() = default;
+WindowManager::WindowManager()
+    : mActiveWindow(nullptr)
+{
+
+}
 
 void WindowManager::initializateWindow() {
-	spdlog::info("Window manager is inializating.");
+    spdlog::info("Window manager is inializating.");
 
-	mActiveWindow = WindowFactory::createWindow();
+    mActiveWindow = WindowFactory::createWindow();
 
-	mActiveWindow->initialize();
+    mActiveWindow->initialize();
 
-	spdlog::info("Window manager is initialized.");
+    spdlog::info("Window manager is initialized.");
 }
 
 void WindowManager::updateWindow() {
-	mActiveWindow->updateWindow();
+    mActiveWindow->updateWindow();
 }
 
 void* WindowManager::getWindow() {
-	return mActiveWindow->getWindowInstance();
+    return mActiveWindow->getWindowInstance();
 }
 
 void WindowManager::setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor) {
-	mActiveWindow->setWindowBackgroundColor(pWindowBackgroundColor);
+    mActiveWindow->setWindowBackgroundColor(pWindowBackgroundColor);
 }
 
 glm::vec3 WindowManager::getWindowBackgroundColor() {
-	return mActiveWindow->getWindowBackgroundColor();
+    return mActiveWindow->getWindowBackgroundColor();
 }
 
 bool WindowManager::getIsWindowActive() {
-	return mActiveWindow->getIsWindowActive();
+    return mActiveWindow->getIsWindowActive();
+}
+
+bool WindowManager::getIsWindowFocused()
+{
+    return mActiveWindow->getIsWindowFocused();
 }
 
 int WindowManager::getWindowHeight() {
-	return mActiveWindow->getWindowHeight();
+    return mActiveWindow->getWindowHeight();
 }
 
 int WindowManager::getWindowWidth() {
-	return mActiveWindow->getWindowWidth();
+    return mActiveWindow->getWindowWidth();
 }
 
 void WindowManager::closeWindow() {
-	mActiveWindow->setIsWindowActive(false);
+    mActiveWindow->setIsWindowActive(false);
 }

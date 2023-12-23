@@ -49,8 +49,16 @@ void Mouse::cursorPositionCallBack(GLFWwindow* pWindow, double pX, double pY) {
 	tMouse->mDX = tMouse->mX - tMouse->mPreviousX;
 	tMouse->mDY = tMouse->mPreviousY - tMouse->mY;
 
-	tMouse->mPreviousX = tMouse->mX;
-	tMouse->mPreviousY = tMouse->mY;
+    tMouse->mPreviousX = tMouse->mX;
+    tMouse->mPreviousY = tMouse->mY;
+}
+
+void Mouse::cursorEnterCallback(GLFWwindow *pWindow, int pIsEntered)
+{
+    if (pIsEntered)
+    {
+        Mouse::getInstance()->mIsMouseInitialized = false;
+    }
 }
 
 void Mouse::mouseButtonCallback(GLFWwindow* pWindow, int pButtonId, int pAction, int pMods) {

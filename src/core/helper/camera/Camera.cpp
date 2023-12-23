@@ -39,7 +39,7 @@ double Camera::getZoom() {
     return mZoom;
 }
 
-void Camera::changePosition(glm::vec3 pAmount) {
+void Camera::changePosition(const glm::vec3& pAmount) {
     mPosition += pAmount;
 }
 

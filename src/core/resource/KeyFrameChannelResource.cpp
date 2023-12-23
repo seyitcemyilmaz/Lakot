@@ -2,7 +2,11 @@
 
 #include "glm/gtx/quaternion.hpp"
 
-KeyFrameChannelResource::KeyFrameChannelResource(std::string pNodeName) : mNodeName(pNodeName) { }
+KeyFrameChannelResource::KeyFrameChannelResource(const std::string& pNodeName)
+    : mNodeName(pNodeName)
+{
+
+}
 
 const std::string& KeyFrameChannelResource::getNodeName() const {
 	return mNodeName;

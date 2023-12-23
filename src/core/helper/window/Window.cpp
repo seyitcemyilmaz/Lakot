@@ -1,43 +1,67 @@
 #include "Window.h"
 
+Window::~Window()
+{
+
+}
+
 Window::Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor)
-	: mWindowTitle(pWindowTitle)
-	, mWindowWidth(pWindowWidth)
-	, mWindowHeight(pWindowHeight)
-	, mWindowBackgroundColor(pWindowBackgroundColor) {
-	mIsWindowActive = false;
+    : mWindowTitle(pWindowTitle)
+    , mWindowWidth(pWindowWidth)
+    , mWindowHeight(pWindowHeight)
+    , mIsWindowActive(false)
+    , mIsWindowFocused(true)
+    , mWindowBackgroundColor(pWindowBackgroundColor)
+{
+
 }
 
-Window::~Window() = default;
-
-void Window::setWindowWidth(int pWindowWidth) {
-	mWindowWidth = pWindowWidth;
+void Window::setWindowWidth(int pWindowWidth)
+{
+    mWindowWidth = pWindowWidth;
 }
 
-void Window::setWindowHeight(int pWindowHeight) {
-	mWindowHeight = pWindowHeight;
+void Window::setWindowHeight(int pWindowHeight)
+{
+    mWindowHeight = pWindowHeight;
 }
 
-void Window::setIsWindowActive(bool pIsWindowActive) {
-	mIsWindowActive = pIsWindowActive;
+void Window::setIsWindowActive(bool pIsWindowActive)
+{
+    mIsWindowActive = pIsWindowActive;
 }
 
-void Window::setWindowBackgroundColor(const glm::vec3& pWindowBackgroundColor) {
-	mWindowBackgroundColor = pWindowBackgroundColor;
+void Window::setIsWindowFocused(bool pIsWindowFocused)
+{
+    mIsWindowFocused = pIsWindowFocused;
 }
 
-int Window::getWindowWidth() {
-	return mWindowWidth;
+void Window::setWindowBackgroundColor(const glm::vec3& pWindowBackgroundColor)
+{
+    mWindowBackgroundColor = pWindowBackgroundColor;
 }
 
-int Window::getWindowHeight() {
-	return mWindowHeight;
+int Window::getWindowWidth()
+{
+    return mWindowWidth;
 }
 
-bool Window::getIsWindowActive() {
-	return mIsWindowActive;
+int Window::getWindowHeight()
+{
+    return mWindowHeight;
 }
 
-const glm::vec3& Window::getWindowBackgroundColor() {
-	return mWindowBackgroundColor;
+bool Window::getIsWindowActive()
+{
+    return mIsWindowActive;
+}
+
+bool Window::getIsWindowFocused()
+{
+    return mIsWindowFocused;
+}
+
+const glm::vec3& Window::getWindowBackgroundColor()
+{
+    return mWindowBackgroundColor;
 }

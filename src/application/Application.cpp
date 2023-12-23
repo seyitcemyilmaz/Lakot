@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <spdlog/spdlog.h>
+
 #include "core/resource/ResourceManager.h"
 #include "core/helper/FileManager.h"
 #include "core/helper/camera/CameraManager.h"
@@ -14,8 +16,6 @@
 
 #include "helper/controls/Keyboard.h"
 #include "helper/controls/Mouse.h"
-
-#include <spdlog/spdlog.h>
 
 Application::~Application() {
 	ShaderManager::getInstance()->deleteShaders();
@@ -68,6 +68,11 @@ void Application::initializeModels() {
 }
 
 void Application::processInputs() {
+    if (!WindowManager::getInstance()->getIsWindowFocused())
+    {
+        return;
+    }
+
     if (!mGUI->isKeyboardEventOnGUI())
 	{
 		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE))
