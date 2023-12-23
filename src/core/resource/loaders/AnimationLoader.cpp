@@ -18,6 +18,11 @@ AnimationResource* AnimationLoader::load() {
 
 	for (unsigned int j = 0; j < tChannelCount; j++) {
 		aiNodeAnim* tChannel = mAnimation->mChannels[j];
+
+		if (tChannel->mNumPositionKeys == 1 && tChannel->mNumRotationKeys == 1 && tChannel->mNumScalingKeys == 1) {
+			continue;
+		}
+
 		std::string tNodeName = tChannel->mNodeName.C_Str();
 		
 		KeyFrameChannelResource* tKeyFrameChannel = new KeyFrameChannelResource(tNodeName);
