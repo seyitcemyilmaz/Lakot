@@ -68,7 +68,7 @@ void Application::initializeModels() {
 }
 
 void Application::processInputs() {
-	if (!mGUI->isKeyboardEventInGUI())
+    if (!mGUI->isKeyboardEventOnGUI())
 	{
 		if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE))
 		{
@@ -106,7 +106,7 @@ void Application::processInputs() {
 		}
 	}
 
-	if (!mGUI->isMouseEventInGUI())
+    if (!mGUI->isMouseEventOnGUI())
 	{
 		double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
 		double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
