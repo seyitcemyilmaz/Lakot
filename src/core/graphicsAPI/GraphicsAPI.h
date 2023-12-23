@@ -1,7 +1,6 @@
 #ifndef LAKOT_GRAPHICSAPI_H
 #define LAKOT_GRAPHICSAPI_H
 
-#include <iostream>
 #include <sstream>
 #include <string>
 

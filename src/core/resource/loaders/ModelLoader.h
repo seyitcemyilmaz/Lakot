@@ -1,8 +1,6 @@
 #ifndef LAKOT_MODELLOADER_H
 #define LAKOT_MODELLOADER_H
 
-#include <iostream>
-
 #include <assimp/scene.h>
 
 #include "resource/ModelResource.h"

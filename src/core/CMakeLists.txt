@@ -90,6 +90,9 @@ set(INTERFACE_FILES
     ${INTERFACE_DIRECTORY}/IAnimation.h
     ${INTERFACE_DIRECTORY}/IAnimation.cpp
 
+    ${INTERFACE_DIRECTORY}/IBone.h
+    ${INTERFACE_DIRECTORY}/IBone.cpp
+
     ${INTERFACE_DIRECTORY}/INode.h
     ${INTERFACE_DIRECTORY}/INode.cpp
 
@@ -168,7 +171,6 @@ add_library(LAKOT_CORE_LIB
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}
 	${LOADERS_FILES}
-	interface/IBone.h interface/IBone.cpp
 )
 
 ### add glfw - begin ###
@@ -215,5 +217,12 @@ elseif (UNIX)
 
 endif()
 ### add stb - end ###
+
+if (WIN32)
+    find_package(spdlog CONFIG REQUIRED)
+    target_link_libraries(LAKOT_CORE_LIB PRIVATE spdlog::spdlog)
+elseif (UNIX)
+
+endif()
 
 target_include_directories(LAKOT_CORE_LIB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -46,6 +46,7 @@ public:
 	void changeRotation(float pAmountX, float pAmountY, float pAmountZ);
 
 	void calculateModelMatrix();
+
 	const glm::mat4& getModelMatrix() const;
 	const glm::mat3& getInverseTransposeModelMatrix() const;
 };

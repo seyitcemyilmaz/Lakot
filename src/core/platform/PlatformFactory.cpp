@@ -1,5 +1,7 @@
 #include "PlatformFactory.h"
 
+#include <spdlog/spdlog.h>
+
 #include "helper/window/WindowManager.h"
 
 #include "WindowsPlatform.h"
@@ -23,7 +25,7 @@ Platform* PlatformFactory::createWindowsPlatformObject() {
 		throw "Graphics API is not initialized.";
 	}
 
-	std::cout << "Lakot Graphics API: " << tPlatform->getGraphicsAPI()->getGraphicsAPIString() << std::endl;
+	spdlog::info("Lakot Graphics API: {0}", tPlatform->getGraphicsAPI()->getGraphicsAPIString());
 
 	WindowManager::getInstance()->initializateWindow();
 

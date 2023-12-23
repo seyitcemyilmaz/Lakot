@@ -1,7 +1,6 @@
 #ifndef LAKOT_TEXTURELOADER_H
 #define LAKOT_TEXTURELOADER_H
 
-#include <iostream>
 #include <vector>
 
 #include <assimp/Importer.hpp>

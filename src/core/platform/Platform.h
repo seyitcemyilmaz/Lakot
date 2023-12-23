@@ -18,19 +18,18 @@
 #define LAKOT_GRAPHICS_API_VERSION_MAJOR 3
 #define LAKOT_GRAPHICS_API_VERSION_MINOR 3
 
-#define LAKOT_SHADER_HEADER "#version 330 core\n"
+#define LAKOT_GLSL_VERSION "#version 330 core"
 
 #define LAKOT_FILE_PATH_SEPARATOR "\\"
-
-#include "graphicsAPI/OpenGLAPI.h"
 
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <vector>
+
+#include "graphicsAPI/OpenGLAPI.h"
 
 #elif defined(UNIX) || defined(__unix__) || defined(LINUX) || defined(__linux__)
 #define LAKOT_PLATFORM LAKOT_PLATFORM_LINUX
@@ -61,7 +60,7 @@
 #error "Platform is not detected."
 #endif
 
-#if !defined(LAKOT_SHADER_HEADER)
+#if !defined(LAKOT_GLSL_VERSION)
 #error "Shader header is not defined."
 #endif
 
@@ -73,18 +72,25 @@ protected:
 	double mCurrentTime;
 	double mPreviousTime;
 
+	std::function<void ()> mRenderFunction;
+	std::function<void (double)> mProcessInputsFunction;
+
 public:
-	Platform(GraphicsAPI* pGraphicsAPI);
 	virtual ~Platform();
+	Platform(GraphicsAPI* pGraphicsAPI);
+
+	virtual void processInputs() = 0;
+	virtual void run() = 0;
+
+	virtual std::string getRootPath() = 0;
 
 	GraphicsAPI* getGraphicsAPI();
 
-	virtual std::string getRootPath() = 0;
 	std::string getAssetsPath();
 	std::string getModelsPath();
 
-	virtual void processInputs() = 0;
-	virtual void run(const std::function<void()>& pRenderFunction) = 0;
+	void setRenderFunction(std::function<void()> pRenderFunction);
+	void setProcessInputFunction(std::function<void (double)> pProcessInputFunction);
 };
 
 #endif

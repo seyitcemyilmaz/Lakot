@@ -1,6 +1,6 @@
 #include "GLFWWindow.h"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "helper/controls/Keyboard.h"
 #include "helper/controls/Mouse.h"
@@ -25,7 +25,7 @@ void GLFWWindow::initialize() {
 		throw "Window is not created.";
 	}
 
-	std::cout << "Window is created." << std::endl;
+	spdlog::info("Window is created.");
 
 	glfwMakeContextCurrent(mWindowObject);
 
@@ -33,7 +33,7 @@ void GLFWWindow::initialize() {
 		throw "GLAD is not initialized.";
 	}
 
-	std::cout << "GLAD is initialized." << std::endl;
+	spdlog::info("GLAD is initialized.");
 
 	setCallbackFunctions();
 }
@@ -76,7 +76,7 @@ void GLFWWindow::frameBufferSizeCallback(GLFWwindow* tWindow, int tWidth, int tH
 
 	glViewport(0, 0, tWidth, tHeight);
 
-	std::cout << "Window is resized. Width: " << tWidth << " Height " << tHeight << std::endl;
+	spdlog::info("Window is resized. Width: {0}  Height: {1}", tWidth, tHeight);
 }
 
 void GLFWWindow::windowCloseCallback(GLFWwindow* tWindow) {
@@ -84,5 +84,5 @@ void GLFWWindow::windowCloseCallback(GLFWwindow* tWindow) {
 
 	tWindowObject->setIsWindowActive(false);
 
-	std::cout << "Exit button is clicked." << std::endl;
+	spdlog::info("Exit button is clicked.");
 }

@@ -1,5 +1,7 @@
 #include "IShader.h"
 
+#include <spdlog/spdlog.h>
+
 #include "helper/FileManager.h"
 
 IShader::~IShader() {
@@ -73,7 +75,7 @@ void IShader::createShaderProgram() {
 	if (!tIsShaderProgramLinked) {
 		char tErrorInfo[512];
 		glGetProgramInfoLog(mShaderProgramId, 512, nullptr, tErrorInfo);
-		std::cout << tErrorInfo << std::endl;
+		spdlog::info(tErrorInfo);
 		throw "Linking error in shader program:" + std::string(tErrorInfo);
 	}
 
@@ -84,7 +86,9 @@ void IShader::createShaderProgram() {
 unsigned int IShader::compileShader(const std::string& pShaderFilePath, unsigned int tShaderType) {
 	unsigned int tShaderId = glCreateShader(tShaderType);
 
-	std::string tShaderFileContent = LAKOT_SHADER_HEADER + FileManager::getInstance()->getFileContent(pShaderFilePath);
+	std::string tShaderHeader = std::string(LAKOT_GLSL_VERSION) + "\n";
+
+	std::string tShaderFileContent = tShaderHeader + FileManager::getInstance()->getFileContent(pShaderFilePath);
 	const char* tShaderFileContentCStr = tShaderFileContent.c_str();
 
 	glShaderSource(tShaderId, 1, &tShaderFileContentCStr, nullptr);
@@ -98,7 +102,7 @@ unsigned int IShader::compileShader(const std::string& pShaderFilePath, unsigned
 		char tErrorInfo[512];
 		glGetShaderInfoLog(tShaderId, 512, nullptr, tErrorInfo);
 
-		std::cout << tErrorInfo << std::endl;
+		spdlog::info(tErrorInfo);
 		throw pShaderFilePath + " does not compiled.";
 	}
 

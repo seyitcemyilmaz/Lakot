@@ -28,6 +28,9 @@ public:
 
 	bool isKeyUp(int pKeyId);
 	bool isKeyDown(int pKeyId);
+
+	Keyboard(Keyboard&) = delete;
+	void operator=(const Keyboard&) = delete;
 };
 
 #endif

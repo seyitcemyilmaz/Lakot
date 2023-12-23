@@ -32,7 +32,7 @@ public:
 
 	const std::string& getName();
 
-	unsigned int getKeyFrameChannelsCount();
+	unsigned int getKeyFrameChannelsCount() const;
 
 	double getDuration();
 	double getTicksPerSecond();

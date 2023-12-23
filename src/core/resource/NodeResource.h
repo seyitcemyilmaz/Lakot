@@ -1,7 +1,6 @@
 #ifndef LAKOT_NODERESOURCE_H
 #define LAKOT_NODERESOURCE_H
 
-#include <iostream>
 #include <vector>
 
 #include <glm/glm.hpp>

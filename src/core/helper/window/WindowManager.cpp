@@ -1,6 +1,6 @@
 #include "WindowManager.h"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "helper/window/WindowFactory.h"
 
@@ -17,13 +17,13 @@ WindowManager* WindowManager::getInstance() {
 WindowManager::WindowManager() = default;
 
 void WindowManager::initializateWindow() {
-	std::cout << "Window manager is inializating." << std::endl;
+	spdlog::info("Window manager is inializating.");
 
 	mActiveWindow = WindowFactory::createWindow();
 
 	mActiveWindow->initialize();
 
-	std::cout << "Window manager is initialized." << std::endl;
+	spdlog::info("Window manager is initialized.");
 }
 
 void WindowManager::updateWindow() {

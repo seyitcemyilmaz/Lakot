@@ -1,5 +1,7 @@
 #include "Lakot.h"
 
+#include <spdlog/spdlog.h>
+
 #ifdef LAKOT_USE_GPU
 extern "C" {
 // http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdfG
@@ -20,13 +22,15 @@ void Lakot::initalizeApplication() {
 }
 
 void Lakot::runApplication() {
-	std::cout << "Application is running." << std::endl;
+	spdlog::info("Application is running.");
 	mApplication->run();
-	std::cout << "Application is stopped." << std::endl;
+	spdlog::info("Application is stopped.");
 }
 
 void Lakot::terminateApplication() {
+	spdlog::info("Application is terminating.");
 	mApplication->terminate();
+	spdlog::info("Application is terminated.");
 }
 
 Lakot::~Lakot() {

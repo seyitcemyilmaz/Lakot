@@ -1,28 +1,32 @@
 #include "OpenGLAPI.h"
 
+#include <spdlog/spdlog.h>
+
 OpenGLAPI::OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor)
 	: GraphicsAPI(GraphicsAPIType::eOpenGL, tGraphicsAPIMajor, tGraphicsAPIMinor) { }
 
 OpenGLAPI::~OpenGLAPI() = default;
 
 void OpenGLAPI::initializeGraphicsAPI() {
-	std::cout << "OpenGL API is initalizing." << std::endl;
+	spdlog::info("OpenGL API is initalizing.");
 
 	if (!glfwInit()) {
 		throw "GLFW is not initialized.";
 	}
 
-	std::cout << "OpenGL API is initialized." << std::endl;
+	spdlog::info("OpenGL API is initialized.");
 
 	setIsGraphicsAPIInitialized(true);
 }
 
 void OpenGLAPI::terminateGraphicsAPI() {
-	std::cout << "OpenGL API is terminating." << std::endl;
+	spdlog::info("OpenGL API is terminating.");
+
 	if (getIsGraphicsAPIInitialized()) {
 		glfwTerminate();
 	}
-	std::cout << "OpenGL API is terminated." << std::endl;
+
+	spdlog::info("OpenGL API is terminated.");
 }
 
 std::string OpenGLAPI::getGraphicsAPIString() {

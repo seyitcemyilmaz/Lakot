@@ -3,6 +3,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 
+#include <spdlog/spdlog.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -88,7 +90,7 @@ TextureResource* TextureLoader::createTexture(unsigned char* pTextureData, int p
 
 	stbi_image_free(pTextureData);
 
-	std::cout << "Texture: ${" << mTexturePath << "} is created." << std::endl;
+	spdlog::info("Texture: $[{0}] is created.", mTexturePath);
 
 	return new TextureResource(tTextureId, mTexturePath);
 }

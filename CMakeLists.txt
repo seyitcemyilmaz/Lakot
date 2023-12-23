@@ -41,57 +41,63 @@ set(SRC_FILES
 
     ${SRC_DIRECTORY}/Lakot.h
     ${SRC_DIRECTORY}/Lakot.cpp
-
-    ${SRC_DIRECTORY}/Application.h
-    ${SRC_DIRECTORY}/Application.cpp
 )
+    set(APPLICATION_FILES
+	${APPLICATION_DIRECTORY}/Application.h
+	${APPLICATION_DIRECTORY}/Application.cpp
 
-    set(GRAPHICS_FILES
-        ${GRAPHICS_DIRECTORY}/GUI.h
-        ${GRAPHICS_DIRECTORY}/GUI.cpp
+	${APPLICATION_DIRECTORY}/GUI.h
+	${APPLICATION_DIRECTORY}/GUI.cpp
+
+	${APPLICATION_DIRECTORY}/Settings.h
+	${APPLICATION_DIRECTORY}/Settings.cpp
     )
 
-	set(MODEL_FILES
-	    ${MODEL_DIRECTORY}/Animation.h
-	    ${MODEL_DIRECTORY}/Animation.cpp
+	set(GRAPHICS_FILES
 
-#	    ${MODEL_DIRECTORY}/Animator.h
-#	    ${MODEL_DIRECTORY}/Animator.cpp
+	)
 
-	    ${MODEL_DIRECTORY}/Bone.h
-	    ${MODEL_DIRECTORY}/Bone.cpp
+	    set(MODEL_FILES
+		${MODEL_DIRECTORY}/Animation.h
+		${MODEL_DIRECTORY}/Animation.cpp
 
-	    ${MODEL_DIRECTORY}/KeyFrameChannel.h
-	    ${MODEL_DIRECTORY}/KeyFrameChannel.cpp
+    #	    ${MODEL_DIRECTORY}/Animator.h
+    #	    ${MODEL_DIRECTORY}/Animator.cpp
 
-	    ${MODEL_DIRECTORY}/Material.h
-	    ${MODEL_DIRECTORY}/Material.cpp
+		${MODEL_DIRECTORY}/Bone.h
+		${MODEL_DIRECTORY}/Bone.cpp
 
-	    ${MODEL_DIRECTORY}/Mesh.h
-	    ${MODEL_DIRECTORY}/Mesh.cpp
+		${MODEL_DIRECTORY}/KeyFrameChannel.h
+		${MODEL_DIRECTORY}/KeyFrameChannel.cpp
 
-	    ${MODEL_DIRECTORY}/Model.h
-	    ${MODEL_DIRECTORY}/Model.cpp
+		${MODEL_DIRECTORY}/Material.h
+		${MODEL_DIRECTORY}/Material.cpp
 
-	    ${MODEL_DIRECTORY}/Node.h
-	    ${MODEL_DIRECTORY}/Node.cpp
+		${MODEL_DIRECTORY}/Mesh.h
+		${MODEL_DIRECTORY}/Mesh.cpp
 
-	    ${MODEL_DIRECTORY}/ModelFactory.h
-	    ${MODEL_DIRECTORY}/ModelFactory.cpp
+		${MODEL_DIRECTORY}/Model.h
+		${MODEL_DIRECTORY}/Model.cpp
 
-	    ${MODEL_DIRECTORY}/Texture.h
-	    ${MODEL_DIRECTORY}/Texture.cpp
-        )
+		${MODEL_DIRECTORY}/Node.h
+		${MODEL_DIRECTORY}/Node.cpp
 
-        set(RENDER_FILES
-	    ${RENDER_DIRECTORY}/RenderManager.h
-	    ${RENDER_DIRECTORY}/RenderManager.cpp
-        )
+		${MODEL_DIRECTORY}/ModelFactory.h
+		${MODEL_DIRECTORY}/ModelFactory.cpp
 
-        set(SHADER_FILES
-	    ${SHADER_DIRECTORY}/ShaderModel.h
-	    ${SHADER_DIRECTORY}/ShaderModel.cpp
-        )
+		${MODEL_DIRECTORY}/Texture.h
+		${MODEL_DIRECTORY}/Texture.cpp
+	    )
+
+	    set(RENDER_FILES
+		${RENDER_DIRECTORY}/RenderManager.h
+		${RENDER_DIRECTORY}/RenderManager.cpp
+	    )
+
+	    set(SHADER_FILES
+		${SHADER_DIRECTORY}/ShaderModel.h
+		${SHADER_DIRECTORY}/ShaderModel.cpp
+	    )
 
 include_directories(
     ${SRC_DIRECTORY}
@@ -112,14 +118,19 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:
 
 add_executable(${CMAKE_PROJECT_NAME}
     ${SRC_FILES}
-        ${CONTROLS_FILES}
-        ${GRAPHICS_FILES}
-            ${MODEL_FILES}
-            ${RENDER_FILES}
-	    ${SHADER_FILES}
+	${APPLICATION_FILES}
+	    ${GRAPHICS_FILES}
+		${MODEL_FILES}
+		${RENDER_FILES}
+		${SHADER_FILES}
 )
+
+find_package(spdlog CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} 
     LAKOT_CORE_LIB
     ${OPENGL_LIBRARIES}
+    spdlog::spdlog
+    imgui::imgui
 )

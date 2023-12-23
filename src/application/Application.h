@@ -2,7 +2,7 @@
 #define LAKOT_APPLICATION_H
 
 #include "application/graphics/model/Model.h"
-#include "application/graphics/GUI.h"
+#include "application/GUI.h"
 
 #include "core/platform/Platform.h"
 
@@ -23,7 +23,7 @@ public:
 	~Application();
 
 	void initialization();
-	void processInputs();
+	void processInputs(double pTimeDifference);
 	void render();
 	void run();
 	void terminate();

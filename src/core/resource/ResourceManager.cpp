@@ -1,5 +1,7 @@
 #include "ResourceManager.h"
 
+#include <spdlog/spdlog.h>
+
 #include "loaders/ModelLoader.h"
 
 ResourceManager* ResourceManager::mInstance = nullptr;
@@ -16,7 +18,7 @@ ResourceManager::ResourceManager() = default;
 
 void ResourceManager::addModelResource(const std::string& pModelFilePath) {
 	if (mModelResources.contains(pModelFilePath)) {
-		std::cout << "Model is already loaded." << std::endl;
+		spdlog::info("Model is already loaded.");
 		return;
 	}
 
@@ -25,13 +27,13 @@ void ResourceManager::addModelResource(const std::string& pModelFilePath) {
 	ModelResource* tModelResource = tModelLoader->loadModel();
 
 	if (!tModelResource) {
-		std::cout << "Model is not found." << std::endl;
+		spdlog::info("Model is not found.");
 		return;
 	}
 
 	mModelResources[pModelFilePath] = tModelResource;
 
-	std::cout << "Model is loaded successfully." << std::endl;
+	spdlog::info("Model is loaded successfully.");
 }
 
 ModelResource* ResourceManager::getModelResource(const std::string& pModelFilePath) {
@@ -39,7 +41,7 @@ ModelResource* ResourceManager::getModelResource(const std::string& pModelFilePa
 		return mModelResources[pModelFilePath];
 	}
 
-	std::cout << "Model Resource: " << pModelFilePath << " is not found." << std::endl;
+	spdlog::warn("Model Resource: {0} is not found.", pModelFilePath);
 
 	return nullptr;
 }

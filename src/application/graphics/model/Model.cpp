@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include <spdlog/spdlog.h>
+
 Model::Model(ModelResource* pModelResource, Node* pRootNode)
 	: ITransformable(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f))
 	, mModelResource(pModelResource)
@@ -48,7 +50,7 @@ void Model::updateAnimations(double pTimeDifference) {
 
 void Model::playAnimationContinuously(unsigned int pIndex) {
 	if (pIndex >= getAnimationCount()) {
-		std::cout << "Invalid animation index." << std::endl;
+		spdlog::error("Invalid animation index.");
 		return;
 	}
 
@@ -66,7 +68,7 @@ void Model::playAnimationContinuously(unsigned int pIndex) {
 
 void Model::playAnimationOnlyOnce(unsigned int pIndex) {
 	if (pIndex >= getAnimationCount()) {
-		std::cout << "Invalid animation index." << std::endl;
+		spdlog::warn("Invalid animation index.");
 		return;
 	}
 
@@ -84,7 +86,7 @@ void Model::playAnimationOnlyOnce(unsigned int pIndex) {
 
 void Model::pauseAnimation(unsigned int pIndex) {
 	if (pIndex >= getAnimationCount()) {
-		std::cout << "Invalid animation index." << std::endl;
+		spdlog::warn("Invalid animation index.");
 		return;
 	}
 
@@ -101,7 +103,7 @@ void Model::pauseAnimation(unsigned int pIndex) {
 
 void Model::stopAnimation(unsigned int pIndex) {
 	if (pIndex >= getAnimationCount()) {
-		std::cout << "Invalid animation index." << std::endl;
+		spdlog::warn("Invalid animation index.");
 		return;
 	}
 

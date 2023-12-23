@@ -4,6 +4,8 @@
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 
+#include <spdlog/spdlog.h>
+
 #include "platform/Platform.h"
 
 #include "helper/AssimpToGLMHelper.h"
@@ -173,37 +175,37 @@ void ModelLoader::applyAxisCorrection(const aiScene* pScene) {
 
 			if (strcmp(tStr, "UpAxis") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, UpAxis);
-				std::cout << "UpAxis: " << UpAxis << std::endl;
+				spdlog::info("UpAxis: {0}", UpAxis);
 			}
 
 			if (strcmp(tStr, "UpAxisSign") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, UpAxisSign);
-				std::cout << "UpAxisSign: " << UpAxisSign << std::endl;
+				spdlog::info("UpAxisSign: {0}", UpAxisSign);
 			}
 
 			if (strcmp(tStr, "FrontAxis") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, FrontAxis);
-				std::cout << "FrontAxis: " << FrontAxis << std::endl;
+				spdlog::info("FrontAxis: {0}", FrontAxis);
 			}
 
 			if (strcmp(tStr, "FrontAxisSign") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, FrontAxisSign);
-				std::cout << "FrontAxisSign: " << FrontAxisSign << std::endl;
+				spdlog::info("FrontAxisSign: {0}", FrontAxisSign);
 			}
 
 			if (strcmp(tStr, "CoordAxis") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, CoordAxis);
-				std::cout << "CoordAxis: " << CoordAxis << std::endl;
+				spdlog::info("CoordAxis: {0}", CoordAxis);
 			}
 
 			if (strcmp(tStr, "CoordAxisSign") == 0) {
 				pScene->mMetaData->Get<int>(tMetaDataIndex, CoordAxisSign);
-				std::cout << "CoordAxisSign: " << CoordAxisSign << std::endl;
+				spdlog::info("CoordAxisSign: {0}", CoordAxisSign);
 			}
 
 			if (strcmp(tStr, "UnitScaleFactor") == 0) {
 				pScene->mMetaData->Get<double>(tMetaDataIndex, UnitScaleFactor);
-				std::cout << "UnitScaleFactor: " << UnitScaleFactor << std::endl;
+				spdlog::info("UnitScaleFactor: {0}", UnitScaleFactor);
 			}
 		}
 
@@ -246,7 +248,7 @@ void ModelLoader::extractBones(aiMesh* pMesh, MeshResource* pMeshResource) {
 		}
 
 		if (!tNodeResource) {
-			std::cout << "Node: " << tBoneName << " is not found" << std::endl;
+			spdlog::warn("Node: {0} is not found", tBoneName);
 			continue;
 		}
 

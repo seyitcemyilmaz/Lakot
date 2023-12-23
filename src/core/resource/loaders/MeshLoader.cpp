@@ -1,6 +1,6 @@
 #include "MeshLoader.h"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "helper/AssimpToGLMHelper.h"
 
@@ -20,6 +20,17 @@ MeshResource* MeshLoader::loadMesh() {
 
 std::vector<Vertex> MeshLoader::createVertexList() {
 	std::vector<Vertex> tVertexList;
+
+	if (!mMeshObject->mVertices) {
+		spdlog::error("{0} has no vertices.", mMeshObject->mName.C_Str());
+		return tVertexList;
+	}
+
+	if (!mMeshObject->mNormals) {
+		spdlog::error("{0} has no normals.", mMeshObject->mName.C_Str());
+		return tVertexList;
+	}
+
 	unsigned int tVertexCount = mMeshObject->mNumVertices;
 
 	for (unsigned int i = 0; i < tVertexCount; i++) {
@@ -49,7 +60,7 @@ std::vector<unsigned int> MeshLoader::createIndexList() {
 
 	for (unsigned int i = 0; i < tPolygonCount; i++) {
 		if (mMeshObject->mFaces[i].mNumIndices != 3) {
-			std::cout << "A polygon has not 3 indices." << std::endl;
+			spdlog::warn("A polygon has not 3 indices.");
 			continue;
 		}
 

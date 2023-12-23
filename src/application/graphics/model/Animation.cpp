@@ -1,5 +1,7 @@
 #include "Animation.h"
 
+#include <spdlog/spdlog.h>
+
 Animation::Animation(AnimationResource* pAnimationResource)
 	: mAnimationResource(pAnimationResource)
 	, mAnimationStatus(AnimationStatus::eStop)
@@ -8,7 +10,7 @@ Animation::Animation(AnimationResource* pAnimationResource)
 
 void Animation::playAnimation(AnimationPlayType pAnimationPlayType) {
 	if (pAnimationPlayType == AnimationPlayType::eNull) {
-		std::cout << "Wrong animation play type" << std::endl;
+		spdlog::error("Wrong animation play type");
 		return;
 	}
 
@@ -42,7 +44,7 @@ const std::string& Animation::getName() {
 	return mAnimationResource->getName();
 }
 
-unsigned int Animation::getKeyFrameChannelsCount() {
+unsigned int Animation::getKeyFrameChannelsCount() const {
 	return static_cast<unsigned int>(mKeyFrameChannels.size());
 }
 
@@ -60,7 +62,7 @@ void Animation::increaseTime(double pTimeDifference) {
 	}
 
 	if (mAnimationPlayType == AnimationPlayType::eNull) {
-		std::cout << "Animation type is null." << std::endl;
+		spdlog::error("Animation type is null.");
 		return;
 	}
 
@@ -93,11 +95,11 @@ void Animation::update(double pTimeDifference) {
 		Node* tNode = tKeyFrameChannel->getNode();
 
 		if (!tNode) {
-			std::cout << "Node is not found." << std::endl;
+			spdlog::error("Node is not found.");
 			continue;
 		}
 
-		KeyFrameChannelResource* tKeyFrameChannelResource = tKeyFrameChannel->getKeyFrameChannelResource();
+		const KeyFrameChannelResource* tKeyFrameChannelResource = tKeyFrameChannel->getKeyFrameChannelResource();
 
 		const glm::mat4 tTranslation = tKeyFrameChannelResource->interpolatePosition(mCurrentAnimationTime);
 		const glm::mat4 tRotation = tKeyFrameChannelResource->interpolateRotation(mCurrentAnimationTime);

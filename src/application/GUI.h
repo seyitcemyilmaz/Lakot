@@ -10,6 +10,8 @@ public:
 
 	void initialize();
 
+	void render();
+
 	void setVisibility(bool pVisibility);
 	bool getVisibility();
 };
