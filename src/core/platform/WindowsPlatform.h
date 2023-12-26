@@ -5,13 +5,13 @@
 
 class WindowsPlatform : public Platform {
 public:
-	WindowsPlatform();
+    WindowsPlatform();
 
-	std::string getRootPath() override;
+    std::string getRootPath() override;
 
-	void run() override;
+    void run() override;
 
-	void updateTimeDifference() override;
+    void updateTimeDifference() override;
 };
 
 #endif // WINDOWSPLATFORM_H

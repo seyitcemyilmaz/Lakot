@@ -4,24 +4,27 @@
 #include <chrono>
 
 enum TimerType {
-	eNanoseconds,
-	eMicroseconds,
-	eMilliseconds,
-	eSeconds,
-	eMinutes,
-	eHours
+    eNanoseconds,
+    eMicroseconds,
+    eMilliseconds,
+    eSeconds,
+    eMinutes,
+    eHours
 };
 
 class Timer {
 private:
-	std::chrono::steady_clock::time_point mStartTime;
-	std::chrono::steady_clock::time_point mStopTime;
+    std::chrono::steady_clock::time_point mStartTime;
+    std::chrono::steady_clock::time_point mStopTime;
 
 public:
-	void start();
-	void stop();
+    virtual ~Timer();
+    Timer();
 
-	std::string getTime(TimerType pTimerType = TimerType::eMilliseconds);
+    void start();
+    void stop();
+
+    std::string getTime(TimerType pTimerType = TimerType::eMilliseconds);
 };
 
 #endif

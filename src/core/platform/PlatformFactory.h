@@ -5,12 +5,12 @@
 
 class PlatformFactory {
 private:
-	PlatformFactory();
+    PlatformFactory();
 
-	static Platform* createWindowsPlatformObject();
+    static Platform* createWindowsPlatformObject();
 
 public:
-	static Platform* createPlatformObject();
+    static Platform* createPlatformObject();
 };
 
 #endif // PLATFORMFACTORY_H

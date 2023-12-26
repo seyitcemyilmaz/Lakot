@@ -7,7 +7,7 @@
 
 class MaterialResource {
 private:
-	TextureResource* mDiffuseTexture = nullptr;
+    TextureResource* mDiffuseTexture = nullptr;
     TextureResource* mSpecularTexture = nullptr;
     TextureResource* mAmbientTexture = nullptr;
     TextureResource* mEmissiveTexture = nullptr;
@@ -28,13 +28,13 @@ private:
     TextureResource* mClearcoatTexture = nullptr;
     TextureResource* mTransmissionTexture = nullptr;
 
-	glm::vec3 mDiffuseColor;
-	glm::vec3 mSpecularColor;
-	glm::vec3 mEmissiveColor;
-	glm::vec3 mAmbientColor;
+    glm::vec3 mDiffuseColor;
+    glm::vec3 mSpecularColor;
+    glm::vec3 mEmissiveColor;
+    glm::vec3 mAmbientColor;
 
-	float mShininess;
-	float mOpacity;
+    float mShininess;
+    float mOpacity;
 
 protected:
     void setDiffuseTexture(TextureResource* pTextureResource);
@@ -67,10 +67,10 @@ public:
         const glm::vec3& pEmissiveColor,
         const glm::vec3& pAmbientColor,
 
-		float pShininess,
-		float pOpacity);
+        float pShininess,
+        float pOpacity);
 
-	TextureResource* getDiffuseTexture();
+    TextureResource* getDiffuseTexture();
     TextureResource* getSpecularTexture();
     TextureResource* getAmbientTexture();
     TextureResource* getEmissiveTexture();
@@ -96,8 +96,8 @@ public:
     const glm::vec3& getEmissiveColor();
     const glm::vec3& getAmbientColor();
 
-	float getShininess();
-	float getOpacity();
+    float getShininess();
+    float getOpacity();
 };
 
 #endif

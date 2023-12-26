@@ -8,25 +8,25 @@
 
 class Application {
 private:
-	Platform* mPlatform;
+    Platform* mPlatform;
 
-	GUI* mGUI;
+    GUI* mGUI;
 
-	std::vector<Model*> mModels;
+    std::vector<Model*> mModels;
 
-	void initializeShaders();
-	void initializeCameras();
-	void initializeModels();
+    void initializeShaders();
+    void initializeCameras();
+    void initializeModels();
 
 public:
-	virtual ~Application();
-	Application();
+    virtual ~Application();
+    Application();
 
-	void initialization();
-	void processInputs();
-	void render();
-	void run();
-	void terminate();
+    void initialization();
+    void processInputs();
+    void render();
+    void run();
+    void terminate();
 };
 
 #endif

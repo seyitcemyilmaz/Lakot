@@ -1,7 +1,8 @@
 #include "Lakot.h"
 
-int main() {
-	Lakot lakot;
+int main()
+{
+    Lakot lakot;
 
     lakot.initalizeApplication();
 

@@ -11,7 +11,8 @@ Camera::Camera(const glm::vec3& pPosition)
     updateCameraVectors();
 }
 
-void Camera::updateCameraVectors() {
+void Camera::updateCameraVectors()
+{
     mFrontVector = glm::normalize(glm::vec3(cos(glm::radians(mYaw)) * cos(glm::radians(mPitch)),
                                             sin(glm::radians(mPitch)),
                                             sin(glm::radians(mYaw)) * cos(glm::radians(mPitch))));
@@ -19,54 +20,67 @@ void Camera::updateCameraVectors() {
     mUpVector = glm::normalize(glm::cross(mRightVector, mFrontVector));
 }
 
-glm::vec3 Camera::getPosition() {
+const glm::vec3& Camera::getPosition()
+{
     return mPosition;
 }
 
-glm::vec3 Camera::getFrontVector() {
+const glm::vec3& Camera::getFrontVector()
+{
     return mFrontVector;
 }
 
-glm::vec3 Camera::getUpVector() {
+const glm::vec3& Camera::getUpVector()
+{
     return mUpVector;
 }
 
-glm::vec3 Camera::getRightVector() {
+const glm::vec3& Camera::getRightVector()
+{
     return mRightVector;
 }
 
-double Camera::getZoom() {
+double Camera::getZoom()
+{
     return mZoom;
 }
 
-void Camera::changePosition(const glm::vec3& pAmount) {
+void Camera::changePosition(const glm::vec3& pAmount)
+{
     mPosition += pAmount;
 }
 
-void Camera::changeZoom(double pAmount) {
+void Camera::changeZoom(double pAmount)
+{
     mZoom -= pAmount;
 
-    if (mZoom < LAKOT_CAMERA_MIN_ZOOM) {
+    if (mZoom < LAKOT_CAMERA_MIN_ZOOM)
+    {
         mZoom = LAKOT_CAMERA_MIN_ZOOM;
     }
 
-    if (mZoom > LAKOT_CAMERA_MAX_ZOOM) {
+    if (mZoom > LAKOT_CAMERA_MAX_ZOOM)
+    {
         mZoom = LAKOT_CAMERA_MAX_ZOOM;
     }
 }
 
-void Camera::changeYaw(double pAmount) {
+void Camera::changeYaw(double pAmount)
+{
     mYaw += pAmount;
 }
 
-void Camera::changePitch(double pAmount) {
+void Camera::changePitch(double pAmount)
+{
     mPitch += pAmount;
 
-    if (mPitch > LAKOT_CAMERA_MAX_PITCH) {
+    if (mPitch > LAKOT_CAMERA_MAX_PITCH)
+    {
         mPitch = LAKOT_CAMERA_MAX_PITCH;
     }
 
-    if (mPitch < LAKOT_CAMERA_MIN_PITCH) {
+    if (mPitch < LAKOT_CAMERA_MIN_PITCH)
+    {
         mPitch = LAKOT_CAMERA_MIN_PITCH;
     }
 }

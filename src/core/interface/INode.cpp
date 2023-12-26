@@ -1,3 +1,6 @@
 #include "INode.h"
 
-INode::INode() { }
+INode::INode()
+{
+
+}

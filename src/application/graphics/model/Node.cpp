@@ -1,53 +1,67 @@
 #include "Node.h"
 
 Node::Node(NodeResource* pNodeResource, Node* pParentNode, const glm::mat4& pTransformationMatrix)
-	: mNodeResource(pNodeResource)
-	, mParentNode(pParentNode)
-	, mTransformationMatrix(pTransformationMatrix)
-	, mBone(nullptr) { }
+    : mNodeResource(pNodeResource)
+    , mParentNode(pParentNode)
+    , mTransformationMatrix(pTransformationMatrix)
+    , mBone(nullptr)
+{
 
-const std::string& Node::getName() const {
-	return mNodeResource->getName();
 }
 
-const INode* Node::getParentNode() const {
-	return mParentNode;
+const std::string& Node::getName() const
+{
+    return mNodeResource->getName();
 }
 
-const glm::mat4& Node::getTransformationMatrix() const {
-	return mTransformationMatrix;
+const INode* Node::getParentNode() const
+{
+    return mParentNode;
 }
 
-void Node::setTransformationMatrix(const glm::mat4& pTransformationMatrix) {
-	mTransformationMatrix = pTransformationMatrix;
+const glm::mat4& Node::getTransformationMatrix() const
+{
+    return mTransformationMatrix;
 }
 
-const std::vector<INode*>& Node::getChildNodes() const {
-	return mChildNodes;
+void Node::setTransformationMatrix(const glm::mat4& pTransformationMatrix)
+{
+    mTransformationMatrix = pTransformationMatrix;
 }
 
-unsigned int Node::getChildNodeCount() const {
-	return static_cast<unsigned int>(mChildNodes.size());
+const std::vector<INode*>& Node::getChildNodes() const
+{
+    return mChildNodes;
 }
 
-IBone* Node::getBone() const {
-	return mBone;
+unsigned int Node::getChildNodeCount() const
+{
+    return static_cast<unsigned int>(mChildNodes.size());
 }
 
-void Node::setBone(IBone* pBone) {
-	mBone = pBone;
+IBone* Node::getBone() const
+{
+    return mBone;
 }
 
-NodeResource* Node::getNodeResource() {
-	return mNodeResource;
+void Node::setBone(IBone* pBone)
+{
+    mBone = pBone;
 }
 
-void Node::addChildNode(Node* pNode) {
-	mChildNodes.push_back(pNode);
+NodeResource* Node::getNodeResource()
+{
+    return mNodeResource;
 }
 
-void Node::addChildMesh(Mesh* pMesh) {
-	mChildMeshes.push_back(pMesh);
+void Node::addChildNode(Node* pNode)
+{
+    mChildNodes.push_back(pNode);
+}
+
+void Node::addChildMesh(Mesh* pMesh)
+{
+    mChildMeshes.push_back(pMesh);
 }
 
 

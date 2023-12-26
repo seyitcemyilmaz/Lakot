@@ -1,3 +1,6 @@
 #include "IAnimated.h"
 
-IAnimated::IAnimated() { }
+IAnimated::IAnimated()
+{
+
+}

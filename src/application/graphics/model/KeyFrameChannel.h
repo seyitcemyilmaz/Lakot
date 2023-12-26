@@ -7,18 +7,18 @@
 
 class KeyFrameChannel {
 private:
-	KeyFrameChannelResource* mKeyFrameChannelResource;
+    KeyFrameChannelResource* mKeyFrameChannelResource;
 
-	Node* mNode;
+    Node* mNode;
 
-	double getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const;
+    double getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const;
 
 public:
-	KeyFrameChannel(KeyFrameChannelResource* pKeyFrameChannelResource, Node* pNode);
+    KeyFrameChannel(KeyFrameChannelResource* pKeyFrameChannelResource, Node* pNode);
 
-	KeyFrameChannelResource* getKeyFrameChannelResource();
+    KeyFrameChannelResource* getKeyFrameChannelResource();
 
-	Node* getNode();
+    Node* getNode();
 };
 
 #endif

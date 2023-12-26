@@ -21,7 +21,7 @@ protected:
     friend class WindowFactory;
 
 public:
-    ~GLFWWindow();
+    virtual ~GLFWWindow();
 
     void initialize() override;
     void createWindow() override;

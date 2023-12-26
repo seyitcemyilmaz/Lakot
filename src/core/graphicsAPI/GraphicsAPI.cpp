@@ -1,26 +1,36 @@
 #include "GraphicsAPI.h"
 
-GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType, GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor)
-	: mGraphicsAPIType(tGraphicsAPIType)
-	, mGraphicsAPIMajor(tGraphicsAPIMajor)
-	, mGraphicsAPIMinor(tGraphicsAPIMinor) {
-	mIsGraphicsAPIInitialized = false;
+GraphicsAPI::~GraphicsAPI()
+{
+
 }
 
-GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMajor() const {
-	return mGraphicsAPIMajor;
+GraphicsAPI::GraphicsAPI(GraphicsAPIType tGraphicsAPIType,
+                         GraphicsAPIMajor tGraphicsAPIMajor,
+                         GraphicsAPIMinor tGraphicsAPIMinor)
+    : mGraphicsAPIType(tGraphicsAPIType)
+    , mGraphicsAPIMajor(tGraphicsAPIMajor)
+    , mGraphicsAPIMinor(tGraphicsAPIMinor)
+{
+    mIsGraphicsAPIInitialized = false;
 }
 
-GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMinor() const {
-	return mGraphicsAPIMinor;
+GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMajor() const
+{
+    return mGraphicsAPIMajor;
 }
 
-void GraphicsAPI::setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized) {
-	mIsGraphicsAPIInitialized = tIsGraphicsAPIInitialized;
+GraphicsAPIMajor GraphicsAPI::getGraphicsAPIMinor() const
+{
+    return mGraphicsAPIMinor;
 }
 
-bool GraphicsAPI::getIsGraphicsAPIInitialized() const {
-	return mIsGraphicsAPIInitialized;
+void GraphicsAPI::setIsGraphicsAPIInitialized(bool tIsGraphicsAPIInitialized)
+{
+    mIsGraphicsAPIInitialized = tIsGraphicsAPIInitialized;
 }
 
-GraphicsAPI::~GraphicsAPI() = default;
+bool GraphicsAPI::getIsGraphicsAPIInitialized() const
+{
+    return mIsGraphicsAPIInitialized;
+}

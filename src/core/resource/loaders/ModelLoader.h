@@ -7,28 +7,29 @@
 
 class ModelLoader {
 private:
-	ModelResource* mModelResource;
+    ModelResource* mModelResource;
 
-	std::string mModelPath;
-	unsigned int mModelImportFlags;
+    std::string mModelPath;
+    unsigned int mModelImportFlags;
 
-	void extractBones(aiMesh* pMesh, MeshResource* pMeshResource);
-	void extractMaterials(const aiScene* pScene);
+    void extractBones(aiMesh* pMesh, MeshResource* pMeshResource);
+    void extractMaterials(const aiScene* pScene);
 
-	void normalizeBoneWeights(std::vector<Vertex>& pVertexList);
+    void normalizeBoneWeights(std::vector<Vertex>& pVertexList);
 
-	void processMesh(aiMesh* pMesh, NodeResource* pConnectedNodeResource);
-	void processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource);
-	void processAnimations(const aiScene* pScene);
+    void processMesh(aiMesh* pMesh, NodeResource* pConnectedNodeResource);
+    void processNode(aiNode* pNode, const aiScene* pScene, NodeResource* pParentNodeResource);
+    void processAnimations(const aiScene* pScene);
 
-	void createMeshBuffers(MeshResource* pMeshResource);
+    void createMeshBuffers(MeshResource* pMeshResource);
 
-	void applyAxisCorrection(const aiScene* pScene);
+    void applyAxisCorrection(const aiScene* pScene);
 
 public:
-	ModelLoader(const std::string& pModelPath);
+    virtual ~ModelLoader();
+    ModelLoader(const std::string& pModelPath);
 
-	ModelResource* loadModel();
+    ModelResource* loadModel();
 };
 
 #endif

@@ -5,10 +5,10 @@
 
 class Texture {
 private:
-	TextureResource* mTextureResource;
+    TextureResource* mTextureResource;
 
 public:
-	Texture(TextureResource* pTextureResource);
+    Texture(TextureResource* pTextureResource);
 };
 
 #endif

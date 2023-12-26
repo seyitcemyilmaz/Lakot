@@ -38,11 +38,11 @@ public:
 
     void updateCameraVectors();
 
-    glm::vec3 getPosition();
+    const glm::vec3& getPosition();
 
-    glm::vec3 getFrontVector();
-    glm::vec3 getUpVector();
-    glm::vec3 getRightVector();
+    const glm::vec3& getFrontVector();
+    const glm::vec3& getUpVector();
+    const glm::vec3& getRightVector();
 
     double getZoom();
 

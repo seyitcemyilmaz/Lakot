@@ -24,6 +24,7 @@ private:
     std::map<std::string, Camera*> mCameras;
     std::pair<std::string, Camera*> mActiveCamera;
 
+    // TODO: move to Camera class
     double mCameraMovementSpeed;
 
     void setActiveCameraNull();

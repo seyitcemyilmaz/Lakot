@@ -8,13 +8,13 @@
 
 class OpenGLAPI : public GraphicsAPI {
 public:
-	OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
-	~OpenGLAPI();
+    virtual ~OpenGLAPI();
+    OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);
 
-	void initializeGraphicsAPI() override;
-	void terminateGraphicsAPI() override;
+    void initializeGraphicsAPI() override;
+    void terminateGraphicsAPI() override;
 
-	std::string getGraphicsAPIString() override;
+    std::string getGraphicsAPIString() override;
 };
 
 #endif

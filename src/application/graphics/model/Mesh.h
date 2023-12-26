@@ -9,27 +9,27 @@ class Node;
 
 class Mesh {
 private:
-	MeshResource* mMeshResource;
+    MeshResource* mMeshResource;
 
-	Node* mConnectedNode;
+    Node* mConnectedNode;
 
-	unsigned int mMaterialIndex = -1;
+    unsigned int mMaterialIndex;
 
-	glm::mat4 mTransformationMatrix;
+    glm::mat4 mTransformationMatrix;
 
 public:
-	Mesh(MeshResource* pMeshResource, Node* pConnectedNode, unsigned int pMaterialIndex);
+    Mesh(MeshResource* pMeshResource, Node* pConnectedNode, unsigned int pMaterialIndex);
 
-	const std::string& getName() const;
+    const std::string& getName() const;
 
-	MeshResource* getMeshResource();
+    MeshResource* getMeshResource();
 
-	const glm::mat4& getTransformationMatrix() const;
+    const glm::mat4& getTransformationMatrix() const;
 
-	unsigned int getMaterialIndex() const;
-	bool getHasBone() const;
+    unsigned int getMaterialIndex() const;
+    bool getHasBone() const;
 
-	void calculateTransformationMatrix();
+    void calculateTransformationMatrix();
 };
 
 #endif

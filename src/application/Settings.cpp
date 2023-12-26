@@ -2,28 +2,30 @@
 
 Settings* Settings::mInstance = nullptr;
 
-Settings* Settings::getInstance() {
-	if (!mInstance) {
-		mInstance = new Settings();
-	}
+Settings* Settings::getInstance()
+{
+    if (!mInstance)
+    {
+        mInstance = new Settings();
+    }
 
-	return mInstance;
+    return mInstance;
 }
 
 Settings::Settings()
-	: mIsMouseMovementEnabled(false)
+    : mIsMouseMovementEnabled(false)
 {
 
 }
 
 bool Settings::getIsMouseMovementEnabled()
 {
-	return mIsMouseMovementEnabled;
+    return mIsMouseMovementEnabled;
 }
 
 void Settings::setIsMouseMovementEnabled(bool pIsMouseMovementEnabled)
 {
-	mIsMouseMovementEnabled = pIsMouseMovementEnabled;
+    mIsMouseMovementEnabled = pIsMouseMovementEnabled;
 }
 
 

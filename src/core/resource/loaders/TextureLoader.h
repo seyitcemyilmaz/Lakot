@@ -9,28 +9,29 @@
 
 class TextureLoader {
 private:
-	std::string mTexturePath;
-	std::string mModelPath;
+    std::string mTexturePath;
+    std::string mModelPath;
 
-	const aiScene* mScene;
+    const aiScene* mScene;
 
-	std::vector<std::string> mPossibleTextureLocations;
+    std::vector<std::string> mPossibleTextureLocations;
 
-	void createPossibleTextureLocations();
+    void createPossibleTextureLocations();
 
-	std::string getTexturePath();
+    std::string getTexturePath();
 
-	TextureResource* createEmbeddedTexture();
-	TextureResource* createReferencedTexture();
+    TextureResource* createEmbeddedTexture();
+    TextureResource* createReferencedTexture();
 
-	TextureResource* createTexture(unsigned char* pTextureData, int pWidth, int pHeight, int pChannelCount);
+    TextureResource* createTexture(unsigned char* pTextureData, int pWidth, int pHeight, int pChannelCount);
 
-	unsigned int getColorMode(int tChannelCount);
+    unsigned int getColorMode(int tChannelCount);
 
 public:
-	TextureLoader(const aiScene* pScene, const std::string& pModelPath, const std::string& pTexturePath);
+    virtual ~TextureLoader();
+    TextureLoader(const aiScene* pScene, const std::string& pModelPath, const std::string& pTexturePath);
 
-	TextureResource* loadTexture();
+    TextureResource* loadTexture();
 };
 
 #endif

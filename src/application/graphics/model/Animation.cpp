@@ -3,114 +3,140 @@
 #include <spdlog/spdlog.h>
 
 Animation::Animation(AnimationResource* pAnimationResource)
-	: mAnimationResource(pAnimationResource)
-	, mAnimationStatus(AnimationStatus::eStop)
-	, mAnimationPlayType(AnimationPlayType::eNull)
-	, mCurrentAnimationTime(0.0) { }
+    : mAnimationResource(pAnimationResource)
+    , mAnimationStatus(AnimationStatus::eStop)
+    , mAnimationPlayType(AnimationPlayType::eNull)
+    , mCurrentAnimationTime(0.0)
+{
 
-void Animation::playAnimation(AnimationPlayType pAnimationPlayType) {
-	if (pAnimationPlayType == AnimationPlayType::eNull) {
-		spdlog::error("Wrong animation play type");
-		return;
-	}
-
-	mAnimationStatus = AnimationStatus::ePlay;
-	mAnimationPlayType = pAnimationPlayType;
 }
 
-void Animation::pauseAnimation() {
-	mAnimationStatus = AnimationStatus::ePause;
+void Animation::playAnimation(AnimationPlayType pAnimationPlayType)
+{
+    if (pAnimationPlayType == AnimationPlayType::eNull)
+    {
+        spdlog::error("Wrong animation play type");
+        return;
+    }
+
+    mAnimationStatus = AnimationStatus::ePlay;
+    mAnimationPlayType = pAnimationPlayType;
 }
 
-void Animation::stopAnimation() {
-	mAnimationStatus = AnimationStatus::eStop;
-	mAnimationPlayType = AnimationPlayType::eNull;
-	mCurrentAnimationTime = 0.0;
+void Animation::pauseAnimation()
+{
+    mAnimationStatus = AnimationStatus::ePause;
 }
 
-AnimationStatus Animation::getAnimationStatus() {
-	return mAnimationStatus;
+void Animation::stopAnimation()
+{
+    mAnimationStatus = AnimationStatus::eStop;
+    mAnimationPlayType = AnimationPlayType::eNull;
+    mCurrentAnimationTime = 0.0;
 }
 
-AnimationPlayType Animation::getAnimationPlayType() {
-	return mAnimationPlayType;
+AnimationStatus Animation::getAnimationStatus()
+{
+    return mAnimationStatus;
 }
 
-AnimationResource* Animation::getAnimationResource() {
-	return mAnimationResource;
+AnimationPlayType Animation::getAnimationPlayType()
+{
+    return mAnimationPlayType;
 }
 
-const std::string& Animation::getName() {
-	return mAnimationResource->getName();
+AnimationResource* Animation::getAnimationResource()
+{
+    return mAnimationResource;
 }
 
-unsigned int Animation::getKeyFrameChannelsCount() const {
-	return static_cast<unsigned int>(mKeyFrameChannels.size());
+const std::string& Animation::getName()
+{
+    return mAnimationResource->getName();
 }
 
-double Animation::getDuration() {
-	return mAnimationResource->getDuration();
+unsigned int Animation::getKeyFrameChannelsCount() const
+{
+    return static_cast<unsigned int>(mKeyFrameChannels.size());
 }
 
-double Animation::getTicksPerSecond() {
-	return mAnimationResource->getTicksPerSeconds();
+double Animation::getDuration()
+{
+    return mAnimationResource->getDuration();
 }
 
-void Animation::increaseTime(double pTimeDifference) {
-	if (mAnimationStatus != AnimationStatus::ePlay) {
-		return;
-	}
-
-	if (mAnimationPlayType == AnimationPlayType::eNull) {
-		spdlog::error("Animation type is null.");
-		return;
-	}
-
-	mCurrentAnimationTime += pTimeDifference * getTicksPerSecond();
-
-	if (mAnimationPlayType == AnimationPlayType::eOnlyOnce) {
-		if (mCurrentAnimationTime > getDuration()) {
-			stopAnimation();
-		}
-	}
-	else if (mAnimationPlayType == AnimationPlayType::eContinuously) {
-		if (mCurrentAnimationTime > getDuration()) {
-			mCurrentAnimationTime = std::fmod(mCurrentAnimationTime, getDuration());
-		}
-	}
+double Animation::getTicksPerSecond()
+{
+    return mAnimationResource->getTicksPerSeconds();
 }
 
-void Animation::update(double pTimeDifference) {
-	if (mAnimationStatus != AnimationStatus::ePlay) {
-		return;
-	}
+void Animation::increaseTime(double pTimeDifference)
+{
+    if (mAnimationStatus != AnimationStatus::ePlay)
+    {
+        return;
+    }
 
-	increaseTime(pTimeDifference);
+    if (mAnimationPlayType == AnimationPlayType::eNull)
+    {
+        spdlog::error("Animation type is null.");
+        return;
+    }
 
-	unsigned int tKeyFrameChannelCount = getKeyFrameChannelsCount();
+    mCurrentAnimationTime += pTimeDifference * getTicksPerSecond();
 
-	for (unsigned int i = 0; i < tKeyFrameChannelCount; i++) {
-		KeyFrameChannel* tKeyFrameChannel = mKeyFrameChannels[i];
-
-		Node* tNode = tKeyFrameChannel->getNode();
-
-		if (!tNode) {
-			spdlog::error("Node is not found.");
-			continue;
-		}
-
-		const KeyFrameChannelResource* tKeyFrameChannelResource = tKeyFrameChannel->getKeyFrameChannelResource();
-
-		const glm::mat4 tTranslation = tKeyFrameChannelResource->interpolatePosition(mCurrentAnimationTime);
-		const glm::mat4 tRotation = tKeyFrameChannelResource->interpolateRotation(mCurrentAnimationTime);
-		const glm::mat4 tScale = tKeyFrameChannelResource->interpolateScale(mCurrentAnimationTime);
-
-		glm::mat4 tTransformationMatrix = tTranslation * tRotation * tScale;
-
-		tNode->setTransformationMatrix(tTransformationMatrix);
-	}
+    if (mAnimationPlayType == AnimationPlayType::eOnlyOnce)
+    {
+        if (mCurrentAnimationTime > getDuration())
+        {
+            stopAnimation();
+        }
+    }
+    else if (mAnimationPlayType == AnimationPlayType::eContinuously)
+    {
+        if (mCurrentAnimationTime > getDuration())
+        {
+            mCurrentAnimationTime = std::fmod(mCurrentAnimationTime, getDuration());
+        }
+    }
 }
 
-void Animation::addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel) {
-	mKeyFrameChannels.push_back(pKeyFrameChannel);
+void Animation::update(double pTimeDifference)
+{
+    if (mAnimationStatus != AnimationStatus::ePlay)
+    {
+        return;
+    }
+
+    increaseTime(pTimeDifference);
+
+    unsigned int tKeyFrameChannelCount = getKeyFrameChannelsCount();
+
+    for (unsigned int i = 0; i < tKeyFrameChannelCount; i++)
+    {
+        KeyFrameChannel* tKeyFrameChannel = mKeyFrameChannels[i];
+
+        Node* tNode = tKeyFrameChannel->getNode();
+
+        if (!tNode)
+        {
+            spdlog::error("Node is not found.");
+            continue;
+        }
+
+        const KeyFrameChannelResource* tKeyFrameChannelResource = tKeyFrameChannel->getKeyFrameChannelResource();
+
+        const glm::mat4 tTranslation = tKeyFrameChannelResource->interpolatePosition(mCurrentAnimationTime);
+        const glm::mat4 tRotation = tKeyFrameChannelResource->interpolateRotation(mCurrentAnimationTime);
+        const glm::mat4 tScale = tKeyFrameChannelResource->interpolateScale(mCurrentAnimationTime);
+
+        glm::mat4 tTransformationMatrix = tTranslation * tRotation * tScale;
+
+        tNode->setTransformationMatrix(tTransformationMatrix);
+    }
+}
+
+void Animation::addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel)
+{
+    mKeyFrameChannels.push_back(pKeyFrameChannel);
 }

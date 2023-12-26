@@ -5,32 +5,32 @@
 #include <GLFW/glfw3.h>
 
 struct Key {
-	bool isPressed;
-	bool isStateChanged;
+    bool isPressed;
+    bool isStateChanged;
 };
 
 class Keyboard {
 private:
-	static Keyboard* mInstance;
+    static Keyboard* mInstance;
 
-	Key mKeys[GLFW_KEY_LAST];
+    Key mKeys[GLFW_KEY_LAST];
 
-	Keyboard();
+    Keyboard();
 
 public:
-	static Keyboard* getInstance();
+    static Keyboard* getInstance();
 
-	static void keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
+    static void keyCallback(GLFWwindow* pWindow, int pKeyId, int pScanCode, int pAction, int pMods);
 
-	bool isKeyStateChanged(int pKeyId);
+    bool isKeyStateChanged(int pKeyId);
 
-	bool isKeyPressed(int pKeyId);
+    bool isKeyPressed(int pKeyId);
 
-	bool isKeyUp(int pKeyId);
-	bool isKeyDown(int pKeyId);
+    bool isKeyUp(int pKeyId);
+    bool isKeyDown(int pKeyId);
 
-	Keyboard(Keyboard&) = delete;
-	void operator=(const Keyboard&) = delete;
+    Keyboard(Keyboard&) = delete;
+    void operator=(const Keyboard&) = delete;
 };
 
 #endif

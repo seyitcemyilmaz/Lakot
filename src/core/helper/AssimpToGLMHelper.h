@@ -9,12 +9,12 @@
 
 class AssimpToGLMHelper {
 private:
-	AssimpToGLMHelper();
+    AssimpToGLMHelper();
 
 public:
-	static glm::mat4 toMat4(const aiMatrix4x4& pMatrix);
-	static glm::vec3 toVec3(const aiVector3D& pVector);
-	static glm::quat toQuat(const aiQuaternion& pAiQuaternion);
+    static glm::mat4 toMat4(const aiMatrix4x4& pMatrix);
+    static glm::vec3 toVec3(const aiVector3D& pVector);
+    static glm::quat toQuat(const aiQuaternion& pAiQuaternion);
 };
 
 #endif // ASSIMPTOGLMHELPER_H

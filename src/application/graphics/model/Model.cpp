@@ -3,207 +3,259 @@
 #include <spdlog/spdlog.h>
 
 Model::Model(ModelResource* pModelResource, Node* pRootNode)
-	: ITransformable(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f))
-	, mModelResource(pModelResource)
-	, mRootNode(pRootNode) { }
+    : ITransformable(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f))
+    , mModelResource(pModelResource)
+    , mRootNode(pRootNode)
+{
 
-void Model::calculateBoneTransformations(INode* pNode, const glm::mat4& tParentTransform) {
-	const glm::mat4& tNodeTransformationMatrix = pNode->getTransformationMatrix();
-
-	glm::mat4 tGlobalTransform = tParentTransform * tNodeTransformationMatrix;
-
-	Bone* tBone = static_cast<Bone*>(pNode->getBone());
-
-	if (tBone) {
-		const glm::mat4& tBoneResourceTransformationMatrix = tBone->getBoneResource()->getTransformationMatrix();
-
-		glm::mat4 tBoneTransformationMatrix = mModelResource->getGlobalInverseTransform() * tGlobalTransform * tBoneResourceTransformationMatrix;
-
-		tBone->setTransformationMatrix(tBoneTransformationMatrix);
-	}
-
-	const std::vector<INode*>& tChildNodes = pNode->getChildNodes();
-	unsigned int tChildNodeCount = pNode->getChildNodeCount();
-
-	for (unsigned int i = 0; i < tChildNodeCount; i++) {
-		calculateBoneTransformations(tChildNodes[i], tGlobalTransform);
-	}
 }
 
-void Model::updateAnimations(double pTimeDifference) {
-	unsigned int tActiveAnimationCount = getActiveAnimationCount();
+void Model::calculateBoneTransformations(INode* pNode, const glm::mat4& tParentTransform)
+{
+    const glm::mat4& tNodeTransformationMatrix = pNode->getTransformationMatrix();
 
-	for (unsigned int i = 0; i < tActiveAnimationCount; i++) {
-		Animation* tAnimation = mActiveAnimations[i];
+    glm::mat4 tGlobalTransform = tParentTransform * tNodeTransformationMatrix;
 
-		if (tAnimation->getAnimationStatus() == AnimationStatus::ePlay) {
-			tAnimation->update(pTimeDifference);
+    Bone* tBone = static_cast<Bone*>(pNode->getBone());
 
-			if (tAnimation->getAnimationStatus() == AnimationStatus::eStop) {
-				mActiveAnimations.erase(mActiveAnimations.begin() + i);
-				tActiveAnimationCount--;
-				i--;
-			}
-		}
-	}
+    if (tBone)
+    {
+        const glm::mat4& tBoneResourceTransformationMatrix = tBone->getBoneResource()->getTransformationMatrix();
+
+        glm::mat4 tBoneTransformationMatrix = mModelResource->getGlobalInverseTransform() *
+                                              tGlobalTransform *
+                                              tBoneResourceTransformationMatrix;
+
+        tBone->setTransformationMatrix(tBoneTransformationMatrix);
+    }
+
+    const std::vector<INode*>& tChildNodes = pNode->getChildNodes();
+    unsigned int tChildNodeCount = pNode->getChildNodeCount();
+
+    for (unsigned int i = 0; i < tChildNodeCount; i++)
+    {
+        calculateBoneTransformations(tChildNodes[i], tGlobalTransform);
+    }
 }
 
-void Model::playAnimationContinuously(unsigned int pIndex) {
-	if (pIndex >= getAnimationCount()) {
-		spdlog::error("Invalid animation index.");
-		return;
-	}
+void Model::updateAnimations(double pTimeDifference)
+{
+    unsigned int tActiveAnimationCount = getActiveAnimationCount();
 
-	Animation* tAnimation = mAnimations[pIndex];
+    for (unsigned int i = 0; i < tActiveAnimationCount; i++)
+    {
+        Animation* tAnimation = mActiveAnimations[i];
 
-	auto tAnimatorIterator = std::find(mActiveAnimations.begin(), mActiveAnimations.end(), tAnimation);
+        if (tAnimation->getAnimationStatus() == AnimationStatus::ePlay)
+        {
+            tAnimation->update(pTimeDifference);
 
-	if (tAnimatorIterator != mActiveAnimations.end()) {
-		return;
-	}
-
-	tAnimation->playAnimation(AnimationPlayType::eContinuously);
-	mActiveAnimations.push_back(tAnimation);
+            if (tAnimation->getAnimationStatus() == AnimationStatus::eStop)
+            {
+                mActiveAnimations.erase(mActiveAnimations.begin() + i);
+                tActiveAnimationCount--;
+                i--;
+            }
+        }
+    }
 }
 
-void Model::playAnimationOnlyOnce(unsigned int pIndex) {
-	if (pIndex >= getAnimationCount()) {
-		spdlog::warn("Invalid animation index.");
-		return;
-	}
+void Model::playAnimationContinuously(unsigned int pIndex)
+{
+    if (pIndex >= getAnimationCount())
+    {
+        spdlog::error("Invalid animation index.");
+        return;
+    }
 
-	Animation* tAnimation = mAnimations[pIndex];
+    Animation* tAnimation = mAnimations[pIndex];
 
-	auto tAnimatorIterator = std::find(mActiveAnimations.begin(), mActiveAnimations.end(), tAnimation);
+    auto tAnimatorIterator = std::find(mActiveAnimations.begin(),
+                                       mActiveAnimations.end(),
+                                       tAnimation);
 
-	if (tAnimatorIterator != mActiveAnimations.end()) {
-		return;
-	}
+    if (tAnimatorIterator != mActiveAnimations.end())
+    {
+        return;
+    }
 
-	tAnimation->playAnimation(AnimationPlayType::eOnlyOnce);
-	mActiveAnimations.push_back(tAnimation);
+    tAnimation->playAnimation(AnimationPlayType::eContinuously);
+    mActiveAnimations.push_back(tAnimation);
 }
 
-void Model::pauseAnimation(unsigned int pIndex) {
-	if (pIndex >= getAnimationCount()) {
-		spdlog::warn("Invalid animation index.");
-		return;
-	}
+void Model::playAnimationOnlyOnce(unsigned int pIndex)
+{
+    if (pIndex >= getAnimationCount())
+    {
+        spdlog::warn("Invalid animation index.");
+        return;
+    }
 
-	Animation* tAnimation = mAnimations[pIndex];
+    Animation* tAnimation = mAnimations[pIndex];
 
-	auto tAnimatorIterator = std::find(mActiveAnimations.begin(), mActiveAnimations.end(), tAnimation);
+    auto tAnimatorIterator = std::find(mActiveAnimations.begin(),
+                                       mActiveAnimations.end(),
+                                       tAnimation);
 
-	if (tAnimatorIterator == mActiveAnimations.end()) {
-		return;
-	}
+    if (tAnimatorIterator != mActiveAnimations.end())
+    {
+        return;
+    }
 
-	tAnimation->pauseAnimation();
+    tAnimation->playAnimation(AnimationPlayType::eOnlyOnce);
+    mActiveAnimations.push_back(tAnimation);
 }
 
-void Model::stopAnimation(unsigned int pIndex) {
-	if (pIndex >= getAnimationCount()) {
-		spdlog::warn("Invalid animation index.");
-		return;
-	}
+void Model::pauseAnimation(unsigned int pIndex)
+{
+    if (pIndex >= getAnimationCount())
+    {
+        spdlog::warn("Invalid animation index.");
+        return;
+    }
 
-	Animation* tAnimation = mAnimations[pIndex];
+    Animation* tAnimation = mAnimations[pIndex];
 
-	auto tAnimatorIterator = std::find(mActiveAnimations.begin(), mActiveAnimations.end(), tAnimation);
+    auto tAnimatorIterator = std::find(mActiveAnimations.begin(),
+                                       mActiveAnimations.end(),
+                                       tAnimation);
 
-	if (tAnimatorIterator == mActiveAnimations.end()) {
-		return;
-	}
+    if (tAnimatorIterator == mActiveAnimations.end())
+    {
+        return;
+    }
 
-	tAnimation->stopAnimation();
+    tAnimation->pauseAnimation();
 }
 
-void Model::update(double pTimeDifference) {
-	updateAnimations(pTimeDifference);
-	calculateBoneTransformations(mRootNode, glm::mat4(1.0f));
+void Model::stopAnimation(unsigned int pIndex)
+{
+    if (pIndex >= getAnimationCount())
+    {
+        spdlog::warn("Invalid animation index.");
+        return;
+    }
 
-	unsigned int tMeshCount = getMeshCount();
+    Animation* tAnimation = mAnimations[pIndex];
 
-	for (unsigned int i = 0; i < tMeshCount; i++) {
-		mMeshes[i]->calculateTransformationMatrix();
-	}
+    auto tAnimatorIterator = std::find(mActiveAnimations.begin(),
+                                       mActiveAnimations.end(),
+                                       tAnimation);
+
+    if (tAnimatorIterator == mActiveAnimations.end())
+    {
+        return;
+    }
+
+    tAnimation->stopAnimation();
 }
 
-Node* Model::getNode(const std::string& pNodeName) {
-	unsigned int tNodeCount = getNodeCount();
+void Model::update(double pTimeDifference)
+{
+    updateAnimations(pTimeDifference);
+    calculateBoneTransformations(mRootNode, glm::mat4(1.0f));
 
-	Node* pNode = nullptr;
+    unsigned int tMeshCount = getMeshCount();
 
-	for (unsigned int i = 0; i < tNodeCount; i++) {
-		if (mNodes[i]->getName() == pNodeName) {
-			pNode = mNodes[i];
-			break;
-		}
-	}
-
-	return pNode;
+    for (unsigned int i = 0; i < tMeshCount; i++)
+    {
+        mMeshes[i]->calculateTransformationMatrix();
+    }
 }
 
-ModelResource* Model::getModelResource() {
-	return mModelResource;
+Node* Model::getNode(const std::string& pNodeName)
+{
+    unsigned int tNodeCount = getNodeCount();
+
+    Node* pNode = nullptr;
+
+    for (unsigned int i = 0; i < tNodeCount; i++)
+    {
+        if (mNodes[i]->getName() == pNodeName)
+        {
+            pNode = mNodes[i];
+            break;
+        }
+    }
+
+    return pNode;
 }
 
-Node* Model::getRootNode() {
-	return mRootNode;
+ModelResource* Model::getModelResource()
+{
+    return mModelResource;
 }
 
-const glm::mat4& Model::getGlobalInverseTransform() {
-	return mModelResource->getGlobalInverseTransform();
+Node* Model::getRootNode()
+{
+    return mRootNode;
 }
 
-unsigned int Model::getMeshCount() const {
-	return static_cast<unsigned int>(mMeshes.size());
+const glm::mat4& Model::getGlobalInverseTransform()
+{
+    return mModelResource->getGlobalInverseTransform();
 }
 
-unsigned int Model::getNodeCount() const {
-	return static_cast<unsigned int>(mNodes.size());
+unsigned int Model::getMeshCount() const
+{
+    return static_cast<unsigned int>(mMeshes.size());
 }
 
-unsigned int Model::getBoneCount() const {
-	return static_cast<unsigned int>(mBones.size());
+unsigned int Model::getNodeCount() const
+{
+    return static_cast<unsigned int>(mNodes.size());
 }
 
-unsigned int Model::getAnimationCount() const {
-	return static_cast<unsigned int>(mAnimations.size());
+unsigned int Model::getBoneCount() const
+{
+    return static_cast<unsigned int>(mBones.size());
 }
 
-unsigned int Model::getActiveAnimationCount() const {
-	return static_cast<unsigned int>(mActiveAnimations.size());
+unsigned int Model::getAnimationCount() const
+{
+    return static_cast<unsigned int>(mAnimations.size());
 }
 
-bool Model::getHasActiveAnimation() const {
-	return mActiveAnimations.size() > 0;
+unsigned int Model::getActiveAnimationCount() const
+{
+    return static_cast<unsigned int>(mActiveAnimations.size());
 }
 
-std::vector<glm::mat4> Model::getBoneMatrices() const {
-	unsigned int tBoneCount = getBoneCount();
-
-	std::vector<glm::mat4> tBoneMatrices;
-
-	for (unsigned int i = 0; i < tBoneCount; i++) {
-		tBoneMatrices.push_back(mBones[i]->getTransformationMatrix());
-	}
-
-	return tBoneMatrices;
+bool Model::getHasActiveAnimation() const
+{
+    return !mActiveAnimations.empty();
 }
 
-const std::vector<Mesh*>& Model::getMeshes() {
-	return mMeshes;
+std::vector<glm::mat4> Model::getBoneMatrices() const
+{
+    unsigned int tBoneCount = getBoneCount();
+
+    std::vector<glm::mat4> tBoneMatrices;
+
+    for (unsigned int i = 0; i < tBoneCount; i++)
+    {
+        tBoneMatrices.push_back(mBones[i]->getTransformationMatrix());
+    }
+
+    return tBoneMatrices;
 }
 
-const std::vector<Bone*>& Model::getBones() {
-	return mBones;
+const std::vector<Mesh*>& Model::getMeshes()
+{
+    return mMeshes;
 }
 
-const std::vector<Node*>& Model::getNodes() {
-	return mNodes;
+const std::vector<Bone*>& Model::getBones()
+{
+    return mBones;
 }
 
-const std::vector<Material*>& Model::getMaterials() {
-	return mMaterials;
+const std::vector<Node*>& Model::getNodes()
+{
+    return mNodes;
+}
+
+const std::vector<Material*>& Model::getMaterials()
+{
+    return mMaterials;
 }

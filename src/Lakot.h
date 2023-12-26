@@ -5,15 +5,15 @@
 
 class Lakot {
 private:
-	Application* mApplication;
+    Application* mApplication;
 
 public:
-	Lakot();
-	~Lakot();
+    ~Lakot();
+    Lakot();
 
-	void initalizeApplication();
-	void runApplication();
-	void terminateApplication();
+    void initalizeApplication();
+    void runApplication();
+    void terminateApplication();
 };
 
 #endif

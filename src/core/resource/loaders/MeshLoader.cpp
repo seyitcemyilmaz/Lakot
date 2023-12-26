@@ -15,7 +15,7 @@ MeshResource* MeshLoader::loadMesh() {
 	std::vector<Vertex> tVertexList = createVertexList();
 	std::vector<unsigned int> tIndexList = createIndexList();
 
-	return new MeshResource(tMeshName, mModelResource, tVertexList, tIndexList, tMaterialIndex);
+    return new MeshResource(tMeshName, tVertexList, tIndexList, tMaterialIndex);
 }
 
 std::vector<Vertex> MeshLoader::createVertexList() {

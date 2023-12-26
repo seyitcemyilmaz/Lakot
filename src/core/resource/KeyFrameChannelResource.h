@@ -8,54 +8,54 @@
 #include <glm/ext.hpp>
 
 struct KeyFramePosition {
-	glm::vec3 position;
-	double timeStamp;
+    glm::vec3 position;
+    double timeStamp;
 };
 
 struct KeyFrameRotation {
-	glm::quat orientation;
-	double timeStamp;
+    glm::quat rotation;
+    double timeStamp;
 };
 
 struct KeyFrameScale {
-	glm::vec3 scale;
-	double timeStamp;
+    glm::vec3 scale;
+    double timeStamp;
 };
 
 class KeyFrameChannelResource {
 private:
-	std::string mNodeName;
+    std::string mNodeName;
 
-	std::vector<KeyFramePosition*> mKeyFramePositions;
-	std::vector<KeyFrameRotation*> mKeyFrameRotations;
-	std::vector<KeyFrameScale*> mKeyFrameScales;
+    std::vector<KeyFramePosition*> mKeyFramePositions;
+    std::vector<KeyFrameRotation*> mKeyFrameRotations;
+    std::vector<KeyFrameScale*> mKeyFrameScales;
 
-	double getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const;
+    double getScaleFactor(double pLastTimeStamp, double pNextTimeStamp, double pAnimationTime) const;
 
-	int getPositionIndex(double pAnimationTime) const;
-	int getRotationIndex(double pAnimationTime) const;
-	int getScaleIndex(double pAnimationTime) const;
+    int getPositionIndex(double pAnimationTime) const;
+    int getRotationIndex(double pAnimationTime) const;
+    int getScaleIndex(double pAnimationTime) const;
 
 public:
     KeyFrameChannelResource(const std::string& pNodeName);
 
-	const std::string& getNodeName() const;
+    const std::string& getNodeName() const;
 
-	unsigned int getKeyFramePositionsCount() const;
-	unsigned int getKeyFrameRotationsCount() const;
-	unsigned int getKeyFrameScalesCount() const;
+    unsigned int getKeyFramePositionsCount() const;
+    unsigned int getKeyFrameRotationsCount() const;
+    unsigned int getKeyFrameScalesCount() const;
 
-	void addToKeyFramePositions(KeyFramePosition* pKeyFramePosition);
-	void addToKeyFrameRotations(KeyFrameRotation* pKeyFrameRotation);
-	void addToKeyFrameScales(KeyFrameScale* pKeyFrameScale);
+    void addToKeyFramePositions(KeyFramePosition* pKeyFramePosition);
+    void addToKeyFrameRotations(KeyFrameRotation* pKeyFrameRotation);
+    void addToKeyFrameScales(KeyFrameScale* pKeyFrameScale);
 
-	const std::vector<KeyFramePosition*>& getKeyFramePositions() const;
-	const std::vector<KeyFrameRotation*>& getKeyFrameRotations() const;
-	const std::vector<KeyFrameScale*>& getKeyFrameScales() const;
+    const std::vector<KeyFramePosition*>& getKeyFramePositions() const;
+    const std::vector<KeyFrameRotation*>& getKeyFrameRotations() const;
+    const std::vector<KeyFrameScale*>& getKeyFrameScales() const;
 
-	glm::mat4 interpolatePosition(double pAnimationTime) const;
-	glm::mat4 interpolateRotation(double pAnimationTime) const;
-	glm::mat4 interpolateScale(double pAnimationTime) const;
+    glm::mat4 interpolatePosition(double pAnimationTime) const;
+    glm::mat4 interpolateRotation(double pAnimationTime) const;
+    glm::mat4 interpolateScale(double pAnimationTime) const;
 };
 
 #endif

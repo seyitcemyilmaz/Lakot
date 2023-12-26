@@ -12,27 +12,32 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
-Lakot::Lakot() {
-	mApplication = nullptr;
+Lakot::~Lakot()
+{
+    delete mApplication;
 }
 
-void Lakot::initalizeApplication() {
-	mApplication = new Application();
-	mApplication->initialization();
+Lakot::Lakot()
+{
+    mApplication = nullptr;
 }
 
-void Lakot::runApplication() {
-	spdlog::info("Application is running.");
-	mApplication->run();
-	spdlog::info("Application is stopped.");
+void Lakot::initalizeApplication()
+{
+    mApplication = new Application();
+    mApplication->initialization();
 }
 
-void Lakot::terminateApplication() {
-	spdlog::info("Application is terminating.");
-	mApplication->terminate();
-	spdlog::info("Application is terminated.");
+void Lakot::runApplication()
+{
+    spdlog::info("Application is running.");
+    mApplication->run();
+    spdlog::info("Application is stopped.");
 }
 
-Lakot::~Lakot() {
-	delete mApplication;
+void Lakot::terminateApplication()
+{
+    spdlog::info("Application is terminating.");
+    mApplication->terminate();
+    spdlog::info("Application is terminated.");
 }

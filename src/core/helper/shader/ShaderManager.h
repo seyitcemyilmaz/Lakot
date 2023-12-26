@@ -11,24 +11,24 @@
 
 class ShaderManager {
 private:
-	static ShaderManager* mInstance;
+    static ShaderManager* mInstance;
 
-	std::vector<IShader*> mShaders;
-	IShader* mActiveShader = nullptr;
+    std::vector<IShader*> mShaders;
+    IShader* mActiveShader;
 
-	void setActiveShaderNull();
+    void setActiveShaderNull();
 
-	ShaderManager();
+    ShaderManager();
 
 public:
-	static ShaderManager* getInstance();
+    static ShaderManager* getInstance();
 
-	IShader* getShader(ShaderName pShaderName);
+    IShader* getShader(ShaderName pShaderName);
 
-	void addShader(IShader* pShader);
-	void bindShader(IShader* pShader);
+    void addShader(IShader* pShader);
+    void bindShader(IShader* pShader);
 
-	void deleteShaders();
+    void deleteShaders();
 };
 
 #endif

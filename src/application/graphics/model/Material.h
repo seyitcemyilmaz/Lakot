@@ -5,12 +5,12 @@
 
 class Material {
 private:
-	MaterialResource* mMaterialResource;
+    MaterialResource* mMaterialResource;
 
 public:
-	Material(MaterialResource* pMaterialResource);
+    Material(MaterialResource* pMaterialResource);
 
-	MaterialResource* getMaterialResource();
+    MaterialResource* getMaterialResource();
 };
 
 #endif

@@ -1,42 +1,55 @@
 #include "NodeResource.h"
 
 NodeResource::NodeResource(const std::string& pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix)
-	: mName(pName)
-	, mParentNode(pParentNode)
-	, mTransformationMatrix(pTransformationMatrix) { }
+    : mName(pName)
+    , mParentNode(pParentNode)
+    , mTransformationMatrix(pTransformationMatrix)
+    , mBoneResource(nullptr)
+{
 
-const std::string& NodeResource::getName() const {
-	return mName;
 }
 
-const std::vector<NodeResource*>& NodeResource::getChildNodes() const {
-	return mChildNodes;
+const std::string& NodeResource::getName() const
+{
+    return mName;
 }
 
-const std::vector<MeshResource*>& NodeResource::getChildMeshes() const {
-	return mChildMeshes;
+const std::vector<NodeResource*>& NodeResource::getChildNodes() const
+{
+    return mChildNodes;
 }
 
-BoneResource* NodeResource::getBone() {
-	return mBoneResource;
+const std::vector<MeshResource*>& NodeResource::getChildMeshes() const
+{
+    return mChildMeshes;
 }
 
-bool NodeResource::hasChildMesh() const {
-	return !mChildMeshes.empty();
+BoneResource* NodeResource::getBone()
+{
+    return mBoneResource;
 }
 
-const glm::mat4& NodeResource::getTransformationMatrix() {
-	return mTransformationMatrix;
+bool NodeResource::hasChildMesh() const
+{
+    return !mChildMeshes.empty();
 }
 
-void NodeResource::setBoneResource(BoneResource* pBoneResource) {
-	mBoneResource = pBoneResource;
+const glm::mat4& NodeResource::getTransformationMatrix()
+{
+    return mTransformationMatrix;
 }
 
-void NodeResource::addChildMesh(MeshResource* pChildMesh) {
-	mChildMeshes.push_back(pChildMesh);
+void NodeResource::setBoneResource(BoneResource* pBoneResource)
+{
+    mBoneResource = pBoneResource;
 }
 
-void NodeResource::addChildNode(NodeResource* pChildNode) {
-	mChildNodes.push_back(pChildNode);
+void NodeResource::addChildMesh(MeshResource* pChildMesh)
+{
+    mChildMeshes.push_back(pChildMesh);
+}
+
+void NodeResource::addChildNode(NodeResource* pChildNode)
+{
+    mChildNodes.push_back(pChildNode);
 }

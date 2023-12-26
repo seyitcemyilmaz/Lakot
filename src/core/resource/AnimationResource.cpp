@@ -1,30 +1,39 @@
 #include "AnimationResource.h"
 
 AnimationResource::AnimationResource(const std::string& pName, double pDuration, double pTicksPerSeconds)
-	: mName(pName)
-	, mDuration(pDuration)
-	, mTicksPerSeconds(pTicksPerSeconds) { }
+    : mName(pName)
+    , mDuration(pDuration)
+    , mTicksPerSeconds(pTicksPerSeconds)
+{
 
-const std::string& AnimationResource::getName() {
-	return mName;
 }
 
-double AnimationResource::getDuration() {
-	return mDuration;
+const std::string& AnimationResource::getName() const
+{
+    return mName;
 }
 
-double AnimationResource::getTicksPerSeconds() {
-	return mTicksPerSeconds;
+double AnimationResource::getDuration() const
+{
+    return mDuration;
 }
 
-const std::vector<KeyFrameChannelResource*>& AnimationResource::getKeyFrameChannelResources() {
-	return mKeyFrameChannelResources;
+double AnimationResource::getTicksPerSeconds() const
+{
+    return mTicksPerSeconds;
 }
 
-unsigned int AnimationResource::getKeyFrameChannelCount() {
-	return static_cast<int>(mKeyFrameChannelResources.size());
+const std::vector<KeyFrameChannelResource*>& AnimationResource::getKeyFrameChannelResources() const
+{
+    return mKeyFrameChannelResources;
 }
 
-void AnimationResource::addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource) {
-	mKeyFrameChannelResources.push_back(pKeyFrameChannelResource);
+unsigned int AnimationResource::getKeyFrameChannelCount() const
+{
+    return static_cast<int>(mKeyFrameChannelResources.size());
+}
+
+void AnimationResource::addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource)
+{
+    mKeyFrameChannelResources.push_back(pKeyFrameChannelResource);
 }

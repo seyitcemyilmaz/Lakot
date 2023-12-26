@@ -1,15 +1,21 @@
 #include "ShaderModel.h"
 
-ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath) :
-    IShader(pShaderName, pVertexShaderFilePath, pFragmentShaderFilePath) {
+ShaderModel::~ShaderModel()
+{
+
+}
+
+ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath)
+    : IShader(pShaderName, pVertexShaderFilePath, pFragmentShaderFilePath)
+{
 
     addShaderVariable(ShaderVariableName::eProjection, new ShaderVariable("projection", ShaderVariableDataType::eMat4));
     addShaderVariable(ShaderVariableName::eView, new ShaderVariable("view", ShaderVariableDataType::eMat4));
     addShaderVariable(ShaderVariableName::eModel, new ShaderVariable("model", ShaderVariableDataType::eMat4));
 
-	addShaderVariable(ShaderVariableName::eBoneTransformations, new ShaderVariable("boneTransformations", ShaderVariableDataType::eMat4Array));
+    addShaderVariable(ShaderVariableName::eBoneTransformations, new ShaderVariable("boneTransformations", ShaderVariableDataType::eMat4Array));
 
-	addShaderVariable(ShaderVariableName::eAnimationType, new ShaderVariable("animationType", ShaderVariableDataType::eInt));
+    addShaderVariable(ShaderVariableName::eAnimationType, new ShaderVariable("animationType", ShaderVariableDataType::eInt));
 
     addShaderVariable(ShaderVariableName::eDiffuseTexture, new ShaderVariable("material.diffuseTexture", ShaderVariableDataType::eSampler2D));
     addShaderVariable(ShaderVariableName::eNormalsTexture, new ShaderVariable("material.normalsTexture", ShaderVariableDataType::eSampler2D));
@@ -28,9 +34,5 @@ ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePa
     addShaderVariable(ShaderVariableName::eDiffuseColor, new ShaderVariable("material.diffuseColor", ShaderVariableDataType::eVec3));
     addShaderVariable(ShaderVariableName::eSpecularColor, new ShaderVariable("material.specularColor", ShaderVariableDataType::eVec3));
     addShaderVariable(ShaderVariableName::eEmissiveColor, new ShaderVariable("material.emissiveColor", ShaderVariableDataType::eVec3));
-	addShaderVariable(ShaderVariableName::eAmbientColor, new ShaderVariable("material.ambientColor", ShaderVariableDataType::eVec3));
-}
-
-ShaderModel::~ShaderModel() {
-
+    addShaderVariable(ShaderVariableName::eAmbientColor, new ShaderVariable("material.ambientColor", ShaderVariableDataType::eVec3));
 }

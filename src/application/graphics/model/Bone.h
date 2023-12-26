@@ -7,19 +7,19 @@
 
 class Bone : public IBone {
 private:
-	BoneResource* mBoneResource;
+    BoneResource* mBoneResource;
 
-	glm::mat4 mTransformationMatrix;
+    glm::mat4 mTransformationMatrix;
 
 public:
-	Bone(BoneResource* pBoneResource, const glm::mat4& pTransformationMatrix);
+    Bone(BoneResource* pBoneResource, const glm::mat4& pTransformationMatrix);
 
-	const std::string& getName() const override;
+    const std::string& getName() const override;
 
-	const glm::mat4& getTransformationMatrix() const override;
-	void setTransformationMatrix(const glm::mat4& pTransformationMatrix) override;
+    const glm::mat4& getTransformationMatrix() const override;
+    void setTransformationMatrix(const glm::mat4& pTransformationMatrix) override;
 
-	BoneResource* getBoneResource();
+    BoneResource* getBoneResource();
 };
 
 #endif

@@ -11,12 +11,12 @@
 
 class WindowFactory {
 private:
-	WindowFactory();
+    WindowFactory();
 
-	static Window* createGLFWWindow();
+    static Window* createGLFWWindow();
 
 public:
-	static Window* createWindow();
+    static Window* createWindow();
 };
 
 #endif

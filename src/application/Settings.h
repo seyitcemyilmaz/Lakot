@@ -1,22 +1,21 @@
 #ifndef LAKOT_SETTINGS_H
 #define LAKOT_SETTINGS_H
 
-
 class Settings {
 private:
-	static Settings* mInstance;
+    static Settings* mInstance;
 
-	bool mIsMouseMovementEnabled;
+    bool mIsMouseMovementEnabled;
 
-	Settings();
+    Settings();
 public:
-	static Settings* getInstance();
+    static Settings* getInstance();
 
-	bool getIsMouseMovementEnabled();
-	void setIsMouseMovementEnabled(bool pIsMouseMovementEnabled);
+    bool getIsMouseMovementEnabled();
+    void setIsMouseMovementEnabled(bool pIsMouseMovementEnabled);
 
-	Settings(Settings&) = delete;
-	void operator=(const Settings&) = delete;
+    Settings(Settings&) = delete;
+    void operator=(const Settings&) = delete;
 };
 
 #endif

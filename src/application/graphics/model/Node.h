@@ -9,40 +9,40 @@
 
 class Node : public INode {
 private:
-	NodeResource* mNodeResource;
+    NodeResource* mNodeResource;
 
-	Node* mParentNode;
+    Node* mParentNode;
 
-	std::vector<INode*> mChildNodes;
-	std::vector<Mesh*> mChildMeshes;
+    std::vector<INode*> mChildNodes;
+    std::vector<Mesh*> mChildMeshes;
 
-	glm::mat4 mTransformationMatrix;
+    glm::mat4 mTransformationMatrix;
 
-	IBone* mBone;
+    IBone* mBone;
 
 protected:
-	void addChildNode(Node* pNode);
-	void addChildMesh(Mesh* pMesh);
+    void addChildNode(Node* pNode);
+    void addChildMesh(Mesh* pMesh);
 
-	friend class ModelFactory;
+    friend class ModelFactory;
 
 public:
-	Node(NodeResource* pNodeResource, Node* pParentNode, const glm::mat4& pTransformationMatrix);
+    Node(NodeResource* pNodeResource, Node* pParentNode, const glm::mat4& pTransformationMatrix);
 
-	const std::string& getName() const override;
+    const std::string& getName() const override;
 
-	const INode* getParentNode() const override;
+    const INode* getParentNode() const override;
 
-	const glm::mat4& getTransformationMatrix() const override;
-	void setTransformationMatrix(const glm::mat4& pTransformationMatrix) override;
+    const glm::mat4& getTransformationMatrix() const override;
+    void setTransformationMatrix(const glm::mat4& pTransformationMatrix) override;
 
-	const std::vector<INode*>& getChildNodes() const override;
-	unsigned int getChildNodeCount() const override;
+    const std::vector<INode*>& getChildNodes() const override;
+    unsigned int getChildNodeCount() const override;
 
-	IBone* getBone() const override;
-	void setBone(IBone* pBone) override;
+    IBone* getBone() const override;
+    void setBone(IBone* pBone) override;
 
-	NodeResource* getNodeResource();
+    NodeResource* getNodeResource();
 };
 
 #endif

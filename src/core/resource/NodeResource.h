@@ -10,37 +10,37 @@
 
 class NodeResource {
 private:
-	std::string mName;
+    std::string mName;
 
-	NodeResource* mParentNode;
+    NodeResource* mParentNode;
 
-	std::vector<NodeResource*> mChildNodes;
-	std::vector<MeshResource*> mChildMeshes;
+    std::vector<NodeResource*> mChildNodes;
+    std::vector<MeshResource*> mChildMeshes;
 
-	glm::mat4 mTransformationMatrix;
+    glm::mat4 mTransformationMatrix;
 
-	BoneResource* mBoneResource = nullptr;
+    BoneResource* mBoneResource;
 
 protected:
-	void setBoneResource(BoneResource* pBoneResource);
+    void setBoneResource(BoneResource* pBoneResource);
 
-	void addChildMesh(MeshResource* pChildMesh);
-	void addChildNode(NodeResource* pChildNode);
-	friend class ModelLoader;
+    void addChildMesh(MeshResource* pChildMesh);
+    void addChildNode(NodeResource* pChildNode);
+    friend class ModelLoader;
 
 public:
-	NodeResource(const std::string& pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
+    NodeResource(const std::string& pName, NodeResource* pParentNode, glm::mat4& pTransformationMatrix);
 
-	const std::string& getName() const;
+    const std::string& getName() const;
 
-	const std::vector<NodeResource*>& getChildNodes() const;
-	const std::vector<MeshResource*>& getChildMeshes() const;
+    const std::vector<NodeResource*>& getChildNodes() const;
+    const std::vector<MeshResource*>& getChildMeshes() const;
 
-	BoneResource* getBone();
+    BoneResource* getBone();
 
-	bool hasChildMesh() const;
+    bool hasChildMesh() const;
 
-	const glm::mat4& getTransformationMatrix();
+    const glm::mat4& getTransformationMatrix();
 };
 
 #endif

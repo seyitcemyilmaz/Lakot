@@ -5,25 +5,25 @@
 
 class AnimationResource {
 private:
-	std::string mName;
+    std::string mName;
 
-	double mDuration;
-	double mTicksPerSeconds;
-	
-	std::vector<KeyFrameChannelResource*> mKeyFrameChannelResources;
+    double mDuration;
+    double mTicksPerSeconds;
+
+    std::vector<KeyFrameChannelResource*> mKeyFrameChannelResources;
 
 public:
-	AnimationResource(const std::string& pName, double pDuration, double pTicksPerSeconds);
+    AnimationResource(const std::string& pName, double pDuration, double pTicksPerSeconds);
 
-	const std::string& getName();
+    const std::string& getName() const;
 
-	double getDuration();
-	double getTicksPerSeconds();
-	
-	const std::vector<KeyFrameChannelResource*>& getKeyFrameChannelResources();
-	unsigned int getKeyFrameChannelCount();
-	
-	void addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource);
+    double getDuration() const;
+    double getTicksPerSeconds() const;
+
+    const std::vector<KeyFrameChannelResource*>& getKeyFrameChannelResources() const;
+    unsigned int getKeyFrameChannelCount() const;
+
+    void addKeyFrameChannelResource(KeyFrameChannelResource* pKeyFrameChannelResource);
 };
 
 #endif

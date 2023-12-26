@@ -32,14 +32,14 @@ enum class TextureType {
 
 class TextureResource {
 private:
-	unsigned int mTextureId;
-	std::string mTexturePath;
+    unsigned int mTextureId;
+    std::string mTexturePath;
 
 public:
-	TextureResource(unsigned int pTextureId, const std::string& pTexturePath);
+    TextureResource(unsigned int pTextureId, const std::string& pTexturePath);
 
-	unsigned int getTextureId() const;
-	const std::string& getTexturePath() const;
+    unsigned int getTextureId() const;
+    const std::string& getTexturePath() const;
 };
 
 #endif

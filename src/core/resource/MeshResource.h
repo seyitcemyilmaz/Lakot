@@ -9,55 +9,52 @@
 #include <glm/glm.hpp>
 
 struct Vertex {
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec2 textureCoordinates;
-	int boneIds[LAKOT_VERTEX_MAX_BONE_COUNT];
-	float boneWeights[LAKOT_VERTEX_MAX_BONE_COUNT];
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 textureCoordinates;
+    int boneIds[LAKOT_VERTEX_MAX_BONE_COUNT];
+    float boneWeights[LAKOT_VERTEX_MAX_BONE_COUNT];
 };
 
-class ModelResource;
 class NodeResource;
 
 class MeshResource {
 private:
-	std::string mName;
+    std::string mName;
 
-	ModelResource* mModelResource;
+    std::vector<Vertex> mVertexList;
+    std::vector<unsigned int> mIndexList;
 
-	std::vector<Vertex> mVertexList;
-	std::vector<unsigned int> mIndexList;
+    NodeResource* mConnectedNode;
 
-	NodeResource* mConnectedNode = nullptr;
+    unsigned int mVAO;
+    unsigned int mVBO;
+    unsigned int mIBO;
 
-	unsigned int mVAO = 0;
-	unsigned int mVBO = 0;
-	unsigned int mIBO = 0;
+    unsigned int mIndiceCount;
+    unsigned int mVertexCount;
 
-	unsigned int mMaterialIndex = -1;
+    unsigned int mMaterialIndex;
 
-	unsigned int mIndiceCount = 0;
-	unsigned int mVertexCount = 0;
-
-	bool mHasBone = false;
+    bool mHasBone;
 
 protected:
-	void setHasBone(bool pHasBone);
-	void setConnectedNode(NodeResource* pConnectedNode);
-	//void createBuffers();
-	friend class ModelLoader;
+    void setHasBone(bool pHasBone);
+    void setConnectedNode(NodeResource* pConnectedNode);
+    //void createBuffers();
+    friend class ModelLoader;
 
 public:
-	MeshResource(const std::string& pName, ModelResource* pModelResource, const std::vector<Vertex>& pVertexList, const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex);
+    MeshResource(const std::string& pName, const std::vector<Vertex>& pVertexList, const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex);
 
-	const std::string& getName() const;
-	unsigned int getMaterialIndex() const;
+    const std::string& getName() const;
+    unsigned int getMaterialIndex() const;
 
-	unsigned int getVAO();
-	unsigned int getIndiceCount();
-	unsigned int getVertexCount();
+    unsigned int getVAO();
+    unsigned int getIndiceCount();
+    unsigned int getVertexCount();
 
-	bool getHasBone() const;
+    bool getHasBone() const;
 };
 
 #endif

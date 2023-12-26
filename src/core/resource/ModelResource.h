@@ -11,47 +11,47 @@
 
 class ModelResource {
 private:
-	NodeResource* mRootNode = nullptr;
+    NodeResource* mRootNode;
 
-	std::vector<MeshResource*> mMeshResources;
-	std::vector<BoneResource*> mBoneResources;
-	std::vector<NodeResource*> mNodeResources;
-	std::vector<MaterialResource*> mMaterialResources;
-	std::vector<TextureResource*> mTextureResources;
-	std::vector<AnimationResource*> mAnimationResources;
+    std::vector<MeshResource*> mMeshResources;
+    std::vector<BoneResource*> mBoneResources;
+    std::vector<NodeResource*> mNodeResources;
+    std::vector<MaterialResource*> mMaterialResources;
+    std::vector<TextureResource*> mTextureResources;
+    std::vector<AnimationResource*> mAnimationResources;
 
-	glm::mat4 mGlobalInverseTransform;
+    glm::mat4 mGlobalInverseTransform;
 
 protected:
-	void setRootNode(NodeResource* pRootNode);
-	void setGlobalInverseTransform(const glm::mat4& pGlobalInverseTransform);
+    void setRootNode(NodeResource* pRootNode);
+    void setGlobalInverseTransform(const glm::mat4& pGlobalInverseTransform);
 
-	void addMeshResource(MeshResource* pMeshResource);
-	void addBoneResource(BoneResource* pBoneResource);
+    void addMeshResource(MeshResource* pMeshResource);
+    void addBoneResource(BoneResource* pBoneResource);
 
-	friend class ModelLoader;
-	friend class MaterialLoader;
+    friend class ModelLoader;
+    friend class MaterialLoader;
 
 public:
-	ModelResource();
+    ModelResource();
 
-	unsigned int getMeshCount();
-	unsigned int getBoneCount();
-	unsigned int getNodeCount();
-	unsigned int getMaterialCount();
-	unsigned int getAnimationCount();
+    unsigned int getMeshCount();
+    unsigned int getBoneCount();
+    unsigned int getNodeCount();
+    unsigned int getMaterialCount();
+    unsigned int getAnimationCount();
 
-	const glm::mat4& getGlobalInverseTransform();
+    const glm::mat4& getGlobalInverseTransform();
 
-	NodeResource* getRootNodeResource();
-	MaterialResource* getMaterialResource(int pMaterialIndex);
+    NodeResource* getRootNodeResource();
+    MaterialResource* getMaterialResource(int pMaterialIndex);
 
-	unsigned int getBoneId(BoneResource* pBoneResource);
+    unsigned int getBoneId(BoneResource* pBoneResource);
 
-	const std::vector<BoneResource*>& getBoneResources();
-	const std::vector<TextureResource*>& getTextureResources();
-	const std::vector<MaterialResource*>& getMaterialResources();
-	const std::vector<AnimationResource*>& getAnimationResources();
+    const std::vector<BoneResource*>& getBoneResources();
+    const std::vector<TextureResource*>& getTextureResources();
+    const std::vector<MaterialResource*>& getMaterialResources();
+    const std::vector<AnimationResource*>& getAnimationResources();
 };
 
 #endif

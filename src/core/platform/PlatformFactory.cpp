@@ -8,26 +8,29 @@
 
 PlatformFactory::PlatformFactory() = default;
 
-Platform* PlatformFactory::createPlatformObject() {
+Platform* PlatformFactory::createPlatformObject()
+{
 #ifdef LAKOT_PLATFORM_WINDOWS
-	return createWindowsPlatformObject();
+    return createWindowsPlatformObject();
 #else
 #error "Not implemented."
 #endif
 }
 
-Platform* PlatformFactory::createWindowsPlatformObject() {
-	Platform* tPlatform = new WindowsPlatform();
+Platform* PlatformFactory::createWindowsPlatformObject()
+{
+    Platform* tPlatform = new WindowsPlatform();
 
-	tPlatform->getGraphicsAPI()->initializeGraphicsAPI();
+    tPlatform->getGraphicsAPI()->initializeGraphicsAPI();
 
-	if (!tPlatform->getGraphicsAPI()->getIsGraphicsAPIInitialized()) {
-		throw "Graphics API is not initialized.";
-	}
+    if (!tPlatform->getGraphicsAPI()->getIsGraphicsAPIInitialized())
+    {
+        throw "Graphics API is not initialized.";
+    }
 
-	spdlog::info("Lakot Graphics API: {0}", tPlatform->getGraphicsAPI()->getGraphicsAPIString());
+    spdlog::info("Lakot Graphics API: {0}", tPlatform->getGraphicsAPI()->getGraphicsAPIString());
 
-	WindowManager::getInstance()->initializateWindow();
+    WindowManager::getInstance()->initializateWindow();
 
-	return tPlatform;
+    return tPlatform;
 }

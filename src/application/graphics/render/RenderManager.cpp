@@ -8,156 +8,184 @@
 
 RenderManager* RenderManager::mInstance = nullptr;
 
-RenderManager* RenderManager::getInstance() {
-	if (!mInstance) {
-		mInstance = new RenderManager();
-	}
+RenderManager* RenderManager::getInstance()
+{
+    if (!mInstance)
+    {
+        mInstance = new RenderManager();
+    }
 
-	return mInstance;
+    return mInstance;
 }
 
-RenderManager::RenderManager() {
-	mNearPlaneDistance = LAKOT_DEFAULT_NEAR_PLANE;
-	mFarPlaneDistance = LAKOT_DEFAULT_FAR_PLANE;
+void RenderManager::render()
+{
+    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
+    ShaderManager::getInstance()->bindShader(tShader);
+
+    const glm::mat4& tProjectionMatrix = getProjectionMatrix();
+    const glm::mat4& tViewMatrix = getViewMatrix();
+
+    tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
+    tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
 }
 
-void RenderManager::renderScene() {
-	IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
-	ShaderManager::getInstance()->bindShader(tShader);
-
-	const glm::mat4& tProjectionMatrix = getProjectionMatrix();
-	const glm::mat4& tViewMatrix = getViewMatrix();
-
-	tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
-	tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
+RenderManager::RenderManager()
+{
+    mNearPlaneDistance = LAKOT_DEFAULT_NEAR_PLANE;
+    mFarPlaneDistance = LAKOT_DEFAULT_FAR_PLANE;
 }
 
-void RenderManager::renderGUI() { }
-
-glm::mat4 RenderManager::getProjectionMatrix() {
-	Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
-	double tZoom = tActiveCamera->getZoom();
-
-	int tWindowHeight = WindowManager::getInstance()->getWindowHeight();
-	int tWindowWidth = WindowManager::getInstance()->getWindowWidth();
-
-	return glm::perspective(glm::radians(tZoom), (double) tWindowWidth / (double) tWindowHeight, mNearPlaneDistance, mFarPlaneDistance);
+void RenderManager::renderGUI()
+{
+    // TODO: Add gui render
 }
 
-glm::mat4 RenderManager::getViewMatrix() {
-	Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
+glm::mat4 RenderManager::getProjectionMatrix()
+{
+    Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
+    double tZoom = tActiveCamera->getZoom();
 
-	glm::vec3 tCameraPosition = tActiveCamera->getPosition();
-	glm::vec3 tCameraFront = tActiveCamera->getFrontVector();
-	glm::vec3 tCameraUp = tActiveCamera->getUpVector();
+    int tWindowHeight = WindowManager::getInstance()->getWindowHeight();
+    int tWindowWidth = WindowManager::getInstance()->getWindowWidth();
 
-	return glm::lookAt(tCameraPosition, tCameraPosition + tCameraFront, tCameraUp);
+    return glm::perspective(glm::radians(tZoom), (double) tWindowWidth / (double) tWindowHeight, mNearPlaneDistance, mFarPlaneDistance);
 }
 
-void RenderManager::renderModel(Model* pModel, IShader* pShader) {
-	const std::vector<Mesh*> pMeshes = pModel->getMeshes();
-	unsigned int tMeshCount = pModel->getMeshCount();
+glm::mat4 RenderManager::getViewMatrix()
+{
+    Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
 
-	for (unsigned int i = 0; i < tMeshCount; i++) {
-		renderMesh(pModel, pMeshes[i], pShader);
-	}
+    glm::vec3 tCameraPosition = tActiveCamera->getPosition();
+    glm::vec3 tCameraFront = tActiveCamera->getFrontVector();
+    glm::vec3 tCameraUp = tActiveCamera->getUpVector();
+
+    return glm::lookAt(tCameraPosition, tCameraPosition + tCameraFront, tCameraUp);
 }
 
-void RenderManager::renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader) {
-	useMaterial(pModel, pMesh, pShader);
+void RenderManager::renderModel(Model* pModel, IShader* pShader)
+{
+    const std::vector<Mesh*> pMeshes = pModel->getMeshes();
+    unsigned int tMeshCount = pModel->getMeshCount();
 
-	if (pMesh->getHasBone() && pModel->getHasActiveAnimation()) {
-		pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(1);
-
-		const std::vector<glm::mat4>& tBoneMatrices = pModel->getBoneMatrices();
-		pShader->getShaderVariable(ShaderVariableName::eBoneTransformations)
-			->setMat4Array(tBoneMatrices.data(), static_cast<unsigned int>(tBoneMatrices.size()));
-
-		pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
-	}
-	else {
-		pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(0);
-		pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
-	}
-
-	glBindVertexArray(pMesh->getMeshResource()->getVAO());
-	glDrawElements(GL_TRIANGLES, pMesh->getMeshResource()->getIndiceCount(), GL_UNSIGNED_INT, nullptr);
+    for (unsigned int i = 0; i < tMeshCount; i++)
+    {
+        renderMesh(pModel, pMeshes[i], pShader);
+    }
 }
 
-void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader) {
-	MaterialResource* tMaterialResource = pModel->getModelResource()->getMaterialResource(pMesh->getMaterialIndex());
+void RenderManager::renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader)
+{
+    useMaterial(pModel, pMesh, pShader);
 
-	if (tMaterialResource) {
-		TextureResource* tDiffuseTexture = tMaterialResource->getDiffuseTexture();
+    if (pMesh->getHasBone() && pModel->getHasActiveAnimation())
+    {
+        pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(1);
 
-		unsigned int tUnit = 0;
+        const std::vector<glm::mat4>& tBoneMatrices = pModel->getBoneMatrices();
+        pShader->getShaderVariable(ShaderVariableName::eBoneTransformations)
+            ->setMat4Array(tBoneMatrices.data(), static_cast<unsigned int>(tBoneMatrices.size()));
 
-		if (tDiffuseTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
-			pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
-			tUnit++;
-		}
+        pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+    }
+    else
+    {
+        pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(0);
+        pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+    }
 
-		TextureResource* tNormalsTexture = tMaterialResource->getNormalsTexture();
+    glBindVertexArray(pMesh->getMeshResource()->getVAO());
+    glDrawElements(GL_TRIANGLES, pMesh->getMeshResource()->getIndiceCount(), GL_UNSIGNED_INT, nullptr);
+}
 
-		if (tNormalsTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(false);
-			tUnit++;
-		}
+void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
+{
+    MaterialResource* tMaterialResource = pModel->getModelResource()->getMaterialResource(pMesh->getMaterialIndex());
 
-		TextureResource* tSpecularTexture = tMaterialResource->getSpecularTexture();
+    if (tMaterialResource)
+    {
+        TextureResource* tDiffuseTexture = tMaterialResource->getDiffuseTexture();
 
-		if (tSpecularTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(false);
-			pShader->getShaderVariable(ShaderVariableName::eSpecularColor)->setVec3(tMaterialResource->getSpecularColor());
-			tUnit++;
-		}
+        unsigned int tUnit = 0;
 
-		TextureResource* tEmissiveTexture = tMaterialResource->getEmissiveTexture();
+        if (tDiffuseTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
+            pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
+            tUnit++;
+        }
 
-		if (tEmissiveTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(false);
-			pShader->getShaderVariable(ShaderVariableName::eEmissiveColor)->setVec3(tMaterialResource->getEmissiveColor());
-			tUnit++;
-		}
+        TextureResource* tNormalsTexture = tMaterialResource->getNormalsTexture();
 
-		TextureResource* tAmbientTexture = tMaterialResource->getAmbientTexture();
+        if (tNormalsTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(false);
+            tUnit++;
+        }
 
-		if (tAmbientTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(false);
-			pShader->getShaderVariable(ShaderVariableName::eAmbientColor)->setVec3(tMaterialResource->getAmbientColor());
-			tUnit++;
-		}
+        TextureResource* tSpecularTexture = tMaterialResource->getSpecularTexture();
 
-		TextureResource* tMetalnessTexture = tMaterialResource->getMetalnessTexture();
+        if (tSpecularTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(false);
+            pShader->getShaderVariable(ShaderVariableName::eSpecularColor)->setVec3(tMaterialResource->getSpecularColor());
+            tUnit++;
+        }
 
-		if (tMetalnessTexture) {
-			pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(true);
-			pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
-		}
-		else {
-			pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
-			tUnit++;
-		}
-	}
+        TextureResource* tEmissiveTexture = tMaterialResource->getEmissiveTexture();
+
+        if (tEmissiveTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(false);
+            pShader->getShaderVariable(ShaderVariableName::eEmissiveColor)->setVec3(tMaterialResource->getEmissiveColor());
+            tUnit++;
+        }
+
+        TextureResource* tAmbientTexture = tMaterialResource->getAmbientTexture();
+
+        if (tAmbientTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(false);
+            pShader->getShaderVariable(ShaderVariableName::eAmbientColor)->setVec3(tMaterialResource->getAmbientColor());
+            tUnit++;
+        }
+
+        TextureResource* tMetalnessTexture = tMaterialResource->getMetalnessTexture();
+
+        if (tMetalnessTexture)
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(true);
+            pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
+        }
+        else
+        {
+            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
+            tUnit++;
+        }
+    }
 }

@@ -7,16 +7,16 @@
 
 #include "platform/Platform.h"
 
+GLFWWindow::~GLFWWindow()
+{
+
+}
+
 GLFWWindow::GLFWWindow(const char* pWindowTitle,
                        int pWindowWidth,
                        int pWindowHeight,
                        const glm::vec3& pWindowBackgroundColor)
     : Window(pWindowTitle, pWindowWidth, pWindowHeight, pWindowBackgroundColor)
-{
-
-}
-
-GLFWWindow::~GLFWWindow()
 {
 
 }
@@ -29,7 +29,8 @@ void GLFWWindow::initialize()
 
     createWindow();
 
-    if (!mWindowObject) {
+    if (!mWindowObject)
+    {
         throw "Window is not created.";
     }
 
@@ -37,7 +38,8 @@ void GLFWWindow::initialize()
 
     glfwMakeContextCurrent(mWindowObject);
 
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    {
         throw "GLAD is not initialized.";
     }
 
@@ -59,7 +61,10 @@ void GLFWWindow::createWindow()
 
 void GLFWWindow::updateWindow()
 {
-    glClearColor(mWindowBackgroundColor.r, mWindowBackgroundColor.g, mWindowBackgroundColor.b, 1.0f);
+    glClearColor(mWindowBackgroundColor.r,
+                 mWindowBackgroundColor.g,
+                 mWindowBackgroundColor.b,
+                 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

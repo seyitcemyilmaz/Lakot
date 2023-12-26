@@ -38,16 +38,25 @@ void GUI::render()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Create")) {
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Create"))
+            {
                 spdlog::info("create basildi");
             }
-            if (ImGui::MenuItem("Open", "Ctrl+O")) {
+            if (ImGui::MenuItem("Open", "Ctrl+O"))
+            {
+
             }
-            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+            if (ImGui::MenuItem("Save", "Ctrl+S"))
+            {
+
             }
-            if (ImGui::MenuItem("Save as..")) {
+            if (ImGui::MenuItem("Save as.."))
+            {
+
             }
             ImGui::EndMenu();
         }
