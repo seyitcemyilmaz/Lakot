@@ -7,7 +7,8 @@
 
 #include "Mesh.h"
 
-class Node : public INode {
+class Node : public INode
+{
 private:
     NodeResource* mNodeResource;
 

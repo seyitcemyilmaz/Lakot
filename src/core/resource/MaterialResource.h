@@ -5,7 +5,8 @@
 
 #include "TextureResource.h"
 
-class MaterialResource {
+class MaterialResource
+{
 private:
     TextureResource* mDiffuseTexture = nullptr;
     TextureResource* mSpecularTexture = nullptr;
@@ -66,7 +67,6 @@ public:
         const glm::vec3& pSpecularColor,
         const glm::vec3& pEmissiveColor,
         const glm::vec3& pAmbientColor,
-
         float pShininess,
         float pOpacity);
 

@@ -7,7 +7,8 @@
 
 class Node;
 
-class Mesh {
+class Mesh
+{
 private:
     MeshResource* mMeshResource;
 

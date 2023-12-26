@@ -17,7 +17,8 @@ enum class CameraDirection {
     eDown
 };
 
-class CameraManager {
+class CameraManager
+{
 private:
     static CameraManager* mInstance;
 

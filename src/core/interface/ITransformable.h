@@ -3,7 +3,8 @@
 
 #include <glm/glm.hpp>
 
-class ITransformable {
+class ITransformable
+{
 private:
     glm::vec3 mPosition;
     glm::vec3 mScale;

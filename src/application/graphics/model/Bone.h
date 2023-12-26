@@ -5,7 +5,8 @@
 
 #include "interface/IBone.h"
 
-class Bone : public IBone {
+class Bone : public IBone
+{
 private:
     BoneResource* mBoneResource;
 

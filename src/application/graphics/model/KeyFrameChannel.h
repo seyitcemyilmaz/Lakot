@@ -5,7 +5,8 @@
 
 #include "Node.h"
 
-class KeyFrameChannel {
+class KeyFrameChannel
+{
 private:
     KeyFrameChannelResource* mKeyFrameChannelResource;
 

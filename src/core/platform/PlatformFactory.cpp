@@ -6,7 +6,10 @@
 
 #include "WindowsPlatform.h"
 
-PlatformFactory::PlatformFactory() = default;
+PlatformFactory::PlatformFactory()
+{
+
+}
 
 Platform* PlatformFactory::createPlatformObject()
 {

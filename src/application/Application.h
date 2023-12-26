@@ -6,7 +6,8 @@
 
 #include "core/platform/Platform.h"
 
-class Application {
+class Application
+{
 private:
     Platform* mPlatform;
 

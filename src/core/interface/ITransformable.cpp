@@ -129,7 +129,8 @@ void ITransformable::changeScaleY(float pAmount)
     mScale.y += pAmount;
 }
 
-void ITransformable::changeScaleZ(float pAmount) {
+void ITransformable::changeScaleZ(float pAmount)
+{
     mScale.z += pAmount;
 }
 

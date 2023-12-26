@@ -3,7 +3,8 @@
 
 #include "Platform.h"
 
-class WindowsPlatform : public Platform {
+class WindowsPlatform : public Platform
+{
 public:
     WindowsPlatform();
 

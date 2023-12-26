@@ -6,12 +6,14 @@
 
 #define LAKOT_MOUSE_DEFAULT_SENSIVITY 0.5f
 
-struct Button {
+struct Button
+{
     bool isPressed;
     bool isStateChanged;
 };
 
-class Mouse {
+class Mouse
+{
 private:
     static Mouse* mInstance;
 

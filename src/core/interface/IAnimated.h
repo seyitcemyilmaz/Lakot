@@ -5,7 +5,8 @@
 
 #include "INode.h"
 
-class IAnimated {
+class IAnimated
+{
 public:
     IAnimated();
 

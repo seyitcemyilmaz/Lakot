@@ -3,7 +3,8 @@
 
 #include "Window.h"
 
-class WindowManager {
+class WindowManager
+{
 private:
     static WindowManager* mInstance;
 

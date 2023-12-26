@@ -3,7 +3,8 @@
 
 #include "platform/Platform.h"
 
-class FileManager {
+class FileManager
+{
 private:
     static FileManager* mInstance;
 

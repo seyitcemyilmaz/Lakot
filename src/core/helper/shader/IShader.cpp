@@ -4,107 +4,121 @@
 
 #include "helper/FileManager.h"
 
-IShader::~IShader() {
-	glDeleteProgram(mShaderProgramId);
+IShader::~IShader()
+{
+    glDeleteProgram(mShaderProgramId);
 
-	for (auto tShaderVariableIterator = mShaderVariables.begin(); tShaderVariableIterator != mShaderVariables.end(); tShaderVariableIterator++) {
-		ShaderVariableName tShaderVariableName = tShaderVariableIterator->first;
+    for (auto tShaderVariableIterator = mShaderVariables.begin(); tShaderVariableIterator != mShaderVariables.end(); tShaderVariableIterator++)
+    {
+        ShaderVariableName tShaderVariableName = tShaderVariableIterator->first;
 
-		ShaderVariable* tShaderVariable = tShaderVariableIterator->second;
-		delete tShaderVariable;
+        ShaderVariable* tShaderVariable = tShaderVariableIterator->second;
+        delete tShaderVariable;
 
-		mShaderVariables[tShaderVariableName] = nullptr;
-	}
+        mShaderVariables[tShaderVariableName] = nullptr;
+    }
 
-	mShaderVariables.clear();
+    mShaderVariables.clear();
 }
 
 IShader::IShader(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath)
-	: mShaderName(pShaderName)
-	, mVertexShaderFilePath(pVertexShaderFilePath)
-	, mFragmentShaderFilePath(pFragmentShaderFilePath) {
-	createShaderProgram();
+    : mShaderName(pShaderName)
+    , mVertexShaderFilePath(pVertexShaderFilePath)
+    , mFragmentShaderFilePath(pFragmentShaderFilePath)
+{
+    createShaderProgram();
 }
 
-void IShader::bind() const {
-	glUseProgram(mShaderProgramId);
+void IShader::bind() const
+{
+    glUseProgram(mShaderProgramId);
 }
 
-ShaderName IShader::getShaderName() {
-	return mShaderName;
+ShaderName IShader::getShaderName()
+{
+    return mShaderName;
 }
 
-ShaderVariable* IShader::getShaderVariable(ShaderVariableName pShaderVariableName) {
-	if (!mShaderVariables.contains(pShaderVariableName)) {
-		throw "Shader variable name is not found.";
-	}
+ShaderVariable* IShader::getShaderVariable(ShaderVariableName pShaderVariableName)
+{
+    if (!mShaderVariables.contains(pShaderVariableName))
+    {
+        throw "Shader variable name is not found.";
+    }
 
-	return mShaderVariables[pShaderVariableName];
+    return mShaderVariables[pShaderVariableName];
 }
 
-unsigned int IShader::getShaderProgramId() const {
-	return mShaderProgramId;
+unsigned int IShader::getShaderProgramId() const
+{
+    return mShaderProgramId;
 }
 
-void IShader::addShaderVariable(ShaderVariableName pShaderVariableName, ShaderVariable* pShaderVariable) {
-	if (mShaderVariables.contains(pShaderVariableName)) {
-		throw "Shader variable has already created.";
-	}
+void IShader::addShaderVariable(ShaderVariableName pShaderVariableName, ShaderVariable* pShaderVariable)
+{
+    if (mShaderVariables.contains(pShaderVariableName))
+    {
+        throw "Shader variable has already created.";
+    }
 
-	int tLocation = glGetUniformLocation(mShaderProgramId, pShaderVariable->getName().c_str());
-	pShaderVariable->setLocation(tLocation);
+    int tLocation = glGetUniformLocation(mShaderProgramId, pShaderVariable->getName().c_str());
+    pShaderVariable->setLocation(tLocation);
 
-	mShaderVariables[pShaderVariableName] = pShaderVariable;
+    mShaderVariables[pShaderVariableName] = pShaderVariable;
 }
 
-void IShader::createShaderProgram() {
-	unsigned int tVertexShaderId = compileShader(mVertexShaderFilePath, GL_VERTEX_SHADER);
-	unsigned int tFragmentShaderId = compileShader(mFragmentShaderFilePath, GL_FRAGMENT_SHADER);
+void IShader::createShaderProgram()
+{
+    unsigned int tVertexShaderId = compileShader(mVertexShaderFilePath, GL_VERTEX_SHADER);
+    unsigned int tFragmentShaderId = compileShader(mFragmentShaderFilePath, GL_FRAGMENT_SHADER);
 
-	mShaderProgramId = glCreateProgram();
+    mShaderProgramId = glCreateProgram();
 
-	glAttachShader(mShaderProgramId, tVertexShaderId);
-	glAttachShader(mShaderProgramId, tFragmentShaderId);
+    glAttachShader(mShaderProgramId, tVertexShaderId);
+    glAttachShader(mShaderProgramId, tFragmentShaderId);
 
-	glLinkProgram(mShaderProgramId);
+    glLinkProgram(mShaderProgramId);
 
-	int tIsShaderProgramLinked = 0;
+    int tIsShaderProgramLinked = 0;
 
-	glGetProgramiv(mShaderProgramId, GL_LINK_STATUS, &tIsShaderProgramLinked);
+    glGetProgramiv(mShaderProgramId, GL_LINK_STATUS, &tIsShaderProgramLinked);
 
-	if (!tIsShaderProgramLinked) {
-		char tErrorInfo[512];
-		glGetProgramInfoLog(mShaderProgramId, 512, nullptr, tErrorInfo);
-		spdlog::info(tErrorInfo);
-		throw "Linking error in shader program:" + std::string(tErrorInfo);
-	}
+    if (!tIsShaderProgramLinked)
+    {
+        char tErrorInfo[512];
+        glGetProgramInfoLog(mShaderProgramId, 512, nullptr, tErrorInfo);
+        spdlog::info(tErrorInfo);
+        throw "Linking error in shader program:" + std::string(tErrorInfo);
+    }
 
-	glDeleteShader(tVertexShaderId);
-	glDeleteShader(tFragmentShaderId);
+    glDeleteShader(tVertexShaderId);
+    glDeleteShader(tFragmentShaderId);
 }
 
-unsigned int IShader::compileShader(const std::string& pShaderFilePath, unsigned int tShaderType) {
-	unsigned int tShaderId = glCreateShader(tShaderType);
+unsigned int IShader::compileShader(const std::string& pShaderFilePath, unsigned int tShaderType)
+{
+    unsigned int tShaderId = glCreateShader(tShaderType);
 
-	std::string tShaderHeader = std::string(LAKOT_GLSL_VERSION) + "\n";
+    std::string tShaderHeader = std::string(LAKOT_GLSL_VERSION) + "\n";
 
-	std::string tShaderFileContent = tShaderHeader + FileManager::getInstance()->getFileContent(pShaderFilePath);
-	const char* tShaderFileContentCStr = tShaderFileContent.c_str();
+    std::string tShaderFileContent = tShaderHeader + FileManager::getInstance()->getFileContent(pShaderFilePath);
+    const char* tShaderFileContentCStr = tShaderFileContent.c_str();
 
-	glShaderSource(tShaderId, 1, &tShaderFileContentCStr, nullptr);
-	glCompileShader(tShaderId);
+    glShaderSource(tShaderId, 1, &tShaderFileContentCStr, nullptr);
+    glCompileShader(tShaderId);
 
-	int tIsShaderCompiled = 0;
+    int tIsShaderCompiled = 0;
 
-	glGetShaderiv(tShaderId, GL_COMPILE_STATUS, &tIsShaderCompiled);
+    glGetShaderiv(tShaderId, GL_COMPILE_STATUS, &tIsShaderCompiled);
 
-	if (!tIsShaderCompiled) {
-		char tErrorInfo[512];
-		glGetShaderInfoLog(tShaderId, 512, nullptr, tErrorInfo);
+    if (!tIsShaderCompiled)
+    {
+        char tErrorInfo[512];
+        glGetShaderInfoLog(tShaderId, 512, nullptr, tErrorInfo);
 
-		spdlog::info(tErrorInfo);
-		throw pShaderFilePath + " does not compiled.";
-	}
+        spdlog::info(tErrorInfo);
+        throw pShaderFilePath + " does not compiled.";
+    }
 
-	return tShaderId;
+    return tShaderId;
 }

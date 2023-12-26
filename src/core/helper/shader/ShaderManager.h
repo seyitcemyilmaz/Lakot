@@ -9,7 +9,8 @@
 
 #include "IShader.h"
 
-class ShaderManager {
+class ShaderManager
+{
 private:
     static ShaderManager* mInstance;
 

@@ -8,7 +8,8 @@
 
 #include <glm/glm.hpp>
 
-struct Vertex {
+struct Vertex
+{
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 textureCoordinates;
@@ -18,7 +19,8 @@ struct Vertex {
 
 class NodeResource;
 
-class MeshResource {
+class MeshResource
+{
 private:
     std::string mName;
 
@@ -45,7 +47,10 @@ protected:
     friend class ModelLoader;
 
 public:
-    MeshResource(const std::string& pName, const std::vector<Vertex>& pVertexList, const std::vector<unsigned int>& pIndexList, unsigned int pMaterialIndex);
+    MeshResource(const std::string& pName,
+                 const std::vector<Vertex>& pVertexList,
+                 const std::vector<unsigned int>& pIndexList,
+                 unsigned int pMaterialIndex);
 
     const std::string& getName() const;
     unsigned int getMaterialIndex() const;

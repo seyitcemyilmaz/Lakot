@@ -7,7 +7,8 @@
 
 #include "IBone.h"
 
-class INode {
+class INode
+{
 public:
     INode();
 

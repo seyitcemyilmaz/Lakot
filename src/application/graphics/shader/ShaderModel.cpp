@@ -5,8 +5,12 @@ ShaderModel::~ShaderModel()
 
 }
 
-ShaderModel::ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath)
-    : IShader(pShaderName, pVertexShaderFilePath, pFragmentShaderFilePath)
+ShaderModel::ShaderModel(ShaderName pShaderName,
+                         const char* pVertexShaderFilePath,
+                         const char* pFragmentShaderFilePath)
+    : IShader(pShaderName,
+              pVertexShaderFilePath,
+              pFragmentShaderFilePath)
 {
 
     addShaderVariable(ShaderVariableName::eProjection, new ShaderVariable("projection", ShaderVariableDataType::eMat4));

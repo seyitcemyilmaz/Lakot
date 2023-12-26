@@ -7,40 +7,41 @@
 
 #include "KeyFrameChannel.h"
 
-class Animation : public IAnimation {
+class Animation : public IAnimation
+{
 private:
-	AnimationResource* mAnimationResource;
+    AnimationResource* mAnimationResource;
 
-	AnimationStatus mAnimationStatus;
-	AnimationPlayType mAnimationPlayType;
+    AnimationStatus mAnimationStatus;
+    AnimationPlayType mAnimationPlayType;
 
-	double mCurrentAnimationTime;
+    double mCurrentAnimationTime;
 
-	std::vector<KeyFrameChannel*> mKeyFrameChannels;
+    std::vector<KeyFrameChannel*> mKeyFrameChannels;
 
 public:
-	Animation(AnimationResource* pAnimationResource);
+    Animation(AnimationResource* pAnimationResource);
 
-	void playAnimation(AnimationPlayType pAnimationPlayType) override;
-	void pauseAnimation() override;
-	void stopAnimation() override;
+    void playAnimation(AnimationPlayType pAnimationPlayType) override;
+    void pauseAnimation() override;
+    void stopAnimation() override;
 
-	AnimationStatus getAnimationStatus() override;
-	AnimationPlayType getAnimationPlayType() override;
+    AnimationStatus getAnimationStatus() override;
+    AnimationPlayType getAnimationPlayType() override;
 
-	AnimationResource* getAnimationResource();
+    AnimationResource* getAnimationResource();
 
-	const std::string& getName();
+    const std::string& getName();
 
-	unsigned int getKeyFrameChannelsCount() const;
+    unsigned int getKeyFrameChannelsCount() const;
 
-	double getDuration();
-	double getTicksPerSecond();
+    double getDuration();
+    double getTicksPerSecond();
 
-	void increaseTime(double pTimeDifference);
-	void update(double pTimeDifference);
+    void increaseTime(double pTimeDifference);
+    void update(double pTimeDifference);
 
-	void addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel);
+    void addKeyFrameChannel(KeyFrameChannel* pKeyFrameChannel);
 };
 
 #endif

@@ -6,18 +6,25 @@
 
 ResourceManager* ResourceManager::mInstance = nullptr;
 
-ResourceManager* ResourceManager::getInstance() {
-    if (!mInstance) {
+ResourceManager* ResourceManager::getInstance()
+{
+    if (!mInstance)
+    {
         mInstance = new ResourceManager();
     }
 
     return mInstance;
 }
 
-ResourceManager::ResourceManager() = default;
+ResourceManager::ResourceManager()
+{
 
-void ResourceManager::addModelResource(const std::string& pModelFilePath) {
-    if (mModelResources.contains(pModelFilePath)) {
+}
+
+void ResourceManager::addModelResource(const std::string& pModelFilePath)
+{
+    if (mModelResources.contains(pModelFilePath))
+    {
         spdlog::info("Model is already loaded.");
         return;
     }
@@ -26,7 +33,8 @@ void ResourceManager::addModelResource(const std::string& pModelFilePath) {
 
     ModelResource* tModelResource = tModelLoader->loadModel();
 
-    if (!tModelResource) {
+    if (!tModelResource)
+    {
         spdlog::info("Model is not found.");
         return;
     }
@@ -36,8 +44,10 @@ void ResourceManager::addModelResource(const std::string& pModelFilePath) {
     spdlog::info("Model is loaded successfully.");
 }
 
-ModelResource* ResourceManager::getModelResource(const std::string& pModelFilePath) {
-    if (mModelResources.contains(pModelFilePath)) {
+ModelResource* ResourceManager::getModelResource(const std::string& pModelFilePath)
+{
+    if (mModelResources.contains(pModelFilePath))
+    {
         return mModelResources[pModelFilePath];
     }
 

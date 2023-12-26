@@ -5,7 +5,8 @@
 
 #include <glm/glm.hpp>
 
-class BoneResource {
+class BoneResource
+{
 private:
     std::string mName;
 

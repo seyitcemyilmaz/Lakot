@@ -7,19 +7,20 @@
 
 class ModelResource;
 
-class MeshLoader {
+class MeshLoader
+{
 private:
-	aiMesh* mMeshObject;
+    aiMesh* mMeshObject;
 
-	ModelResource* mModelResource;
+    ModelResource* mModelResource;
 
-	std::vector<Vertex> createVertexList();
-	std::vector<unsigned int> createIndexList();
+    std::vector<Vertex> createVertexList();
+    std::vector<unsigned int> createIndexList();
 
 public:
-	MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource);
+    MeshLoader(aiMesh* pMeshObject, ModelResource* pModelResource);
 
-	MeshResource* loadMesh();
+    MeshResource* loadMesh();
 };
 
 #endif

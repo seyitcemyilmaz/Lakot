@@ -4,7 +4,8 @@
 #include <sstream>
 #include <string>
 
-enum class GraphicsAPIType {
+enum class GraphicsAPIType
+{
     eNONE,
     eOpenGL,
     eOpenGLES, /// TODO: will be implemented.
@@ -15,7 +16,8 @@ enum class GraphicsAPIType {
 typedef int GraphicsAPIMajor;
 typedef int GraphicsAPIMinor;
 
-class GraphicsAPI {
+class GraphicsAPI
+{
 private:
     GraphicsAPIType mGraphicsAPIType;
     GraphicsAPIMajor mGraphicsAPIMajor;

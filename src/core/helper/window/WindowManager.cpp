@@ -6,8 +6,10 @@
 
 WindowManager* WindowManager::mInstance = nullptr;
 
-WindowManager* WindowManager::getInstance() {
-    if (!mInstance) {
+WindowManager* WindowManager::getInstance()
+{
+    if (!mInstance)
+    {
         mInstance = new WindowManager();
     }
 
@@ -20,7 +22,8 @@ WindowManager::WindowManager()
 
 }
 
-void WindowManager::initializateWindow() {
+void WindowManager::initializateWindow()
+{
     spdlog::info("Window manager is inializating.");
 
     mActiveWindow = WindowFactory::createWindow();
@@ -30,23 +33,28 @@ void WindowManager::initializateWindow() {
     spdlog::info("Window manager is initialized.");
 }
 
-void WindowManager::updateWindow() {
+void WindowManager::updateWindow()
+{
     mActiveWindow->updateWindow();
 }
 
-void* WindowManager::getWindow() {
+void* WindowManager::getWindow()
+{
     return mActiveWindow->getWindowInstance();
 }
 
-void WindowManager::setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor) {
+void WindowManager::setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor)
+{
     mActiveWindow->setWindowBackgroundColor(pWindowBackgroundColor);
 }
 
-glm::vec3 WindowManager::getWindowBackgroundColor() {
+glm::vec3 WindowManager::getWindowBackgroundColor()
+{
     return mActiveWindow->getWindowBackgroundColor();
 }
 
-bool WindowManager::getIsWindowActive() {
+bool WindowManager::getIsWindowActive()
+{
     return mActiveWindow->getIsWindowActive();
 }
 
@@ -55,14 +63,17 @@ bool WindowManager::getIsWindowFocused()
     return mActiveWindow->getIsWindowFocused();
 }
 
-int WindowManager::getWindowHeight() {
+int WindowManager::getWindowHeight()
+{
     return mActiveWindow->getWindowHeight();
 }
 
-int WindowManager::getWindowWidth() {
+int WindowManager::getWindowWidth()
+{
     return mActiveWindow->getWindowWidth();
 }
 
-void WindowManager::closeWindow() {
+void WindowManager::closeWindow()
+{
     mActiveWindow->setIsWindowActive(false);
 }

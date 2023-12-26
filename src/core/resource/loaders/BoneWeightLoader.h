@@ -5,18 +5,19 @@
 
 #include "resource/MeshResource.h"
 
-class BoneWeightLoader {
+class BoneWeightLoader
+{
 private:
-	aiBone* mBone;
-	std::vector<Vertex>& mVertexList;
-	unsigned int mBoneId;
+    aiBone* mBone;
+    std::vector<Vertex>& mVertexList;
+    unsigned int mBoneId;
 
-	void setVertexBoneWeight(Vertex* pVertex, unsigned int pBoneId, float pWeight);
+    void setVertexBoneWeight(Vertex* pVertex, unsigned int pBoneId, float pWeight);
 
 public:
-	BoneWeightLoader(aiBone* pBone, std::vector<Vertex>& pVertexList, unsigned int pBoneId);
+    BoneWeightLoader(aiBone* pBone, std::vector<Vertex>& pVertexList, unsigned int pBoneId);
 
-	void load();
+    void load();
 };
 
 #endif

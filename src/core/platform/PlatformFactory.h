@@ -3,7 +3,8 @@
 
 #include "Platform.h"
 
-class PlatformFactory {
+class PlatformFactory
+{
 private:
     PlatformFactory();
 

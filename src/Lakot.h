@@ -3,7 +3,8 @@
 
 #include "application/Application.h"
 
-class Lakot {
+class Lakot
+{
 private:
     Application* mApplication;
 

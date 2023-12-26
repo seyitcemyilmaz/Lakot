@@ -7,22 +7,26 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-struct KeyFramePosition {
+struct KeyFramePosition
+{
     glm::vec3 position;
     double timeStamp;
 };
 
-struct KeyFrameRotation {
+struct KeyFrameRotation
+{
     glm::quat rotation;
     double timeStamp;
 };
 
-struct KeyFrameScale {
+struct KeyFrameScale
+{
     glm::vec3 scale;
     double timeStamp;
 };
 
-class KeyFrameChannelResource {
+class KeyFrameChannelResource
+{
 private:
     std::string mNodeName;
 

@@ -6,17 +6,19 @@
 #include "../ModelResource.h"
 #include "../KeyFrameChannelResource.h"
 
-class AnimationLoader {
+class AnimationLoader
+{
 private:
-	ModelResource* mModelResource;
+    ModelResource* mModelResource;
 
-	const aiAnimation* mAnimation;
-	
-	void processKeyFrameChannel(aiNodeAnim* pAiKeyFrameChannel, KeyFrameChannelResource* pKeyFrameChannel);
+    const aiAnimation* mAnimation;
+
+    void processKeyFrameChannel(aiNodeAnim* pAiKeyFrameChannel, KeyFrameChannelResource* pKeyFrameChannel);
 
 public:
-	AnimationLoader(ModelResource* pModelResource, const aiAnimation* pAnimation);
-	AnimationResource* load();
+    virtual ~AnimationLoader();
+    AnimationLoader(ModelResource* pModelResource, const aiAnimation* pAnimation);
+    AnimationResource* load();
 };
 
 #endif

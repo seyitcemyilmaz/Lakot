@@ -3,7 +3,8 @@
 
 #include "resource/MaterialResource.h"
 
-class Material {
+class Material
+{
 private:
     MaterialResource* mMaterialResource;
 

@@ -7,7 +7,8 @@
 
 #include "resource/TextureResource.h"
 
-class TextureLoader {
+class TextureLoader
+{
 private:
     std::string mTexturePath;
     std::string mModelPath;

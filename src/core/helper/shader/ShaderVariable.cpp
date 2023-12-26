@@ -5,71 +5,90 @@
 #include "platform/Platform.h"
 
 ShaderVariable::ShaderVariable(const std::string& pName, ShaderVariableDataType pDataType)
-	: mName(pName)
-	, mDataType(pDataType) { }
+    : mName(pName)
+    , mDataType(pDataType)
+{
 
-const std::string& ShaderVariable::getName() const {
-	return mName;
 }
 
-void ShaderVariable::setLocation(int pLocation) {
-	mLocation = pLocation;
+const std::string& ShaderVariable::getName() const
+{
+    return mName;
 }
 
-int ShaderVariable::getLocation() const {
-	return mLocation;
+void ShaderVariable::setLocation(int pLocation)
+{
+    mLocation = pLocation;
 }
 
-void ShaderVariable::setBool(bool pValue) const {
-	if (mDataType != ShaderVariableDataType::eBool) {
-		throw "Invalid data type";
-	}
-
-	glUniform1i(mLocation, pValue);
+int ShaderVariable::getLocation() const
+{
+    return mLocation;
 }
 
-void ShaderVariable::setInt(int pValue) const {
-	if (mDataType != ShaderVariableDataType::eInt) {
-		throw "Invalid data type";
-	}
+void ShaderVariable::setBool(bool pValue) const
+{
+    if (mDataType != ShaderVariableDataType::eBool)
+    {
+        throw "Invalid data type";
+    }
 
-	glUniform1i(mLocation, pValue);
+    glUniform1i(mLocation, pValue);
 }
 
-void ShaderVariable::setVec3(const glm::vec3& pValue) const {
-	if (mDataType != ShaderVariableDataType::eVec3) {
-		throw "Invalid data type";
-	}
+void ShaderVariable::setInt(int pValue) const
+{
+    if (mDataType != ShaderVariableDataType::eInt)
+    {
+        throw "Invalid data type";
+    }
 
-	glUniform3fv(mLocation, 1, glm::value_ptr(pValue));
+    glUniform1i(mLocation, pValue);
 }
 
-void ShaderVariable::setMat4(const glm::mat4& pValue) const {
-	if (mDataType != ShaderVariableDataType::eMat4) {
-		throw "Invalid data type";
-	}
+void ShaderVariable::setVec3(const glm::vec3& pValue) const
+{
+    if (mDataType != ShaderVariableDataType::eVec3)
+    {
+        throw "Invalid data type";
+    }
 
-	glUniformMatrix4fv(mLocation, 1, false, glm::value_ptr(pValue));
+    glUniform3fv(mLocation, 1, glm::value_ptr(pValue));
 }
 
-void ShaderVariable::setMat4Array(const glm::mat4* pArray, unsigned int pCount) const {
-	if (mDataType != ShaderVariableDataType::eMat4Array) {
-		throw "Invalid data type";
-	}
+void ShaderVariable::setMat4(const glm::mat4& pValue) const
+{
+    if (mDataType != ShaderVariableDataType::eMat4)
+    {
+        throw "Invalid data type";
+    }
 
-	glUniformMatrix4fv(mLocation, pCount, GL_FALSE, glm::value_ptr(*pArray));
+    glUniformMatrix4fv(mLocation, 1, false, glm::value_ptr(pValue));
 }
 
-void ShaderVariable::setTexture(unsigned int pUnit, int pTextureId) const {
-	if (mDataType != ShaderVariableDataType::eSampler2D) {
-		throw "Invalid data type";
-	}
+void ShaderVariable::setMat4Array(const glm::mat4* pArray, unsigned int pCount) const
+{
+    if (mDataType != ShaderVariableDataType::eMat4Array)
+    {
+        throw "Invalid data type";
+    }
 
-	if (pTextureId == -1) {
-		throw "Invalid Texture ID.";
-	}
+    glUniformMatrix4fv(mLocation, pCount, GL_FALSE, glm::value_ptr(*pArray));
+}
 
-	glActiveTexture(GL_TEXTURE0 + pUnit);
-	glBindTexture(GL_TEXTURE_2D, pTextureId);
-	glUniform1i(mLocation, pUnit);
+void ShaderVariable::setTexture(unsigned int pUnit, int pTextureId) const
+{
+    if (mDataType != ShaderVariableDataType::eSampler2D)
+    {
+        throw "Invalid data type";
+    }
+
+    if (pTextureId == -1)
+    {
+        throw "Invalid Texture ID.";
+    }
+
+    glActiveTexture(GL_TEXTURE0 + pUnit);
+    glBindTexture(GL_TEXTURE_2D, pTextureId);
+    glUniform1i(mLocation, pUnit);
 }

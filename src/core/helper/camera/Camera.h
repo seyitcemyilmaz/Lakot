@@ -18,7 +18,8 @@
 #define LAKOT_CAMERA_MAX_PITCH				89.9
 #define LAKOT_CAMERA_MIN_PITCH				-89.9
 
-class Camera {
+class Camera
+{
 private:
     glm::vec3 mPosition;
 

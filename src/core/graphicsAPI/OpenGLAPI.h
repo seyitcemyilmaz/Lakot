@@ -6,7 +6,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-class OpenGLAPI : public GraphicsAPI {
+class OpenGLAPI : public GraphicsAPI
+{
 public:
     virtual ~OpenGLAPI();
     OpenGLAPI(GraphicsAPIMajor tGraphicsAPIMajor, GraphicsAPIMinor tGraphicsAPIMinor);

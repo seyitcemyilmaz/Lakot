@@ -3,7 +3,8 @@
 
 #include "core/helper/shader/IShader.h"
 
-class ShaderModel final : public IShader {
+class ShaderModel final : public IShader
+{
 public:
     virtual ~ShaderModel();
     ShaderModel(ShaderName pShaderName, const char* pVertexShaderFilePath, const char* pFragmentShaderFilePath);

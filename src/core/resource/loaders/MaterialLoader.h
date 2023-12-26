@@ -5,22 +5,23 @@
 
 #include "resource/ModelResource.h"
 
-class MaterialLoader {
+class MaterialLoader
+{
 private:
-	ModelResource* mModelResource;
+    ModelResource* mModelResource;
 
-	aiMaterial* mMaterial;
+    aiMaterial* mMaterial;
 
-	const aiScene* mScene;
+    const aiScene* mScene;
 
-	std::string mModelPath;
+    std::string mModelPath;
 
-	TextureResource* extractTexture(aiTextureType pAiTextureType);
+    TextureResource* extractTexture(aiTextureType pAiTextureType);
 
 public:
-	MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);
+    MaterialLoader(ModelResource* pModelResource, aiMaterial* pMaterial, const aiScene* pScene, const std::string& pModelPath);
 
-	MaterialResource* loadMaterial();
+    MaterialResource* loadMaterial();
 };
 
 #endif

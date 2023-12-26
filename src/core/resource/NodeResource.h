@@ -8,7 +8,8 @@
 #include "MeshResource.h"
 #include "BoneResource.h"
 
-class NodeResource {
+class NodeResource
+{
 private:
     std::string mName;
 

@@ -3,7 +3,8 @@
 
 #include "ModelResource.h"
 
-class ResourceManager {
+class ResourceManager
+{
 private:
     static ResourceManager* mInstance;
 

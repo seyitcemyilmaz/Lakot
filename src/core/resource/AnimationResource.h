@@ -3,7 +3,8 @@
 
 #include "KeyFrameChannelResource.h"
 
-class AnimationResource {
+class AnimationResource
+{
 private:
     std::string mName;
 

@@ -1,26 +1,26 @@
 #ifndef LAKOT_PLATFORM_H
 #define LAKOT_PLATFORM_H
 
-#define LAKOT_PLATFORM_NONE 0
-#define LAKOT_PLATFORM_WINDOWS 1
-#define LAKOT_PLATFORM_LINUX 2
-#define LAKOT_PLATFORM_ANDROID 3
+#define LAKOT_PLATFORM_NONE                     0
+#define LAKOT_PLATFORM_WINDOWS                  1
+#define LAKOT_PLATFORM_LINUX                    2
+#define LAKOT_PLATFORM_ANDROID                  3
 
-#define LAKOT_GRAPHICS_API_NONE 0
-#define LAKOT_GRAPHICS_API_OPENGL 1
-#define LAKOT_GRAPHICS_API_OPENGLES 2
+#define LAKOT_GRAPHICS_API_NONE                 0
+#define LAKOT_GRAPHICS_API_OPENGL               1
+#define LAKOT_GRAPHICS_API_OPENGLES             2
 //#define LAKOT_GRAPHICS_API_VULKAN				3
 //#define LAKOT_GRAPHICS_API_D3DX				4
 
 #if defined(WIN32) || defined(_WIN32)
-#define LAKOT_PLATFORM LAKOT_PLATFORM_WINDOWS
-#define LAKOT_GRAPHICS_API LAKOT_GRAPHICS_API_OPENGL
-#define LAKOT_GRAPHICS_API_VERSION_MAJOR 3
-#define LAKOT_GRAPHICS_API_VERSION_MINOR 3
+#define LAKOT_PLATFORM                          LAKOT_PLATFORM_WINDOWS
+#define LAKOT_GRAPHICS_API                      LAKOT_GRAPHICS_API_OPENGL
+#define LAKOT_GRAPHICS_API_VERSION_MAJOR        3
+#define LAKOT_GRAPHICS_API_VERSION_MINOR        3
 
-#define LAKOT_GLSL_VERSION "#version 330 core"
+#define LAKOT_GLSL_VERSION                      "#version 330 core"
 
-#define LAKOT_FILE_PATH_SEPARATOR "\\"
+#define LAKOT_FILE_PATH_SEPARATOR               "\\"
 
 #include <algorithm>
 #include <filesystem>
@@ -64,7 +64,8 @@
 #error "Shader header is not defined."
 #endif
 
-class Platform {
+class Platform
+{
 private:
     GraphicsAPI* mGraphicsAPI;
 

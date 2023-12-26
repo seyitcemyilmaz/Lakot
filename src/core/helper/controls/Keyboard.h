@@ -4,12 +4,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-struct Key {
+struct Key
+{
     bool isPressed;
     bool isStateChanged;
 };
 
-class Keyboard {
+class Keyboard
+{
 private:
     static Keyboard* mInstance;
 

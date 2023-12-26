@@ -1,7 +1,8 @@
 #ifndef LAKOT_GUI_H
 #define LAKOT_GUI_H
 
-class GUI {
+class GUI
+{
 private:
     bool mVisibility;
 

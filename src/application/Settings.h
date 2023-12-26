@@ -1,7 +1,8 @@
 #ifndef LAKOT_SETTINGS_H
 #define LAKOT_SETTINGS_H
 
-class Settings {
+class Settings
+{
 private:
     static Settings* mInstance;
 

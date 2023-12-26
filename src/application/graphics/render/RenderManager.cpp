@@ -18,6 +18,12 @@ RenderManager* RenderManager::getInstance()
     return mInstance;
 }
 
+RenderManager::RenderManager()
+{
+    mNearPlaneDistance = LAKOT_DEFAULT_NEAR_PLANE;
+    mFarPlaneDistance = LAKOT_DEFAULT_FAR_PLANE;
+}
+
 void RenderManager::render()
 {
     IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
@@ -28,12 +34,6 @@ void RenderManager::render()
 
     tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
     tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
-}
-
-RenderManager::RenderManager()
-{
-    mNearPlaneDistance = LAKOT_DEFAULT_NEAR_PLANE;
-    mFarPlaneDistance = LAKOT_DEFAULT_FAR_PLANE;
 }
 
 void RenderManager::renderGUI()

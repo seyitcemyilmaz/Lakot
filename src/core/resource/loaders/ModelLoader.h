@@ -5,7 +5,8 @@
 
 #include "resource/ModelResource.h"
 
-class ModelLoader {
+class ModelLoader
+{
 private:
     ModelResource* mModelResource;
 

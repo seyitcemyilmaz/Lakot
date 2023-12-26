@@ -30,7 +30,8 @@ enum class TextureType {
 };
 */
 
-class TextureResource {
+class TextureResource
+{
 private:
     unsigned int mTextureId;
     std::string mTexturePath;

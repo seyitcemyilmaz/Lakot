@@ -3,7 +3,8 @@
 
 #include "Model.h"
 
-class ModelFactory {
+class ModelFactory
+{
 private:
     ModelFactory();
 

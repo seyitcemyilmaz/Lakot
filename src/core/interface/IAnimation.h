@@ -1,19 +1,22 @@
 #ifndef LAKOT_IANIMATION_H
 #define LAKOT_IANIMATION_H
 
-enum class AnimationStatus {
+enum class AnimationStatus
+{
     eStop,
     ePlay,
     ePause
 };
 
-enum class AnimationPlayType {
+enum class AnimationPlayType
+{
     eNull,
     eOnlyOnce,
     eContinuously
 };
 
-class IAnimation {
+class IAnimation
+{
 public:
     IAnimation();
 

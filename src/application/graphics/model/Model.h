@@ -11,7 +11,8 @@
 #include "interface/ITransformable.h"
 #include "interface/IAnimated.h"
 
-class Model : public ITransformable, public IAnimated {
+class Model : public ITransformable, public IAnimated
+{
 private:
     ModelResource* mModelResource;
 

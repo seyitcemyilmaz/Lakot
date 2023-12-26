@@ -3,7 +3,8 @@
 
 #include <chrono>
 
-enum TimerType {
+enum TimerType
+{
     eNanoseconds,
     eMicroseconds,
     eMilliseconds,
@@ -12,7 +13,8 @@ enum TimerType {
     eHours
 };
 
-class Timer {
+class Timer
+{
 private:
     std::chrono::steady_clock::time_point mStartTime;
     std::chrono::steady_clock::time_point mStopTime;

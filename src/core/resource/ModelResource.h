@@ -9,7 +9,8 @@
 #include "MeshResource.h"
 #include "NodeResource.h"
 
-class ModelResource {
+class ModelResource
+{
 private:
     NodeResource* mRootNode;
 
