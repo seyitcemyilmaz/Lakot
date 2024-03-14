@@ -10,11 +10,6 @@
 #define LAKOT_DEFAULT_CAMERA_YAW			270.0
 #define LAKOT_DEFAULT_CAMERA_PITCH			0.0
 
-#define LAKOT_DEFAULT_CAMERA_ZOOM			45.0
-
-#define LAKOT_CAMERA_MIN_ZOOM				1.0
-#define LAKOT_CAMERA_MAX_ZOOM				45.0
-
 #define LAKOT_CAMERA_MAX_PITCH				89.9
 #define LAKOT_CAMERA_MIN_PITCH				-89.9
 
@@ -31,24 +26,22 @@ private:
 
     double mYaw;   // For x-axis
     double mPitch; // For y-axis
-
-    double mZoom;
-
 public:
     Camera(const glm::vec3& pPosition);
 
+    glm::mat4 getViewMatrix() const;
+
     void updateCameraVectors();
 
-    const glm::vec3& getPosition();
+    const glm::vec3& getPosition() const;
 
-    const glm::vec3& getFrontVector();
-    const glm::vec3& getUpVector();
-    const glm::vec3& getRightVector();
+    const glm::vec3& getFrontVector() const;
+    const glm::vec3& getUpVector() const;
+    const glm::vec3& getRightVector() const;
 
-    double getZoom();
+    void setPosition(const glm::vec3& pPosition);
 
     void changePosition(const glm::vec3& pAmount);
-    void changeZoom(double pAmount);
 
     void changeYaw(double pAmount);
     void changePitch(double pAmount);

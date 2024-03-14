@@ -27,7 +27,7 @@ private:
     std::vector<Animation*> mActiveAnimations;
 
 protected:
-    void calculateBoneTransformations(INode* pNode, const glm::mat4& tParentTransform) override;
+    void calculateBoneTransformations(INode* pNode, const glm::mat4& pParentTransform) override;
     void updateAnimations(double pTimeDifference) override;
 
     Node* getNode(const std::string& pNodeName);

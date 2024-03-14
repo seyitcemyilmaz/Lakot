@@ -4,7 +4,8 @@
 #include <string>
 
 /*
-enum class TextureType {
+enum class TextureType
+{
 	eNoneTexture,
 	eDiffuseTexture,
 	eSpecularTexture,

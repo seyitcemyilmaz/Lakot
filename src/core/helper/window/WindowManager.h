@@ -18,7 +18,7 @@ public:
 
     void updateWindow();
 
-    void* getWindow();
+    Window* getWindow();
 
     void setWindowBackgroundColor(glm::vec3 tWindowBackgroundColor);
     glm::vec3 getWindowBackgroundColor();

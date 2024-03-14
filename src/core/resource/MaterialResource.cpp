@@ -1,5 +1,10 @@
 #include "MaterialResource.h"
 
+MaterialResource::~MaterialResource()
+{
+
+}
+
 MaterialResource::MaterialResource(const glm::vec3& pDiffuseColor,
                                    const glm::vec3& pSpecularColor,
                                    const glm::vec3& pEmissiveColor,
@@ -12,9 +17,160 @@ MaterialResource::MaterialResource(const glm::vec3& pDiffuseColor,
     , mAmbientColor(pAmbientColor)
     , mShininess(pShininess)
     , mOpacity(pOpacity)
+    , mDiffuseTexture(nullptr)
+    , mSpecularTexture(nullptr)
+    , mAmbientTexture(nullptr)
+    , mEmissiveTexture(nullptr)
+    , mHeightTexture(nullptr)
+    , mNormalsTexture(nullptr)
+    , mShininessTexture(nullptr)
+    , mOpacityTexture(nullptr)
+    , mDisplacementTexture(nullptr)
+    , mLightmapTexture(nullptr)
+    , mReflectionTexture(nullptr)
+    , mBaseColorTexture(nullptr)
+    , mNormalCameraTexture(nullptr)
+    , mEmissionColorTexture(nullptr)
+    , mMetalnessTexture(nullptr)
+    , mDiffuseRoughnessTexture(nullptr)
+    , mAmbientOcclusionTexture(nullptr)
+    , mSheenTexture(nullptr)
+    , mClearcoatTexture(nullptr)
+    , mTransmissionTexture(nullptr)
 {
 
 }
+
+TextureResource* MaterialResource::getDiffuseTexture() const
+{
+    return mDiffuseTexture;
+}
+
+TextureResource* MaterialResource::getSpecularTexture() const
+{
+    return mSpecularTexture;
+}
+
+TextureResource* MaterialResource::getAmbientTexture() const
+{
+    return mAmbientTexture;
+}
+
+TextureResource* MaterialResource::getEmissiveTexture() const
+{
+    return mEmissiveTexture;
+}
+
+TextureResource* MaterialResource::getHeightTexture() const
+{
+    return mHeightTexture;
+}
+
+TextureResource* MaterialResource::getNormalsTexture() const
+{
+    return mNormalsTexture;
+}
+
+TextureResource* MaterialResource::getShininessTexture() const
+{
+    return mShininessTexture;
+}
+
+TextureResource* MaterialResource::getOpacityTexture() const
+{
+    return mOpacityTexture;
+}
+
+TextureResource* MaterialResource::getDisplacementTexture() const
+{
+    return mDisplacementTexture;
+}
+
+TextureResource* MaterialResource::getLightmapTexture() const
+{
+    return mLightmapTexture;
+}
+
+TextureResource* MaterialResource::getReflectionTexture() const
+{
+    return mReflectionTexture;
+}
+
+TextureResource* MaterialResource::getBaseColorTexture() const
+{
+    return mBaseColorTexture;
+}
+
+TextureResource* MaterialResource::getNormalCameraTexture() const
+{
+    return mNormalCameraTexture;
+}
+
+TextureResource* MaterialResource::getEmissionColorTexture() const
+{
+    return mEmissionColorTexture;
+}
+
+TextureResource* MaterialResource::getMetalnessTexture() const
+{
+    return mMetalnessTexture;
+}
+
+TextureResource* MaterialResource::getDiffuseRoughnessTexture() const
+{
+    return mDiffuseRoughnessTexture;
+}
+
+TextureResource* MaterialResource::getAmbientOcclusionTexture() const
+{
+    return mAmbientOcclusionTexture;
+}
+
+TextureResource* MaterialResource::getSheenTexture() const
+{
+    return mSheenTexture;
+}
+
+TextureResource* MaterialResource::getClearcoatTexture() const
+{
+    return mClearcoatTexture;
+}
+
+TextureResource* MaterialResource::getTransmissionTexture() const
+{
+    return mTransmissionTexture;
+}
+
+const glm::vec3& MaterialResource::getDiffuseColor() const
+{
+    return mDiffuseColor;
+}
+
+const glm::vec3& MaterialResource::getSpecularColor() const
+{
+    return mSpecularColor;
+}
+
+const glm::vec3& MaterialResource::getEmissiveColor() const
+{
+    return mEmissiveColor;
+}
+
+const glm::vec3& MaterialResource::getAmbientColor() const
+{
+    return mAmbientColor;
+}
+
+float MaterialResource::getShininess()
+{
+    return mShininess;
+}
+
+float MaterialResource::getOpacity()
+{
+    return mOpacity;
+}
+
 
 void MaterialResource::setDiffuseTexture(TextureResource* pTextureResource)
 {
@@ -114,134 +270,4 @@ void MaterialResource::setClearcoatTexture(TextureResource* pTextureResource)
 void MaterialResource::setTransmissionTexture(TextureResource* pTextureResource)
 {
     mTransmissionTexture = pTextureResource;
-}
-
-TextureResource* MaterialResource::getDiffuseTexture()
-{
-    return mDiffuseTexture;
-}
-
-TextureResource* MaterialResource::getSpecularTexture()
-{
-    return mSpecularTexture;
-}
-
-TextureResource* MaterialResource::getAmbientTexture()
-{
-    return mAmbientTexture;
-}
-
-TextureResource* MaterialResource::getEmissiveTexture()
-{
-    return mEmissiveTexture;
-}
-
-TextureResource* MaterialResource::getHeightTexture()
-{
-    return mHeightTexture;
-}
-
-TextureResource* MaterialResource::getNormalsTexture()
-{
-    return mNormalsTexture;
-}
-
-TextureResource* MaterialResource::getShininessTexture()
-{
-    return mShininessTexture;
-}
-
-TextureResource* MaterialResource::getOpacityTexture()
-{
-    return mOpacityTexture;
-}
-
-TextureResource* MaterialResource::getDisplacementTexture()
-{
-    return mDisplacementTexture;
-}
-
-TextureResource* MaterialResource::getLightmapTexture()
-{
-    return mLightmapTexture;
-}
-
-TextureResource* MaterialResource::getReflectionTexture()
-{
-    return mReflectionTexture;
-}
-
-TextureResource* MaterialResource::getBaseColorTexture()
-{
-    return mBaseColorTexture;
-}
-
-TextureResource* MaterialResource::getNormalCameraTexture()
-{
-    return mNormalCameraTexture;
-}
-
-TextureResource* MaterialResource::getEmissionColorTexture()
-{
-    return mEmissionColorTexture;
-}
-
-TextureResource* MaterialResource::getMetalnessTexture()
-{
-    return mMetalnessTexture;
-}
-
-TextureResource* MaterialResource::getDiffuseRoughnessTexture()
-{
-    return mDiffuseRoughnessTexture;
-}
-
-TextureResource* MaterialResource::getAmbientOcclusionTexture()
-{
-    return mAmbientOcclusionTexture;
-}
-
-TextureResource* MaterialResource::getSheenTexture()
-{
-    return mSheenTexture;
-}
-
-TextureResource* MaterialResource::getClearcoatTexture()
-{
-    return mClearcoatTexture;
-}
-
-TextureResource* MaterialResource::getTransmissionTexture()
-{
-    return mTransmissionTexture;
-}
-
-const glm::vec3& MaterialResource::getDiffuseColor()
-{
-    return mDiffuseColor;
-}
-
-const glm::vec3& MaterialResource::getSpecularColor()
-{
-    return mSpecularColor;
-}
-
-const glm::vec3& MaterialResource::getEmissiveColor()
-{
-    return mEmissiveColor;
-}
-
-const glm::vec3& MaterialResource::getAmbientColor()
-{
-    return mAmbientColor;
-}
-
-float MaterialResource::getShininess()
-{
-    return mShininess;
-}
-
-float MaterialResource::getOpacity()
-{
-    return mOpacity;
 }

@@ -4,34 +4,37 @@
 #include <glm/glm.hpp>
 
 #include "../model/Model.h"
-#include "helper/shader/IShader.h"
-
-#define LAKOT_DEFAULT_FAR_PLANE				1000000.0
-#define LAKOT_DEFAULT_NEAR_PLANE			0.30
+#include "helper/shader/ShaderProgram.h"
+#include "../particle/ParticleRenderer.h"
+#include "../scene/Scene.h"
 
 class RenderManager
 {
-private:
-    static RenderManager* mInstance;
-
-    double mFarPlaneDistance;
-    double mNearPlaneDistance;
-
-    glm::mat4 getProjectionMatrix();
-    glm::mat4 getViewMatrix();
-
-    RenderManager();
-
-    void renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader);
-    void useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader);
-
 public:
     static RenderManager* getInstance();
 
-    void render();
+    void renderScene(Scene* pScene);
 
     void renderGUI();
-    void renderModel(Model* pModel, IShader* pShader);
+
+    void renderParticles(const std::vector<Particle*>& pParticles, ShaderProgram* pShaderProgrma);
+
+private:
+    static RenderManager* mInstance;
+
+    ParticleRenderer* mParticleRenderer;
+
+    RenderManager();
+
+    void renderModel(Model* pModel, ShaderProgram* pShaderProgram);
+    void renderMesh(Model* pModel, Mesh* pMesh, ShaderProgram* pShaderProgram);
+    void useMaterial(Model* pModel, Mesh* pMesh, ShaderProgram* pShaderProgram);
+
+    void renderModels(const std::vector<Model*> pModels,
+                      const glm::mat4& pProjectionMatrix,
+                      const glm::mat4& pViewMatrix);
+
+
 };
 
 #endif

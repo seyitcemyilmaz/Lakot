@@ -101,7 +101,11 @@ void GLFWWindow::frameBufferSizeCallback(GLFWwindow* pWindow, int pWidth, int pH
     tWindowObject->setWindowWidth(pWidth);
     tWindowObject->setWindowHeight(pHeight);
 
-    glViewport(0, 0, pWidth, pHeight);
+    // TODO: Check !!!
+    if (tWindowObject->mOnResizeFunction)
+    {
+        tWindowObject->mOnResizeFunction(tWindowObject, pWidth, pHeight);
+    }
 
     spdlog::info("Window is resized. Width: {0}  Height: {1}", pWidth, pHeight);
 }

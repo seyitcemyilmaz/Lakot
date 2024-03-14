@@ -1,22 +1,12 @@
 #ifndef LAKOT_WINDOW_H
 #define LAKOT_WINDOW_H
 
+#include <functional>
+
 #include <glm/glm.hpp>
 
-class Window {
-protected:
-    const char* mWindowTitle;
-
-    int mWindowWidth;
-    int mWindowHeight;
-
-    bool mIsWindowActive;
-    bool mIsWindowFocused;
-
-    glm::vec3 mWindowBackgroundColor;
-
-    Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor);
-
+class Window
+{
 public:
     virtual ~Window();
 
@@ -42,6 +32,23 @@ public:
     bool getIsWindowFocused();
 
     const glm::vec3& getWindowBackgroundColor();
+
+    void setOnResize(std::function<void (Window*, double, double)> pOnResizeFunction);
+
+protected:
+    const char* mWindowTitle;
+
+    int mWindowWidth;
+    int mWindowHeight;
+
+    bool mIsWindowActive;
+    bool mIsWindowFocused;
+
+    glm::vec3 mWindowBackgroundColor;
+
+    std::function<void (Window*, double, double)> mOnResizeFunction;
+
+    Window(const char* pWindowTitle, int pWindowWidth, int pWindowHeight, const glm::vec3& pWindowBackgroundColor);
 };
 
 #endif

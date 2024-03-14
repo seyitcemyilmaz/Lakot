@@ -1,10 +1,11 @@
 #include "RenderManager.h"
 
+#include <spdlog/spdlog.h>
+#include <core/helper/GLMConverter.h>
+
 #include "platform/Platform.h"
 
-#include "core/helper/camera/CameraManager.h"
 #include "core/helper/shader/ShaderManager.h"
-#include "core/helper/window/WindowManager.h"
 
 RenderManager* RenderManager::mInstance = nullptr;
 
@@ -18,22 +19,21 @@ RenderManager* RenderManager::getInstance()
     return mInstance;
 }
 
-RenderManager::RenderManager()
+void RenderManager::renderScene(Scene* pScene)
 {
-    mNearPlaneDistance = LAKOT_DEFAULT_NEAR_PLANE;
-    mFarPlaneDistance = LAKOT_DEFAULT_FAR_PLANE;
-}
+    Projection* tProjection = pScene->getProjection();
 
-void RenderManager::render()
-{
-    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
-    ShaderManager::getInstance()->bindShader(tShader);
+    glViewport(tProjection->getX(),
+               tProjection->getY(),
+               tProjection->getWidth(),
+               tProjection->getHeight());
 
-    const glm::mat4& tProjectionMatrix = getProjectionMatrix();
-    const glm::mat4& tViewMatrix = getViewMatrix();
+    const glm::mat4& tProjectionMatrix = tProjection->getProjectionMatrix();
+    const glm::mat4& tViewMatrix = pScene->getCamera()->getViewMatrix();
 
-    tShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
-    tShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
+    const std::vector<Model*> pModels = pScene->getModels();
+
+    renderModels(pModels, tProjectionMatrix, tViewMatrix);
 }
 
 void RenderManager::renderGUI()
@@ -41,64 +41,41 @@ void RenderManager::renderGUI()
     // TODO: Add gui render
 }
 
-glm::mat4 RenderManager::getProjectionMatrix()
-{
-    Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
-    double tZoom = tActiveCamera->getZoom();
-
-    int tWindowHeight = WindowManager::getInstance()->getWindowHeight();
-    int tWindowWidth = WindowManager::getInstance()->getWindowWidth();
-
-    return glm::perspective(glm::radians(tZoom), (double) tWindowWidth / (double) tWindowHeight, mNearPlaneDistance, mFarPlaneDistance);
-}
-
-glm::mat4 RenderManager::getViewMatrix()
-{
-    Camera* tActiveCamera = CameraManager::getInstance()->getActiveCamera();
-
-    glm::vec3 tCameraPosition = tActiveCamera->getPosition();
-    glm::vec3 tCameraFront = tActiveCamera->getFrontVector();
-    glm::vec3 tCameraUp = tActiveCamera->getUpVector();
-
-    return glm::lookAt(tCameraPosition, tCameraPosition + tCameraFront, tCameraUp);
-}
-
-void RenderManager::renderModel(Model* pModel, IShader* pShader)
+void RenderManager::renderModel(Model* pModel, ShaderProgram* pShaderProgram)
 {
     const std::vector<Mesh*> pMeshes = pModel->getMeshes();
     unsigned int tMeshCount = pModel->getMeshCount();
 
     for (unsigned int i = 0; i < tMeshCount; i++)
     {
-        renderMesh(pModel, pMeshes[i], pShader);
+        renderMesh(pModel, pMeshes[i], pShaderProgram);
     }
 }
 
-void RenderManager::renderMesh(Model* pModel, Mesh* pMesh, IShader* pShader)
+void RenderManager::renderMesh(Model* pModel, Mesh* pMesh, ShaderProgram* pShaderProgram)
 {
-    useMaterial(pModel, pMesh, pShader);
+    useMaterial(pModel, pMesh, pShaderProgram);
 
     if (pMesh->getHasBone() && pModel->getHasActiveAnimation())
     {
-        pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(1);
+        pShaderProgram->setInt("animationType", 1);
 
         const std::vector<glm::mat4>& tBoneMatrices = pModel->getBoneMatrices();
-        pShader->getShaderVariable(ShaderVariableName::eBoneTransformations)
-            ->setMat4Array(tBoneMatrices.data(), static_cast<unsigned int>(tBoneMatrices.size()));
+        pShaderProgram->setMat4Array("boneTransformations", tBoneMatrices.data(), static_cast<unsigned int>(tBoneMatrices.size()));
 
-        pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+        pShaderProgram->setMat4("model", pModel->getModelMatrix() * pMesh->getTransformationMatrix());
     }
     else
     {
-        pShader->getShaderVariable(ShaderVariableName::eAnimationType)->setInt(0);
-        pShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(pModel->getModelMatrix() * pMesh->getTransformationMatrix());
+        pShaderProgram->setInt("animationType", 0);
+        pShaderProgram->setMat4("model", pModel->getModelMatrix() * pMesh->getTransformationMatrix());
     }
 
     glBindVertexArray(pMesh->getMeshResource()->getVAO());
     glDrawElements(GL_TRIANGLES, pMesh->getMeshResource()->getIndiceCount(), GL_UNSIGNED_INT, nullptr);
 }
 
-void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
+void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, ShaderProgram* pShaderProgram)
 {
     MaterialResource* tMaterialResource = pModel->getModelResource()->getMaterialResource(pMesh->getMaterialIndex());
 
@@ -110,13 +87,13 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tDiffuseTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eDiffuseTexture)->setTexture(tUnit++, tDiffuseTexture->getTextureId());
+            pShaderProgram->setBool("material.hasDiffuseTexture", true);
+            pShaderProgram->setTexture("material.diffuseTexture", tUnit++, tDiffuseTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasDiffuseTexture)->setBool(false);
-            pShader->getShaderVariable(ShaderVariableName::eDiffuseColor)->setVec3(tMaterialResource->getDiffuseColor());
+            pShaderProgram->setBool("material.hasDiffuseTexture", false);
+            pShaderProgram->setVec3("material.diffuseColor", tMaterialResource->getDiffuseColor());
             tUnit++;
         }
 
@@ -124,12 +101,12 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tNormalsTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eNormalsTexture)->setTexture(tUnit++, tNormalsTexture->getTextureId());
+            pShaderProgram->setBool("material.hasNormalsTexture", true);
+            pShaderProgram->setTexture("material.normalsTexture", tUnit++, tNormalsTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasNormalsTexture)->setBool(false);
+            pShaderProgram->setBool("material.hasNormalsTexture", false);
             tUnit++;
         }
 
@@ -137,13 +114,13 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tSpecularTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eSpecularTexture)->setTexture(tUnit++, tSpecularTexture->getTextureId());
+            pShaderProgram->setBool("material.hasSpecularTexture", true);
+            pShaderProgram->setTexture("material.specularTexture", tUnit++, tSpecularTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasSpecularTexture)->setBool(false);
-            pShader->getShaderVariable(ShaderVariableName::eSpecularColor)->setVec3(tMaterialResource->getSpecularColor());
+            pShaderProgram->setBool("material.hasSpecularTexture", false);
+            pShaderProgram->setVec3("material.specularColor", tMaterialResource->getSpecularColor());
             tUnit++;
         }
 
@@ -151,13 +128,13 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tEmissiveTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eEmissiveTexture)->setTexture(tUnit++, tEmissiveTexture->getTextureId());
+            pShaderProgram->setBool("material.hasEmissiveTexture", true);
+            pShaderProgram->setTexture("material.emissiveTexture", tUnit++, tEmissiveTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasEmissiveTexture)->setBool(false);
-            pShader->getShaderVariable(ShaderVariableName::eEmissiveColor)->setVec3(tMaterialResource->getEmissiveColor());
+            pShaderProgram->setBool("material.hasEmissiveTexture", false);
+            pShaderProgram->setVec3("material.emissiveColor", tMaterialResource->getEmissiveColor());
             tUnit++;
         }
 
@@ -165,13 +142,13 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tAmbientTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eAmbientTexture)->setTexture(tUnit++, tAmbientTexture->getTextureId());
+            pShaderProgram->setBool("material.hasAmbientTexture", true);
+            pShaderProgram->setTexture("material.ambientTexture", tUnit++, tAmbientTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasAmbientTexture)->setBool(false);
-            pShader->getShaderVariable(ShaderVariableName::eAmbientColor)->setVec3(tMaterialResource->getAmbientColor());
+            pShaderProgram->setBool("material.hasAmbientTexture", false);
+            pShaderProgram->setVec3("material.ambientColor", tMaterialResource->getAmbientColor());
             tUnit++;
         }
 
@@ -179,13 +156,58 @@ void RenderManager::useMaterial(Model* pModel, Mesh* pMesh, IShader* pShader)
 
         if (tMetalnessTexture)
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(true);
-            pShader->getShaderVariable(ShaderVariableName::eMetalnessTexture)->setTexture(tUnit++, tMetalnessTexture->getTextureId());
+            pShaderProgram->setBool("material.hasMetalnessTexture", true);
+            pShaderProgram->setTexture("material.metalnessTexture", tUnit++, tMetalnessTexture->getTextureId());
         }
         else
         {
-            pShader->getShaderVariable(ShaderVariableName::eHasMetalnessTexture)->setBool(false);
+            pShaderProgram->setBool("material.hasMetalnessTexture", false);
             tUnit++;
         }
     }
+}
+
+void RenderManager::renderModels(const std::vector<Model*> pModels,
+                                 const glm::mat4& pProjectionMatrix,
+                                 const glm::mat4& pViewMatrix)
+{
+    ShaderProgram* tShader = ShaderManager::getInstance()->getShaderProgram("model");
+    ShaderManager::getInstance()->bindShaderProgram(tShader);
+
+    tShader->setMat4("projection", pProjectionMatrix);
+    tShader->setMat4("view", pViewMatrix);
+
+    for (unsigned int i = 0; i < pModels.size(); i++)
+    {
+        const glm::mat4& tModelMatrix = pModels[i]->getModelMatrix();
+        tShader->setMat4("model", tModelMatrix);
+        renderModel(pModels[i], tShader);
+    }
+}
+
+void RenderManager::renderParticles(const std::vector<Particle*>& pParticles, ShaderProgram* pShaderProgram)
+{
+    // glm::mat4 tProjectionMatrix = getProjectionMatrix();
+    // glm::mat4 tViewMatrix = getViewMatrix();
+
+    // ShaderManager::getInstance()->bindShader(pShader);
+
+    // pShader->getShaderVariable(ShaderVariableName::eProjection)->setMat4(tProjectionMatrix);
+    // pShader->getShaderVariable(ShaderVariableName::eView)->setMat4(tViewMatrix);
+
+    // for (unsigned int i = 0; i < pParticles.size(); i++)
+    // {
+    //     Particle* tParticle = pParticles[i];
+
+    //     if (tParticle->getIsActive())
+    //     {
+    //         const glm::vec3& tPosition = tParticle->getPosition();
+    //     }
+    // }
+}
+
+RenderManager::RenderManager()
+    : mParticleRenderer(nullptr)
+{
+
 }

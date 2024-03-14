@@ -33,7 +33,7 @@ void WindowsPlatform::run()
         mProcessInputsFunction();
         tWindowManager->updateWindow();
         mRenderFunction();
-        glfwSwapBuffers(static_cast<GLFWwindow*>(tWindowManager->getWindow()));
+        glfwSwapBuffers(static_cast<GLFWwindow*>(tWindowManager->getWindow()->getWindowInstance()));
         glfwPollEvents();
     }
 }

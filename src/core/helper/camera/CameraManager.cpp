@@ -1,17 +1,5 @@
 #include "CameraManager.h"
 
-CameraManager* CameraManager::mInstance = nullptr;
-
-CameraManager* CameraManager::getInstance()
-{
-    if (!mInstance)
-    {
-        mInstance = new CameraManager();
-    }
-
-    return mInstance;
-}
-
 CameraManager::CameraManager()
 {
     mCameraMovementSpeed = LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED;
@@ -130,16 +118,4 @@ void CameraManager::updateActiveCameraDirection(double pDX, double pDY)
     tActiveCamera->changePitch(pDY);
 
     tActiveCamera->updateCameraVectors();
-}
-
-void CameraManager::updateActiveCameraZoom(double pAmount)
-{
-    Camera* tActiveCamera = getActiveCamera();
-
-    if (!tActiveCamera)
-    {
-        return;
-    }
-
-    tActiveCamera->changeZoom(pAmount);
 }

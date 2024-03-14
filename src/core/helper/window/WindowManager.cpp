@@ -38,9 +38,9 @@ void WindowManager::updateWindow()
     mActiveWindow->updateWindow();
 }
 
-void* WindowManager::getWindow()
+Window* WindowManager::getWindow()
 {
-    return mActiveWindow->getWindowInstance();
+    return mActiveWindow;
 }
 
 void WindowManager::setWindowBackgroundColor(glm::vec3 pWindowBackgroundColor)

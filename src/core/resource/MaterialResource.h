@@ -1,5 +1,5 @@
-#ifndef MATERIALRESOURCE_H
-#define MATERIALRESOURCE_H
+#ifndef LAKOT_MATERIALRESOURCE_H
+#define LAKOT_MATERIALRESOURCE_H
 
 #include <glm/glm.hpp>
 
@@ -7,35 +7,44 @@
 
 class MaterialResource
 {
-private:
-    TextureResource* mDiffuseTexture = nullptr;
-    TextureResource* mSpecularTexture = nullptr;
-    TextureResource* mAmbientTexture = nullptr;
-    TextureResource* mEmissiveTexture = nullptr;
-    TextureResource* mHeightTexture = nullptr;
-    TextureResource* mNormalsTexture = nullptr;
-    TextureResource* mShininessTexture = nullptr;
-    TextureResource* mOpacityTexture = nullptr;
-    TextureResource* mDisplacementTexture = nullptr;
-    TextureResource* mLightmapTexture = nullptr;
-    TextureResource* mReflectionTexture = nullptr;
-    TextureResource* mBaseColorTexture = nullptr;
-    TextureResource* mNormalCameraTexture = nullptr;
-    TextureResource* mEmissionColorTexture = nullptr;
-    TextureResource* mMetalnessTexture = nullptr;
-    TextureResource* mDiffuseRoughnessTexture = nullptr;
-    TextureResource* mAmbientOcclusionTexture = nullptr;
-    TextureResource* mSheenTexture = nullptr;
-    TextureResource* mClearcoatTexture = nullptr;
-    TextureResource* mTransmissionTexture = nullptr;
+public:
+    virtual ~MaterialResource();
+    MaterialResource(
+        const glm::vec3& pDiffuseColor,
+        const glm::vec3& pSpecularColor,
+        const glm::vec3& pEmissiveColor,
+        const glm::vec3& pAmbientColor,
+        float pShininess,
+        float pOpacity);
 
-    glm::vec3 mDiffuseColor;
-    glm::vec3 mSpecularColor;
-    glm::vec3 mEmissiveColor;
-    glm::vec3 mAmbientColor;
+    TextureResource* getDiffuseTexture() const;
+    TextureResource* getSpecularTexture() const;
+    TextureResource* getAmbientTexture() const;
+    TextureResource* getEmissiveTexture() const;
+    TextureResource* getHeightTexture() const;
+    TextureResource* getNormalsTexture() const;
+    TextureResource* getShininessTexture() const;
+    TextureResource* getOpacityTexture() const;
+    TextureResource* getDisplacementTexture() const;
+    TextureResource* getLightmapTexture() const;
+    TextureResource* getReflectionTexture() const;
+    TextureResource* getBaseColorTexture() const;
+    TextureResource* getNormalCameraTexture() const;
+    TextureResource* getEmissionColorTexture() const;
+    TextureResource* getMetalnessTexture() const;
+    TextureResource* getDiffuseRoughnessTexture() const;
+    TextureResource* getAmbientOcclusionTexture() const;
+    TextureResource* getSheenTexture() const;
+    TextureResource* getClearcoatTexture() const;
+    TextureResource* getTransmissionTexture() const;
 
-    float mShininess;
-    float mOpacity;
+    const glm::vec3& getDiffuseColor() const;
+    const glm::vec3& getSpecularColor() const;
+    const glm::vec3& getEmissiveColor() const;
+    const glm::vec3& getAmbientColor() const;
+
+    float getShininess();
+    float getOpacity();
 
 protected:
     void setDiffuseTexture(TextureResource* pTextureResource);
@@ -61,43 +70,35 @@ protected:
 
     friend class MaterialLoader;
 
-public:
-    MaterialResource(
-        const glm::vec3& pDiffuseColor,
-        const glm::vec3& pSpecularColor,
-        const glm::vec3& pEmissiveColor,
-        const glm::vec3& pAmbientColor,
-        float pShininess,
-        float pOpacity);
+private:
+    glm::vec3 mDiffuseColor;
+    glm::vec3 mSpecularColor;
+    glm::vec3 mEmissiveColor;
+    glm::vec3 mAmbientColor;
 
-    TextureResource* getDiffuseTexture();
-    TextureResource* getSpecularTexture();
-    TextureResource* getAmbientTexture();
-    TextureResource* getEmissiveTexture();
-    TextureResource* getHeightTexture();
-    TextureResource* getNormalsTexture();
-    TextureResource* getShininessTexture();
-    TextureResource* getOpacityTexture();
-    TextureResource* getDisplacementTexture();
-    TextureResource* getLightmapTexture();
-    TextureResource* getReflectionTexture();
-    TextureResource* getBaseColorTexture();
-    TextureResource* getNormalCameraTexture();
-    TextureResource* getEmissionColorTexture();
-    TextureResource* getMetalnessTexture();
-    TextureResource* getDiffuseRoughnessTexture();
-    TextureResource* getAmbientOcclusionTexture();
-    TextureResource* getSheenTexture();
-    TextureResource* getClearcoatTexture();
-    TextureResource* getTransmissionTexture();
+    float mShininess;
+    float mOpacity;
 
-    const glm::vec3& getDiffuseColor();
-    const glm::vec3& getSpecularColor();
-    const glm::vec3& getEmissiveColor();
-    const glm::vec3& getAmbientColor();
-
-    float getShininess();
-    float getOpacity();
+    TextureResource* mDiffuseTexture;
+    TextureResource* mSpecularTexture;
+    TextureResource* mAmbientTexture;
+    TextureResource* mEmissiveTexture;
+    TextureResource* mHeightTexture;
+    TextureResource* mNormalsTexture;
+    TextureResource* mShininessTexture;
+    TextureResource* mOpacityTexture;
+    TextureResource* mDisplacementTexture;
+    TextureResource* mLightmapTexture;
+    TextureResource* mReflectionTexture;
+    TextureResource* mBaseColorTexture;
+    TextureResource* mNormalCameraTexture;
+    TextureResource* mEmissionColorTexture;
+    TextureResource* mMetalnessTexture;
+    TextureResource* mDiffuseRoughnessTexture;
+    TextureResource* mAmbientOcclusionTexture;
+    TextureResource* mSheenTexture;
+    TextureResource* mClearcoatTexture;
+    TextureResource* mTransmissionTexture;
 };
 
 #endif

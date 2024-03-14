@@ -13,52 +13,53 @@ ShaderManager* ShaderManager::getInstance()
 }
 
 ShaderManager::ShaderManager()
-    : mActiveShader(nullptr)
+    : mActiveShaderProgram(nullptr)
 {
 
 }
 
-void ShaderManager::addShader(IShader* pShader)
+ShaderProgram* ShaderManager::getShaderProgram(const std::string& pShaderProgramName)
 {
-    mShaders.push_back(pShader);
-}
-
-void ShaderManager::bindShader(IShader* pShader)
-{
-    if (mActiveShader != pShader)
+    for (size_t i = 0; i < mShaderPrograms.size(); i++)
     {
-        pShader->bind();
-        mActiveShader = pShader;
-    }
-}
-
-IShader* ShaderManager::getShader(ShaderName pShaderName)
-{
-    for (size_t i = 0; i < mShaders.size(); i++)
-    {
-        if (mShaders[i]->getShaderName() == pShaderName)
+        if (mShaderPrograms[i]->getName() == pShaderProgramName)
         {
-            return mShaders[i];
+            return mShaderPrograms[i];
         }
     }
 
     throw "Invalid shader";
 }
 
-void ShaderManager::setActiveShaderNull()
+void ShaderManager::addShaderProgram(ShaderProgram* pShaderProgram)
 {
-    mActiveShader = nullptr;
+    mShaderPrograms.push_back(pShaderProgram);
+    pShaderProgram->init();
 }
 
-void ShaderManager::deleteShaders()
+void ShaderManager::bindShaderProgram(ShaderProgram* pShaderProgram)
 {
-    for (auto tShaderElement = mShaders.begin(); tShaderElement != mShaders.end(); tShaderElement++)
+    if (mActiveShaderProgram != pShaderProgram)
     {
-        IShader* tShader = *tShaderElement;
-        delete tShader;
+        pShaderProgram->bind();
+        mActiveShaderProgram = pShaderProgram;
+    }
+}
+
+void ShaderManager::deleteShaderPrograms()
+{
+    for (auto tIterator = mShaderPrograms.begin(); tIterator != mShaderPrograms.end(); tIterator++)
+    {
+        ShaderProgram* tShaderProgram = *tIterator;
+        delete tShaderProgram;
     }
 
-    mShaders.clear();
+    mShaderPrograms.clear();
 
     setActiveShaderNull();
+}
+
+void ShaderManager::setActiveShaderNull()
+{
+    mActiveShaderProgram = nullptr;
 }

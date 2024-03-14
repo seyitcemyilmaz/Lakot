@@ -7,29 +7,29 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "IShader.h"
+#include "ShaderProgram.h"
 
 class ShaderManager
 {
+public:
+    static ShaderManager* getInstance();
+
+    ShaderProgram* getShaderProgram(const std::string& pShaderProgramName);
+
+    void addShaderProgram(ShaderProgram* pShaderProgram);
+    void bindShaderProgram(ShaderProgram* pShaderProgram);
+
+    void deleteShaderPrograms();
+
 private:
     static ShaderManager* mInstance;
 
-    std::vector<IShader*> mShaders;
-    IShader* mActiveShader;
+    std::vector<ShaderProgram*> mShaderPrograms;
+    ShaderProgram* mActiveShaderProgram;
 
     void setActiveShaderNull();
 
     ShaderManager();
-
-public:
-    static ShaderManager* getInstance();
-
-    IShader* getShader(ShaderName pShaderName);
-
-    void addShader(IShader* pShader);
-    void bindShader(IShader* pShader);
-
-    void deleteShaders();
 };
 
 #endif

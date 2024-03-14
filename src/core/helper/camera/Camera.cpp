@@ -6,9 +6,13 @@ Camera::Camera(const glm::vec3& pPosition)
     , mWorldUp(LAKOT_CAMERA_WORLD_UP)
     , mYaw(LAKOT_DEFAULT_CAMERA_YAW)
     , mPitch(LAKOT_DEFAULT_CAMERA_PITCH)
-    , mZoom(LAKOT_DEFAULT_CAMERA_ZOOM)
 {
     updateCameraVectors();
+}
+
+glm::mat4 Camera::getViewMatrix() const
+{
+    return glm::lookAt(mPosition, mPosition + mFrontVector, mUpVector);
 }
 
 void Camera::updateCameraVectors()
@@ -20,49 +24,34 @@ void Camera::updateCameraVectors()
     mUpVector = glm::normalize(glm::cross(mRightVector, mFrontVector));
 }
 
-const glm::vec3& Camera::getPosition()
+const glm::vec3& Camera::getPosition() const
 {
     return mPosition;
 }
 
-const glm::vec3& Camera::getFrontVector()
+const glm::vec3& Camera::getFrontVector() const
 {
     return mFrontVector;
 }
 
-const glm::vec3& Camera::getUpVector()
+const glm::vec3& Camera::getUpVector() const
 {
     return mUpVector;
 }
 
-const glm::vec3& Camera::getRightVector()
+const glm::vec3& Camera::getRightVector() const
 {
     return mRightVector;
 }
 
-double Camera::getZoom()
+void Camera::setPosition(const glm::vec3& pPosition)
 {
-    return mZoom;
+    mPosition = pPosition;
 }
 
 void Camera::changePosition(const glm::vec3& pAmount)
 {
     mPosition += pAmount;
-}
-
-void Camera::changeZoom(double pAmount)
-{
-    mZoom -= pAmount;
-
-    if (mZoom < LAKOT_CAMERA_MIN_ZOOM)
-    {
-        mZoom = LAKOT_CAMERA_MIN_ZOOM;
-    }
-
-    if (mZoom > LAKOT_CAMERA_MAX_ZOOM)
-    {
-        mZoom = LAKOT_CAMERA_MAX_ZOOM;
-    }
 }
 
 void Camera::changeYaw(double pAmount)

@@ -65,3 +65,8 @@ const glm::vec3& Window::getWindowBackgroundColor()
 {
     return mWindowBackgroundColor;
 }
+
+void Window::setOnResize(std::function<void (Window*, double, double)> pOnResizeFunction)
+{
+    mOnResizeFunction = pOnResizeFunction;
+}

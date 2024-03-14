@@ -4,73 +4,112 @@
 
 #include "core/resource/ResourceManager.h"
 #include "core/helper/FileManager.h"
-#include "core/helper/camera/CameraManager.h"
 #include "core/helper/shader/ShaderManager.h"
 #include "core/helper/window/WindowManager.h"
 
 #include "platform/PlatformFactory.h"
 
 #include "application/graphics/model/ModelFactory.h"
-#include "application/graphics/shader/ShaderModel.h"
 #include "application/graphics/render/RenderManager.h"
+#include "application/graphics/particle/ParticleManager.h"
 
 #include "helper/controls/Keyboard.h"
-#include "helper/controls/Mouse.h"
 
 Application::~Application()
 {
-    ShaderManager::getInstance()->deleteShaders();
-    CameraManager::getInstance()->deleteCameras();
+    // ShaderManager::getInstance()->deleteShaders();
 
     delete mPlatform;
     delete mGUI;
 }
 
 Application::Application()
+    : mPlatform(nullptr)
+    , mGUI(nullptr)
+    , mScene(nullptr)
+    , mPostProcess(nullptr)
 {
-    mPlatform = nullptr;
-    mGUI = nullptr;
+
 }
 
 void Application::initialization()
 {
     mPlatform = PlatformFactory::createPlatformObject();
 
+    // TODO: will be changed !!!
+    Window* tWindow = WindowManager::getInstance()->getWindow();
+    mScene = new Scene();
+
+    mScene->getProjection()->onResize(0,
+                                      0,
+                                      WindowManager::getInstance()->getWindowWidth(),
+                                      WindowManager::getInstance()->getWindowHeight());
+
+    mWindowSceneMap[tWindow] = {mScene};
+
     mGUI = new GUI();
     mGUI->initialize();
 
     initializeShaders();
-    initializeCameras();
     initializeModels();
 
     glEnable(GL_DEPTH_TEST);
 
-    mPlatform->setRenderFunction(std::bind(&Application::render, this));
-    mPlatform->setProcessInputFunction(std::bind(&Application::processInputs, this));
+    mPostProcess = new PostProcess();
+
+    mPlatform->setRenderFunction([this] { render(); });
+    mPlatform->setProcessInputFunction([this] { processInputs(); });
+
+    WindowManager::getInstance()->getWindow()->setOnResize(
+        [this](Window* pWindow, double pWidth, double pHeight)
+        {
+            onResize(pWindow, pWidth, pHeight);
+        });
 }
 
 void Application::initializeShaders()
 {
-    ShaderManager::getInstance()->addShader(
-        new ShaderModel(
-            ShaderName::eModelShader,
-            FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.vsh").c_str(),
-            FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.fsh").c_str())
-        );
-}
+    ShaderManager::getInstance()->addShaderProgram(
+        new ShaderProgram(
+            "model",
+            new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.vsh"), ShaderType::eVertex),
+            new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "model.fsh"), ShaderType::eFragment)
+        )
+    );
 
-void Application::initializeCameras()
-{
-    CameraManager* tCameraManager = CameraManager::getInstance();
-
-    tCameraManager->addCamera("mainCamera", glm::vec3(0.0f, 0.0f, 2.0f));
+    ShaderManager::getInstance()->addShaderProgram(
+        new ShaderProgram(
+            "particle",
+            new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "particle.vsh"), ShaderType::eVertex),
+            new Shader(FileManager::getInstance()->createPath(mPlatform->getAssetsPath(), "particle.fsh"), ShaderType::eFragment)
+        )
+    );
 }
 
 void Application::initializeModels()
 {
     ResourceManager::getInstance()->addModelResource(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bmw\\scene.gltf"));
     Model* tModel0 = ModelFactory::createModel(FileManager::getInstance()->createPath(mPlatform->getModelsPath(), "bmw\\scene.gltf"));
-    mModels.push_back(tModel0);
+
+    mScene->addModel(tModel0);
+}
+
+void Application::initializeParticles()
+{
+    ParticleManager::getInstance()->init();
+
+    ParticleProvider* tParticleProvider = new ParticleProvider();
+    ParticleManager::getInstance()->addParticleProvider(tParticleProvider);
+}
+
+void Application::onResize(Window* pWindow, double pWidth, double pHeight)
+{
+    const std::vector<Scene*> tScenes = mWindowSceneMap[pWindow];
+
+    for (unsigned int i = 0; i < tScenes.size(); i++)
+    {
+        tScenes[i]->getProjection()->onResize(0, 0, pWidth, pHeight);
+    }
 }
 
 void Application::processInputs()
@@ -80,80 +119,25 @@ void Application::processInputs()
         return;
     }
 
-    if (!mGUI->isKeyboardEventOnGUI())
+
+    if (!mGUI->isKeyboardEventOnGUI() && !mGUI->isMouseEventOnGUI())
     {
         if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_ESCAPE))
         {
             WindowManager::getInstance()->closeWindow();
         }
 
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_W))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eForward, mPlatform->getTimeDifference());
-        }
-
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_S))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eBackward, mPlatform->getTimeDifference());
-        }
-
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_D))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eRight, mPlatform->getTimeDifference());
-        }
-
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_A))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eLeft, mPlatform->getTimeDifference());
-        }
-
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_SPACE))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eUp, mPlatform->getTimeDifference());
-        }
-
-        if (Keyboard::getInstance()->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-        {
-            CameraManager::getInstance()->updateActiveCameraPosition(CameraDirection::eDown, mPlatform->getTimeDifference());
-        }
-    }
-
-    if (!mGUI->isMouseEventOnGUI())
-    {
-        double tDX = Mouse::getInstance()->getDX() * Mouse::getInstance()->getSensivity();
-        double tDY = Mouse::getInstance()->getDY() * Mouse::getInstance()->getSensivity();
-
-        if (tDX != 0.0f || tDY != 0.0f)
-        {
-            CameraManager::getInstance()->updateActiveCameraDirection(tDX, tDY);
-        }
-
-        double tScrollDY = Mouse::getInstance()->getScrollDY();
-
-        if (tScrollDY != 0.0f)
-        {
-            CameraManager::getInstance()->updateActiveCameraZoom(tScrollDY);
-        }
+        mScene->processKeyboardInputs(mPlatform->getTimeDifference());
+        mScene->processMouseInputs(mPlatform->getTimeDifference());
     }
 }
 
 void Application::render()
 {
-    // TODO: Add render function for scene
-    RenderManager::getInstance()->render();
-
-    IShader* tShader = ShaderManager::getInstance()->getShader(ShaderName::eModelShader);
-
-    for (int i = 0; i < mModels.size(); i++)
-    {
-        mModels[i]->calculateModelMatrix();
-        mModels[i]->update(mPlatform->getTimeDifference());
-        const glm::mat4& tModelMatrix = mModels[i]->getModelMatrix();
-        tShader->getShaderVariable(ShaderVariableName::eModel)->setMat4(tModelMatrix);
-        RenderManager::getInstance()->renderModel(mModels[i], tShader);
-    }
-
-    mGUI->render();
+    mScene->update(mPlatform->getTimeDifference());
+    RenderManager::getInstance()->renderScene(mScene);
+    mGUI->render(mScene);
+    mPostProcess->run();
 }
 
 void Application::run()

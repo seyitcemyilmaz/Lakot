@@ -38,6 +38,9 @@ set(HELPER_FILES
     ${HELPER_DIRECTORY}/FileManager.h
     ${HELPER_DIRECTORY}/FileManager.cpp
 
+    ${HELPER_DIRECTORY}/GLMConverter.h
+    ${HELPER_DIRECTORY}/GLMConverter.cpp
+
     ${HELPER_DIRECTORY}/Timer.h
     ${HELPER_DIRECTORY}/Timer.cpp
 )
@@ -59,14 +62,14 @@ set(HELPER_FILES
     )
 
     set(SHADER_FILES
-        ${SHADER_DIRECTORY}/IShader.h
-        ${SHADER_DIRECTORY}/IShader.cpp
+        ${SHADER_DIRECTORY}/Shader.h
+        ${SHADER_DIRECTORY}/Shader.cpp
 
         ${SHADER_DIRECTORY}/ShaderManager.h
         ${SHADER_DIRECTORY}/ShaderManager.cpp
 
-        ${SHADER_DIRECTORY}/ShaderVariable.h
-        ${SHADER_DIRECTORY}/ShaderVariable.cpp
+        ${SHADER_DIRECTORY}/ShaderUniform.h
+        ${SHADER_DIRECTORY}/ShaderUniform.cpp
     )
 
     set(WINDOW_FILES
@@ -92,6 +95,9 @@ set(INTERFACE_FILES
 
     ${INTERFACE_DIRECTORY}/IBone.h
     ${INTERFACE_DIRECTORY}/IBone.cpp
+
+    ${INTERFACE_DIRECTORY}/IGuiElement.h
+    ${INTERFACE_DIRECTORY}/IGuiElement.cpp
 
     ${INTERFACE_DIRECTORY}/INode.h
     ${INTERFACE_DIRECTORY}/INode.cpp
@@ -170,7 +176,9 @@ add_library(LAKOT_CORE_LIB
     ${INTERFACE_FILES}
     ${PLATFORM_FILES}
     ${RESOURCE_FILES}
-	${LOADERS_FILES}
+        ${LOADERS_FILES}
+        interface/IScene.h interface/IScene.cpp
+        helper/shader/ShaderProgram.h helper/shader/ShaderProgram.cpp
 )
 
 ### add glfw - begin ###
@@ -218,11 +226,13 @@ elseif (UNIX)
 endif()
 ### add stb - end ###
 
+### add spdlog - begin ###
 if (WIN32)
     find_package(spdlog CONFIG REQUIRED)
     target_link_libraries(LAKOT_CORE_LIB PRIVATE spdlog::spdlog)
 elseif (UNIX)
 
 endif()
+### add spdlog - end ###
 
 target_include_directories(LAKOT_CORE_LIB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

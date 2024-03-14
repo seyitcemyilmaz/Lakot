@@ -5,7 +5,8 @@
 
 #include <glm/glm.hpp>
 
-class IBone {
+class IBone
+{
 public:
     IBone();
 

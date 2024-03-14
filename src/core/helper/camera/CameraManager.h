@@ -8,7 +8,8 @@
 
 #define LAKOT_DEFAULT_CAMERA_MOVEMENT_SPEED			10.0
 
-enum class CameraDirection {
+enum class CameraDirection
+{
     eForward,
     eBackward,
     eLeft,
@@ -19,21 +20,8 @@ enum class CameraDirection {
 
 class CameraManager
 {
-private:
-    static CameraManager* mInstance;
-
-    std::map<std::string, Camera*> mCameras;
-    std::pair<std::string, Camera*> mActiveCamera;
-
-    // TODO: move to Camera class
-    double mCameraMovementSpeed;
-
-    void setActiveCameraNull();
-
-    CameraManager();
-
 public:
-    static CameraManager* getInstance();
+    CameraManager();
 
     void setActiveCamera(const std::string& pName);
     Camera* getActiveCamera();
@@ -47,7 +35,14 @@ public:
     void updateActiveCameraDirection(double pDX, double pDY);
     void updateActiveCameraZoom(double pAmount);
 
-    bool operator==(const CameraManager& other) = delete;
+private:
+    std::map<std::string, Camera*> mCameras;
+    std::pair<std::string, Camera*> mActiveCamera;
+
+    // TODO: move to Camera class
+    double mCameraMovementSpeed;
+
+    void setActiveCameraNull();
 };
 
 #endif
