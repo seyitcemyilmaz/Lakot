@@ -29,6 +29,8 @@ vcpkg install glad --triplet x64-windows
 vcpkg install glm --triplet x64-windows
 vcpkg install stb --triplet x64-windows
 vcpkg install assimp --triplet x64-windows
+vcpkg install spdlog --triplet x64-windows
+vcpkg install imgui[core,opengl3-binding,glfw-binding,docking-experimental] --triplet x64-windows
 ```
 
 4. Open project with Visual Studio, and build the project.
