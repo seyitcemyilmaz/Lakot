@@ -3,7 +3,7 @@
 
 #include "Window.h"
 
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace lakot {
 
