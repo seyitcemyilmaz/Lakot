@@ -10,4 +10,6 @@ Renderer* RendererFactory::createRenderer(GraphicsAPIType pGraphicsAPIType)
     {
         return new OpenGLRenderer();
     }
+
+    throw "Undefined Renderer.";
 }
