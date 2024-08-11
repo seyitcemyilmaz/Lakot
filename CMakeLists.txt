@@ -1,20 +1,6 @@
-cmake_minimum_required(VERSION 3.5)
-
-set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
-set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-windows/share)
+cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-
-cmake_host_system_information(RESULT CMake_MSVC_PARALLEL QUERY NUMBER_OF_PHYSICAL_CORES)
-
-if(CMake_MSVC_PARALLEL)
-  if(CMake_MSVC_PARALLEL GREATER 0)
-    message(${CMake_MSVC_PARALLEL})
-    add_definitions(/MP${CMake_MSVC_PARALLEL})
-  else()
-    add_definitions(/MP)
-  endif()
-endif()
 
 project(StructureProject LANGUAGES CXX)
 
@@ -44,26 +30,15 @@ add_subdirectory(${CORE_FOLDER})
 
 include_directories(
     ${SRC_DIRECTORY}
-    $ENV{VCPKG_ROOT}/installed/x64-windows/include
 )
-
-if(CMAKE_BUILD_TYPE EQUAL "DEBUG")
-    link_directories(
-        $ENV{VCPKG_ROOT}/installed/x64-windows/debug/lib
-    )
-else()
-    link_directories(
-        $ENV{VCPKG_ROOT}/installed/x64-windows/lib
-    )
-endif()
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
-add_executable(StructureProject
+add_executable(${CMAKE_PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_link_libraries(StructureProject PRIVATE
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     LakotUtilities
     LakotInterface
     LakotAbstract
@@ -71,17 +46,8 @@ target_link_libraries(StructureProject PRIVATE
     # LakotApplication
 )
 
-### add spdlog - begin ###
-if (WIN32)
-    find_package(spdlog CONFIG REQUIRED)
-    target_link_libraries(StructureProject PRIVATE spdlog::spdlog)
-elseif (UNIX)
-
-endif()
-### add spdlog - end ###
-
 include(GNUInstallDirs)
-install(TARGETS StructureProject
+install(TARGETS ${CMAKE_PROJECT_NAME}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

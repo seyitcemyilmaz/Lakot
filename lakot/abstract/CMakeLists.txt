@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 
-project(LakotAbstract)
+project(LakotAbstract LANGUAGES CXX)
 
-add_library(LakotAbstract
+add_library(${PROJECT_NAME}
     engine/AEngine.h engine/AEngine.cpp
     engine/AGarbageCollector.h engine/AGarbageCollector.cpp
 
@@ -15,5 +15,5 @@ add_library(LakotAbstract
     render/ARenderable.h render/ARenderable.cpp
 )
 
-target_link_libraries(LakotAbstract PRIVATE LakotInterface)
-target_include_directories(LakotAbstract PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+target_link_libraries(${PROJECT_NAME} PRIVATE LakotInterface)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
