@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME}
     layer/ALayer.h layer/ALayer.cpp
     render/ARenderer.h render/ARenderer.cpp
     render/ARenderable.h render/ARenderable.cpp
+    engine/ALogger.h engine/ALogger.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotInterface)

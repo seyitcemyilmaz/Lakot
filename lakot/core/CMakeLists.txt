@@ -1,38 +1,101 @@
 cmake_minimum_required(VERSION 3.11)
 
+option(LAKOT_USE_PLATFORM_WINDOWS "Windows Platform" OFF)
+option(LAKOT_USE_PLATFORM_LINUX "Linux Platform" OFF)
+option(LAKOT_USE_PLATFORM_ANDROID "Android Platform" OFF)
+
+option(LAKOT_USE_RENDERER_OPENGL "Use OpenGL" OFF)
+option(LAKOT_USE_RENDERER_OPENGLES "Use OpenGLES" OFF)
+
+option(LAKOT_USE_WINDOW_GLFW "Use GLFW" OFF)
+option(LAKOT_USE_WINDOW_EGL "Use EGL" OFF)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_definitions(-DLAKOT_PLATFORM_WINDOWS)
+    set(LAKOT_USE_PLATFORM_WINDOWS ON)
+    set(LAKOT_USE_RENDERER_OPENGL ON)
+    set(LAKOT_USE_WINDOW_GLFW ON)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_definitions(-DLAKOT_PLATFORM_LINUX)
+    set(LAKOT_USE_PLATFORM_LINUX ON)
+    set(LAKOT_USE_RENDERER_OPENGL ON)
+    set(LAKOT_USE_WINDOW_GLFW ON)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    add_definitions(-DLAKOT_PLATFORM_ANDROID)
+    set(LAKOT_USE_PLATFORM_ANDROID ON)
+    set(LAKOT_USE_RENDERER_OPENGLES ON)
+    set(LAKOT_USE_WINDOW_EGL ON)
+endif()
+
+if(LAKOT_USE_RENDERER_OPENGL)
+    add_definitions(-DLAKOT_RENDERER_OPENGL)
+elseif(LAKOT_USE_RENDERER_OPENGLES)
+    add_definitions(-DLAKOT_RENDERER_OPENGLES)
+else()
+    message(FATAL_ERROR "Renderer is not found.")
+endif()
+
+if(LAKOT_USE_WINDOW_GLFW)
+    add_definitions(-DLAKOT_WINDOW_GLFW)
+elseif(LAKOT_USE_WINDOW_EGL)
+    add_definitions(-DLAKOT_WINDOW_EGL)
+else()
+    message(FATAL_ERROR "Renderer is not found.")
+endif()
+
 project(LakotCore LANGUAGES CXX)
 
-add_library(${PROJECT_NAME}
+set(LAKOT_CORE_FILES
     engine/Engine.h engine/Engine.cpp
     engine/EngineFactory.h engine/EngineFactory.cpp
 
     engine/GarbageCollector.h engine/GarbageCollector.cpp
     engine/GarbageCollectorFactory.h engine/GarbageCollectorFactory.cpp
 
+    engine/Logger.h engine/Logger.cpp
+
     graphics/api/GraphicsAPIFactory.h graphics/api/GraphicsAPIFactory.cpp
     graphics/api/GraphicsAPI.h graphics/api/GraphicsAPI.cpp
-    graphics/api/OpenGLAPI.h graphics/api/OpenGLAPI.cpp
 
     graphics/window/WindowFactory.h graphics/window/WindowFactory.cpp
     graphics/window/Window.h graphics/window/Window.cpp
-    graphics/window/WindowGLFW.h graphics/window/WindowGLFW.cpp
 
     graphics/camera/Camera.h graphics/camera/Camera.cpp
     graphics/camera/CameraFactory.h graphics/camera/CameraFactory.cpp
     graphics/camera/FPSCamera.h graphics/camera/FPSCamera.cpp
 
     layer/Layer.h layer/Layer.cpp
-    render/Renderer.h render/Renderer.cpp
     layer/LayerFactory.h layer/LayerFactory.cpp
+
+    render/Renderer.h render/Renderer.cpp
     render/RendererFactory.h render/RendererFactory.cpp
-    render/OpenGLRenderer.h render/OpenGLRenderer.cpp
 )
+
+if(LAKOT_USE_RENDERER_OPENGL)
+    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLAPI.h graphics/api/OpenGLAPI.cpp)
+    list(APPEND LAKOT_CORE_FILES render/OpenGLRenderer.h render/OpenGLRenderer.cpp)
+endif()
+
+if(LAKOT_USE_RENDERER_OPENGLES)
+    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLESAPI.h graphics/api/OpenGLESAPI.cpp)
+    list(APPEND LAKOT_CORE_FILES render/OpenGLESRenderer.h render/OpenGLESRenderer.cpp)
+endif()
+
+if(LAKOT_USE_WINDOW_GLFW)
+    list(APPEND LAKOT_CORE_FILES graphics/window/WindowGLFW.h graphics/window/WindowGLFW.cpp)
+endif()
+
+if(LAKOT_USE_WINDOW_EGL)
+    list(APPEND LAKOT_CORE_FILES graphics/window/WindowEGL.h graphics/window/WindowEGL.cpp)
+endif()
+
+add_library(${PROJECT_NAME} ${LAKOT_CORE_FILES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotAbstract)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 ### add glfw - begin ###
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(LAKOT_USE_RENDERER_OPENGL)
     FetchContent_Declare(
         glfw
         GIT_REPOSITORY	https://github.com/glfw/glfw.git
@@ -46,7 +109,7 @@ endif()
 ### add glfw - end ###
 
 ### add glew - begin ###
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(LAKOT_USE_RENDERER_OPENGL)
     FetchContent_Declare(
       glew
       GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
@@ -63,7 +126,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
         set(GLEW_DEBUG_POSTFIX "")
 
-        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             set(GLEW_DEBUG_POSTFIX "d")
         endif()
 

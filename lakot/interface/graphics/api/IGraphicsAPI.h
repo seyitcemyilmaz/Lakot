@@ -9,7 +9,8 @@ namespace lakot {
 enum class GraphicsAPIType
 {
     eUndefined,
-    eOpenGL
+    eOpenGL,
+    eOpenGLES
 };
 
 class IGraphicsAPI : public IObject

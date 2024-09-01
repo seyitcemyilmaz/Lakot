@@ -1,23 +1,24 @@
 #include "WindowFactory.h"
 
-#include "WindowGLFW.h"
-
 #include <spdlog/spdlog.h>
+
+#if defined(LAKOT_WINDOW_GLFW)
+#include "WindowGLFW.h"
+#endif
+
+#if defined(LAKOT_WINDOW_EGL)
+#include "WindowEGL.h"
+#endif
 
 using namespace lakot;
 
-Window* WindowFactory::createWindow(GraphicsAPIType pGraphicsAPIType)
+Window* WindowFactory::createWindow()
 {
-    if (pGraphicsAPIType == GraphicsAPIType::eUndefined)
-    {
-        spdlog::error("Graphics API type is undefined.");
-        return nullptr;
-    }
-
-    if (pGraphicsAPIType == GraphicsAPIType::eOpenGL)
-    {
-        return new WindowGLFW();
-    }
-
-    throw "Graphics API type is undefined.";
+#if defined(LAKOT_WINDOW_GLFW)
+    return new WindowGLFW();
+#elif defined(LAKOT_WINDOW_EGL)
+    return new WindowEGL();
+#else
+#error "Undefined Window"
+#endif
 }

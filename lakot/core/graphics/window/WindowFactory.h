@@ -13,7 +13,7 @@ public:
     virtual ~WindowFactory() = default;
     WindowFactory() = default;
 
-    static Window* createWindow(GraphicsAPIType pGraphicsAPIType);
+    static Window* createWindow();
 };
 
 }

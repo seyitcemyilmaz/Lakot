@@ -6,8 +6,9 @@ include(FetchContent)
 
 add_library(${PROJECT_NAME} INTERFACE
     engine/IEngine.h
-    engine/IObject.h
     engine/IGarbageCollector.h
+    engine/ILogger.h
+    engine/IObject.h
 
     graphics/api/IGraphicsAPI.h
     graphics/window/IWindow.h

@@ -7,6 +7,8 @@
 #include "../graphics/window/WindowFactory.h"
 #include "../layer/LayerFactory.h"
 
+#include "Logger.h"
+
 using namespace lakot;
 
 Engine* Engine::mEngine = nullptr;
@@ -26,6 +28,8 @@ Engine* Engine::getInstance()
 
 void Engine::initialize()
 {
+    Logger::getInstance()->initialize();
+
     spdlog::info("Engine is initializing.");
 
     if (mEngine)
@@ -97,9 +101,7 @@ void Engine::initializeGraphicsAPI()
 
 void Engine::initializeWindow()
 {
-    GraphicsAPIType tGraphicsAPIType = GraphicsAPI::getInstance()->getType();
-
-    Window* tWindow = WindowFactory::createWindow(tGraphicsAPIType);
+    Window* tWindow = WindowFactory::createWindow();
 
     if (!tWindow)
     {

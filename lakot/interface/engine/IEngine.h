@@ -8,7 +8,7 @@ namespace lakot {
 class IEngine : public IObject
 {
 public:
-    virtual ~IEngine() = default;
+    virtual ~IEngine() override = default;
     IEngine() = default;
 
     virtual void run() = 0;

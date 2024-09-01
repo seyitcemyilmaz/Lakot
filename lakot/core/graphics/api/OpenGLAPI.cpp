@@ -37,7 +37,7 @@ void OpenGLAPI::initialize()
         throw "GLFW is not initialized.";
     }
 
-    mRenderer = RendererFactory::createRenderer(mType);
+    mRenderer = RendererFactory::createRenderer();
 
     if (!mRenderer)
     {

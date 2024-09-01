@@ -18,7 +18,7 @@ WindowGLFW::WindowGLFW()
     : Window()
     , mWindowObject(nullptr)
 {
-
+    mTitle = "GLFW Window";
 }
 
 void WindowGLFW::initialize()
@@ -60,6 +60,7 @@ void WindowGLFW::initialize()
     spdlog::info("Window is created.");
 
     glfwMakeContextCurrent(mWindowObject);
+    glfwSwapInterval( 0 );
 
     unsigned int tErrorCode = glewInit();
 

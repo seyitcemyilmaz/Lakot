@@ -1,6 +1,7 @@
 #include "FileManager.h"
 
 #include <fstream>
+#include <string>
 
 using namespace lakot;
 
@@ -10,12 +11,20 @@ FileManager::FileManager() {}
 
 std::string FileManager::createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory)
 {
-    if (pPath.string().ends_with('/'))
+    std::string tPath = pPath.string();
+    unsigned int tPathLength = static_cast<unsigned int>(tPath.size());
+
+    if (tPathLength > 0)
     {
-        return pPath.string() + pFileOrDirectory;
+        char tLastElement = tPath.at(tPathLength - 1);
+
+        if (tLastElement == '/' || tLastElement == '\\')
+        {
+            return tPath + pFileOrDirectory;
+        }
     }
 
-    return pPath.string() + '/' + pFileOrDirectory;
+    return tPath + '/' + pFileOrDirectory;
 }
 
 bool FileManager::isFileExist(const std::filesystem::path& pPath)

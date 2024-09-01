@@ -4,12 +4,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 project(StructureProject LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(LAKOT_USE_GPU "Use GPU" OFF)
+
 if (LAKOT_USE_GPU)
     add_definitions(-DLAKOT_USE_GPU)
 endif()
@@ -32,10 +33,13 @@ include_directories(
     ${SRC_DIRECTORY}
 )
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+if (LAKOT_USE_PLATFORM_WINDOWS)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+endif()
 
 add_executable(${CMAKE_PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    lakot/interface/engine/ILogger.h
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE

@@ -8,7 +8,7 @@ namespace lakot {
 class IGarbageCollector : public IObject
 {
 public:
-    virtual ~IGarbageCollector() = default;
+    virtual ~IGarbageCollector() override = default;
     IGarbageCollector() = default;
 
     virtual void process() = 0;
