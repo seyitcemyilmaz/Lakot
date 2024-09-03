@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.22.1)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-project(StructureProject LANGUAGES CXX)
+project(Lakot LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -29,18 +29,25 @@ add_subdirectory(${ABSTRACT_FOLDER})
 add_subdirectory(${CORE_FOLDER})
 # add_subdirectory(${APPLICATION_FOLDER})
 
-include_directories(
-    ${SRC_DIRECTORY}
-)
-
-if (LAKOT_USE_PLATFORM_WINDOWS)
+if (WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME}
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    lakot/interface/engine/ILogger.h
+set(LAKOT_TOP_LEVEL_FILES
+    main.cpp
 )
+
+if(WIN32)
+    add_executable(${CMAKE_PROJECT_NAME}
+        ${LAKOT_TOP_LEVEL_FILES}
+    )
+endif()
+
+if(ANDROID)
+    add_library(${CMAKE_PROJECT_NAME} SHARED
+        ${LAKOT_TOP_LEVEL_FILES}
+    )
+endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     LakotUtilities
@@ -50,8 +57,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     # LakotApplication
 )
 
-include(GNUInstallDirs)
-install(TARGETS ${CMAKE_PROJECT_NAME}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+if(WIN32)
+    include(GNUInstallDirs)
+    install(TARGETS ${CMAKE_PROJECT_NAME}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()

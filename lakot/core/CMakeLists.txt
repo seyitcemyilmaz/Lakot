@@ -94,6 +94,17 @@ add_library(${PROJECT_NAME} ${LAKOT_CORE_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotAbstract)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
+if(LAKOT_USE_PLATFORM_ANDROID)
+    find_package(game-activity REQUIRED CONFIG)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+            game-activity::game-activity
+            EGL
+            GLESv3
+            jnigraphics
+            android
+    )
+endif()
+
 ### add glfw - begin ###
 if(LAKOT_USE_RENDERER_OPENGL)
     FetchContent_Declare(
@@ -149,7 +160,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(spdlog)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-
 ### add spdlog - end ###
 
 ### add glm - begin ###

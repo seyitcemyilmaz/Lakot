@@ -3,6 +3,12 @@
 
 #include "Window.h"
 
+#include <EGL/egl.h>
+
+extern "C" {
+#include <game-activity/native_app_glue/android_native_app_glue.h>
+}
+
 namespace lakot {
 
 class WindowEGL final : public Window
@@ -14,8 +20,22 @@ public:
     void initialize() override;
     void deinitialize() override;
 
+    void createEGLContext();
+
     void update() override;
     void nextFrame() override;
+
+    static void setAndroidApp(android_app* pAndroidApp);
+
+private:
+    EGLDisplay mDisplay;
+    EGLSurface mSurface;
+    EGLContext mContext;
+
+    static android_app* mAndroidApp;
+
+    unsigned int mFPSFrameCounter;
+    double mFPSPreviousTime;
 };
 
 }
