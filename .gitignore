@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,qt,qtcreator,visualstudio,visualstudiocode,android,androidstudio,qml
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,qt,qtcreator,visualstudio,visualstudiocode,android,androidstudio,qml
 
+### User Defined ###
+lib/
+
 ### Android ###
 # Gradle files
 .gradle/
