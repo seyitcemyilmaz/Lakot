@@ -3,6 +3,8 @@
 
 ### User Defined ###
 lib/
+external/
+asset/
 
 ### Android ###
 # Gradle files
