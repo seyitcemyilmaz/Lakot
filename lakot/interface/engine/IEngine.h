@@ -5,7 +5,7 @@
 
 namespace lakot {
 
-class IEngine : public IObject
+class IEngine : virtual public IObject
 {
 public:
     virtual ~IEngine() override = default;

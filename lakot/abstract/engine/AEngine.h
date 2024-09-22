@@ -6,7 +6,7 @@
 
 namespace lakot {
 
-class AEngine : public IEngine
+class AEngine : virtual public IEngine
 {
 public:
     virtual ~AEngine() override;

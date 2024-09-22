@@ -3,12 +3,16 @@
 #include <spdlog/spdlog.h>
 
 #include "GarbageCollectorFactory.h"
+
 #include "../graphics/api/GraphicsAPIFactory.h"
 #include "../graphics/window/WindowFactory.h"
+
 #include "../layer/LayerFactory.h"
 
+#include "../resource/loader/LoaderFactory.h"
+#include "../resource/loader/ModelLoader.h"
+
 #include "Logger.h"
-#include "lakot/utilities/Type.h"
 
 #if defined(LAKOT_PLATFORM_WINDOWS)     // TODO: will be compatible with linux
 
@@ -84,7 +88,7 @@ void Engine::run()
 {
     while (Window::getInstance()->getIsActive())
     {
-        GarbageCollector::getInstance()->process();
+        GarbageCollector::getInstance()->synchronousProcess();
         Window::getInstance()->update();
         Layer::getInstance()->update();
         Window::getInstance()->nextFrame();
@@ -155,5 +159,14 @@ void Engine::initializeLayer()
 
 void Engine::test()
 {
+    Loader* tLoader = LoaderFactory::createLoader(LoaderType::eModel);
 
+    ModelLoader* tModelLoader = dynamic_cast<ModelLoader*>(tLoader);
+
+    tModelLoader->setPath("C:/Development/Lakot/asset/bmw/scene.gltf");
+    // tModelLoader->setPath("C:/Development/Lakot/asset/servator/source/xenocat_sketchfab.fbx");
+
+    tModelLoader->load();
+
+    GarbageCollector::getInstance()->add(tModelLoader, true);
 }

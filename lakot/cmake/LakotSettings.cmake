@@ -47,6 +47,7 @@ else()
 endif()
 
 option(LAKOT_USE_GPU "Use GPU" OFF)
+
 if(LAKOT_USE_PLATFORM_WINDOWS OR LAKOT_USE_PLATFORM_LINUX)
     if(LAKOT_USE_GPU)
         add_definitions(-DLAKOT_USE_GPU)
@@ -57,5 +58,17 @@ if(LAKOT_USE_PLATFORM_WINDOWS)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+set(LAKOT_EXTERNAL_PATH ${CMAKE_SOURCE_DIR}/external)
+
+option(LAKOT_USE_BUILD_TYPE_DEBUG "Lakot Debug Build" OFF)
+option(LAKOT_USE_BUILD_TYPE_RELEASE "Lakot Release Build" OFF)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(LAKOT_USE_BUILD_TYPE_RELEASE ON)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LAKOT_USE_BUILD_TYPE_DEBUG ON)
+else()
+    message(FATAL_ERROR "Undefined build type.")
+endif()
