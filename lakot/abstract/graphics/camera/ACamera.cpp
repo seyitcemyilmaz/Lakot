@@ -8,7 +8,7 @@ ACamera::~ACamera()
 }
 
 ACamera::ACamera()
-    : ICamera()
+    : Object()
     , mType(CameraType::eUndefined)
     , mPosition(0.0f, 0.0f, 0.0f)
     , mFrontVector(0.0f, 0.0f, -1.0f)

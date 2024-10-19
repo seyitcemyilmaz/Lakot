@@ -1,17 +1,18 @@
 #ifndef LAKOT_ARENDERABLE_H
 #define LAKOT_ARENDERABLE_H
 
-#include <lakot/interface/graphics/render/IRenderable.h>
+#include <lakot/utilities/Object.h>
+#include <lakot/utilities/Type.h>
 
 namespace lakot {
 
-class ARenderable : public IRenderable
+class ARenderable : public Object
 {
 public:
     virtual ~ARenderable() override;
     ARenderable();
 
-    RenderableType getType() const override;
+    RenderableType getType() const;
 
 protected:
     RenderableType mType;

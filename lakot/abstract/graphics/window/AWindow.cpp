@@ -8,7 +8,7 @@ AWindow::~AWindow()
 }
 
 AWindow::AWindow()
-    : IWindow()
+    : Object()
     , mIsInitialized(false)
     , mIsActive(true)
     , mWidth(0)

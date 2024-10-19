@@ -1,11 +1,11 @@
 #ifndef LAKOT_OPENGLRENDERER_H
 #define LAKOT_OPENGLRENDERER_H
 
-#include "Renderer.h"
+#include <lakot/abstract/render/ARenderer.h>
 
 namespace lakot {
 
-class OpenGLRenderer : public Renderer
+class OpenGLRenderer : public ARenderer
 {
 public:
     virtual ~OpenGLRenderer() override;
@@ -14,7 +14,7 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    void render(IRenderable* pRenderable) override;
+    void render(ARenderable* pRenderable) override;
 };
 
 }

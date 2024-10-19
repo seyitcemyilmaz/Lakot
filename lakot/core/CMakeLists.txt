@@ -11,6 +11,8 @@ set(LAKOT_CORE_FILES
 
     engine/Logger.h engine/Logger.cpp
 
+    geometry/BoundingBox.h geometry/BoundingBox.cpp
+
     graphics/api/GraphicsAPIFactory.h graphics/api/GraphicsAPIFactory.cpp
     graphics/api/GraphicsAPI.h graphics/api/GraphicsAPI.cpp
 
@@ -24,21 +26,18 @@ set(LAKOT_CORE_FILES
     layer/Layer.h layer/Layer.cpp
     layer/LayerFactory.h layer/LayerFactory.cpp
 
-    render/Renderer.h render/Renderer.cpp
     render/RendererFactory.h render/RendererFactory.cpp
 
-    resource/asset/Asset.h resource/asset/Asset.cpp
+    resource/asset/BoneAsset.h resource/asset/BoneAsset.cpp
     resource/asset/ModelAsset.h resource/asset/ModelAsset.cpp
     resource/asset/NodeAsset.h resource/asset/NodeAsset.cpp
     resource/asset/MeshAsset.h resource/asset/MeshAsset.cpp
+    resource/asset/MaterialAsset.h resource/asset/MaterialAsset.cpp
+    resource/asset/TextureAsset.h resource/asset/TextureAsset.cpp
 
     resource/entity/Entity.h resource/entity/Entity.cpp
 
-    resource/loader/LoaderFactory.h resource/loader/LoaderFactory.cpp
-    resource/loader/Loader.h resource/loader/Loader.cpp
     resource/loader/ModelLoader.h resource/loader/ModelLoader.cpp
-    resource/loader/NodeLoader.h resource/loader/NodeLoader.cpp
-    resource/loader/MeshLoader.h resource/loader/MeshLoader.cpp
 )
 
 if(LAKOT_USE_RENDERER_OPENGL)
@@ -59,9 +58,10 @@ if(LAKOT_USE_WINDOW_EGL)
     list(APPEND LAKOT_CORE_FILES graphics/window/WindowEGL.h graphics/window/WindowEGL.cpp)
 endif()
 
-add_library(${PROJECT_NAME} ${LAKOT_CORE_FILES})
+add_library(${PROJECT_NAME} ${LAKOT_CORE_FILES}
+    scene/Scene.h scene/Scene.cpp)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE LakotAbstract)
+target_link_libraries(${PROJECT_NAME} PUBLIC LakotAbstract)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 if(LAKOT_USE_PLATFORM_ANDROID)
@@ -104,41 +104,6 @@ if(LAKOT_USE_RENDERER_OPENGL)
 endif()
 ### add glew - end ###
 
-### add spdlog - begin ###
-if (LAKOT_USE_PLATFORM_WINDOWS) # v1.14.1
-    if (LAKOT_USE_BUILD_TYPE_RELEASE)
-        set(spdlog_DIR ${LAKOT_EXTERNAL_PATH}/spdlog/windows/release/lib/cmake/spdlog)
-        find_package(spdlog REQUIRED)
-        target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-    elseif(LAKOT_USE_BUILD_TYPE_DEBUG)
-        set(spdlog_DIR ${LAKOT_EXTERNAL_PATH}/spdlog/windows/debug/lib/cmake/spdlog)
-        find_package(spdlog REQUIRED)
-        target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-    endif()
-elseif(LAKOT_USE_PLATFORM_ANDROID)
-    set(spdlog_DIR ${LAKOT_EXTERNAL_PATH}/spdlog/android/lib/cmake/spdlog)
-    find_package(spdlog REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-else()
-    message(FATAL_ERROR "Undefined platform to link assimp library.")
-endif()
-
-### add spdlog - end ###
-
-### add glm - begin ###
-if (LAKOT_USE_PLATFORM_WINDOWS) # v1.0.1
-    set(glm_DIR ${LAKOT_EXTERNAL_PATH}/glm/windows/share/glm)
-    find_package(glm REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
-elseif(LAKOT_USE_PLATFORM_ANDROID)
-    set(glm_DIR ${LAKOT_EXTERNAL_PATH}/glm/android/share/glm)
-    find_package(glm REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
-else()
-    message(FATAL_ERROR "Undefined platform to link assimp library.")
-endif()
-### add glm - end ###
-
 ### add assimp - begin ###
 if (LAKOT_USE_PLATFORM_WINDOWS) # v5.4.3
     set(assimp_DIR ${LAKOT_EXTERNAL_PATH}/assimp/windows/lib/cmake/assimp-5.4)
@@ -152,3 +117,34 @@ else()
     message(FATAL_ERROR "Undefined platform to link assimp library.")
 endif()
 ### add assimp - end ###
+
+### add stb - begin ###
+if (LAKOT_USE_PLATFORM_WINDOWS) # v5.4.3
+    set(stb_include_DIR ${LAKOT_EXTERNAL_PATH}/stb)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${stb_include_DIR})
+elseif(LAKOT_USE_PLATFORM_ANDROID)
+    set(stb_include_DIR ${LAKOT_EXTERNAL_PATH}/stb)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${stb_include_DIR})
+else()
+    message(FATAL_ERROR "Undefined platform to link stb library.")
+endif()
+### add stb - end ###
+
+### add boost - begin ###
+if (LAKOT_USE_PLATFORM_WINDOWS) # v5.4.3
+    set(Boost_DIR ${LAKOT_EXTERNAL_PATH}/boost/windows/lib/cmake/Boost-1.87.0)
+
+    set(Boost_USE_STATIC_LIBS ON)  # Static linking istiyorsanız
+    set(Boost_USE_MULTITHREADED ON)
+    set(Boost_USE_STATIC_RUNTIME OFF)
+
+    find_package(Boost 1.87 CONFIG REQUIRED COMPONENTS asio)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Boost::asio)
+elseif(LAKOT_USE_PLATFORM_ANDROID)
+    set(assimp_DIR ${LAKOT_EXTERNAL_PATH}/assimp/android/lib/cmake/assimp-5.4)
+    find_package(assimp REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE assimp::assimp)
+else()
+    message(FATAL_ERROR "Undefined platform to link assimp library.")
+endif()
+### add boost - end ###

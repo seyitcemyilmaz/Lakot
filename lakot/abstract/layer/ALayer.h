@@ -1,22 +1,24 @@
 #ifndef LAKOT_ALAYER_H
 #define LAKOT_ALAYER_H
 
-#include <lakot/interface/layer/ILayer.h>
+#include <lakot/utilities/Object.h>
 
 namespace lakot {
 
-class ALayer : public ILayer
+class AScene;
+
+class ALayer : public Object
 {
 public:
     virtual ~ALayer() override;
     ALayer();
 
-    virtual void update() override = 0;
+    virtual void update() = 0;
 
-    bool getIsInitialized() const override;
+    AScene* getScene() const;
 
 protected:
-    bool mIsInitialized;
+    AScene* mScene;
 };
 
 }

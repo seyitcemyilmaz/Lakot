@@ -1,24 +1,27 @@
 #ifndef LAKOT_AGRAPHICSAPI_H
 #define LAKOT_AGRAPHICSAPI_H
 
-#include <lakot/interface/graphics/api/IGraphicsAPI.h>
+#include <lakot/utilities/Object.h>
+#include <lakot/utilities/Type.h>
+
+#include "../../render/ARenderer.h"
 
 namespace lakot {
 
-class AGraphicsAPI : public IGraphicsAPI
+class AGraphicsAPI : public Object
 {
 public:
     virtual ~AGraphicsAPI() override;
     AGraphicsAPI();
 
-    bool getIsInitialized() const override;
+    bool getIsInitialized() const;
 
-    GraphicsAPIType getType() const override;
+    GraphicsAPIType getType() const;
 
-    int getVersionMajor() const override;
-    int getVersionMinor() const override;
+    int getVersionMajor() const;
+    int getVersionMinor() const;
 
-    IRenderer* getRenderer() const override;
+    ARenderer* getRenderer() const;
 
 protected:
     bool mIsInitialized;
@@ -28,7 +31,7 @@ protected:
     int mVersionMajor;
     int mVersionMinor;
 
-    IRenderer* mRenderer;
+    ARenderer* mRenderer;
 };
 
 }

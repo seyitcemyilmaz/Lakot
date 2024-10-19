@@ -5,7 +5,7 @@ using namespace lakot;
 AGraphicsAPI::~AGraphicsAPI() {}
 
 AGraphicsAPI::AGraphicsAPI()
-    : IGraphicsAPI()
+    : Object()
     , mIsInitialized(false)
     , mType(GraphicsAPIType::eUndefined)
     , mVersionMajor(-1)
@@ -35,7 +35,7 @@ int AGraphicsAPI::getVersionMinor() const
     return mVersionMinor;
 }
 
-IRenderer* AGraphicsAPI::getRenderer() const
+ARenderer* AGraphicsAPI::getRenderer() const
 {
     return mRenderer;
 }

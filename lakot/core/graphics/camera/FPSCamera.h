@@ -14,7 +14,7 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    void update() override;
+    void update();
 
 private:
     double mYaw;

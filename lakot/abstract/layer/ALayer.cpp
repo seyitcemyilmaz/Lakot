@@ -8,13 +8,13 @@ ALayer::~ALayer()
 }
 
 ALayer::ALayer()
-    : ILayer()
-    , mIsInitialized(false)
+    : Object()
+    , mScene(nullptr)
 {
 
 }
 
-bool ALayer::getIsInitialized() const
+AScene* ALayer::getScene() const
 {
-    return mIsInitialized;
+    return mScene;
 }

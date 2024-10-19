@@ -8,7 +8,7 @@ OpenGLRenderer::~OpenGLRenderer()
 }
 
 OpenGLRenderer::OpenGLRenderer()
-    : Renderer()
+    : ARenderer()
 {
 
 }
@@ -23,7 +23,7 @@ void OpenGLRenderer::deinitialize()
 
 }
 
-void OpenGLRenderer::render(IRenderable* pRenderable)
+void OpenGLRenderer::render(ARenderable* pRenderable)
 {
 
 }

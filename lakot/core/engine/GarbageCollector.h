@@ -1,13 +1,14 @@
 #ifndef LAKOT_GARBAGECOLLECTOR_H
 #define LAKOT_GARBAGECOLLECTOR_H
 
+#include <functional>
 #include <queue>
 #include <mutex>
 #include <thread>
 #include <atomic>
 #include <condition_variable>
 
-#include <lakot/interface/engine/IObject.h>
+#include <lakot/utilities/Object.h>
 
 namespace lakot {
 
@@ -22,7 +23,7 @@ public:
     void synchronousProcess();
 
     template<typename T>
-    typename std::enable_if<!std::is_base_of<IObject, T>::value>::type
+    typename std::enable_if<!std::is_base_of<Object, T>::value>::type
     add(T* pObject, bool pIsAsynchronous = false)
     {
         std::function<void()> tFunction = [pObject]()
@@ -34,7 +35,7 @@ public:
     }
 
     template<typename T>
-    typename std::enable_if<std::is_base_of<IObject, T>::value>::type
+    typename std::enable_if<std::is_base_of<Object, T>::value>::type
     add(T* pObject, bool pIsAsynchronous = false)
     {
         std::function<void()> tFunction = [pObject]()

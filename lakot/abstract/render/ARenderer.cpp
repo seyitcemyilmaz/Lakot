@@ -8,7 +8,7 @@ ARenderer::~ARenderer()
 }
 
 ARenderer::ARenderer()
-    : IRenderer()
+    : Object()
 {
 
 }

@@ -8,7 +8,7 @@ ALogger::~ALogger()
 }
 
 ALogger::ALogger()
-    : ILogger()
+    : Object()
 {
 
 }

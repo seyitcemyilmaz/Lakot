@@ -1,8 +1,6 @@
 #ifndef WINDOWFACTORY_H
 #define WINDOWFACTORY_H
 
-#include <lakot/interface/graphics/api/IGraphicsAPI.h>
-
 #include "Window.h"
 
 namespace lakot {

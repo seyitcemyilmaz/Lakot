@@ -4,23 +4,22 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 
-#include "Loader.h"
-
-#include "../asset/ModelAsset.h"
-#include "../asset/NodeAsset.h"
+#include <lakot/utilities/Type.h>
 
 namespace lakot {
 
-class ModelLoader : virtual public Loader
+class NodeAsset;
+class MeshAsset;
+class ModelAsset;
+class MaterialAsset;
+
+class ModelLoader
 {
 public:
-    virtual ~ModelLoader() override;
+    virtual ~ModelLoader();
     ModelLoader();
 
-    void initialize() override;
-    void deinitialize() override;
-
-    IObject* load() override;
+    ModelAsset* load();
 
     void setPath(const std::string& pPath);
 
@@ -32,9 +31,23 @@ private:
     Assimp::Importer* mImporter;
     const aiScene* mSceneObject;
 
-    NodeAsset* loadNodeStructure(const aiScene* pSceneObject);
+    std::vector<std::string> mPossibleTextureLocations;
 
-    void loadMaterials(const aiScene* pSceneObject);
+    void loadNodeStructure();
+    void loadMaterials();
+
+    void loadNode(aiNode* pNode, NodeAsset* pParentNodeAsset);
+    void loadMesh(aiMesh* pMesh, NodeAsset* pParentNodeAsset);
+    void loadMaterial(aiMaterial* pMaterial);
+    void loadTexture(aiTextureType pTextureType, aiMaterial* pMaterial, MaterialAsset* pMaterialAsset);
+
+    Image* createImageFromFile(const std::string& pPath);
+    Image* createImageFromEmbedded(const aiTexture* pTexture);
+    std::string findImagePath(const std::string& pPath);
+
+    void createPossibleTextureLocations();
+
+    VertexInformation* createVertexInformation(aiMesh* pMesh, MeshAsset* pMeshAsset);
 };
 
 }

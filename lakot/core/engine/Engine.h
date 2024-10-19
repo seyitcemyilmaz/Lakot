@@ -1,11 +1,11 @@
 #ifndef LAKOT_ENGINE_H
 #define LAKOT_ENGINE_H
 
-#include <lakot/abstract/engine/AEngine.h>
+#include <lakot/utilities/Object.h>
 
 namespace lakot {
 
-class Engine : public AEngine
+class Engine : public Object
 {
 public:
     virtual ~Engine() override;
@@ -16,7 +16,7 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    void run() override;
+    void run();
 
 protected:
     static Engine* mEngine;

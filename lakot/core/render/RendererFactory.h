@@ -1,9 +1,7 @@
 #ifndef LAKOT_RENDERERFACTORY_H
 #define LAKOT_RENDERERFACTORY_H
 
-#include <lakot/interface/graphics/api/IGraphicsAPI.h>
-
-#include "Renderer.h"
+#include <lakot/abstract/render/ARenderer.h>
 
 namespace lakot {
 
@@ -13,7 +11,7 @@ public:
     virtual ~RendererFactory() = default;
     RendererFactory() = default;
 
-    static Renderer* createRenderer();
+    static ARenderer* createRenderer();
 };
 
 }

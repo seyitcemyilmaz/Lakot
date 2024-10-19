@@ -20,6 +20,8 @@ public:
 
 protected:
     static Layer* mInstance;
+
+
 };
 
 }

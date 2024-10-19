@@ -6,14 +6,12 @@ include(${CMAKE_SOURCE_DIR}/lakot/cmake/LakotSettings.cmake)
 
 set(LAKOT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/lakot)
     set(UTILITIES_FOLDER ${LAKOT_FOLDER}/utilities)
-    set(INTERFACE_FOLDER ${LAKOT_FOLDER}/interface)
     set(ABSTRACT_FOLDER ${LAKOT_FOLDER}/abstract)
     set(CORE_FOLDER ${LAKOT_FOLDER}/core)
 
 set(APPLICATION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/application)
 
 add_subdirectory(${UTILITIES_FOLDER})
-add_subdirectory(${INTERFACE_FOLDER})
 add_subdirectory(${ABSTRACT_FOLDER})
 add_subdirectory(${CORE_FOLDER})
 # add_subdirectory(${APPLICATION_FOLDER})
@@ -36,7 +34,6 @@ endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     LakotUtilities
-    LakotInterface
     LakotAbstract
     LakotCore
     # LakotApplication

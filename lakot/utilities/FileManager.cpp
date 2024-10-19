@@ -5,10 +5,6 @@
 
 using namespace lakot;
 
-FileManager::~FileManager() {}
-
-FileManager::FileManager() {}
-
 std::string FileManager::createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory)
 {
     std::string tPath = pPath.string();
@@ -37,7 +33,7 @@ bool FileManager::isFileExist(const std::filesystem::path& pPath, const std::str
     return std::filesystem::exists(createPath(pPath, pFile));
 }
 
-bool FileManager::hasParentPath(const std::filesystem::path& pPath) const
+bool FileManager::hasParentPath(const std::filesystem::path& pPath)
 {
     return pPath.has_parent_path();
 }

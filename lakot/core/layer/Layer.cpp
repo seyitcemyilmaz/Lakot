@@ -3,7 +3,9 @@
 #include <spdlog/spdlog.h>
 
 #include "../graphics/window/Window.h"
-// #include "../graphics/api/GraphicsAPI.h"
+#include "../graphics/api/GraphicsAPI.h"
+
+#include "../scene/Scene.h"
 
 using namespace lakot;
 
@@ -29,9 +31,10 @@ void Layer::initialize()
 {
     spdlog::info("Layer is initializing.");
 
-    mIsInitialized = true;
-
     mInstance = this;
+
+    mScene = new Scene();
+    mScene->initialize();
 
     spdlog::info("Layer is initialized.");
 }
@@ -40,19 +43,17 @@ void Layer::deinitialize()
 {
     spdlog::info("Layer is deinitializing.");
 
-    // TODO: will be checked.
-    mIsInitialized = false;
-
     mInstance = nullptr;
+    delete mScene;
 
     spdlog::info("Layer is deinitialized.");
 }
 
 void Layer::update()
 {
-    double tFPS = Window::getInstance()->getFPS();
+    mScene->update();
 
-    spdlog::info("FPS: {0}", tFPS);
+    // ARenderer* tRenderer = GraphicsAPI::getInstance()->getRenderer();
 
-    // IRenderer* tRenderer = GraphicsAPI::getInstance()->getRenderer();
+
 }

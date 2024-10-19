@@ -1,11 +1,11 @@
 #ifndef LAKOT_OPENGLESRENDERER_H
 #define LAKOT_OPENGLESRENDERER_H
 
-#include "Renderer.h"
+#include <lakot/abstract/render/ARenderer.h>
 
 namespace lakot {
 
-class OpenGLESRenderer : public Renderer
+class OpenGLESRenderer : public ARenderer
 {
 public:
     virtual ~OpenGLESRenderer() override;
@@ -14,7 +14,7 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    void render(IRenderable* pRenderable) override;
+    void render(ARenderable* pRenderable) override;
 };
 
 }

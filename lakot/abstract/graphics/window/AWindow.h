@@ -1,36 +1,39 @@
 #ifndef LAKOT_AWINDOW_H
 #define LAKOT_AWINDOW_H
 
-#include <lakot/interface/graphics/window/IWindow.h>
+#include <functional>
+
+#include <lakot/utilities/Object.h>
+#include <lakot/utilities/Type.h>
 
 namespace lakot {
 
-class AWindow : public IWindow
+class AWindow : public Object
 {
 public:
     virtual ~AWindow() override;
     AWindow();
 
-    virtual void update() override = 0;
-    virtual void nextFrame() override = 0;
+    virtual void update() = 0;
+    virtual void nextFrame() = 0;
 
-    bool getIsInitialized() const override;
+    bool getIsInitialized() const;
 
-    bool getIsActive() const override;
+    bool getIsActive() const;
 
-    unsigned int getWidth() const override;
-    void setWidth(unsigned int pWidth) override;
+    unsigned int getWidth() const;
+    void setWidth(unsigned int pWidth);
 
-    unsigned int getHeight() const override;
-    void setHeight(unsigned int pHeight) override;
+    unsigned int getHeight() const;
+    void setHeight(unsigned int pHeight);
 
-    const std::string& getTitle() const override;
-    void setTitle(const std::string& pTitle) override;
+    const std::string& getTitle() const;
+    void setTitle(const std::string& pTitle);
 
-    double getTimeDifference() const override;
-    double getFPS() const override;
+    double getTimeDifference() const;
+    double getFPS() const;
 
-    void setOnResizeFunction(const std::function<void (double, double)>& pOnResizeFunction) override;
+    void setOnResizeFunction(const std::function<void (double, double)>& pOnResizeFunction);
 
 protected:
     bool mIsInitialized;

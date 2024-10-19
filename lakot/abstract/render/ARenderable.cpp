@@ -8,7 +8,7 @@ ARenderable::~ARenderable()
 }
 
 ARenderable::ARenderable()
-    : IRenderable()
+    : Object()
     , mType(RenderableType::eUnknown)
 {
 

@@ -8,23 +8,23 @@ AEntity::~AEntity()
 }
 
 AEntity::AEntity()
-    : IEntity()
+    : Object()
     , mType(EntityType::eNone)
 {
 
 }
 
-const std::string& AEntity::getUUID() const
+const std::string& AEntity::getUUID() const noexcept
 {
     return mUUID;
 }
 
-void AEntity::setUUID(const std::string& pUUID)
+void AEntity::setUUID(const std::string& pUUID) noexcept
 {
     mUUID = pUUID;
 }
 
-EntityType AEntity::getType() const
+EntityType AEntity::getType() const noexcept
 {
     return mType;
 }

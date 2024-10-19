@@ -9,7 +9,6 @@
 
 #include "../layer/LayerFactory.h"
 
-#include "../resource/loader/LoaderFactory.h"
 #include "../resource/loader/ModelLoader.h"
 
 #include "Logger.h"
@@ -33,10 +32,13 @@ using namespace lakot;
 
 Engine* Engine::mEngine = nullptr;
 
-Engine::~Engine() {}
+Engine::~Engine()
+{
+
+}
 
 Engine::Engine()
-    : AEngine()
+    : Object()
 {
 
 }
@@ -148,25 +150,16 @@ void Engine::initializeLayer()
     }
 
     tLayer->initialize();
-
-    bool tIsLayerInitialized = tLayer->getIsInitialized();
-
-    if (!tIsLayerInitialized)
-    {
-        throw "Layer is not initialized.";
-    }
 }
 
 void Engine::test()
 {
-    Loader* tLoader = LoaderFactory::createLoader(LoaderType::eModel);
+    // ModelLoader* tModelLoader = new ModelLoader();
 
-    ModelLoader* tModelLoader = dynamic_cast<ModelLoader*>(tLoader);
+    // tModelLoader->setPath("C:/Development/Lakot/asset/bmw/scene.gltf");
+    // // tModelLoader->setPath("C:/Development/Lakot/asset/servator/source/xenocat_sketchfab.fbx");
 
-    tModelLoader->setPath("C:/Development/Lakot/asset/bmw/scene.gltf");
-    // tModelLoader->setPath("C:/Development/Lakot/asset/servator/source/xenocat_sketchfab.fbx");
+    // tModelLoader->load();
 
-    tModelLoader->load();
-
-    GarbageCollector::getInstance()->add(tModelLoader, true);
+    // GarbageCollector::getInstance()->add(tModelLoader, true);
 }

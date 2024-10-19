@@ -12,7 +12,7 @@
 
 using namespace lakot;
 
-Renderer* RendererFactory::createRenderer()
+ARenderer* RendererFactory::createRenderer()
 {
 #if defined(LAKOT_RENDERER_OPENGL)
     return new OpenGLRenderer();

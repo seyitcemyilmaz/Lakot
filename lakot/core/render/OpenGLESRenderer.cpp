@@ -8,7 +8,7 @@ OpenGLESRenderer::~OpenGLESRenderer()
 }
 
 OpenGLESRenderer::OpenGLESRenderer()
-    : Renderer()
+    : ARenderer()
 {
 
 }
@@ -23,7 +23,7 @@ void OpenGLESRenderer::deinitialize()
 
 }
 
-void OpenGLESRenderer::render(IRenderable* pRenderable)
+void OpenGLESRenderer::render(ARenderable* pRenderable)
 {
 
 }

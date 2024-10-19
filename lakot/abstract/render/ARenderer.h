@@ -1,15 +1,17 @@
 #ifndef LAKOT_ARENDERER_H
 #define LAKOT_ARENDERER_H
 
-#include <lakot/interface/graphics/render/IRenderer.h>
+#include "ARenderable.h"
 
 namespace lakot {
 
-class ARenderer : public IRenderer
+class ARenderer : public Object
 {
 public:
     virtual ~ARenderer() override;
     ARenderer();
+
+    virtual void render(ARenderable* pRenderable) = 0;
 };
 
 }

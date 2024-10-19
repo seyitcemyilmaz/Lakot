@@ -1,11 +1,12 @@
 #ifndef ALOGGER_H
 #define ALOGGER_H
 
-#include <lakot/interface/engine/ILogger.h>
+#include <lakot/utilities/Object.h>
+#include <lakot/utilities/Type.h>
 
 namespace lakot {
 
-class ALogger : public ILogger
+class ALogger : public Object
 {
 public:
     virtual ~ALogger() override;

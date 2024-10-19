@@ -8,21 +8,18 @@ namespace lakot {
 class FileManager
 {
 public:
-    virtual ~FileManager();
-    FileManager();
+    static std::string createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory);
 
-    std::string createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory);
+    static bool isFileExist(const std::filesystem::path& pPath);
+    static bool isFileExist(const std::filesystem::path& pPath, const std::string& pFile);
 
-    bool isFileExist(const std::filesystem::path& pPath);
-    bool isFileExist(const std::filesystem::path& pPath, const std::string& pFile);
+    static bool hasParentPath(const std::filesystem::path& pPath);
 
-    bool hasParentPath(const std::filesystem::path& pPath) const;
+    static std::string getFileContent(const std::filesystem::path& pPath);
 
-    std::string getFileContent(const std::filesystem::path& pPath);
-
-    std::string getParentDirectory(const std::filesystem::path& pPath);
-    std::string getFileNameFromPath(const std::filesystem::path& pPath);
-    std::string getDirectoryFromPath(const std::filesystem::path& pPath);
+    static std::string getParentDirectory(const std::filesystem::path& pPath);
+    static std::string getFileNameFromPath(const std::filesystem::path& pPath);
+    static std::string getDirectoryFromPath(const std::filesystem::path& pPath);
 };
 
 }
