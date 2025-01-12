@@ -7,8 +7,10 @@ BoneAsset::~BoneAsset()
 
 }
 
-BoneAsset::BoneAsset(const std::string& pName)
-    : mName(pName)
+BoneAsset::BoneAsset(const std::string& pName, const glm::mat4& pTransformation)
+    : AAsset(AssetType::eBone)
+    , ABone(pTransformation)
+    , mName(pName)
 {
 
 }

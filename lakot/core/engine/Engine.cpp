@@ -2,6 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <lakot/utilities/FileManager.h>
+
 #include "GarbageCollectorFactory.h"
 
 #include "../graphics/api/GraphicsAPIFactory.h"
@@ -9,7 +11,7 @@
 
 #include "../layer/LayerFactory.h"
 
-#include "../resource/loader/ModelLoader.h"
+// #include "../resource/loader/ModelLoader.h"
 
 #include "Logger.h"
 
@@ -60,11 +62,15 @@ void Engine::initialize()
         return;
     }
 
+    initializeFileManager();
+
     initializeGarbageCollector();
 
     initializeGraphicsAPI();
 
     initializeWindow();
+
+    initializeRenderer();
 
     initializeLayer();
 
@@ -92,9 +98,29 @@ void Engine::run()
     {
         GarbageCollector::getInstance()->synchronousProcess();
         Window::getInstance()->update();
-        Layer::getInstance()->update();
+        if (Window::getInstance()->getIsInitialized())
+        {
+            Layer::getInstance()->update();
+        }
         Window::getInstance()->nextFrame();
     }
+}
+
+void Engine::initializeFileManager()
+{
+    std::string tAssetPath = "";
+
+#if LAKOT_PLATFORM_WINDOWS
+    std::filesystem::path tCurrentPath = __FILE__;
+    std::filesystem::path tEngineFolderPath = tCurrentPath.parent_path();
+    std::filesystem::path tCoreFolderPath = tEngineFolderPath.parent_path();
+    std::filesystem::path tIncludePath = tCoreFolderPath.parent_path();
+    std::filesystem::path tLakotPath = tIncludePath.parent_path();
+
+    tAssetPath = FileManager::createPath(tLakotPath, "asset");
+#endif
+
+    FileManager::setAssetPath(tAssetPath);
 }
 
 void Engine::initializeGarbageCollector()
@@ -131,17 +157,11 @@ void Engine::initializeWindow()
     }
 
     tWindow->initialize();
-
-    bool tIsWindowInitialized = tWindow->getIsInitialized();
-
-    if (!tIsWindowInitialized)
-    {
-        throw "Window is not initialized.";
-    }
 }
 
 void Engine::initializeLayer()
 {
+#if !defined(LAKOT_PLATFORM_ANDROID)
     Layer* tLayer = LayerFactory::createLayer();
 
     if (!tLayer)
@@ -150,6 +170,22 @@ void Engine::initializeLayer()
     }
 
     tLayer->initialize();
+#endif
+}
+
+void Engine::initializeRenderer()
+{
+#if !defined(LAKOT_PLATFORM_ANDROID)
+    if (GraphicsAPI::getInstance())
+    {
+        ARenderer* tRenderer = GraphicsAPI::getInstance()->getRenderer();
+
+        if (tRenderer)
+        {
+            tRenderer->initialize();
+        }
+    }
+#endif
 }
 
 void Engine::test()

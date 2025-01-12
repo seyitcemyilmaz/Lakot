@@ -119,7 +119,7 @@ void ModelLoader::loadNode(aiNode* pNode, NodeAsset* pParentNodeAsset)
         tMatrix.a4, tMatrix.b4, tMatrix.c4, tMatrix.d4
     };
 
-    NodeAsset* tNode = new NodeAsset(pNodeName, tTransform, pParentNodeAsset);
+    NodeAsset* tNode = new NodeAsset(pNodeName, pParentNodeAsset, tTransform);
 
     if (!pParentNodeAsset)
     {
@@ -159,16 +159,14 @@ void ModelLoader::loadMesh(aiMesh* pMesh, NodeAsset* pParentNodeAsset)
     std::string tMeshName = pMesh->mName.C_Str();
     unsigned int tMaterialIndex = pMesh->mMaterialIndex;
 
-    MeshAsset* tMeshAsset = new MeshAsset(tMeshName, tMaterialIndex);
-    pParentNodeAsset->mChildMeshes.push_back(tMeshAsset);
-
     auto& tMin = pMesh->mAABB.mMin;
     auto& tMax = pMesh->mAABB.mMax;
 
-    BoundingBox* tBoundingBox = new BoundingBox(glm::vec3(tMin.x, tMin.y, tMin.z),
-                                                glm::vec3(tMax.x, tMax.y, tMax.z));
+    BoundingBox tBoundingBox(glm::vec3(tMin.x, tMin.y, tMin.z),
+                             glm::vec3(tMax.x, tMax.y, tMax.z));
 
-    tMeshAsset->setBoundingBox(tBoundingBox);
+    MeshAsset* tMeshAsset = new MeshAsset(tMeshName, tMaterialIndex, std::move(tBoundingBox));
+    pParentNodeAsset->mChildMeshes.push_back(tMeshAsset);
 
     VertexInformation* tVertexInformation = createVertexInformation(pMesh, tMeshAsset);
     tMeshAsset->setVertexInformation(tVertexInformation);
@@ -279,9 +277,21 @@ void ModelLoader::loadTexture(aiTextureType pTextureType, aiMaterial* pMaterial,
 
     for (auto& tElement : mModelAsset->mTextures)
     {
-        if (tElement->getPath() == tTexturePath)
+        if (!tElement)
         {
-            tTexture = tElement;
+            continue;
+        }
+
+        TextureAsset* tTextureAsset = dynamic_cast<TextureAsset*>(tElement);
+
+        if (!tTextureAsset)
+        {
+            continue;
+        }
+
+        if (tTextureAsset->getPath() == tTexturePath)
+        {
+            tTexture = tTextureAsset;
             break;
         }
     }
@@ -595,16 +605,28 @@ VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset
                 int tBoneId = -1;
 
                 {
-                    auto& tCurrentBones = mModelAsset->mBones;
+                    const std::vector<ABone*>& tCurrentBones = mModelAsset->mBones;
                     unsigned int tBoneCount = tCurrentBones.size();
 
                     for (unsigned int j = 0; j < tBoneCount; j++)
                     {
-                        BoneAsset* tTempBone = tCurrentBones[j];
+                        ABone* tTempBone = tCurrentBones[j];
+
+                        if (!tTempBone)
+                        {
+                            continue;
+                        }
 
                         if (tTempBone->getName() == tBoneName)
                         {
-                            tBoneAsset = tTempBone;
+                            BoneAsset* tTempBoneAsset = dynamic_cast<BoneAsset*>(tTempBone);
+
+                            if (!tTempBoneAsset)
+                            {
+                                throw "Temp bone asset is not found.";
+                            }
+
+                            tBoneAsset = tTempBoneAsset;
                             tBoneId = j;
                             break;
                         }

@@ -7,9 +7,11 @@ add_library(${PROJECT_NAME}
     Timer.h Timer.cpp
     Type.h
     Object.h Object.cpp
+    BoundingBox.h BoundingBox.cpp
+    DataContainer.h DataContainer.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ### add spdlog - begin ###
 if (LAKOT_USE_PLATFORM_WINDOWS) # v1.14.1

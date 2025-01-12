@@ -11,17 +11,17 @@ set(LAKOT_CORE_FILES
 
     engine/Logger.h engine/Logger.cpp
 
-    geometry/BoundingBox.h geometry/BoundingBox.cpp
-
     graphics/api/GraphicsAPIFactory.h graphics/api/GraphicsAPIFactory.cpp
     graphics/api/GraphicsAPI.h graphics/api/GraphicsAPI.cpp
-
-    graphics/window/WindowFactory.h graphics/window/WindowFactory.cpp
-    graphics/window/Window.h graphics/window/Window.cpp
 
     graphics/camera/Camera.h graphics/camera/Camera.cpp
     graphics/camera/CameraFactory.h graphics/camera/CameraFactory.cpp
     graphics/camera/FPSCamera.h graphics/camera/FPSCamera.cpp
+
+    graphics/geometry/Box.h graphics/geometry/Box.cpp
+
+    graphics/window/WindowFactory.h graphics/window/WindowFactory.cpp
+    graphics/window/Window.h graphics/window/Window.cpp
 
     layer/Layer.h layer/Layer.cpp
     layer/LayerFactory.h layer/LayerFactory.cpp
@@ -38,16 +38,37 @@ set(LAKOT_CORE_FILES
     resource/entity/Entity.h resource/entity/Entity.cpp
 
     resource/loader/ModelLoader.h resource/loader/ModelLoader.cpp
+
+    scene/Scene.h scene/Scene.cpp
 )
 
 if(LAKOT_USE_RENDERER_OPENGL)
-    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLAPI.h graphics/api/OpenGLAPI.cpp)
+    list(APPEND LAKOT_CORE_FILES render/ShaderSource.h)
+
     list(APPEND LAKOT_CORE_FILES render/OpenGLRenderer.h render/OpenGLRenderer.cpp)
+
+    list(APPEND LAKOT_CORE_FILES render/VertexArrayObject.h render/VertexArrayObject.cpp)
+    list(APPEND LAKOT_CORE_FILES render/VertexBufferObject.h render/VertexBufferObject.cpp)
+
+    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLAPI.h graphics/api/OpenGLAPI.cpp)
+
+    list(APPEND LAKOT_CORE_FILES graphics/shader/OpenGLShader.h graphics/shader/OpenGLShader.cpp)
+    list(APPEND LAKOT_CORE_FILES graphics/shader/OpenGLShaderProgram.h graphics/shader/OpenGLShaderProgram.cpp)
 endif()
 
 if(LAKOT_USE_RENDERER_OPENGLES)
-    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLESAPI.h graphics/api/OpenGLESAPI.cpp)
+    list(APPEND LAKOT_CORE_FILES render/ShaderSource.h)
+
     list(APPEND LAKOT_CORE_FILES render/OpenGLESRenderer.h render/OpenGLESRenderer.cpp)
+
+    list(APPEND LAKOT_CORE_FILES render/VertexArrayObject.h render/VertexArrayObject.cpp)
+    list(APPEND LAKOT_CORE_FILES render/VertexBufferObject.h render/VertexBufferObject.cpp)
+
+    list(APPEND LAKOT_CORE_FILES graphics/api/OpenGLESAPI.h graphics/api/OpenGLESAPI.cpp)
+
+    list(APPEND LAKOT_CORE_FILES graphics/shader/OpenGLShader.h graphics/shader/OpenGLShader.cpp)
+    list(APPEND LAKOT_CORE_FILES graphics/shader/OpenGLShaderProgram.h graphics/shader/OpenGLShaderProgram.cpp)
+
 endif()
 
 if(LAKOT_USE_WINDOW_GLFW)
@@ -59,7 +80,7 @@ if(LAKOT_USE_WINDOW_EGL)
 endif()
 
 add_library(${PROJECT_NAME} ${LAKOT_CORE_FILES}
-    scene/Scene.h scene/Scene.cpp)
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC LakotAbstract)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)

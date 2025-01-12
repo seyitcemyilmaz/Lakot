@@ -6,16 +6,25 @@
 
 namespace lakot {
 
+class AVertexArrayObject;
+
 class ARenderable : public Object
 {
 public:
     virtual ~ARenderable() override;
     ARenderable();
 
-    RenderableType getType() const;
+#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+    virtual const AVertexArrayObject& getVertexArrayObject() const = 0;
+#endif
+    RenderableType getRenderableType() const;
+
+    VertexInformation& getVertexInformation();
 
 protected:
-    RenderableType mType;
+    RenderableType mRenderableType;
+
+    VertexInformation mVertexInformation;
 };
 
 }

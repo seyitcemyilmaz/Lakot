@@ -1,8 +1,9 @@
 #ifndef LAKOT_BOUNDINGBOX_H
 #define LAKOT_BOUNDINGBOX_H
 
-#include <lakot/utilities/Object.h>
-#include <lakot/utilities/Type.h>
+#include <glm/glm.hpp>
+
+#include "Object.h"
 
 namespace lakot {
 
@@ -10,7 +11,8 @@ class BoundingBox : public Object
 {
 public:
     virtual ~BoundingBox();
-    BoundingBox(const glm::vec3& mMin, const glm::vec3& mMax);
+    BoundingBox(const glm::vec3& mMin = glm::vec3(0.0f),
+                const glm::vec3& mMax = glm::vec3(0.0f));
 
     void initialize();
     void deinitialize();

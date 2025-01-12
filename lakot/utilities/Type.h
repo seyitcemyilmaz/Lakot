@@ -10,20 +10,22 @@ namespace lakot {
 
 enum class AssetType
 {
-    eNone,
+    eUndefined,
     eModel,
     eNode,
     eMesh,
+    eBone,
     eMaterial,
     eTexture
 };
 
 enum class EntityType
 {
-    eNone,
+    eUndefined,
     eModel,
     eNode,
     eMesh,
+    eBone,
     eMaterial,
     eTexture
 };
@@ -38,7 +40,7 @@ enum class ButtonType
 
 enum class RenderableType
 {
-    eUnknown,
+    eUndefined,
     eMesh,
     eBox
 };
@@ -56,6 +58,13 @@ enum class GraphicsAPIType
     eOpenGLES
 };
 
+enum class ShaderType
+{
+    eUndefined,
+    eVertex,
+    eFragment
+};
+
 struct VertexInformation
 {
     std::vector<glm::vec3> positions;
@@ -67,14 +76,21 @@ struct VertexInformation
     std::vector<unsigned int> indices;
 };
 
+struct ShaderUniform
+{
+    ShaderUniform(const std::string& pName)
+        : name(pName)
+        , location(-1)
+    {
+
+    }
+
+    std::string name;
+    int location;
+};
+
 struct Image
 {
-    unsigned char* data;
-
-    int width;
-    int height;
-    int channels;
-
     ~Image()
     {
         if (data)
@@ -92,6 +108,12 @@ struct Image
     {
 
     }
+
+    unsigned char* data;
+
+    int width;
+    int height;
+    int channels;
 };
 
 template <class T>

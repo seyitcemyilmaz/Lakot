@@ -5,6 +5,8 @@
 
 using namespace lakot;
 
+std::string FileManager::mAssetPath = "";
+
 std::string FileManager::createPath(const std::filesystem::path& pPath, const std::string& pFileOrDirectory)
 {
     std::string tPath = pPath.string();
@@ -53,7 +55,6 @@ std::string FileManager::getFileContent(const std::filesystem::path& pPath)
     return tFileContent;
 }
 
-
 std::string FileManager::getParentDirectory(const std::filesystem::path& pPath)
 {
     return pPath.parent_path().string();
@@ -79,4 +80,14 @@ std::string FileManager::getFileNameFromPath(const std::filesystem::path& pPath)
 std::string FileManager::getDirectoryFromPath(const std::filesystem::path& pPath)
 {
     return pPath.string().substr(0, pPath.string().find_last_of('/'));
+}
+
+std::string FileManager::getAssetPath()
+{
+    return mAssetPath;
+}
+
+void FileManager::setAssetPath(const std::string& pAssetPath)
+{
+    mAssetPath = pAssetPath;
 }

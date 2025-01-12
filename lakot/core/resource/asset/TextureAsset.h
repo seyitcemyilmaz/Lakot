@@ -2,10 +2,13 @@
 #define LAKOT_TEXTUREASSET_H
 
 #include <lakot/abstract/resource/asset/AAsset.h>
+#include <lakot/abstract/graphics/model/ATexture.h>
 
 namespace lakot {
 
-class TextureAsset : public AAsset
+class TextureAsset
+    : public AAsset
+    , public ATexture
 {
 public:
     virtual ~TextureAsset() override;
@@ -14,7 +17,7 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    const std::string& getPath() const;
+    const std::string& getPath() const override;
 
 protected:
     friend class ModelLoader;

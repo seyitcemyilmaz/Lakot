@@ -9,7 +9,7 @@ AEntity::~AEntity()
 
 AEntity::AEntity()
     : Object()
-    , mType(EntityType::eNone)
+    , mType(EntityType::eUndefined)
 {
 
 }

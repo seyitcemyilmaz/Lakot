@@ -2,6 +2,7 @@
 #define LAKOT_MODELASSET_H
 
 #include <lakot/abstract/resource/asset/AAsset.h>
+#include <lakot/abstract/graphics/model/AModel.h>
 
 namespace lakot {
 
@@ -11,7 +12,9 @@ class MeshAsset;
 class MaterialAsset;
 class TextureAsset;
 
-class ModelAsset : public AAsset
+class ModelAsset
+    : public AAsset
+    , public AModel
 {
 public:
     virtual ~ModelAsset() override;
@@ -20,9 +23,16 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-    NodeAsset* getRootNode() const;
+    const std::string& getPath() const override;
 
-    const std::vector<TextureAsset*>& getTextures() const;
+    const std::vector<AMesh*> getMeshes() const override;
+    const std::vector<ANode*> getNodes() const override;
+    const std::vector<ABone*> getBones() const override;
+
+    const std::vector<ATexture*> getTextures() const override;
+    const std::vector<AMaterial*> getMaterials() const override;
+
+    ANode* getRootNode() const override;
 
 protected:
     friend class ModelLoader;
@@ -34,10 +44,11 @@ private:
 
     NodeAsset* mRootNode;
 
-    std::vector<MeshAsset*> mMeshes;
-    std::vector<MaterialAsset*> mMaterials;
-    std::vector<TextureAsset*> mTextures;
-    std::vector<BoneAsset*> mBones;
+    std::vector<AMesh*> mMeshes;
+    std::vector<ANode*> mNodes;
+    std::vector<AMaterial*> mMaterials;
+    std::vector<ATexture*> mTextures;
+    std::vector<ABone*> mBones;
 };
 
 }

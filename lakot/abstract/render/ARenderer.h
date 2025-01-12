@@ -12,6 +12,13 @@ public:
     ARenderer();
 
     virtual void render(ARenderable* pRenderable) = 0;
+
+    void setProjectionMatrix(const glm::mat4& pProjectionMatrix);
+    void setViewMatrix(const glm::mat4& pViewMatrix);
+
+protected:
+    glm::mat4 mProjectionMatrix;
+    glm::mat4 mViewMatrix;
 };
 
 }

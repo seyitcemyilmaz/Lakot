@@ -53,14 +53,19 @@ void OpenGLAPI::initialize()
 
 void OpenGLAPI::deinitialize()
 {
-    spdlog::info("OpenGL API is terminating.");
+    spdlog::info("OpenGL API is deinitializing.");
 
     if (mIsInitialized)
     {
+        if (mRenderer)
+        {
+            mRenderer->deinitialize();
+        }
+
         glfwTerminate();
         mInstance = nullptr;
         mIsInitialized = false;
     }
 
-    spdlog::info("OpenGL API is terminated.");
+    spdlog::info("OpenGL API is deinitialized.");
 }

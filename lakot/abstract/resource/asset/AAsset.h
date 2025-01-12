@@ -10,7 +10,7 @@ class AAsset : public Object
 {
 public:
     virtual ~AAsset() override;
-    AAsset();
+    AAsset(AssetType pType);
 
     const std::string& getUUID() const noexcept;
     void setUUID(const std::string& pUUID) noexcept;

@@ -9,12 +9,17 @@ ARenderable::~ARenderable()
 
 ARenderable::ARenderable()
     : Object()
-    , mType(RenderableType::eUnknown)
+    , mRenderableType(RenderableType::eUndefined)
 {
 
 }
 
-RenderableType ARenderable::getType() const
+RenderableType ARenderable::getRenderableType() const
 {
-    return mType;
+    return mRenderableType;
+}
+
+VertexInformation& ARenderable::getVertexInformation()
+{
+    return mVertexInformation;
 }

@@ -26,6 +26,10 @@ public:
     void nextFrame() override;
 
     static void setAndroidApp(android_app* pAndroidApp);
+    static android_app* getAndroidApp();
+
+    const EGLDisplay& getDisplay() const;
+    const EGLSurface& getSurface() const;
 
 private:
     EGLDisplay mDisplay;

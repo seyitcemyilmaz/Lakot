@@ -1,5 +1,9 @@
 #include "ModelAsset.h"
 
+#include "NodeAsset.h"
+#include "MeshAsset.h"
+#include "TextureAsset.h"
+
 using namespace lakot;
 
 ModelAsset::~ModelAsset()
@@ -8,7 +12,8 @@ ModelAsset::~ModelAsset()
 }
 
 ModelAsset::ModelAsset(const std::string& pPath)
-    : AAsset()
+    : AAsset(AssetType::eModel)
+    , AModel()
     , mPath(pPath)
 {
 
@@ -24,14 +29,34 @@ void ModelAsset::deinitialize()
     // deinit
 }
 
-NodeAsset* ModelAsset::getRootNode() const
+const std::string& ModelAsset::getPath() const
 {
-    return mRootNode;
+    return mPath;
 }
 
-const std::vector<TextureAsset*>& ModelAsset::getTextures() const
+const std::vector<AMesh*> ModelAsset::getMeshes() const
+{
+    return mMeshes;
+}
+
+const std::vector<ANode*> ModelAsset::getNodes() const
+{
+    return mNodes;
+}
+
+const std::vector<ATexture*> ModelAsset::getTextures() const
 {
     return mTextures;
+}
+
+const std::vector<AMaterial*> ModelAsset::getMaterials() const
+{
+    return mMaterials;
+}
+
+ANode* ModelAsset::getRootNode() const
+{
+    return mRootNode;
 }
 
 void ModelAsset::addMesh(MeshAsset* pMesh)

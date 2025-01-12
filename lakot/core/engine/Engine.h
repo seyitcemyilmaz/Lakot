@@ -22,10 +22,12 @@ protected:
     static Engine* mEngine;
 
 private:
+    void initializeFileManager();
     void initializeGarbageCollector();
     void initializeGraphicsAPI();
     void initializeWindow();
     void initializeLayer();
+    void initializeRenderer();
 
     void test();
 };

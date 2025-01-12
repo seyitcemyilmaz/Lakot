@@ -14,6 +14,8 @@ public:
     virtual ~ACamera() override;
     ACamera();
 
+    virtual void update() = 0;
+
     CameraType getType() const;
 
     const glm::vec3& getPosition() const;
@@ -31,6 +33,15 @@ public:
     const glm::vec3& getWorldUpVector() const;
     void setWorldUpVector(const glm::vec3& pWorldUpVector);
 
+    float getZoom() const;
+    void setZoom(float pZoom);
+
+    float getNear() const;
+    void setNear(float pNear);
+
+    float getFar() const;
+    void setFar(float pFar);
+
     void changePosition(const glm::vec3& pAmount);
 
     const glm::mat4& getViewMatrix() const;
@@ -45,6 +56,11 @@ protected:
     glm::vec3 mRightVector;
 
     glm::vec3 mWorldUpVector;
+
+    float mZoom;
+
+    float mNear;
+    float mFar;
 
     glm::mat4 mViewMatrix;
 };

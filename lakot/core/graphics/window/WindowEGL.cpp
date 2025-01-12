@@ -8,6 +8,9 @@
 #include <game-activity/GameActivity.cpp>
 #include <game-text-input/gametextinput.cpp>
 
+#include "../api/GraphicsAPI.h"
+#include "../../layer/LayerFactory.h"
+
 using namespace lakot;
 
 android_app* WindowEGL::mAndroidApp = nullptr;
@@ -28,13 +31,63 @@ void handleCommand(android_app* pAndroidApp, int32_t pCommand)
             // android_main function and the APP_CMD_TERM_WINDOW handler case.
             pAndroidApp->userData = Window::getInstance();
             ((WindowEGL*) Window::getInstance())->createEGLContext();
+
+            spdlog::info("APP_CMD_INIT_WINDOW");
             break;
+        case APP_CMD_WINDOW_RESIZED:
+        {
+            spdlog::info("APP_CMD_WINDOW_RESIZED");
+
+            EGLint tWidth;
+            EGLint tHeight;
+
+            eglQuerySurface(((WindowEGL*) Window::getInstance())->getDisplay(),
+                            ((WindowEGL*) Window::getInstance())->getSurface(),
+                            EGL_WIDTH,
+                            &tWidth);
+
+            eglQuerySurface(((WindowEGL*) Window::getInstance())->getDisplay(),
+                            ((WindowEGL*) Window::getInstance())->getSurface(),
+                            EGL_HEIGHT,
+                            &tHeight);
+
+            Window::getInstance()->onResize(tWidth, tHeight);
+
+            glViewport(0, 0, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+
+            break;
+        }
+        case APP_CMD_CONFIG_CHANGED:
+        {
+            spdlog::info("APP_CMD_CONFIG_CHANGED");
+
+            EGLint tWidth;
+            EGLint tHeight;
+
+            eglQuerySurface(((WindowEGL*) Window::getInstance())->getDisplay(),
+                            ((WindowEGL*) Window::getInstance())->getSurface(),
+                            EGL_WIDTH,
+                            &tWidth);
+
+            eglQuerySurface(((WindowEGL*) Window::getInstance())->getDisplay(),
+                            ((WindowEGL*) Window::getInstance())->getSurface(),
+                            EGL_HEIGHT,
+                            &tHeight);
+
+
+            Window::getInstance()->onResize(tWidth, tHeight);
+
+            glViewport(0, 0, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+
+            break;
+        }
         case APP_CMD_TERM_WINDOW:
             // The window is being destroyed. Use this to clean up your userData to avoid leaking
             // resources.
             //
             // We have to check if userData is assigned just in case this comes in really quickly
-            if (pAndroidApp->userData) {
+            if (pAndroidApp->userData)
+            {
                 //
 //                auto *pRenderer = reinterpret_cast<Renderer *>(pAndroidApp->userData);
 //                pAndroidApp->userData = nullptr;
@@ -83,8 +136,6 @@ void WindowEGL::initialize()
     spdlog::info("EGL Window is initializing.");
 
     mInstance = this;
-
-    mIsInitialized = true;
 
     mAndroidApp->onAppCmd = handleCommand;
     android_app_set_motion_event_filter(mAndroidApp, motion_event_filter_func);
@@ -158,6 +209,27 @@ void WindowEGL::createEGLContext()
     mDisplay = display;
     mSurface = surface;
     mContext = context;
+
+    mIsInitialized = true;
+
+    if (GraphicsAPI::getInstance())
+    {
+        ARenderer* tRenderer = GraphicsAPI::getInstance()->getRenderer();
+
+        if (tRenderer)
+        {
+            tRenderer->initialize();
+        }
+    }
+
+    Layer* tLayer = LayerFactory::createLayer();
+
+    if (!tLayer)
+    {
+        throw "Layer is not found.";
+    }
+
+    tLayer->initialize();
 }
 
 void WindowEGL::update()
@@ -171,18 +243,27 @@ void WindowEGL::update()
         android_poll_source *pSource;
         int result = ALooper_pollOnce(timeout, nullptr, &events,
                                       reinterpret_cast<void**>(&pSource));
-        switch (result) {
+        switch (result)
+        {
             case ALOOPER_POLL_TIMEOUT:
+            {
                 [[clang::fallthrough]];
+            }
             case ALOOPER_POLL_WAKE:// No events occurred before the timeout or explicit wake. Stop checking for events.
+            {
                 done = true;
                 break;
+            }
             case ALOOPER_EVENT_ERROR:
+            {
                 spdlog::error("ALooper_pollOnce returned an error");
                 break;
+            }
             case ALOOPER_POLL_CALLBACK:break;default:if (pSource)
             {
                 pSource->process(mAndroidApp, pSource);
+
+                spdlog::info("ALOOPER_POLL_CALLBACK");
             }
         }
     }
@@ -193,14 +274,17 @@ void WindowEGL::update()
         // user data remember to change it here
         auto *pRenderer = mAndroidApp->userData;
 
+        glClearColor(0.6f, 0.2f, 0.7f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         // Process game input
 //            pRenderer->handleInput();
 
         // Render a frame
 //            pRenderer->render();
 
-        glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+//        glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+//        glClear(GL_COLOR_BUFFER_BIT);
 
         spdlog::info("render");
     }
@@ -215,10 +299,27 @@ void WindowEGL::nextFrame()
 {
     if (mAndroidApp->userData)
     {
+        spdlog::info("Next frame");
         eglSwapBuffers(mDisplay, mSurface);
     }
 }
 
-void WindowEGL::setAndroidApp(android_app *pAndroidApp) {
+void WindowEGL::setAndroidApp(android_app *pAndroidApp)
+{
     mAndroidApp = pAndroidApp;
+}
+
+android_app* WindowEGL::getAndroidApp()
+{
+    return mAndroidApp;
+}
+
+const EGLDisplay& WindowEGL::getDisplay() const
+{
+    return mDisplay;
+}
+
+const EGLSurface& WindowEGL::getSurface() const
+{
+    return mSurface;
 }

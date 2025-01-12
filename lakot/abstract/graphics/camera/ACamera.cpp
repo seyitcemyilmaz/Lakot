@@ -10,11 +10,14 @@ ACamera::~ACamera()
 ACamera::ACamera()
     : Object()
     , mType(CameraType::eUndefined)
-    , mPosition(0.0f, 0.0f, 0.0f)
+    , mPosition(0.0f, 2.0f, 10.0f)
     , mFrontVector(0.0f, 0.0f, -1.0f)
     , mUpVector(0.0f, 1.0f, 0.0f)
     , mRightVector(1.0f, 0.0f, 0.0f)
     , mWorldUpVector(0.0f, 1.0f, 0.0f)
+    , mZoom(45.0f)
+    , mNear(0.1f)
+    , mFar(100.0f)
 {
 
 }
@@ -72,6 +75,36 @@ const glm::vec3& ACamera::getWorldUpVector() const
 void ACamera::setWorldUpVector(const glm::vec3& pWorldUpVector)
 {
     mWorldUpVector = pWorldUpVector;
+}
+
+float ACamera::getZoom() const
+{
+    return mZoom;
+}
+
+void ACamera::setZoom(float pZoom)
+{
+    mZoom = pZoom;
+}
+
+float ACamera::getNear() const
+{
+    return mNear;
+}
+
+void ACamera::setNear(float pNear)
+{
+    mNear = pNear;
+}
+
+float ACamera::getFar() const
+{
+    return mFar;
+}
+
+void ACamera::setFar(float pFar)
+{
+    mFar = pFar;
 }
 
 void ACamera::changePosition(const glm::vec3& pAmount)

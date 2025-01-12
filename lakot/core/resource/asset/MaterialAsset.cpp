@@ -8,7 +8,7 @@ MaterialAsset::~MaterialAsset()
 }
 
 MaterialAsset::MaterialAsset()
-    : AAsset()
+    : AAsset(AssetType::eMaterial)
     , mDiffuseColor(glm::vec3(0.0f, 0.0f, 0.0f))
     , mSpecularColor(glm::vec3(0.0f, 0.0f, 0.0f))
     , mEmissiveColor(glm::vec3(0.0f, 0.0f, 0.0f))

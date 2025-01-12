@@ -7,9 +7,9 @@ AAsset::~AAsset()
 
 }
 
-AAsset::AAsset()
+AAsset::AAsset(AssetType pType)
     : Object()
-    , mType(AssetType::eNone)
+    , mType(pType)
 {
 
 }

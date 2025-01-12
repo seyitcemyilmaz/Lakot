@@ -20,6 +20,12 @@ public:
     static std::string getParentDirectory(const std::filesystem::path& pPath);
     static std::string getFileNameFromPath(const std::filesystem::path& pPath);
     static std::string getDirectoryFromPath(const std::filesystem::path& pPath);
+
+    static std::string getAssetPath();
+    static void setAssetPath(const std::string& pAssetPath);
+
+private:
+    static std::string mAssetPath;
 };
 
 }

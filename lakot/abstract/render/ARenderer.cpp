@@ -12,3 +12,13 @@ ARenderer::ARenderer()
 {
 
 }
+
+void ARenderer::setProjectionMatrix(const glm::mat4& pProjectionMatrix)
+{
+    mProjectionMatrix = pProjectionMatrix;
+}
+
+void ARenderer::setViewMatrix(const glm::mat4& pViewMatrix)
+{
+    mViewMatrix = pViewMatrix;
+}

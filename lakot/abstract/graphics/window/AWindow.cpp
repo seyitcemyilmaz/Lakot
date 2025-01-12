@@ -11,8 +11,8 @@ AWindow::AWindow()
     : Object()
     , mIsInitialized(false)
     , mIsActive(true)
-    , mWidth(0)
-    , mHeight(0)
+    , mWidth(0.0f)
+    , mHeight(0.0f)
     , mTimeDifference(0.0)
     , mCurrentTime(0.0)
     , mPreviousTime(0.0)
@@ -31,12 +31,12 @@ bool AWindow::getIsActive() const
     return mIsActive;
 }
 
-unsigned int AWindow::getWidth() const
+float AWindow::getWidth() const
 {
     return mWidth;
 }
 
-void AWindow::setWidth(unsigned int pWidth)
+void AWindow::setWidth(float pWidth)
 {
     mWidth = pWidth;
 }
@@ -74,4 +74,15 @@ double AWindow::getFPS() const
 void AWindow::setOnResizeFunction(const std::function<void (double, double)>& pOnResizeFunction)
 {
     mOnResizeFunction = pOnResizeFunction;
+}
+
+void AWindow::onResize(double pWidth, double pHeight)
+{
+    mWidth = pWidth;
+    mHeight = pHeight;
+
+    if (mOnResizeFunction)
+    {
+        mOnResizeFunction(mWidth, mHeight);
+    }
 }

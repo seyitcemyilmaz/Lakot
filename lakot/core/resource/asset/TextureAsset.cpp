@@ -12,7 +12,8 @@ TextureAsset::~TextureAsset()
 }
 
 TextureAsset::TextureAsset(const std::string& pPath, Image* pImage)
-    : AAsset()
+    : AAsset(AssetType::eTexture)
+    , ATexture()
     , mPath(pPath)
     , mImage(pImage)
 {

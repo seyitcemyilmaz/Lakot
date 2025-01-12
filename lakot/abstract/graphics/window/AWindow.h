@@ -21,8 +21,8 @@ public:
 
     bool getIsActive() const;
 
-    unsigned int getWidth() const;
-    void setWidth(unsigned int pWidth);
+    float getWidth() const;
+    void setWidth(float pWidth);
 
     unsigned int getHeight() const;
     void setHeight(unsigned int pHeight);
@@ -35,13 +35,15 @@ public:
 
     void setOnResizeFunction(const std::function<void (double, double)>& pOnResizeFunction);
 
+    void onResize(double pWidth, double pHeight);
+
 protected:
     bool mIsInitialized;
 
     bool mIsActive;
 
-    unsigned int mWidth;
-    unsigned int mHeight;
+    float mWidth;
+    float mHeight;
 
     std::string mTitle;
 
@@ -52,6 +54,7 @@ protected:
     double mPreviousTime;
 
     std::function<void (double, double)> mOnResizeFunction;
+
 };
 
 }
