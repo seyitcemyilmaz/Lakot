@@ -27,7 +27,7 @@ public:
 
     unsigned int getMaterialIndex() const;
 
-    VertexInformation* getVertexInformation() const;
+    DataContainer* getVertexInformation() const;
 
 #if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
     const AVertexArrayObject& getVertexArrayObject() const override;
@@ -38,14 +38,14 @@ public:
 protected:
     friend class ModelLoader;
 
-    void setVertexInformation(VertexInformation* pVertexInformation);
+    void setVertexInformation(DataContainer* pVertexInformation);
 
     void setHasBones(bool pHasBones);
 
 private:
     std::string mName;
 
-    VertexInformation* mVertexInformation;
+    DataContainer* mVertexInformation;
 
 #if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
     VertexArrayObject mVertexArrayObject;

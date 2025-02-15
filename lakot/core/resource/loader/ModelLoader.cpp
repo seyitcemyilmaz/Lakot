@@ -168,7 +168,7 @@ void ModelLoader::loadMesh(aiMesh* pMesh, NodeAsset* pParentNodeAsset)
     MeshAsset* tMeshAsset = new MeshAsset(tMeshName, tMaterialIndex, std::move(tBoundingBox));
     pParentNodeAsset->mChildMeshes.push_back(tMeshAsset);
 
-    VertexInformation* tVertexInformation = createVertexInformation(pMesh, tMeshAsset);
+    DataContainer* tVertexInformation = createVertexInformation(pMesh, tMeshAsset);
     tMeshAsset->setVertexInformation(tVertexInformation);
 }
 
@@ -520,14 +520,17 @@ void ModelLoader::createPossibleTextureLocations()
     }
 }
 
-VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset* pMeshAsset)
+DataContainer* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset* pMeshAsset)
 {
     unsigned int tVerticeCount = pMesh->mNumVertices;
 
-    VertexInformation* tVertexInformation = new VertexInformation();
+    DataContainer* tVertexInformation = new DataContainer();
 
-    tVertexInformation->positions.reserve(tVerticeCount);
-    tVertexInformation->normals.reserve(tVerticeCount);
+    std::vector<glm::vec3>& tPositionsBuffer = tVertexInformation->getBuffer<glm::vec3>("positions");
+    tPositionsBuffer.reserve(tVerticeCount);
+
+    std::vector<glm::vec3>& tNormalsBuffer = tVertexInformation->getBuffer<glm::vec3>("normals");
+    tNormalsBuffer.reserve(tVerticeCount);
 
     auto* tVertices = pMesh->mVertices;
     auto* tNormals = pMesh->mNormals;
@@ -535,36 +538,40 @@ VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset
 
     if (tTextureCoordinates)
     {
-        tVertexInformation->textureCoordinates.reserve(tVerticeCount);
+        std::vector<glm::vec2>& tTextureCoordinatesBuffer = tVertexInformation->getBuffer<glm::vec2>("textureCoordinates");
+        tTextureCoordinatesBuffer.reserve(tVerticeCount);
 
         for (unsigned int i = 0; i < tVerticeCount; i++)
         {
             auto& tPosition = tVertices[i];
-            tVertexInformation->positions.emplace_back(glm::vec3(tPosition.x, tPosition.y, tPosition.z));
+            tPositionsBuffer.emplace_back(glm::vec3(tPosition.x, tPosition.y, tPosition.z));
 
             auto& tNormal = tNormals[i];
-            tVertexInformation->normals.emplace_back(glm::vec3(tNormal.x, tNormal.y, tNormal.z));
+            tNormalsBuffer.emplace_back(glm::vec3(tNormal.x, tNormal.y, tNormal.z));
 
             auto& tTextureCoordinate = tTextureCoordinates[i];
-            tVertexInformation->textureCoordinates.emplace_back(glm::vec2(tTextureCoordinate.x, tTextureCoordinate.y));
+            tTextureCoordinatesBuffer.emplace_back(glm::vec2(tTextureCoordinate.x, tTextureCoordinate.y));
         }
     }
     else
     {
-        tVertexInformation->textureCoordinates.resize(tVerticeCount, glm::vec2(0.0f, 0.0f));
+        std::vector<glm::vec2>& tTextureCoordinatesBuffer = tVertexInformation->getBuffer<glm::vec2>("textureCoordinates");
+        tTextureCoordinatesBuffer.resize(tVerticeCount, glm::vec2(0.0f, 0.0f));
 
         for (unsigned int i = 0; i < tVerticeCount; i++)
         {
             auto& tPosition = tVertices[i];
-            tVertexInformation->positions.emplace_back(glm::vec3(tPosition.x, tPosition.y, tPosition.z));
+            tPositionsBuffer.emplace_back(glm::vec3(tPosition.x, tPosition.y, tPosition.z));
 
             auto& tNormal = tNormals[i];
-            tVertexInformation->normals.emplace_back(glm::vec3(tNormal.x, tNormal.y, tNormal.z));
+            tNormalsBuffer.emplace_back(glm::vec3(tNormal.x, tNormal.y, tNormal.z));
         }
     }
 
     unsigned int tFaceCount = pMesh->mNumFaces;
-    tVertexInformation->indices.reserve(tFaceCount * 3);
+
+    std::vector<unsigned int>& tIndicesBuffer = tVertexInformation->getBuffer<unsigned int>("indices");
+    tIndicesBuffer.reserve(tFaceCount * 3);
 
     for (unsigned int i = 0; i < tFaceCount; i++)
     {
@@ -576,17 +583,20 @@ VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset
             continue;
         }
 
-        tVertexInformation->indices.push_back(tFace.mIndices[0]);
-        tVertexInformation->indices.push_back(tFace.mIndices[1]);
-        tVertexInformation->indices.push_back(tFace.mIndices[2]);
+        tIndicesBuffer.push_back(tFace.mIndices[0]);
+        tIndicesBuffer.push_back(tFace.mIndices[1]);
+        tIndicesBuffer.push_back(tFace.mIndices[2]);
     }
 
     bool tHasBones = pMesh->HasBones();
 
     if (tHasBones)
     {
-        tVertexInformation->boneIDs.resize(tVerticeCount, glm::ivec4(-1, -1, -1, -1));
-        tVertexInformation->boneWeights.resize(tVerticeCount, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        std::vector<glm::ivec4>& tBoneIDsBuffer = tVertexInformation->getBuffer<glm::ivec4>("boneIDs");
+        tBoneIDsBuffer.resize(tVerticeCount, glm::ivec4(-1, -1, -1, -1));
+
+        std::vector<glm::vec4>& tBoneWeightsBuffer = tVertexInformation->getBuffer<glm::vec4>("boneWeights");
+        tBoneWeightsBuffer.resize(tVerticeCount, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
         pMeshAsset->setHasBones(true);
 
@@ -638,8 +648,8 @@ VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset
                     // TODO: Create bone.
                 }
 
-                glm::ivec4& tVerticeBones = tVertexInformation->boneIDs[tBoneId];
-                glm::vec4& tVerticeBoneWeights = tVertexInformation->boneWeights[tBoneId];
+                glm::ivec4& tVerticeBones = tBoneIDsBuffer[tBoneId];
+                glm::vec4& tVerticeBoneWeights = tBoneWeightsBuffer[tBoneId];
 
                 unsigned int tWeightCount = tBone->mNumWeights;
                 aiVertexWeight* tWeights = tBone->mWeights;
@@ -671,15 +681,15 @@ VertexInformation* ModelLoader::createVertexInformation(aiMesh* pMesh, MeshAsset
                 }
             }
 
-            unsigned int tVerticeCount = tVertexInformation->boneIDs.size();
+            unsigned int tVerticeCount = tBoneIDsBuffer.size();
 
             for (unsigned int i = 0; i < tVerticeCount; i++)
             {
                 float tTotalWeight = 0.0f;
                 unsigned int tBoneCount = 0;
 
-                glm::ivec4& tBoneIds = tVertexInformation->boneIDs[i];
-                glm::vec4& tBoneWeights = tVertexInformation->boneWeights[i];
+                glm::ivec4& tBoneIds = tBoneIDsBuffer[i];
+                glm::vec4& tBoneWeights = tBoneWeightsBuffer[i];
 
                 for (unsigned int j = 0; j < 4; j++)
                 {

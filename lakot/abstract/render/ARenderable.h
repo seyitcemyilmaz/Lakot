@@ -3,6 +3,7 @@
 
 #include <lakot/utilities/Object.h>
 #include <lakot/utilities/Type.h>
+#include <lakot/utilities/DataContainer.hpp>
 
 namespace lakot {
 
@@ -19,12 +20,12 @@ public:
 #endif
     RenderableType getRenderableType() const;
 
-    VertexInformation& getVertexInformation();
+    DataContainer& getVertexInformation();
 
 protected:
     RenderableType mRenderableType;
 
-    VertexInformation mVertexInformation;
+    DataContainer mVertexInformation;
 };
 
 }

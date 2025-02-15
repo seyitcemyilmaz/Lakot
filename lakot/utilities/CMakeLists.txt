@@ -8,7 +8,7 @@ add_library(${PROJECT_NAME}
     Type.h
     Object.h Object.cpp
     BoundingBox.h BoundingBox.cpp
-    DataContainer.h DataContainer.cpp
+    DataContainer.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

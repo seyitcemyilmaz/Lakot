@@ -18,7 +18,7 @@ Box::Box()
 void Box::initialize()
 {
 #if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
-    mVertexInformation.positions =
+    mVertexInformation.set<glm::vec3>("positions",
     {
         glm::vec3( 0.5f,  0.5f,  0.5f),
         glm::vec3(-0.5f,  0.5f,  0.5f),
@@ -28,13 +28,13 @@ void Box::initialize()
         glm::vec3(-0.5f,  0.5f, -0.5f),
         glm::vec3(-0.5f, -0.5f, -0.5f),
         glm::vec3( 0.5f, -0.5f, -0.5f)
-    };
+    });
 
-    mVertexInformation.indices =
+    mVertexInformation.set<unsigned int>("indices",
     {
         0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
         6, 7, 7, 4, 0, 4, 3, 7, 1, 5, 2, 6
-    };
+    });
 
     {
         VertexBufferObject* tBuffer =
@@ -107,13 +107,29 @@ void Box::initialize()
 
     {
         VertexBufferObject* tBuffer = mVertexArrayObject.getElementBufferObject();
-        tBuffer->setData(mVertexInformation.indices);
+
+        if (auto tIndices = mVertexInformation.get<unsigned int>("indices"))
+        {
+            tBuffer->setData(tIndices->get());
+        }
+        else
+        {
+            spdlog::error("Indices is not found.");
+        }
     }
 
     {
         // Layout 0.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(0);
-        tBuffer->setData(mVertexInformation.positions);
+
+        if (auto tPositions = mVertexInformation.get<glm::vec3>("positions"))
+        {
+            tBuffer->setData(tPositions->get());
+        }
+        else
+        {
+            spdlog::error("Positions is not found.");
+        }
     }
 
     {

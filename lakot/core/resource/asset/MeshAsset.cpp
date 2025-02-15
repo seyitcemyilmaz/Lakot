@@ -1,5 +1,7 @@
 #include "MeshAsset.h"
 
+#include <spdlog/spdlog.h>
+
 using namespace lakot;
 
 MeshAsset::~MeshAsset()
@@ -129,37 +131,85 @@ void MeshAsset::initialize()
 
     {
         VertexBufferObject* tBuffer = mVertexArrayObject.getElementBufferObject();
-        tBuffer->setData(mVertexInformation->indices);
+
+        if (auto tIndices = mVertexInformation->get<unsigned int>("indices"))
+        {
+            tBuffer->setData(tIndices->get());
+        }
+        else
+        {
+            spdlog::error("Indices is not found.");
+        }
     }
 
     {
         // Layout 0.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(0);
-        tBuffer->setData(mVertexInformation->positions);
+
+        if (auto tPositions = mVertexInformation->get<glm::vec3>("positions"))
+        {
+            tBuffer->setData(tPositions->get());
+        }
+        else
+        {
+            spdlog::error("Positions is not found.");
+        }
     }
 
     {
         // Layout 1.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(1);
-        tBuffer->setData(mVertexInformation->normals);
+
+        if (auto tNormals = mVertexInformation->get<glm::vec3>("normals"))
+        {
+            tBuffer->setData(tNormals->get());
+        }
+        else
+        {
+            spdlog::error("Normals is not found.");
+        }
     }
 
     {
         // Layout 2.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(2);
-        tBuffer->setData(mVertexInformation->textureCoordinates);
+
+        if (auto tTextureCoordinates = mVertexInformation->get<glm::vec2>("textureCoordinates"))
+        {
+            tBuffer->setData(tTextureCoordinates->get());
+        }
+        else
+        {
+            spdlog::error("Texture Coordinates is not found.");
+        }
     }
 
     {
         // Layout 3.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(3);
-        tBuffer->setData(mVertexInformation->boneIDs);
+
+        if (auto tBoneIDs = mVertexInformation->get<glm::ivec4>("boneIDs"))
+        {
+            tBuffer->setData(tBoneIDs->get());
+        }
+        else
+        {
+            spdlog::error("Bone IDs is not found.");
+        }
     }
 
     {
         // Layout 4.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(4);
-        tBuffer->setData(mVertexInformation->boneWeights);
+
+        if (auto tBoneWeights = mVertexInformation->get<glm::vec4>("boneWeights"))
+        {
+            tBuffer->setData(tBoneWeights->get());
+        }
+        else
+        {
+            spdlog::error("Bone Weights is not found.");
+        }
     }
 #endif
 }
@@ -176,7 +226,7 @@ const std::string& MeshAsset::getName() const
     return mName;
 }
 
-VertexInformation* MeshAsset::getVertexInformation() const
+DataContainer* MeshAsset::getVertexInformation() const
 {
     return mVertexInformation;
 }
@@ -198,7 +248,7 @@ bool MeshAsset::getHasBones() const
     return mHasBones;
 }
 
-void MeshAsset::setVertexInformation(VertexInformation* pVertexInformation)
+void MeshAsset::setVertexInformation(DataContainer* pVertexInformation)
 {
     mVertexInformation = pVertexInformation;
 }

@@ -19,7 +19,7 @@ RenderableType ARenderable::getRenderableType() const
     return mRenderableType;
 }
 
-VertexInformation& ARenderable::getVertexInformation()
+DataContainer& ARenderable::getVertexInformation()
 {
     return mVertexInformation;
 }

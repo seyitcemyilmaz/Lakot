@@ -65,17 +65,6 @@ enum class ShaderType
     eFragment
 };
 
-struct VertexInformation
-{
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> textureCoordinates;
-    std::vector<glm::ivec4> boneIDs;
-    std::vector<glm::vec4> boneWeights;
-
-    std::vector<unsigned int> indices;
-};
-
 struct ShaderUniform
 {
     ShaderUniform(const std::string& pName)

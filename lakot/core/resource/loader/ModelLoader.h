@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 
 #include <lakot/utilities/Type.h>
+#include <lakot/utilities/DataContainer.hpp>
 
 namespace lakot {
 
@@ -47,7 +48,7 @@ private:
 
     void createPossibleTextureLocations();
 
-    VertexInformation* createVertexInformation(aiMesh* pMesh, MeshAsset* pMeshAsset);
+    DataContainer* createVertexInformation(aiMesh* pMesh, MeshAsset* pMeshAsset);
 };
 
 }
