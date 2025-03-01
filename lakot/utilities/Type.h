@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #include <glm/glm.hpp>
 
@@ -54,8 +55,14 @@ enum class CameraType
 enum class GraphicsAPIType
 {
     eUndefined,
-    eOpenGL,
-    eOpenGLES
+    eOpenGL
+};
+
+enum class OpenGLType
+{
+    eUndefined,
+    eCore,
+    eES
 };
 
 enum class ShaderType
@@ -76,6 +83,18 @@ struct ShaderUniform
 
     std::string name;
     int location;
+};
+
+struct Process
+{
+    Process(const std::function<void()>& pExecuteFunction, const std::function<void()>& pProcessCompletedCallback = nullptr)
+    {
+        executeFunction = pExecuteFunction;
+        processCompletedCallback = pProcessCompletedCallback;
+    }
+
+    std::function<void()> executeFunction;
+    std::function<void()> processCompletedCallback;
 };
 
 struct Image

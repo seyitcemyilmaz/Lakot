@@ -1,12 +1,8 @@
 #ifndef LAKOT_GARBAGECOLLECTOR_H
 #define LAKOT_GARBAGECOLLECTOR_H
 
-#include <functional>
-#include <queue>
-#include <mutex>
-#include <thread>
-#include <atomic>
-#include <condition_variable>
+#include <lakot/utilities/SynchronousProcessExecutor.h>
+#include <lakot/utilities/AsynchronousProcessExecutor.h>
 
 #include <lakot/utilities/Object.h>
 
@@ -20,23 +16,27 @@ public:
     void initialize();
     void deinitialize();
 
-    void synchronousProcess();
+    void executeSynchronousProcesses();
 
     template<typename T>
     typename std::enable_if<!std::is_base_of<Object, T>::value>::type
-    add(T* pObject, bool pIsAsynchronous = false)
+    add(T* pObject,
+        bool pIsAsynchronous = false,
+        const std::function<void ()>& pProcessCompletedCallback = nullptr)
     {
         std::function<void()> tFunction = [pObject]()
         {
             delete pObject;
         };
 
-        add(tFunction, pIsAsynchronous);
+        add(tFunction, pIsAsynchronous, pProcessCompletedCallback);
     }
 
     template<typename T>
     typename std::enable_if<std::is_base_of<Object, T>::value>::type
-    add(T* pObject, bool pIsAsynchronous = false)
+    add(T* pObject,
+        bool pIsAsynchronous = false,
+        const std::function<void ()>& pProcessCompletedCallback = nullptr)
     {
         std::function<void()> tFunction = [pObject]()
         {
@@ -44,33 +44,23 @@ public:
             delete pObject;
         };
 
-        add(tFunction, pIsAsynchronous);
+        add(tFunction, pIsAsynchronous, pProcessCompletedCallback);
     }
-
-    void add(const std::function<void ()>& pFunction, bool pIsAsynchronous = false);
 
 protected:
     static GarbageCollector* mInstance;
     friend class GarbageCollectorFactory;
 
 private:
-    // Asynchronous part
-    std::thread mAsynchronousThread;
-    std::atomic<bool> mIsAsynchronousThreadNeedStop;
+    SynchronousProcessExecutor mSynchronousProcessExecutor;
+    AsynchronousProcessExecutor mAsynchronousProcessExecutor;
 
-    std::mutex mAsynchronousMutex;
-    std::queue<std::function<void()>> mAsynchronousQueue;
+    void add(const std::function<void ()>& pFunction,
+             bool pIsAsynchronous = false,
+             const std::function<void ()>& pProcessCompletedCallback = nullptr);
 
-    std::condition_variable mAsynchronousConditionVariable;
-
-    // Synchronous part
-    std::mutex mSynchronousMutex;
-    std::queue<std::function<void()>> mSynchronousQueue;
-
-    void asynchronousProcess();
-
-    virtual ~GarbageCollector();
-    GarbageCollector();
+    virtual ~GarbageCollector() = default;
+    GarbageCollector() = default;
 };
 
 }

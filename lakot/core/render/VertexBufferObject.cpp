@@ -1,12 +1,14 @@
 #include "VertexBufferObject.h"
 
-#ifdef LAKOT_RENDERER_OPENGL
+#if defined(LAKOT_RENDERER_OPENGL)
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
 #include <GL/glew.h>
-#endif
-
-#ifdef LAKOT_RENDERER_OPENGLES
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
 #include <GLES3/gl32.h>
 #include <GLES3/gl3ext.h>
+#else
+#error "Undefined OpenGL Type."
+#endif
 #endif
 
 #include <spdlog/spdlog.h>

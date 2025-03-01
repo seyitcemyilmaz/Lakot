@@ -11,7 +11,7 @@
 
 #include "../layer/LayerFactory.h"
 
-// #include "../resource/loader/ModelLoader.h"
+#include "../resource/loader/ModelLoader.h"
 
 #include "Logger.h"
 
@@ -96,12 +96,15 @@ void Engine::run()
 {
     while (Window::getInstance()->getIsActive())
     {
-        GarbageCollector::getInstance()->synchronousProcess();
+        GarbageCollector::getInstance()->executeSynchronousProcesses();
+
         Window::getInstance()->update();
+
         if (Window::getInstance()->getIsInitialized())
         {
             Layer::getInstance()->update();
         }
+
         Window::getInstance()->nextFrame();
     }
 }
@@ -190,12 +193,14 @@ void Engine::initializeRenderer()
 
 void Engine::test()
 {
-    // ModelLoader* tModelLoader = new ModelLoader();
+    ModelLoader* tModelLoader = new ModelLoader();
 
-    // tModelLoader->setPath("C:/Development/Lakot/asset/bmw/scene.gltf");
-    // // tModelLoader->setPath("C:/Development/Lakot/asset/servator/source/xenocat_sketchfab.fbx");
+    tModelLoader->setPath("C:/Development/Lakot/assets/bmw/scene.gltf");
+    // tModelLoader->setPath("C:/Development/Lakot/assets/servator/source/xenocat_sketchfab.fbx");
 
-    // tModelLoader->load();
+    tModelLoader->load();
 
-    // GarbageCollector::getInstance()->add(tModelLoader, true);
+    GarbageCollector::getInstance()->add(tModelLoader, false, []{
+        spdlog::info("Test");
+    });
 }

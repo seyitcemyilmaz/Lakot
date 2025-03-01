@@ -44,6 +44,11 @@ const std::vector<ANode*> ModelAsset::getNodes() const
     return mNodes;
 }
 
+const std::vector<ABone*> ModelAsset::getBones() const
+{
+    return mBones;
+}
+
 const std::vector<ATexture*> ModelAsset::getTextures() const
 {
     return mTextures;

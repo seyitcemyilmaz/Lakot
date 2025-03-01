@@ -152,7 +152,7 @@ public:
         try
         {
             auto& tVector = std::any_cast<std::vector<T>&>(tIterator->second);
-            tVector.emplace_back(std::forward<T>(pData));
+            tVector.emplace_back(pData);
         }
         catch (const std::bad_any_cast&)
         {

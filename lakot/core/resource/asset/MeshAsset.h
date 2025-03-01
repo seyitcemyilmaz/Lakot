@@ -5,7 +5,7 @@
 #include <lakot/abstract/graphics/model/AMesh.h>
 #include <lakot/abstract/render/ARenderable.h>
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
 #include "../../render/VertexArrayObject.h"
 #endif
 
@@ -29,7 +29,7 @@ public:
 
     DataContainer* getVertexInformation() const;
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
     const AVertexArrayObject& getVertexArrayObject() const override;
 #endif
 
@@ -47,7 +47,7 @@ private:
 
     DataContainer* mVertexInformation;
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
     VertexArrayObject mVertexArrayObject;
 #endif
 

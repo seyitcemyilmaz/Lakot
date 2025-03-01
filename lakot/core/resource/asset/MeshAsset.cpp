@@ -23,7 +23,7 @@ MeshAsset::MeshAsset(const std::string& pName, unsigned int pMaterialIndex, cons
 
 void MeshAsset::initialize()
 {
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
     {
         VertexBufferObject* tBuffer =
             new VertexBufferObject("EBO",
@@ -216,7 +216,7 @@ void MeshAsset::initialize()
 
 void MeshAsset::deinitialize()
 {
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
     // deinit
 #endif
 }
@@ -231,7 +231,7 @@ DataContainer* MeshAsset::getVertexInformation() const
     return mVertexInformation;
 }
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
 const AVertexArrayObject& MeshAsset::getVertexArrayObject() const
 {
     return mVertexArrayObject;

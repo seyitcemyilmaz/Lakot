@@ -1,7 +1,16 @@
 #include "OpenGLAPI.h"
 
+#if defined(LAKOT_RENDERER_OPENGL)
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
+#include <GLES3/gl32.h>
+#include <GLES3/gl3ext.h>
+#else
+#error "Undefined OpenGL Type."
+#endif
+#endif
 
 #include <spdlog/spdlog.h>
 
@@ -18,8 +27,18 @@ OpenGLAPI::OpenGLAPI()
     : GraphicsAPI()
 {
     mType = GraphicsAPIType::eOpenGL;
+
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
+    mOpenGLType = OpenGLType::eCore;
     mVersionMajor = 4;
     mVersionMinor = 6;
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
+    mOpenGLType = OpenGLType::eES;
+    mVersionMajor = 3;
+    mVersionMinor = 2;
+#else
+#error "Undefined OpenGL Version Type"
+#endif
 }
 
 void OpenGLAPI::initialize()
@@ -32,10 +51,12 @@ void OpenGLAPI::initialize()
         return;
     }
 
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
     if (!glfwInit())
     {
         throw "GLFW is not initialized.";
     }
+#endif
 
     mRenderer = RendererFactory::createRenderer();
 
@@ -61,11 +82,17 @@ void OpenGLAPI::deinitialize()
         {
             mRenderer->deinitialize();
         }
-
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
         glfwTerminate();
+#endif
         mInstance = nullptr;
         mIsInitialized = false;
     }
 
     spdlog::info("OpenGL API is deinitialized.");
+}
+
+OpenGLType OpenGLAPI::getOpenGLType() const
+{
+    return mOpenGLType;
 }

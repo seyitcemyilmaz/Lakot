@@ -6,17 +6,6 @@ using namespace lakot;
 
 GarbageCollector* GarbageCollector::mInstance = nullptr;
 
-GarbageCollector::~GarbageCollector()
-{
-
-}
-
-GarbageCollector::GarbageCollector()
-    : mIsAsynchronousThreadNeedStop(false)
-{
-
-}
-
 GarbageCollector* GarbageCollector::getInstance()
 {
     return mInstance;
@@ -28,8 +17,6 @@ void GarbageCollector::initialize()
 
     mInstance = this;
 
-    mAsynchronousThread = std::thread([this]() { asynchronousProcess(); });
-
     spdlog::info("Garbage collector is initialized.");
 }
 
@@ -39,68 +26,24 @@ void GarbageCollector::deinitialize()
 
     mInstance = nullptr;
 
-    mIsAsynchronousThreadNeedStop = true;
-    mAsynchronousConditionVariable.notify_all();
-
-    if (mAsynchronousThread.joinable())
-    {
-        mAsynchronousThread.join();
-    }
-
     spdlog::info("Garbage collector is deinitialized.");
 }
 
-void GarbageCollector::synchronousProcess()
+void GarbageCollector::executeSynchronousProcesses()
 {
-    const std::lock_guard<std::mutex> tLock(mSynchronousMutex);
-
-    while (!mSynchronousQueue.empty())
-    {
-        std::function<void()> tExecuteSynchronousFunction = mSynchronousQueue.front();
-
-        tExecuteSynchronousFunction();
-
-        mSynchronousQueue.pop();
-    }
+    mSynchronousProcessExecutor.process();
 }
 
-void GarbageCollector::add(const std::function<void ()>& pFunction, bool pIsAsynchronous)
+void GarbageCollector::add(const std::function<void ()>& pFunction,
+                           bool pIsAsynchronous,
+                           const std::function<void ()>& pProcessCompletedCallback)
 {
     if (pIsAsynchronous)
     {
-        std::lock_guard<std::mutex> tLock(mAsynchronousMutex);
-
-        mAsynchronousQueue.push(pFunction);
-
-        mAsynchronousConditionVariable.notify_one();
+        mAsynchronousProcessExecutor.addProcess(pFunction, pProcessCompletedCallback);
     }
     else
     {
-        std::lock_guard<std::mutex> tLock(mSynchronousMutex);
-
-        mSynchronousQueue.push(pFunction);
-    }
-}
-
-void GarbageCollector::asynchronousProcess()
-{
-    while (!mIsAsynchronousThreadNeedStop)
-    {
-        std::unique_lock<std::mutex> tLock(mAsynchronousMutex);
-
-        mAsynchronousConditionVariable.wait(tLock,
-            [this]
-            {
-                return !mAsynchronousQueue.empty() || mIsAsynchronousThreadNeedStop;
-            }
-        );
-
-        if (!mAsynchronousQueue.empty())
-        {
-            auto tDeleteFunction = std::move(mAsynchronousQueue.front());
-            mAsynchronousQueue.pop();
-            tLock.unlock();
-            tDeleteFunction();
-        }
+        mSynchronousProcessExecutor.addProcess(pFunction, pProcessCompletedCallback);
     }
 }

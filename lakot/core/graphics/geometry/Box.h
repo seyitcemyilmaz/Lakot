@@ -16,12 +16,17 @@ public:
     void initialize() override;
     void deinitialize() override;
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+    void addBox(const glm::vec3& pPosition, const glm::vec3& pSize);
+
+#if defined(LAKOT_RENDERER_OPENGL)
     const AVertexArrayObject& getVertexArrayObject() const override;
 #endif
 
 protected:
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+    bool mIsInitialized;
+    bool mIsNeedUpdate;
+
+#if defined(LAKOT_RENDERER_OPENGL)
     VertexArrayObject mVertexArrayObject;
 #endif
 };

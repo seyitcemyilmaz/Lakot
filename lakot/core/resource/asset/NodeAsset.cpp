@@ -1,5 +1,7 @@
 #include "NodeAsset.h"
 
+#include "MeshAsset.h"
+
 using namespace lakot;
 
 NodeAsset::~NodeAsset()
@@ -28,4 +30,14 @@ void NodeAsset::deinitialize()
 const std::string& NodeAsset::getName() const
 {
     return mName;
+}
+
+void NodeAsset::addChildNode(NodeAsset* pNodeAsset)
+{
+    mChildNodes.push_back(pNodeAsset);
+}
+
+void NodeAsset::addChildMesh(MeshAsset* pMeshAsset)
+{
+    mChildMeshes.push_back(pMeshAsset);
 }

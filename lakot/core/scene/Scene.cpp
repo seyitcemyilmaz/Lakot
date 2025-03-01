@@ -28,6 +28,9 @@ void Scene::initialize()
 
     mBox = new Box();
 
+    mBox->addBox(glm::vec3(0.0f), glm::vec3(2.0f));
+    mBox->addBox(glm::vec3(0.0f), glm::vec3(3.0f));
+
     mBox->initialize();
 }
 
@@ -62,7 +65,7 @@ void Scene::update()
 
     glm::mat4 tProjectionMatrix = glm::perspective(glm::radians(tZoom), tAspectRatio, tNear, tFar);
     glm::mat4 tViewMatrix = mActiveCamera->getViewMatrix();
-    spdlog::info("lan");
+
     GraphicsAPI::getInstance()->getRenderer()->setViewMatrix(tViewMatrix);
     GraphicsAPI::getInstance()->getRenderer()->setProjectionMatrix(tProjectionMatrix);
 

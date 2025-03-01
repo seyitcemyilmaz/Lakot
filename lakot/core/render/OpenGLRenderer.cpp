@@ -1,10 +1,21 @@
 #include "OpenGLRenderer.h"
 
+#if defined(LAKOT_RENDERER_OPENGL)
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
 #include <GL/glew.h>
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
+#include <GLES3/gl32.h>
+#include <GLES3/gl3ext.h>
+#else
+#error "Undefined OpenGL Type."
+#endif
+#endif
 
 #include <spdlog/spdlog.h>
 
 #include <lakot/abstract/render/AVertexArrayObject.h>
+
+#include "../graphics/geometry/Box.h"
 
 #include "ShaderSource.h"
 
@@ -94,19 +105,30 @@ void OpenGLRenderer::render(ARenderable* pRenderable)
     {
         OpenGLShaderProgram* tShaderProgram = mShaderPrograms["box"];
 
-        if (tShaderProgram)
+        Box* tBox = dynamic_cast<Box*>(pRenderable);
+
+        if (tBox)
         {
-            tShaderProgram->bind();
-            tShaderProgram->setMat4("projection", mProjectionMatrix);
-            tShaderProgram->setMat4("view", mViewMatrix);
+            if (tShaderProgram)
+            {
+                tShaderProgram->bind();
+                tShaderProgram->setMat4("projection", mProjectionMatrix);
+                tShaderProgram->setMat4("view", mViewMatrix);
 
-            const AVertexArrayObject& tVertexArrayObject = pRenderable->getVertexArrayObject();
+                const AVertexArrayObject& tVertexArrayObject = pRenderable->getVertexArrayObject();
 
-            tVertexArrayObject.bind();
-            unsigned int tIndiceCount = tVertexArrayObject.getIndiceCount();
+                tVertexArrayObject.bind();
+                unsigned int tIndiceCount = tVertexArrayObject.getIndiceCount();
 
-            // glDrawElements(GL_LINES, tIndiceCount, GL_UNSIGNED_INT, nullptr);
-            glDrawElementsInstanced(GL_LINES, tIndiceCount, GL_UNSIGNED_INT, nullptr, 2);
+                //tbox
+
+                // glDrawElements(GL_LINES, tIndiceCount, GL_UNSIGNED_INT, nullptr);
+                glDrawElementsInstanced(GL_LINES, tIndiceCount, GL_UNSIGNED_INT, nullptr, 2);
+            }
+        }
+        else
+        {
+            spdlog::error("Box object is not found.");
         }
     }
 

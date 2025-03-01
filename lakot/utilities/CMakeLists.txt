@@ -9,6 +9,8 @@ add_library(${PROJECT_NAME}
     Object.h Object.cpp
     BoundingBox.h BoundingBox.cpp
     DataContainer.hpp
+    SynchronousProcessExecutor.h SynchronousProcessExecutor.cpp
+    AsynchronousProcessExecutor.h AsynchronousProcessExecutor.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

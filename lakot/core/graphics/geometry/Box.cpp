@@ -11,13 +11,14 @@ Box::~Box()
 
 Box::Box()
     : ARenderable()
+    , mIsInitialized(false)
+    , mIsNeedUpdate(true)
 {
     mRenderableType = RenderableType::eBox;
 }
 
 void Box::initialize()
 {
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
     mVertexInformation.set<glm::vec3>("positions",
     {
         glm::vec3( 0.5f,  0.5f,  0.5f),
@@ -36,6 +37,7 @@ void Box::initialize()
         6, 7, 7, 4, 0, 4, 3, 7, 1, 5, 2, 6
     });
 
+#if defined(LAKOT_RENDERER_OPENGL)
     {
         VertexBufferObject* tBuffer =
             new VertexBufferObject("EBO",
@@ -135,34 +137,63 @@ void Box::initialize()
     {
         // Layout 1.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(1);
-
-        std::vector<glm::vec3> tData =
-        {
-            glm::vec3(0.0f, 3.0f, 0.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f)
-        };
-        tBuffer->setData(tData);
+        const std::vector<glm::vec3>& tDynamicPosition = mVertexInformation.getBuffer<glm::vec3>("dynamicPosition");
+        tBuffer->setData(tDynamicPosition);
     }
 
     {
         // Layout 2.
         VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(2);
-
-        std::vector<glm::vec3> tData =
-        {
-            glm::vec3(1.0f),
-            glm::vec3(2.0f)
-        };
-        tBuffer->setData(tData);
+        const std::vector<glm::vec3>& tDynamicSize = mVertexInformation.getBuffer<glm::vec3>("dynamicSize");
+        tBuffer->setData(tDynamicSize);
     }
+#elif
+#error "Undefined Graphics API";
 #endif
+
+    mIsNeedUpdate = false;
+    mIsInitialized = true;
 }
 
 void Box::deinitialize()
 {
 
 }
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+
+void Box::addBox(const glm::vec3& pPosition, const glm::vec3& pSize)
+{
+    mVertexInformation.append<glm::vec3>("dynamicPosition", pPosition);
+    mVertexInformation.append<glm::vec3>("dynamicSize", pSize);
+
+    mIsNeedUpdate = true;
+
+    if (!mIsInitialized)
+    {
+        return;
+    }
+
+#if defined(LAKOT_RENDERER_OPENGL)
+    {
+        // Layout 1.
+        VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(1);
+        const std::vector<glm::vec3>& tDynamicPosition = mVertexInformation.getBuffer<glm::vec3>("dynamicPosition");
+        tBuffer->setData(tDynamicPosition);
+    }
+
+    {
+        // Layout 2.
+        VertexBufferObject* tBuffer = mVertexArrayObject.getVertexBufferObject(2);
+        const std::vector<glm::vec3>& tDynamicSize = mVertexInformation.getBuffer<glm::vec3>("dynamicSize");
+        tBuffer->setData(tDynamicSize);
+    }
+#elif
+#error "Undefined Graphics API";
+#endif
+
+    mIsNeedUpdate = false;
+}
+
+#if defined(LAKOT_RENDERER_OPENGL)
 const AVertexArrayObject& Box::getVertexArrayObject() const
 {
     return mVertexArrayObject;

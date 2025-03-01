@@ -13,6 +13,11 @@ public:
 
     void initialize() override;
     void deinitialize() override;
+
+    OpenGLType getOpenGLType() const;
+
+private:
+    OpenGLType mOpenGLType;
 };
 
 }

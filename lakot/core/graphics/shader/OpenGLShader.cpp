@@ -1,12 +1,14 @@
 #include "OpenGLShader.h"
 
-#ifdef LAKOT_RENDERER_OPENGL
+#if defined(LAKOT_RENDERER_OPENGL)
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
 #include <GL/glew.h>
-#endif
-
-#ifdef LAKOT_RENDERER_OPENGLES
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
 #include <GLES3/gl32.h>
 #include <GLES3/gl3ext.h>
+#else
+#error "Undefined OpenGL Type."
+#endif
 #endif
 
 #include <spdlog/spdlog.h>
@@ -58,13 +60,17 @@ void OpenGLShader::initialize()
     int tVersionMajor = GraphicsAPI::getInstance()->getVersionMajor();
     int tVersionMinor = GraphicsAPI::getInstance()->getVersionMinor();
 
+    std::string tVersionString = std::to_string(tVersionMajor * 100 + tVersionMinor * 10);
+
 #if defined(LAKOT_RENDERER_OPENGL)
-   std::string tVersionString = std::to_string(tVersionMajor * 100 + tVersionMinor * 10);
-   std::string tShaderHeader = "#version " + tVersionString + " core\n";
-#elif defined(LAKOT_RENDERER_OPENGLES)
-    std::string tShaderHeader = "#version 320 es\n";
+#if defined(LAKOT_RENDERER_OPENGL_TYPE_CORE)
+    std::string tShaderHeader = "#version " + tVersionString + " core\n";
+#elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
+    std::string tShaderHeader = "#version " + tVersionString + " es\n";
+    tShaderHeader += "precision highp float;\n";
 #elif
 #error "Undefined shader header."
+#endif
 #endif
 
     mFileContent = tShaderHeader + mFileContent;

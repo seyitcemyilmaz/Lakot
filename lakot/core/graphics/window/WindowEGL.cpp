@@ -23,7 +23,8 @@ extern "C" {
 
 void handleCommand(android_app* pAndroidApp, int32_t pCommand)
 {
-    switch (pCommand) {
+    switch (pCommand)
+    {
         case APP_CMD_INIT_WINDOW:
             // A new window is created, associate a renderer with it. You may replace this with a
             // "game" class if that suits your needs. Remember to change all instances of userData

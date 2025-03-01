@@ -15,7 +15,7 @@ public:
     virtual ~ARenderable() override;
     ARenderable();
 
-#if defined(LAKOT_RENDERER_OPENGL) || defined(LAKOT_RENDERER_OPENGLES)
+#if defined(LAKOT_RENDERER_OPENGL)
     virtual const AVertexArrayObject& getVertexArrayObject() const = 0;
 #endif
     RenderableType getRenderableType() const;
