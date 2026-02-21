@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package common;
+
+enum StatusCode {
+    STATUS_OK = 0;
+    STATUS_ERROR = 1;
+    STATUS_INVALID_REQUEST = 2;
+    STATUS_UNAUTHORIZED = 3;
+}
+
+message Status {
+    StatusCode code = 1;
+    string message = 2;
+}
+
+message RequestHeader {
+    uint64 request_id = 1;
+}
+
+message ResponseHeader {
+    uint64 request_id = 1;
+    Status status = 2;
+}

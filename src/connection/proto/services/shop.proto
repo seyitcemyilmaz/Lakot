@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package services.shop;
+
+message BuyItemRequest {
+    uint32 item_id = 1;
+    uint32 quantity = 2;
+}
+
+message BuyItemResponse {
+    uint32 remaining_balance = 1;
+}
+

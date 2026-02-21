@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package services.chat;
+
+enum ChatMessageErrorCode {
+    CHAT_MESSAGE_OK = 0;
+    CHAT_MESSAGE_ERROR = 1;
+}
+
+message ChatMessageRequest {
+    string text = 1;
+}
+
+message ChatMessageResponse {
+    ChatMessageErrorCode error_code = 1;
+}
+
+enum DirectMessageErrorCode {
+    DIRECT_MESSAGE_OK = 0;
+    DIRECT_MESSAGE_ERROR = 1;
+    DIRECT_MESSAGE_DISCONNECTED = 2;
+}
+
+message DirectMessageRequest {
+    string text = 1;
+    string message_to = 2;
+}
+
+message DirectMessageResponse {
+    DirectMessageErrorCode error_code = 1;
+}

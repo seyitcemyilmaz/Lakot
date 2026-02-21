@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package protocol;
+
+import "common.proto";
+
+import "services/auth.proto";
+import "services/chat.proto";
+import "services/shop.proto";
+
+message Request {
+    common.RequestHeader header = 1;
+
+    oneof payload {
+        // auth service
+        services.auth.LoginRequest login_request = 1000;
+
+        // chat service
+        services.chat.ChatMessageRequest chat_message_request = 2000;
+        services.chat.DirectMessageRequest direct_message_request = 2001;
+
+        // shop service
+        services.shop.BuyItemRequest buy_item_request = 3000;
+    }
+}
+
+message Response {
+    common.ResponseHeader header = 1;
+
+    oneof payload {
+        // auth service
+        services.auth.LoginResponse login_response = 1000;
+
+        // chat service
+        services.chat.ChatMessageResponse chat_message_response = 2000;
+        services.chat.DirectMessageResponse direct_message_response = 2001;
+
+        // shop service
+        services.shop.BuyItemResponse buy_item_response = 3000;
+    }
+}

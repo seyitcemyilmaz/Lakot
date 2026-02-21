@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package connection;
+
+import "protocol.proto";
+
+message Message {
+    oneof payload {
+        protocol.Request request = 1;
+        protocol.Response response = 2;
+    }
+}
