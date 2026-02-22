@@ -5,8 +5,10 @@
 
 #include "Scene.h"
 
-#include "../graphics/geometry/BoxContainer.h"
 #include "../graphics/camera/FPSCamera.h"
+
+#include "../graphics/geometry/BoxContainer.h"
+#include "../graphics/geometry/Terrain.h"
 
 namespace lakot
 {
@@ -29,6 +31,7 @@ public:
 
 private:
     std::unique_ptr<BoxContainer> mBoxContainer;
+    std::unique_ptr<Terrain> mTerrain;
 
     std::unique_ptr<FPSCamera> mCamera;
 

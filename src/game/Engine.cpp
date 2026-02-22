@@ -1,7 +1,13 @@
 #include "Engine.h"
 
+// #define LAKOT_DEV_MODE
+
+#if defined(LAKOT_DEV_MODE)
+#include "scene/WorldScene.h"
+#else
 #include "scene/LoginScene.h"
-// #include "scene/WorldScene.h"
+#endif
+
 
 using namespace lakot;
 
@@ -23,8 +29,11 @@ void Engine::initialize()
 
     mGuiLayer.initialize(mWindow, mGLContext);
 
+#if defined(LAKOT_DEV_MODE)
+    mSceneManager.setNextScene(std::make_unique<WorldScene>(*this));
+#else
     mSceneManager.setNextScene(std::make_unique<LoginScene>(*this));
-    // mSceneManager.setNextScene(std::make_unique<WorldScene>(*this));
+#endif
 
     SDL_Log("Engine is initialized.");
 }

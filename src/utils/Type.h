@@ -37,7 +37,8 @@ enum class ButtonType
 enum class RenderableType
 {
     eUndefined,
-    eBoxContainer
+    eBoxContainer,
+    eTerrain
 };
 
 enum class CameraType

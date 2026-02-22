@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/LoginScene.h scene/LoginScene.cpp
     scene/WorldScene.h scene/WorldScene.cpp
     graphics/render/ShaderManager.h graphics/render/ShaderManager.cpp
+    graphics/geometry/Terrain.h graphics/geometry/Terrain.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotConnection)
