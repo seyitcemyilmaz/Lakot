@@ -67,6 +67,7 @@ void WorldScene::enter()
         void main()
         {
             FragPos = aPos;
+
             gl_Position = uViewProjection * vec4(aPos, 1.0);
         }
     )";
@@ -85,7 +86,13 @@ void WorldScene::enter()
             return (2.0 * near * far) / (far + near - z * (far - near));
         }
 
-        void main() {
+        void main()
+        {
+            if (FragPos.y < 0)
+            {
+                discard;
+            }
+
             vec3 nearColor = vec3(0.2, 0.6, 0.2);
             vec3 farColor = vec3(0.05, 0.15, 0.2);
 

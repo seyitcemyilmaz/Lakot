@@ -21,10 +21,11 @@ void AccountRepository::initializeTable()
         pqxx::work tWork(pConnection);
 
         tWork.exec(R"(
-            CREATE TABLE IF NOT EXISTS accounts (
+            CREATE TABLE IF NOT EXISTS Account (
                 id BIGSERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(100) NOT NULL,
+                email VARCHAR(100) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         )");
@@ -35,19 +36,54 @@ void AccountRepository::initializeTable()
     });
 }
 
-void AccountRepository::create(const std::string& pUsername, const std::string& pPassword)
+void AccountRepository::createAccount(const std::string& pUsername,
+                                      const std::string& pPassword,
+                                      const std::string& pEmail,
+                                      RegisterCallback pCallback)
 {
     mDatabaseManager.executeAsync(
-    [pUsername, pPassword](pqxx::connection& pConnection)
+    [this, pUsername, pPassword, pEmail, pCallback](pqxx::connection& pConnection)
     {
-        pqxx::work tWork(pConnection);
-        // ON CONFLICT: Ayni kullanici varsa hata verme, pas gec
-        std::string tQuery = "INSERT INTO accounts (username, password) VALUES ('" +
-                             tWork.esc(pUsername) + "', '" + tWork.esc(pPassword) + "') " +
-                             "ON CONFLICT (username) DO NOTHING";
-        tWork.exec(tQuery);
-        tWork.commit();
-        // std::cout << "[AccountRepo] Hesap olusturuldu: " << pUsername << std::endl;
+        try
+        {
+            pqxx::work tWork(pConnection);
+
+            std::string tCheckQuery = "SELECT username, email FROM accounts WHERE email = LOWER($1) OR LOWER(username) = $2";
+            pqxx::result tCheckResult = tWork.exec(tCheckQuery, pqxx::params{pEmail, pUsername});
+
+            if (!tCheckResult.empty())
+            {
+                for (auto const& tRow : tCheckResult)
+                {
+                    if (tRow["email"].as<std::string>() == pEmail)
+                    {
+                        pCallback(RegisterErrorType::eEmailInUse, "");
+                        return;
+                    }
+
+                    if (tRow["username"].as<std::string>() == pUsername)
+                    {
+                        pCallback(RegisterErrorType::eUsernameInUse, "");
+                        return;
+                    }
+                }
+            }
+
+            std::string tInsertQuery = "INSERT INTO accounts (username, password, email) VALUES ($1, $2, $3)";
+            tWork.exec(tInsertQuery, pqxx::params{pUsername, pPassword, pEmail});
+
+            tWork.commit();
+
+            pCallback(RegisterErrorType::eNoError, "Registration is completed successfully.");
+        }
+        catch (const pqxx::sql_error& tException)
+        {
+            pCallback(RegisterErrorType::eDatabaseError, tException.what());
+        }
+        catch (const std::exception& tException)
+        {
+            pCallback(RegisterErrorType::eSystemError, tException.what());
+        }
     });
 }
 

@@ -7,6 +7,7 @@ enum StatusCode {
     STATUS_ERROR = 1;
     STATUS_INVALID_REQUEST = 2;
     STATUS_UNAUTHORIZED = 3;
+    STATUS_UNHANDLED_STATE = 4;
 }
 
 message Status {
@@ -15,10 +16,10 @@ message Status {
 }
 
 message RequestHeader {
-    uint64 request_id = 1;
+    uint64 id = 1;
 }
 
 message ResponseHeader {
-    uint64 request_id = 1;
+    uint64 reply_to = 1;
     Status status = 2;
 }

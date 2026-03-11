@@ -13,7 +13,8 @@ message Request {
 
     oneof payload {
         // auth service
-        services.auth.LoginRequest login_request = 1000;
+        services.auth.RegisterRequest register_request = 1000;
+        services.auth.LoginRequest login_request = 1001;
 
         // chat service
         services.chat.ChatMessageRequest chat_message_request = 2000;
@@ -29,7 +30,8 @@ message Response {
 
     oneof payload {
         // auth service
-        services.auth.LoginResponse login_response = 1000;
+        services.auth.RegisterResponse register_response = 1000;
+        services.auth.LoginResponse login_response = 1001;
 
         // chat service
         services.chat.ChatMessageResponse chat_message_response = 2000;

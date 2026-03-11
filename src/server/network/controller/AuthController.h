@@ -14,11 +14,13 @@ class NetworkSession;
 class AuthController : public BaseController
 {
 public:
-    AuthController(NetworkManager& pNetworkManager);
+    AuthController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager);
 
     void initialize() override;
 
 private:
+    void handleRegisterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+
     void handleLoginRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };
 

@@ -5,7 +5,7 @@
 #include "database/DatabaseManager.h"
 
 #include "network/controller/AuthController.h"
-#include "database/repository/AccountRepository.h"
+#include "database/repository/RepositoryManager.h"
 
 namespace lakot
 {
@@ -14,7 +14,7 @@ class Server
 {
 public:
     virtual ~Server();
-    Server();
+    explicit Server();
 
     bool initialize();
 
@@ -24,9 +24,9 @@ private:
     DatabaseManager mDatabaseManager;
     NetworkManager mNetworkManager;
 
-    std::unique_ptr<AuthController> mAuthController;
+    std::unique_ptr<RepositoryManager> mRepositoryManager;
 
-    std::unique_ptr<AccountRepository> mAccountRepository;
+    std::unique_ptr<AuthController> mAuthController;
 };
 
 }

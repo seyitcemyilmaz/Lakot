@@ -2,6 +2,7 @@
 #define LAKOT_SERVER_BASECONTROLLER_H
 
 #include "../NetworkManager.h"
+#include "../../database/repository/RepositoryManager.h"
 
 namespace lakot
 {
@@ -10,8 +11,9 @@ class BaseController
 {
 public:
     virtual ~BaseController() = default;
-    explicit BaseController(NetworkManager& pNetworkManager)
+    explicit BaseController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager)
         : mNetworkManager(pNetworkManager)
+        , mRepositoryManager(pRepositoryManager)
     {
 
     }
@@ -20,6 +22,7 @@ public:
 
 protected:
     NetworkManager& mNetworkManager;
+    RepositoryManager& mRepositoryManager;
 };
 
 }

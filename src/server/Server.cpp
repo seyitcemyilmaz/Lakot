@@ -12,9 +12,9 @@ Server::Server()
     : mDatabaseManager()
     , mNetworkManager()
 {
-    mAuthController = std::make_unique<AuthController>(mNetworkManager);
+    mRepositoryManager = std::make_unique<RepositoryManager>(mDatabaseManager);
 
-    mAccountRepository = std::make_unique<AccountRepository>(mDatabaseManager);
+    mAuthController = std::make_unique<AuthController>(mNetworkManager, *mRepositoryManager);
 }
 
 bool Server::initialize()
@@ -24,8 +24,7 @@ bool Server::initialize()
     DatabaseConfig tDatabaseConfig;
 
     mDatabaseManager.initialize(tDatabaseConfig);
-
-    mAccountRepository->initializeTable();
+    mRepositoryManager->initialize();
 
     mAuthController->initialize();
 

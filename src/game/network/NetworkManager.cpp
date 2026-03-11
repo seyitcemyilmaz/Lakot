@@ -53,7 +53,7 @@ NetworkManager::NetworkManager()
             {
                 if (pMsg.has_request())
                 {
-                    pMsg.mutable_request()->mutable_header()->set_request_id(pId);
+                    pMsg.mutable_request()->mutable_header()->set_id(pId);
                 }
             });
         }

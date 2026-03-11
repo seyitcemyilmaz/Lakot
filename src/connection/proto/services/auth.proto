@@ -2,6 +2,26 @@ syntax = "proto3";
 
 package services.auth;
 
+enum RegisterStatus {
+    REGISTER_STATUS_OK = 0;
+    REGISTER_STATUS_EMAIL_IN_USE = 1;
+    REGISTER_STATUS_USERNAME_IN_USE = 2;
+    REGISTER_STATUS_DATABASE_ERROR = 3;
+    REGISTER_STATUS_SYSTEM_ERROR = 4;
+}
+
+message RegisterRequest
+{
+    string username = 1;
+    string password = 2;
+    string email = 3;
+}
+
+message RegisterResponse
+{
+    RegisterStatus register_status = 1;
+}
+
 message LoginRequest {
     string username = 1;
     string password = 2;

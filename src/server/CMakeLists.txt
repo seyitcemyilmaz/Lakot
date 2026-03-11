@@ -19,6 +19,8 @@ add_executable(${PROJECT_NAME}
 
     database/repository/BaseRepository.h
     database/repository/AccountRepository.h database/repository/AccountRepository.cpp
+
+    database/repository/RepositoryManager.h database/repository/RepositoryManager.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

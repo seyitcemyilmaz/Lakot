@@ -12,6 +12,16 @@ namespace lakot
 class AccountRepository : public BaseRepository
 {
 public:
+    enum class RegisterErrorType
+    {
+        eNoError,
+        eEmailInUse,
+        eUsernameInUse,
+        eDatabaseError,
+        eSystemError
+    };
+
+    using RegisterCallback = std::function<void(RegisterErrorType, const std::string&)>;
     using LoginCallback = std::function<void(bool, uint64_t)>;
 
     virtual ~AccountRepository();
@@ -19,9 +29,13 @@ public:
 
     void initializeTable() override;
 
+    void createAccount(const std::string& pUsername,
+                       const std::string& pPassword,
+                       const std::string& pEmail,
+                       RegisterCallback pCallback);
+
     void findByUsername(const std::string& pUsername, const std::string& pPassword, LoginCallback pCallback);
 
-    void create(const std::string& pUsername, const std::string& pPassword);
 };
 
 }
