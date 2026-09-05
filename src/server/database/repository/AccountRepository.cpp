@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "../../security/PasswordHasher.h"
+
 using namespace lakot;
 
 AccountRepository::~AccountRepository()
@@ -21,12 +23,17 @@ void AccountRepository::initializeTable()
         pqxx::work tWork(pConnection);
 
         tWork.exec(R"(
-            CREATE TABLE IF NOT EXISTS Account (
+            CREATE TABLE IF NOT EXISTS accounts (
                 id BIGSERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
-                password VARCHAR(100) NOT NULL,
-                email VARCHAR(100) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                map_id INTEGER NOT NULL DEFAULT 0,
+                pos_x REAL NOT NULL DEFAULT 0,
+                pos_y REAL NOT NULL DEFAULT 2,
+                pos_z REAL NOT NULL DEFAULT 10,
+                yaw REAL NOT NULL DEFAULT 0
             );
         )");
 
@@ -41,6 +48,9 @@ void AccountRepository::createAccount(const std::string& pUsername,
                                       const std::string& pEmail,
                                       RegisterCallback pCallback)
 {
+    // Same username always routes to the same worker, so two concurrent
+    // registration attempts for it serialize instead of racing the
+    // check-then-insert below across two different connections.
     mDatabaseManager.executeAsync(
     [this, pUsername, pPassword, pEmail, pCallback](pqxx::connection& pConnection)
     {
@@ -69,8 +79,10 @@ void AccountRepository::createAccount(const std::string& pUsername,
                 }
             }
 
+            std::string tHashedPassword = PasswordHasher::hash(pPassword);
+
             std::string tInsertQuery = "INSERT INTO accounts (username, password, email) VALUES ($1, $2, $3)";
-            tWork.exec(tInsertQuery, pqxx::params{pUsername, pPassword, pEmail});
+            tWork.exec(tInsertQuery, pqxx::params{pUsername, tHashedPassword, pEmail});
 
             tWork.commit();
 
@@ -84,31 +96,40 @@ void AccountRepository::createAccount(const std::string& pUsername,
         {
             pCallback(RegisterErrorType::eSystemError, tException.what());
         }
-    });
+    }, std::hash<std::string>{}(pUsername));
 }
 
 void AccountRepository::findByUsername(const std::string& pUsername, const std::string& pPassword, LoginCallback pCallback)
 {
+    // Same affinity key as createAccount, so a user's own operations always
+    // land on the same worker as more per-account mutations get added later.
     mDatabaseManager.executeAsync([pUsername, pPassword, pCallback](pqxx::connection& pConnection)
     {
         bool tSuccess = false;
         uint64_t tUserId = 0;
+        PlayerSpawnState tSpawnState;
 
         try
         {
             pqxx::nontransaction tNtx(pConnection);
             std::string tSafeUser = tNtx.esc(pUsername);
 
-            auto tResult = tNtx.exec("SELECT id, password FROM accounts WHERE username = '" + tSafeUser + "'");
+            auto tResult = tNtx.exec("SELECT id, password, map_id, pos_x, pos_y, pos_z, yaw FROM accounts WHERE username = '" + tSafeUser + "'");
 
             if (!tResult.empty())
             {
                 std::string tDatabasePassword = tResult[0]["password"].as<std::string>();
 
-                if (tDatabasePassword == pPassword)
+                if (PasswordHasher::verify(pPassword, tDatabasePassword))
                 {
                     tUserId = tResult[0]["id"].as<uint64_t>();
                     tSuccess = true;
+
+                    tSpawnState.mapId = tResult[0]["map_id"].as<uint32_t>();
+                    tSpawnState.x = tResult[0]["pos_x"].as<float>();
+                    tSpawnState.y = tResult[0]["pos_y"].as<float>();
+                    tSpawnState.z = tResult[0]["pos_z"].as<float>();
+                    tSpawnState.yaw = tResult[0]["yaw"].as<float>();
                 }
             }
         }
@@ -119,7 +140,28 @@ void AccountRepository::findByUsername(const std::string& pUsername, const std::
 
         if (pCallback)
         {
-            pCallback(tSuccess, tUserId);
+            pCallback(tSuccess, tUserId, tSpawnState);
+        }
+    }, std::hash<std::string>{}(pUsername));
+}
+
+void AccountRepository::savePlayerState(uint64_t pUserId, uint32_t pMapId, float pX, float pY, float pZ, float pYaw)
+{
+    mDatabaseManager.executeAsync([pUserId, pMapId, pX, pY, pZ, pYaw](pqxx::connection& pConnection)
+    {
+        try
+        {
+            pqxx::work tWork(pConnection);
+
+            tWork.exec(
+                "UPDATE accounts SET map_id=$1, pos_x=$2, pos_y=$3, pos_z=$4, yaw=$5 WHERE id=$6",
+                pqxx::params{pMapId, pX, pY, pZ, pYaw, pUserId});
+
+            tWork.commit();
+        }
+        catch (const std::exception& tException)
+        {
+            std::cerr << "[AccountRepo] Konum kaydi hatasi: " << tException.what() << std::endl;
         }
     });
 }

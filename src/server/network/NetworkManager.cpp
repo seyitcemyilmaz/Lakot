@@ -32,6 +32,11 @@ NetworkManager::NetworkManager()
             {
                 std::cout << "[Network] Kullanici Dustu: " << tUserId << std::endl;
                 mSessionRegistry.remove(tUserId, pS);
+
+                if (mOnUserDisconnected)
+                {
+                    mOnUserDisconnected(tUserId);
+                }
             }
         });
 
@@ -86,4 +91,9 @@ MessageDispatcher<connection::Message>& NetworkManager::getDispatcher()
 SessionRegistry<NetworkSession<connection::Message>>& NetworkManager::getSessionRegistry()
 {
     return mSessionRegistry;
+}
+
+void NetworkManager::setOnUserDisconnected(std::function<void(uint64_t)> pCallback)
+{
+    mOnUserDisconnected = pCallback;
 }

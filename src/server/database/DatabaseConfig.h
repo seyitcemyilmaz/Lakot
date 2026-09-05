@@ -14,6 +14,9 @@ struct DatabaseConfig
     std::string password = "1";
     std::string name = "lakot_db";
 
+    // 0 = auto-detect from hardware at startup (see DatabaseManager::initialize).
+    unsigned int poolSize = 0;
+
     std::string toString() const
     {
         return "postgresql://" + user + ":" + password + "@" + host + ":" + std::to_string(port) + "/" + name;

@@ -15,6 +15,11 @@ Server::Server()
     mRepositoryManager = std::make_unique<RepositoryManager>(mDatabaseManager);
 
     mAuthController = std::make_unique<AuthController>(mNetworkManager, *mRepositoryManager);
+    mWorldController = std::make_unique<WorldController>(mNetworkManager, *mRepositoryManager);
+    mChatController = std::make_unique<ChatController>(mNetworkManager, *mRepositoryManager);
+
+    mAuthController->setWorldController(*mWorldController);
+    mChatController->setWorldController(*mWorldController);
 }
 
 bool Server::initialize()
@@ -27,6 +32,8 @@ bool Server::initialize()
     mRepositoryManager->initialize();
 
     mAuthController->initialize();
+    mWorldController->initialize();
+    mChatController->initialize();
 
     mNetworkManager.start();
 

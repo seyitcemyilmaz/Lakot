@@ -44,7 +44,8 @@ enum class RenderableType
 enum class CameraType
 {
     eUndefined,
-    eFPS
+    eFPS,
+    eThirdPerson
 };
 
 enum class GraphicsAPIType

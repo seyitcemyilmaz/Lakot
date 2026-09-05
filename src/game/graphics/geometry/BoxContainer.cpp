@@ -50,6 +50,8 @@ void BoxContainer::initialize()
 
     createInstancedBuffer("dynamicSize", VertexBufferObjectDataType::eVec3);
 
+    createInstancedBuffer("dynamicColor", VertexBufferObjectDataType::eVec3);
+
     mVertexArrayObject.initialize();
 
     syncIndexData("indices");
@@ -58,6 +60,7 @@ void BoxContainer::initialize()
 
     syncBufferData<glm::vec3>(1, "dynamicPosition");
     syncBufferData<glm::vec3>(2, "dynamicSize");
+    syncBufferData<glm::vec3>(3, "dynamicColor");
 
     mIsNeedUpdate = false;
     mIsInitialized = true;
@@ -76,10 +79,11 @@ void BoxContainer::deinitialize()
     mIsInitialized = false;
 }
 
-void BoxContainer::addBox(const glm::vec3& pPosition, const glm::vec3& pSize)
+void BoxContainer::addBox(const glm::vec3& pPosition, const glm::vec3& pSize, const glm::vec3& pColor)
 {
     mVertexInformation.append<glm::vec3>("dynamicPosition", pPosition);
     mVertexInformation.append<glm::vec3>("dynamicSize", pSize);
+    mVertexInformation.append<glm::vec3>("dynamicColor", pColor);
 
     mIsNeedUpdate = true;
 
@@ -90,6 +94,27 @@ void BoxContainer::addBox(const glm::vec3& pPosition, const glm::vec3& pSize)
 
     syncBufferData<glm::vec3>(1, "dynamicPosition");
     syncBufferData<glm::vec3>(2, "dynamicSize");
+    syncBufferData<glm::vec3>(3, "dynamicColor");
+
+    mIsNeedUpdate = false;
+}
+
+void BoxContainer::setBoxes(const std::vector<glm::vec3>& pPositions, const std::vector<glm::vec3>& pSizes, const std::vector<glm::vec3>& pColors)
+{
+    mVertexInformation.set<glm::vec3>("dynamicPosition", pPositions);
+    mVertexInformation.set<glm::vec3>("dynamicSize", pSizes);
+    mVertexInformation.set<glm::vec3>("dynamicColor", pColors);
+
+    mIsNeedUpdate = true;
+
+    if (!mIsInitialized)
+    {
+        return;
+    }
+
+    syncBufferData<glm::vec3>(1, "dynamicPosition");
+    syncBufferData<glm::vec3>(2, "dynamicSize");
+    syncBufferData<glm::vec3>(3, "dynamicColor");
 
     mIsNeedUpdate = false;
 }

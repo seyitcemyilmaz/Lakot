@@ -6,8 +6,12 @@ NetworkManager::NetworkManager()
     : mClient()
     , mDispatcher()
     , mAuthController(this)
+    , mWorldController(this)
+    , mChatController(this)
 {
     mAuthController.initialize();
+    mWorldController.initialize();
+    mChatController.initialize();
 
     mClient.setOnMessageReceived(
     [this](const connection::Message& pMessage)
@@ -92,4 +96,14 @@ MessageDispatcher<connection::Message>& NetworkManager::getDispatcher()
 AuthController& NetworkManager::getAuthController()
 {
     return mAuthController;
+}
+
+WorldController& NetworkManager::getWorldController()
+{
+    return mWorldController;
+}
+
+ChatController& NetworkManager::getChatController()
+{
+    return mChatController;
 }

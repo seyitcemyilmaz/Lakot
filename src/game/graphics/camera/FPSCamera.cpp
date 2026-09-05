@@ -45,6 +45,12 @@ void FPSCamera::update()
     calculateViewProjection();
 }
 
+void FPSCamera::setYaw(double pYaw)
+{
+    mYaw = pYaw;
+    update();
+}
+
 void FPSCamera::processMouseMovement(double pXOffset, double pYOffset, bool pConstrainPitch)
 {
     double tSensitivity = 0.1;

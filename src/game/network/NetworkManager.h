@@ -7,6 +7,8 @@
 #include "MessageDispatcher.h"
 
 #include "controller/AuthController.h"
+#include "controller/WorldController.h"
+#include "controller/ChatController.h"
 
 namespace lakot
 {
@@ -27,12 +29,16 @@ public:
     MessageDispatcher<connection::Message>& getDispatcher();
 
     AuthController& getAuthController();
+    WorldController& getWorldController();
+    ChatController& getChatController();
 
 private:
     NetworkClient<connection::Message> mClient;
     MessageDispatcher<connection::Message> mDispatcher;
 
     AuthController mAuthController;
+    WorldController mWorldController;
+    ChatController mChatController;
 };
 
 }

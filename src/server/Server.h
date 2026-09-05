@@ -5,6 +5,8 @@
 #include "database/DatabaseManager.h"
 
 #include "network/controller/AuthController.h"
+#include "network/controller/WorldController.h"
+#include "network/controller/ChatController.h"
 #include "database/repository/RepositoryManager.h"
 
 namespace lakot
@@ -27,6 +29,8 @@ private:
     std::unique_ptr<RepositoryManager> mRepositoryManager;
 
     std::unique_ptr<AuthController> mAuthController;
+    std::unique_ptr<WorldController> mWorldController;
+    std::unique_ptr<ChatController> mChatController;
 };
 
 }

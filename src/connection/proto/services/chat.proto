@@ -29,3 +29,12 @@ message DirectMessageRequest {
 message DirectMessageResponse {
     DirectMessageErrorCode error_code = 1;
 }
+
+// Pushed to the recipient's session when someone else's DirectMessageRequest
+// is delivered - DirectMessageResponse only acks the sender, this is the
+// other half that actually shows the message on the other end.
+message DirectMessageReceived {
+    uint64 from_player_id = 1;
+    string from_username = 2;
+    string text = 3;
+}

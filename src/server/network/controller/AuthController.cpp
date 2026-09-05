@@ -1,5 +1,7 @@
 #include "AuthController.h"
 
+#include "WorldController.h"
+
 using namespace lakot;
 
 AuthController::AuthController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager)
@@ -26,6 +28,11 @@ void AuthController::initialize()
     );
 }
 
+void AuthController::setWorldController(WorldController& pWorldController)
+{
+    mWorldController = &pWorldController;
+}
+
 void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
 {
     const auto& tRequest = pMessage.request().register_request();
@@ -40,6 +47,8 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
         tHeader->set_reply_to(pMessage.request().header().id());
         tHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
         tHeader->mutable_status()->set_message("Username cannot be empty.");
+
+        tResponse.mutable_response()->mutable_register_response();
 
         pSession->send(tResponse);
         return;
@@ -56,6 +65,8 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
         tHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
         tHeader->mutable_status()->set_message("Password cannot be empty.");
 
+        tResponse.mutable_response()->mutable_register_response();
+
         pSession->send(tResponse);
         return;
     }
@@ -70,6 +81,8 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
         tHeader->set_reply_to(pMessage.request().header().id());
         tHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
         tHeader->mutable_status()->set_message("Email cannot be empty.");
+
+        tResponse.mutable_response()->mutable_register_response();
 
         pSession->send(tResponse);
         return;
@@ -125,31 +138,65 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 {
     const auto& tRequest = pMessage.request().login_request();
     std::string tUsername = tRequest.username();
+    std::string tPassword = tRequest.password();
 
-    uint64_t tUserId = std::hash<std::string>{}(tUsername);
-
-    std::cout << "[Server] Giris Istegi: " << tUsername << " (ID: " << tUserId << ")" << std::endl;
-
-    pSession->setUserId(tUserId);
-
-    auto tOldSession = mNetworkManager.getSessionRegistry().addOrReplace(tUserId, pSession);
-
-    if (tOldSession)
+    mRepositoryManager.getAccountRepository().findByUsername(tUsername, tPassword,
+    [this, pSession, pMessage, tUsername](bool pIsSuccess, uint64_t pUserId, const AccountRepository::PlayerSpawnState& pSpawnState)
     {
-        if (tOldSession != pSession)
+        connection::Message tResponse;
+
+        auto* tHeader = tResponse.mutable_response()->mutable_header();
+        tHeader->set_reply_to(pMessage.request().header().id());
+
+        if (!pIsSuccess)
         {
-            std::cout << "[Server] Cakisman oturum. Eski baglanti kapatiliyor." << std::endl;
-            tOldSession->close();
+            std::cout << "[Server] Giris basarisiz: " << tUsername << std::endl;
+
+            tHeader->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
+            tHeader->mutable_status()->set_message("Invalid username or password.");
+
+            // Oneof case'i kLoginResponse yapmak icin bos bir login_response set ediliyor;
+            // yoksa client'taki dispatcher payload_case()==0 gorup cevabi eslestiremiyor.
+            tResponse.mutable_response()->mutable_login_response();
+
+            pSession->send(tResponse);
+            return;
         }
-    }
 
-    connection::Message tResponse;
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
+        std::cout << "[Server] Giris Istegi: " << tUsername << " (ID: " << pUserId << ")" << std::endl;
 
-    tHeader->set_reply_to(pMessage.request().header().id());
-    tHeader->mutable_status()->set_code(common::STATUS_OK);
+        pSession->setUserId(pUserId);
 
-    tResponse.mutable_response()->mutable_login_response()->set_token("TOKEN_LAKOT_123");
+        auto tOldSession = mNetworkManager.getSessionRegistry().addOrReplace(pUserId, pSession);
 
-    pSession->send(tResponse);
+        if (tOldSession)
+        {
+            if (tOldSession != pSession)
+            {
+                std::cout << "[Server] Cakisman oturum. Eski baglanti kapatiliyor." << std::endl;
+                tOldSession->close();
+            }
+        }
+
+        // So the player's very first PlayerStateUpdate (sent from the
+        // restored position below) lands in the correct map's registry
+        // instead of WorldController defaulting them to Town.
+        if (mWorldController)
+        {
+            mWorldController->seedPlayerMap(pUserId, static_cast<services::world::MapId>(pSpawnState.mapId));
+            mWorldController->setPlayerUsername(pUserId, tUsername);
+        }
+
+        tHeader->mutable_status()->set_code(common::STATUS_OK);
+
+        auto* tLoginResponse = tResponse.mutable_response()->mutable_login_response();
+        tLoginResponse->set_token("TOKEN_LAKOT_123");
+        tLoginResponse->set_map_id(pSpawnState.mapId);
+        tLoginResponse->set_pos_x(pSpawnState.x);
+        tLoginResponse->set_pos_y(pSpawnState.y);
+        tLoginResponse->set_pos_z(pSpawnState.z);
+        tLoginResponse->set_yaw(pSpawnState.yaw);
+
+        pSession->send(tResponse);
+    });
 }

@@ -1,10 +1,13 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
+#include <string>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <glad/glad.h>
 
 #include "Engine.h"
+#include "FileManager.h"
 
 SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
 {
@@ -62,6 +65,12 @@ SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
 
     tEngine.setGLContext(tGLContext);
     tEngine.setWindow(tWindow);
+
+    // SDL_GetBasePath() is the directory containing the running executable,
+    // resolved the same cross-platform way on every OS this ships to -
+    // unlike anything keyed off LAKOT_EXTERNAL, which only exists at
+    // build time on this dev machine.
+    lakot::FileManager::setAssetPath(std::string(SDL_GetBasePath()) + "assets");
 
     tEngine.initialize();
 

@@ -144,3 +144,9 @@ CMakeLists.txt.user*
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,qt,qtcreator,cmake,database
 assets/*
+
+### Claude Code ###
+# Local session/tooling state - not part of the application.
+.claude/
+.codegraph/
+.mcp.json

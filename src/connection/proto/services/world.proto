@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package services.world;
+
+message Vector3 {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+// Shared shape for both directions: the client sends its own movement
+// (player_id is ignored/omitted), the server broadcasts it back out with
+// player_id set to identify whose state this is.
+message PlayerStateUpdate {
+    uint64 player_id = 1;
+    Vector3 position = 2;
+    float yaw = 3;
+}
+
+message PlayerJoined {
+    uint64 player_id = 1;
+    Vector3 position = 2;
+    float yaw = 3;
+    string username = 4;
+}
+
+message PlayerLeft {
+    uint64 player_id = 1;
+}
+
+enum MapId {
+    MAP_TOWN = 0;
+    MAP_FOREST = 1;
+}
+
+// Server push only - tells a player their map and position changed (a
+// portal was used). The server is the sole source of truth for which map a
+// player is on; clients never report their own map id.
+message MapChanged {
+    MapId map_id = 1;
+    Vector3 position = 2;
+    float yaw = 3;
+}

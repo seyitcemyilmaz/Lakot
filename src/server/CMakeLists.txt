@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(LakotServer)
 
 find_package(libpqxx CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -13,6 +14,13 @@ add_executable(${PROJECT_NAME}
 
     network/controller/BaseController.h
     network/controller/AuthController.h network/controller/AuthController.cpp
+    network/controller/WorldController.h network/controller/WorldController.cpp
+    network/controller/ChatController.h network/controller/ChatController.cpp
+
+    world/WorldRegistry.h world/WorldRegistry.cpp
+    world/MapCatalog.h world/MapCatalog.cpp
+
+    security/PasswordHasher.h security/PasswordHasher.cpp
 
     database/DatabaseConfig.h
     database/DatabaseManager.h database/DatabaseManager.cpp
@@ -26,4 +34,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE
     LakotConnection
     libpqxx::pqxx
+    OpenSSL::Crypto
 )

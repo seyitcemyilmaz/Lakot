@@ -4,6 +4,9 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 
+#include "UiTheme.h"
+#include "FileManager.h"
+
 using namespace lakot;
 
 void GuiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
@@ -17,14 +20,13 @@ void GuiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
     tIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     tIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ImGui::StyleColorsDark();
+    // Font atlas must be populated before the OpenGL backend bakes its
+    // texture below - a real TTF instead of ImGui's default bitmap font is
+    // most of what makes this look like a game UI instead of a debug panel.
+    std::string tFontPath = FileManager::createPath(FileManager::getAssetPath(), "fonts/Roboto-Medium.ttf");
+    tIO.Fonts->AddFontFromFileTTF(tFontPath.c_str(), 19.0f);
 
-    ImGuiStyle& tStyle = ImGui::GetStyle();
-    if (tIO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        tStyle.WindowRounding = 0.0f;
-        tStyle.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
+    UiTheme::apply();
 
     ImGui_ImplSDL3_InitForOpenGL(pWindow, pGLContext);
 

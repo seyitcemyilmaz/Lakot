@@ -29,4 +29,13 @@ message LoginRequest {
 
 message LoginResponse {
     string token = 1;
+
+    // Restored from the account's last saved state (see AccountRepository) -
+    // where the client should spawn the player. Plain scalars, not the
+    // world service's Vector3/MapId, so auth.proto stays self-contained.
+    uint32 map_id = 2;
+    float pos_x = 3;
+    float pos_y = 4;
+    float pos_z = 5;
+    float yaw = 6;
 }

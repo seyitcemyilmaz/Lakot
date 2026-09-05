@@ -9,17 +9,22 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
 
     gui/GuiLayer.h
     gui/GuiLayer.cpp
+    gui/UiTheme.h
 
     gui/Panel.h
     gui/PanelLoader.h gui/PanelLoader.cpp
     gui/panels/LoginPanel.h gui/panels/LoginPanel.cpp
+    gui/panels/ChatPanel.h gui/panels/ChatPanel.cpp
 
     network/NetworkManager.h network/NetworkManager.cpp
     network/controller/AuthController.h network/controller/AuthController.cpp
+    network/controller/WorldController.h network/controller/WorldController.cpp
+    network/controller/ChatController.h network/controller/ChatController.cpp
 
     graphics/camera/CameraFactory.h graphics/camera/CameraFactory.cpp
     graphics/camera/Camera.h graphics/camera/Camera.cpp
     graphics/camera/FPSCamera.h graphics/camera/FPSCamera.cpp
+    graphics/camera/ThirdPersonCamera.h graphics/camera/ThirdPersonCamera.cpp
 
     graphics/geometry/BoxContainer.h graphics/geometry/BoxContainer.cpp
 
@@ -36,6 +41,15 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/WorldScene.h scene/WorldScene.cpp
     graphics/render/ShaderManager.h graphics/render/ShaderManager.cpp
     graphics/geometry/Terrain.h graphics/geometry/Terrain.cpp
+)
+
+### copy runtime assets (fonts, ...) next to the built executable - re-run on
+### every build (not just configure) so the Qt Creator Ninja shadow-build
+### workflow this project uses always has an up to date copy in build/bin.
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotConnection)
