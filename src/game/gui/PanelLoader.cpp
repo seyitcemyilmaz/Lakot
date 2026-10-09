@@ -4,8 +4,6 @@
 
 #include "../Engine.h"
 
-#include "panels/LoginPanel.h"
-
 using namespace lakot;
 
 void PanelLoader::load(GuiLayer& pGuiLayer, PanelContext pPanelContext)
@@ -33,9 +31,11 @@ void PanelLoader::load(GuiLayer& pGuiLayer, PanelContext pPanelContext)
 
 void PanelLoader::loadLoginPanels(GuiLayer& pGuiLayer)
 {
-    Engine& tEngine = Engine::getInstance();
-
-    pGuiLayer.addPanel(std::make_shared<LoginPanel>());
+    // The login screen is now an RmlUi document (LoginRmlController, loaded
+    // directly by LoginScene::enter()) rather than an ImGui Panel - this
+    // context is kept for whatever ImGui dev/debug panels get added later,
+    // same as PanelContext::World below.
+    (void)pGuiLayer;
 }
 
 void PanelLoader::loadWorldPanels(GuiLayer& pGuiLayer)

@@ -1,0 +1,53 @@
+<rml>
+<head>
+    <title>Character</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<!--
+    The character sheet, toggled with C. Split out of the inventory panel: the
+    bag is about what you are carrying and the sheet is about what you are,
+    and cramming both into one window is what forced the inventory grid to be
+    unreadably small.
+-->
+<body class="character-screen">
+    <div class="character-window" data-model="character">
+        <div class="chat-titlebar">
+            <div class="chat-tab">Character</div>
+            <div class="chat-titlebar-buttons">
+                <div class="chat-icon-btn" data-event-click="close">X</div>
+            </div>
+        </div>
+
+        <div class="char-sheet-name">{{ name }}</div>
+        <div class="char-sheet-sub">Level {{ level }}</div>
+
+        <!-- Bars rather than bare numbers: a fraction is what the player
+             actually reads mid-fight, and the width is data-driven. -->
+        <div class="char-bar-label">Health <span class="char-bar-value">{{ health }}</span></div>
+        <div class="char-bar"><div class="char-bar-fill char-bar-health" data-style-width="health_percent"></div></div>
+
+        <div class="char-bar-label">Mana <span class="char-bar-value">{{ mana }}</span></div>
+        <div class="char-bar"><div class="char-bar-fill char-bar-mana" data-style-width="mana_percent"></div></div>
+
+        <div class="char-bar-label">Experience <span class="char-bar-value">{{ experience }}</span></div>
+        <div class="char-bar"><div class="char-bar-fill char-bar-exp" data-style-width="experience_percent"></div></div>
+
+        <div class="char-sheet-section">Attributes</div>
+
+        <div class="char-sheet-rows">
+            <div class="char-sheet-row"><span class="char-sheet-key">Strength</span><span class="char-sheet-val">{{ strength }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Dexterity</span><span class="char-sheet-val">{{ dexterity }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Intelligence</span><span class="char-sheet-val">{{ intelligence }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Vitality</span><span class="char-sheet-val">{{ vitality }}</span></div>
+        </div>
+
+        <div class="char-sheet-section">Combat</div>
+
+        <div class="char-sheet-rows">
+            <div class="char-sheet-row"><span class="char-sheet-key">Attack</span><span class="char-sheet-val">{{ attack }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Defense</span><span class="char-sheet-val">{{ defense }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Gold</span><span class="char-sheet-val">{{ gold }}</span></div>
+        </div>
+    </div>
+</body>
+</rml>

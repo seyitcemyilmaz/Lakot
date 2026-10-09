@@ -5,6 +5,7 @@
 #include <thread>
 #include <memory>
 #include <functional>
+#include <syncstream>
 
 #include <boost/asio.hpp>
 
@@ -19,6 +20,13 @@ template <typename MessageType>
 class LAKOT_CONNECTION_EXPORT NetworkServer
 {
 public:
+    // For timers that belong with the network layer (e.g. session resume
+    // grace periods). Handlers run on the worker pool.
+    boost::asio::io_context& getIOContext()
+    {
+        return mContext;
+    }
+
     using SessionPtr = std::shared_ptr<NetworkSession<MessageType>>;
     using OnConnectCallback = std::function<void(SessionPtr)>;
 
@@ -41,7 +49,7 @@ public:
         }
         catch (const std::exception& tException)
         {
-            std::cerr << "[NetworkServer] Baslatma Hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[NetworkServer] Baslatma Hatasi: " << tException.what() << std::endl;
             throw;
         }
     }

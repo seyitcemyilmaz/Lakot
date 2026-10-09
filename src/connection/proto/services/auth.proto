@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package services.auth;
 
+import "services/game.proto";
+
 enum RegisterStatus {
     REGISTER_STATUS_OK = 0;
     REGISTER_STATUS_EMAIL_IN_USE = 1;
@@ -30,12 +32,118 @@ message LoginRequest {
 message LoginResponse {
     string token = 1;
 
-    // Restored from the account's last saved state (see AccountRepository) -
-    // where the client should spawn the player. Plain scalars, not the
-    // world service's Vector3/MapId, so auth.proto stays self-contained.
-    uint32 map_id = 2;
-    float pos_x = 3;
-    float pos_y = 4;
-    float pos_z = 5;
-    float yaw = 6;
+    // 2..6 were map_id/pos_x/pos_y/pos_z/yaw. Position belongs to a CHARACTER,
+    // not to an account, so it moved to EnterWorldResponse - logging in no
+    // longer says anything about where anyone stands.
+    reserved 2, 3, 4, 5, 6;
 }
+
+// ---- Character selection ----
+// Logging in authenticates an ACCOUNT. An account owns several characters,
+// and it is a character - not the account - that exists in the world, owns a
+// position, and is what other players see and whisper to. So login is
+// followed by list -> (optionally create) -> enter world, and only that last
+// step puts anything into a zone.
+
+// One row on the selection screen.
+message CharacterSummary {
+    uint64 character_id = 1;
+    string name = 2;
+    uint32 map_id = 3;
+}
+
+message CharacterListRequest {}
+
+message CharacterListResponse {
+    repeated CharacterSummary characters = 1;
+
+    // Sent rather than hardcoded in the client so the slot count stays a
+    // server-side rule - the client only renders what it is told.
+    uint32 max_slots = 2;
+
+    // The account's kingdom (1-3). 0 until the first character is created,
+    // which is when it is chosen - every later character shares it.
+    uint32 kingdom = 3;
+}
+
+enum CharacterCreateStatus {
+    CHARACTER_CREATE_OK = 0;
+    CHARACTER_CREATE_NAME_IN_USE = 1;
+    CHARACTER_CREATE_NAME_INVALID = 2;
+    CHARACTER_CREATE_NO_FREE_SLOT = 3;
+    CHARACTER_CREATE_DATABASE_ERROR = 4;
+    CHARACTER_CREATE_INVALID_KINGDOM = 5;
+}
+
+message CharacterCreateRequest {
+    string name = 1;
+
+    // Only read for the account's first character; ignored afterwards.
+    uint32 kingdom = 2;
+}
+
+message CharacterCreateResponse {
+    CharacterCreateStatus status = 1;
+
+    // Set only when status is CHARACTER_CREATE_OK, so the client can add the
+    // new row without asking for the whole list again.
+    CharacterSummary character = 2;
+}
+
+enum EnterWorldStatus {
+    ENTER_WORLD_OK = 0;
+    ENTER_WORLD_NOT_FOUND = 1;   // no such character, or not on this account
+    ENTER_WORLD_ERROR = 2;
+}
+
+message EnterWorldRequest {
+    uint64 character_id = 1;
+}
+
+message EnterWorldResponse {
+    EnterWorldStatus status = 1;
+
+    uint64 character_id = 2;
+    string name = 3;
+
+    // Where this character was last saved - the spawn data that used to ride
+    // along on LoginResponse.
+    uint32 map_id = 4;
+    float pos_x = 5;
+    float pos_y = 6;
+    float pos_z = 7;
+    float yaw = 8;
+
+    // The character's full state at the moment it enters the world. Sent here
+    // rather than as separate follow-up messages so the client has everything
+    // it needs to build the world scene from one response, with no window
+    // where it is in the world but does not yet know its own health.
+    services.game.CharacterStats stats = 9;
+    repeated services.game.ItemInstance items = 10;
+}
+
+// ---- Session resume ----
+// LoginResponse.token is a random, single-use secret. After a dropped
+// connection the server keeps the account (and its character, in the world)
+// for a short grace period; a new connection presenting the token takes the
+// session over instead of logging in again. A successful resume returns the
+// next token - the presented one stops working.
+
+message ResumeSessionRequest {
+    string token = 1;
+}
+
+enum ResumeSessionStatus {
+    RESUME_SESSION_OK = 0;
+    RESUME_SESSION_FAILED = 1;   // unknown or expired token, e.g. after a server restart
+}
+
+message ResumeSessionResponse {
+    ResumeSessionStatus status = 1;
+    string token = 2;
+    uint64 character_id = 3;     // 0 if the session was at character select
+}
+
+// Intentional logout. Releases the character at once instead of holding it
+// for the resume grace period, and leaves the connection unauthenticated.
+message LogoutRequest {}

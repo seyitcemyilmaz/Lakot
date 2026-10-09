@@ -1,0 +1,17 @@
+<rml>
+<head>
+    <title>Reconnecting</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<!-- Shown over any scene while a dropped connection is being resumed. The
+     scrim spans the window so nothing behind it can be clicked. -->
+<body class="screen-center reconnect-screen">
+    <div class="card reconnect-card" data-model="reconnect">
+        <div class="title">CONNECTION LOST</div>
+
+        <div class="status status-info">Reconnecting to the server... {{ seconds_left }}s</div>
+
+        <div class="btn-secondary" data-event-click="logout">Log Out</div>
+    </div>
+</body>
+</rml>

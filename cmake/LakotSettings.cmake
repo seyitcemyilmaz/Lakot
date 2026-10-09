@@ -14,6 +14,21 @@ set_property(CACHE LAKOT_USE_RENDERER_OPENGL_TYPE PROPERTY STRINGS "Core" "ES")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DLAKOT_PLATFORM_WINDOWS)
+
+    # Target Windows API baseline. Without this, every Boost.Asio translation
+    # unit warned and silently assumed 0x0601 (Windows 7) - which also caps
+    # which Winsock APIs Asio is allowed to use. 0x0A00 is Windows 10; the
+    # game already requires OpenGL 4.6 core and SDL3, so nothing older was
+    # realistically a target anyway. Lower this line if that ever changes.
+    add_definitions(-D_WIN32_WINNT=0x0A00)
+
+    # windows.h defines min/max as macros, which breaks any use of std::min /
+    # std::max (WorldScene and the AoI code both rely on them) the moment it
+    # gets pulled in - by Boost.Asio, SDL, or a future dependency. WIN32_LEAN_AND_MEAN
+    # additionally keeps the rarely-needed half of windows.h out of every
+    # translation unit that transitively includes it.
+    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+
     set(LAKOT_USE_PLATFORM_WINDOWS ON)
     set(LAKOT_USE_RENDERER_OPENGL ON)
     set(LAKOT_USE_RENDERER_OPENGL_TYPE "Core")

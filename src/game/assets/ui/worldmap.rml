@@ -1,0 +1,28 @@
+<rml>
+<head>
+    <title>World Map</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<!-- The whole current map, toggled with M. Same window chrome as the
+     character sheet and the bag. -->
+<body class="worldmap-screen">
+    <div class="worldmap-window" data-model="worldmap">
+        <div class="chat-titlebar" data-event-mousedown="drag_start">
+            <div class="chat-tab">{{ map_name }}</div>
+            <div class="chat-titlebar-buttons">
+                <div class="chat-icon-btn" data-event-click="close">X</div>
+            </div>
+        </div>
+
+        <div class="worldmap-view">
+            <img class="worldmap-image" data-attr-src="map_source"/>
+
+            <div class="map-arrow" data-style-left="marker_left" data-style-top="marker_top"
+                 data-style-transform="arrow_transform">
+                <div class="map-arrow-nose"></div>
+                <div class="map-arrow-body"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</rml>

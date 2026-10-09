@@ -4,15 +4,27 @@
 #include <glad/glad.h>
 #include <SDL3/SDL.h>
 
-#include "GarbageCollector.h"
+#include <string>
 
+#include <glm/glm.hpp>
+
+#include "GarbageCollector.h"
+#include "MapCatalog.h"
+#include "MonsterCatalog.h"
+
+#include "asset/AssetManager.h"
 #include "network/NetworkManager.h"
 #include "scene/SceneManager.h"
 #include "gui/GuiLayer.h"
+#include "gui/rml/RmlUiLayer.h"
+#include "gui/rml/ReconnectRmlController.h"
 #include "graphics/render/ShaderManager.h"
+#include "settings/DisplaySettings.h"
 
 namespace lakot
 {
+
+class MotionLibrary;
 
 class Engine
 {
@@ -24,10 +36,17 @@ public:
     Engine(Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    void initialize();
+    // false if something the game cannot run without failed to load.
+    bool initialize();
     void deinitialize();
 
     void render();
+
+    // How far the current frame sits between the last fixed update and the
+    // next one, 0..1 - for drawing moving things between their update steps.
+    double getInterpolationAlpha() const;
+
+    double getFixedDeltaTime() const;
 
     SDL_Window* getWindow() const;
     void setWindow(SDL_Window* pWindow);
@@ -41,6 +60,18 @@ public:
     ShaderManager& getShaderManager();
 
     GuiLayer& getGuiLayer();
+    RmlUiLayer& getRmlUiLayer();
+
+    // Maps and kingdoms from data/, loaded once at startup.
+    const MapCatalog& getMapCatalog() const;
+    const MonsterCatalog& getMonsterCatalog() const;
+
+    void setClearColor(const glm::vec3& pColor);
+
+    DisplaySettings& getDisplaySettings();
+
+    AssetManager& getAssetManager();
+    MotionLibrary& getMotionLibrary();
 
     SDL_AppResult eventHandler(SDL_Event* pEvent);
 
@@ -56,12 +87,26 @@ private:
 
     GarbageCollector mGarbageCollector;
 
+    MapCatalog mMapCatalog;
+    MonsterCatalog mMonsterCatalog;
+
+    DisplaySettings mDisplaySettings;
+
+    std::unique_ptr<AssetManager> mAssetManager;
+    std::unique_ptr<MotionLibrary> mMotionLibrary;
+
+    glm::vec3 mClearColor{0.4f, 0.4f, 0.4f};
+
     NetworkManager mNetworkManager;
 
     SceneManager mSceneManager;
     ShaderManager mShaderManager;
 
     GuiLayer mGuiLayer;
+    RmlUiLayer mRmlUiLayer;
+
+    // Exists only while NetworkManager is reconnecting.
+    std::unique_ptr<ReconnectRmlController> mReconnectOverlay;
 
     uint64_t mLastTime;
 
@@ -71,6 +116,8 @@ private:
     double mFixedDeltaTime;
 
     void draw();
+
+    void onConnectionStateChanged(ConnectionStateType pState);
 };
 
 }

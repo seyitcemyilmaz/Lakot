@@ -2,82 +2,47 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
-#include <limits>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include <imgui.h>
 
 #include "../Engine.h"
+#include "../gui/AttachmentPanel.h"
 #include "../gui/PanelLoader.h"
-#include "../gui/UiTheme.h"
+#include "../gui/MapImageFactory.h"
+
+#include "MovementRules.h"
+
+#include "LoginScene.h"
+#include "world/WorldViewConstants.h"
 
 namespace
 {
-    // How often the local player's state is sent to the server, and how much
-    // it must have changed since the last send to be worth sending again.
-    constexpr double kStateSendInterval = 0.1;
     constexpr float kMinPositionDeltaSq = 0.01f;
     constexpr float kMinYawDelta = 0.01f;
 
-    // How long a remote player's box takes to glide from its previous known
-    // position to the newly received one, instead of snapping to it.
-    constexpr double kInterpolationDuration = kStateSendInterval;
+    constexpr float kNameplatePixelOffset = 30.0f;
 
-    // Temporary, placeholder-box-era color coding so players are visually
-    // distinguishable from each other and from static decor - to be
-    // replaced once real character appearance exists. The local player
-    // always renders in this fixed color; every other player gets a color
-    // deterministically derived from their id, so it stays consistent
-    // across updates without any extra network state.
-    const glm::vec3 kLocalCharacterColor(0.2f, 0.9f, 1.0f);
+    constexpr float kSpeechBubbleLineGap = 4.0f;
 
-    glm::vec3 hsvToRgb(float pHue, float pSaturation, float pValue)
-    {
-        float tC = pValue * pSaturation;
-        float tHPrime = pHue * 6.0f;
-        float tX = tC * (1.0f - std::fabs(std::fmod(tHPrime, 2.0f) - 1.0f));
-        float tM = pValue - tC;
-
-        glm::vec3 tRgb;
-
-        if (tHPrime < 1.0f)      tRgb = glm::vec3(tC, tX, 0.0f);
-        else if (tHPrime < 2.0f) tRgb = glm::vec3(tX, tC, 0.0f);
-        else if (tHPrime < 3.0f) tRgb = glm::vec3(0.0f, tC, tX);
-        else if (tHPrime < 4.0f) tRgb = glm::vec3(0.0f, tX, tC);
-        else if (tHPrime < 5.0f) tRgb = glm::vec3(tX, 0.0f, tC);
-        else                     tRgb = glm::vec3(tC, 0.0f, tX);
-
-        return tRgb + glm::vec3(tM);
-    }
-
-    glm::vec3 getColorForPlayerId(uint64_t pPlayerId)
-    {
-        uint64_t tHash = std::hash<uint64_t>{}(pPlayerId);
-        float tHue = static_cast<float>(tHash % 360u) / 360.0f;
-        return hsvToRgb(tHue, 0.65f, 0.95f);
-    }
-
-    // Nameplate offset is applied in SCREEN-SPACE pixels, after projection,
-    // rather than raising the point in world space before projecting.
-    // Raising it in world space made the apparent gap balloon with
-    // perspective (further from the character box the closer the camera
-    // got, or at certain pitches) - projecting the character's own position
-    // and nudging the text up by a constant pixel amount keeps the nameplate
-    // hugging the character's head consistently at any camera distance.
-    constexpr float kNameplatePixelOffset = 55.0f;
-
-    // Below this much accumulated mouse motion (pixels), a right-click
-    // release is treated as a click (pick/menu) rather than a camera-orbit
-    // drag.
     constexpr float kClickDragThresholdPixels = 6.0f;
 
-    // Half-extents of the (1,2,1) placeholder box used for both remote
-    // players and the local character everywhere else in this file -
-    // picking tests a ray against this same box so the clickable area
-    // matches what's actually drawn.
-    constexpr glm::vec3 kPlayerBoxHalfExtents(0.5f, 1.0f, 0.5f);
+    constexpr double kComboWindowSeconds = 1.0;
+
+    constexpr float kHealthBarWidth = 60.0f;
+    constexpr float kHealthBarHeight = 5.0f;
+    constexpr float kDamageFontScale = 1.4f;
+
+    constexpr float kFogStart = 140.0f;
+
+    const glm::vec3 kSkyColor(0.64f, 0.76f, 0.88f);
+
+    const glm::vec3 kWaterColor(0.20f, 0.42f, 0.62f);
+
+    const glm::vec3 kDestinationMarkerSize(1.4f, 0.15f, 1.4f);
+    const glm::vec3 kDestinationMarkerColor(0.85f, 0.65f, 0.25f);
 }
 
 using namespace lakot;
@@ -89,13 +54,17 @@ WorldScene::~WorldScene()
 
 WorldScene::WorldScene(Engine& pEngine, const std::optional<InitialSpawnState>& pSpawnState, const std::string& pUsername)
     : Scene(pEngine)
-    , mCamera(nullptr)
-    , mBoxContainer(nullptr)
-    , mTerrain(nullptr)
     , mInitialSpawnState(pSpawnState)
     , mLocalUsername(pUsername)
 {
 
+}
+
+void WorldScene::setCharacterState(uint64_t pCharacterId, const CharacterStats& pStats, std::vector<OwnedItem> pItems)
+{
+    mLocalCharacterId = pCharacterId;
+    mLocalStats = pStats;
+    mLocalItems = std::move(pItems);
 }
 
 void WorldScene::enter()
@@ -106,18 +75,50 @@ void WorldScene::enter()
     tGui.clearPanels();
     PanelLoader::load(tGui, PanelContext::World);
 
-    // SDL_SetWindowRelativeMouseMode(mEngine.getWindow(), true);
-
     mCamera = std::make_unique<ThirdPersonCamera>();
+
+    const MapCatalog& tCatalog = mEngine.getMapCatalog();
 
     if (mInitialSpawnState)
     {
-        mCamera->setTargetPosition(glm::vec3(mInitialSpawnState->x, mInitialSpawnState->y, mInitialSpawnState->z));
+        teleportLocalPosition(glm::vec3(mInitialSpawnState->x, mInitialSpawnState->y, mInitialSpawnState->z));
         mCamera->setYaw(glm::degrees(mInitialSpawnState->yaw));
-        mCurrentMapId = mInitialSpawnState->mapId;
+    }
+    else
+    {
+        const MapSpawn& tSpawn = tCatalog.getStartMap(1)->getSpawn();
+        teleportLocalPosition(glm::vec3(tSpawn.x, 0.0f, tSpawn.z));
+        mCamera->setYaw(glm::degrees(tSpawn.yaw));
     }
 
+    mCamera->setFar(WorldView::kViewDistance + 40.0f);
+    mEngine.setClearColor(kSkyColor);
+
     ShaderManager& tShaderManager = mEngine.getShaderManager();
+
+    const std::string tFogFunction = R"(
+        uniform vec3 uCameraPosition;
+        uniform vec3 uFogColor;
+        uniform float uFogStart;
+        uniform float uFogEnd;
+
+        vec3 applyFog(vec3 pColor, vec3 pWorldPosition)
+        {
+            float tDistance = distance(pWorldPosition, uCameraPosition);
+            float tFog = clamp((tDistance - uFogStart) / (uFogEnd - uFogStart), 0.0, 1.0);
+            return mix(pColor, uFogColor, tFog);
+        }
+    )";
+
+    const std::string tLightFunction = R"(
+        uniform vec3 uLightDirection;
+
+        vec3 applyLight(vec3 pColor, vec3 pNormal)
+        {
+            float tDiffuse = max(dot(normalize(pNormal), -uLightDirection), 0.0);
+            return pColor * (0.52 + 0.62 * tDiffuse);
+        }
+    )";
 
     std::string tBoxInstancedVertexSource = R"(
         layout (location = 0) in vec3 aPos;
@@ -128,114 +129,217 @@ void WorldScene::enter()
         uniform mat4 uViewProjection;
 
         out vec3 vColor;
+        out vec3 vWorldPosition;
 
         void main()
         {
-            vec3 tFinalPosition = (aPos * aSize) + aOffset;
-
-            gl_Position = uViewProjection * vec4(tFinalPosition, 1.0);
+            vWorldPosition = (aPos * aSize) + aOffset;
+            gl_Position = uViewProjection * vec4(vWorldPosition, 1.0);
             vColor = aColor;
         }
     )";
 
     std::string tBoxInstancedFragmentSource = R"(
         in vec3 vColor;
+        in vec3 vWorldPosition;
         out vec4 FragColor;
-
+    )" + tFogFunction + tLightFunction + R"(
         void main()
         {
-            FragColor = vec4(vColor, 1.0);
+            vec3 tNormal = cross(dFdx(vWorldPosition), dFdy(vWorldPosition));
+            FragColor = vec4(applyFog(applyLight(vColor, tNormal), vWorldPosition), 1.0);
         }
     )";
 
     std::string tTerrainVertexSource = R"(
         layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec3 aNormal;
+        layout (location = 2) in vec3 aColor;
 
         uniform mat4 uViewProjection;
 
-        out vec3 FragPos;
+        out vec3 vWorldPosition;
+        out vec3 vNormal;
+        out vec3 vColor;
 
         void main()
         {
-            FragPos = aPos;
-
+            vWorldPosition = aPos;
+            vNormal = aNormal;
+            vColor = aColor;
             gl_Position = uViewProjection * vec4(aPos, 1.0);
         }
     )";
 
-    // Fragment Shader
     std::string tTerrainFragmentSource = R"(
-        in vec3 FragPos;
+        in vec3 vWorldPosition;
+        in vec3 vNormal;
+        in vec3 vColor;
         out vec4 FragColor;
-
-        float near = 0.1;
-        float far  = 100.0;
-
-        float LinearizeDepth(float depth)
-        {
-            float z = depth * 2.0 - 1.0;
-            return (2.0 * near * far) / (far + near - z * (far - near));
-        }
-
-        uniform vec3 uTint;
-
+    )" + tFogFunction + tLightFunction + R"(
         void main()
         {
-            if (FragPos.y < 0)
-            {
-                discard;
-            }
-
-            vec3 nearColor = vec3(0.2, 0.6, 0.2);
-            vec3 farColor = vec3(0.05, 0.15, 0.2);
-
-            float depth = LinearizeDepth(gl_FragCoord.z);
-
-            float factor = depth / far;
-
-            // factor = pow(factor, 1.5);
-
-            vec3 finalColor = mix(nearColor, farColor, factor) * uTint;
-
-            FragColor = vec4(finalColor, 1.0);
+            FragColor = vec4(applyFog(applyLight(vColor, vNormal), vWorldPosition), 1.0);
         }
     )";
 
-    tShaderManager.createProgram("box_instanced", tBoxInstancedVertexSource, tBoxInstancedFragmentSource);
-    tShaderManager.createProgram("terrain", tTerrainVertexSource, tTerrainFragmentSource);
+    std::string tModelVertexSource = R"(
+        layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec3 aNormal;
+        layout (location = 2) in vec2 aUv;
+        layout (location = 3) in vec3 aOffset;
+        layout (location = 4) in vec3 aYawScaleStretch;
+
+        uniform mat4 uViewProjection;
+
+        out vec3 vWorldPosition;
+        out vec3 vNormal;
+        out vec2 vUv;
+
+        void main()
+        {
+            float tCos = cos(aYawScaleStretch.x);
+            float tSin = sin(aYawScaleStretch.x);
+            vec3 tScale = vec3(aYawScaleStretch.y * aYawScaleStretch.z, aYawScaleStretch.y, aYawScaleStretch.y);
+            mat3 tRotation = mat3(tCos, 0.0, -tSin,
+                                  0.0,  1.0,  0.0,
+                                  tSin, 0.0,  tCos);
+
+            vWorldPosition = tRotation * (aPos * tScale) + aOffset;
+            vNormal = tRotation * aNormal;
+            vUv = aUv;
+            gl_Position = uViewProjection * vec4(vWorldPosition, 1.0);
+        }
+    )";
+
+    std::string tModelFragmentSource = R"(
+        in vec3 vWorldPosition;
+        in vec3 vNormal;
+        in vec2 vUv;
+        out vec4 FragColor;
+
+        uniform sampler2D uTexture;
+        uniform vec3 uTint = vec3(1.0);
+        uniform float uGlow = 0.0;
+    )" + tFogFunction + tLightFunction + R"(
+        void main()
+        {
+            vec3 tColor = texture(uTexture, vUv).rgb * uTint;
+            FragColor = vec4(applyFog(applyLight(tColor, vNormal) + tColor * uGlow, vWorldPosition), 1.0);
+        }
+    )";
+
+    std::string tSkinnedVertexSource = R"(
+        layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec3 aNormal;
+        layout (location = 2) in vec2 aUv;
+        layout (location = 3) in ivec4 aJoints;
+        layout (location = 4) in vec4 aWeights;
+
+        uniform mat4 uViewProjection;
+        uniform mat4 uModel;
+        uniform mat4 uBones[64];
+
+        out vec3 vWorldPosition;
+        out vec3 vNormal;
+        out vec2 vUv;
+
+        void main()
+        {
+            mat4 tSkin = uBones[aJoints.x] * aWeights.x + uBones[aJoints.y] * aWeights.y
+                       + uBones[aJoints.z] * aWeights.z + uBones[aJoints.w] * aWeights.w;
+            mat4 tWorld = uModel * tSkin;
+
+            vWorldPosition = (tWorld * vec4(aPos, 1.0)).xyz;
+            vNormal = mat3(tWorld) * aNormal;
+            vUv = aUv;
+            gl_Position = uViewProjection * vec4(vWorldPosition, 1.0);
+        }
+    )";
+
+    if (!tShaderManager.hasProgram("world_box"))
+    {
+        tShaderManager.createProgram("world_box", tBoxInstancedVertexSource, tBoxInstancedFragmentSource);
+    }
+
+    if (!tShaderManager.hasProgram("world_terrain"))
+    {
+        tShaderManager.createProgram("world_terrain", tTerrainVertexSource, tTerrainFragmentSource);
+    }
+
+    if (!tShaderManager.hasProgram("world_model"))
+    {
+        tShaderManager.createProgram("world_model", tModelVertexSource, tModelFragmentSource);
+    }
+
+    if (!tShaderManager.hasProgram("world_skinned"))
+    {
+        tShaderManager.createProgram("world_skinned", tSkinnedVertexSource, tModelFragmentSource);
+    }
 
     mBoxContainer = std::make_unique<BoxContainer>();
     mBoxContainer->initialize();
 
-    mTerrain = std::make_unique<Terrain>(100, 100, 1.0f);
-    mTerrain->initialize();
+    mItemAppearance = std::make_unique<ItemAppearance>(mEngine.getAssetManager(), mEngine.getNetworkManager().getInventoryController());
+    mItemIcons = std::make_unique<ItemIconRenderer>(*mItemAppearance, mEngine.getNetworkManager().getInventoryController(),
+                                                    *tShaderManager.getProgram("world_skinned"), mEngine.getRmlUiLayer());
+    mAttachments = std::make_unique<EquipmentAttachments>();
+    std::string tAttachmentError;
 
-    applyMapVisuals();
+    if (!mAttachments->load(mEngine.getAssetManager().resolve("attachments.json"), tAttachmentError))
+    {
+        SDL_Log("WorldScene: %s", tAttachmentError.c_str());
+    }
 
-    mRemotePlayerBoxes = std::make_unique<BoxContainer>();
-    mRemotePlayerBoxes->initialize();
+#if defined(LAKOT_DEV_TOOLS)
+    mAttachmentPanel = std::make_shared<AttachmentPanel>(*mAttachments, std::vector<std::string>{
+        LAKOT_SOURCE_DATA_DIR "/attachments.json", mEngine.getAssetManager().resolve("attachments.json") });
+    tGui.addPanel(mAttachmentPanel);
+#endif
+
+    mEntityRenderer = std::make_unique<EntityRenderer>(*mItemAppearance, *mAttachments);
+
+    mEntities = std::make_unique<WorldEntities>(mEngine.getAssetManager(), mEngine.getMonsterCatalog(), mEngine.getMotionLibrary(), *mItemAppearance);
+    mEntities->setLocalCharacterId(mLocalCharacterId);
+    mEntities->setLocal(mLocalUsername, mLocalPosition, mEngine.getFixedDeltaTime());
+    mEntities->setLocalEquipment(mLocalItems);
+
+    mPicker = std::make_unique<WorldPicker>(mEngine.getWindow(), *mCamera, *mEntities);
+    mAutoWalk = std::make_unique<AutoWalk>(*mEntities);
+
+    mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getDisplaySettings(),
+                                      mEngine.getWindow(), mLocalUsername, mLocalStats, mLocalItems, *mItemIcons);
+
+    mHud->setLocalItemsCallback(
+    [this](const std::vector<OwnedItem>& pItems)
+    {
+        mEntities->setLocalEquipment(pItems);
+    });
+
+    mHud->setLogoutCallback(
+    [this]()
+    {
+        mEngine.getNetworkManager().logout();
+        mEngine.getSceneManager().setNextScene(std::make_unique<LoginScene>(mEngine));
+    });
+
+    mHud->setLocalSayCallback(
+    [this](const std::string& pText)
+    {
+        mEntities->showSpeech(WorldEntities::kLocalId, pText);
+    });
+
+    loadMap(mInitialSpawnState ? mInitialSpawnState->mapId : tCatalog.getStartMap(1)->getId());
 
     mLocalCharacterBox = std::make_unique<BoxContainer>();
     mLocalCharacterBox->initialize();
 
     WorldController& tWorldController = mEngine.getNetworkManager().getWorldController();
 
-    tWorldController.setPlayerJoinedCallback(
-    [this](const WorldController::PlayerSnapshot& pSnapshot)
+    tWorldController.setWorldSnapshotCallback(
+    [this](const WorldController::WorldSnapshot& pSnapshot)
     {
-        this->onPlayerJoined(pSnapshot);
-    });
-
-    tWorldController.setPlayerStateUpdateCallback(
-    [this](const WorldController::PlayerSnapshot& pSnapshot)
-    {
-        this->onPlayerStateUpdate(pSnapshot);
-    });
-
-    tWorldController.setPlayerLeftCallback(
-    [this](uint64_t pPlayerId)
-    {
-        this->onPlayerLeft(pPlayerId);
+        this->onWorldSnapshot(pSnapshot);
     });
 
     tWorldController.setMapChangedCallback(
@@ -244,20 +348,20 @@ void WorldScene::enter()
         this->onMapChanged(pSnapshot);
     });
 
-    ChatController& tChatController = mEngine.getNetworkManager().getChatController();
-
-    tChatController.setDirectMessageReceivedCallback(
-    [this](uint64_t pFromPlayerId, const std::string& pFromUsername, const std::string& pText)
+    tWorldController.setPickupResultCallback(
+    [this](services::world::PickupResult pResult)
     {
-        this->onDirectMessageReceived(pFromPlayerId, pFromUsername, pText);
+        this->onPickupResult(pResult);
     });
 
-    tChatController.setDirectMessageResultCallback(
-    [](bool pIsSuccess, const std::string& pMessage)
+    mEngine.getNetworkManager().getChatController().setChatMessageReceivedCallback(
+    [this](uint64_t pFromPlayerId, const std::string& pFromUsername, const std::string& pText, bool pIsGlobal)
     {
-        if (!pIsSuccess)
+        mHud->onWorldChatMessage(pFromUsername, pText, pIsGlobal);
+
+        if (!pIsGlobal)
         {
-            SDL_Log("Chat: %s", pMessage.c_str());
+            mEntities->showSpeech(pFromPlayerId, pText);
         }
     });
 }
@@ -266,7 +370,16 @@ void WorldScene::exit()
 {
     SDL_Log("WorldScene: exit");
 
-    SDL_SetWindowRelativeMouseMode(mEngine.getWindow(), false);
+    mEngine.getNetworkManager().getWorldController().clearCallbacks();
+    mEngine.getNetworkManager().getChatController().clearCallbacks();
+    mEngine.getNetworkManager().getInventoryController().clearCallbacks();
+
+    endOrbit();
+
+    mEngine.getGuiLayer().clearPanels();
+    mAttachmentPanel.reset();
+
+    mEngine.setClearColor(glm::vec3(0.4f, 0.4f, 0.4f));
 }
 
 void WorldScene::update(double pDeltaTime)
@@ -276,11 +389,181 @@ void WorldScene::update(double pDeltaTime)
         return;
     }
 
-    float tSpeed = 5.0f * static_cast<float>(pDeltaTime);
+    if (mIsOrbiting && !(SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK))
+    {
+        endOrbit();
+    }
+
+    updateAttack(pDeltaTime);
+    updateLocalMovement(pDeltaTime);
+    updatePickup();
+    mCameraBob.update(glm::length(glm::vec2(mLocalPosition.x - mPreviousLocalPosition.x, mLocalPosition.z - mPreviousLocalPosition.z)), pDeltaTime);
+
+    mStateSendAccumulator += pDeltaTime;
+
+    if (mStateSendAccumulator >= WorldView::kStateSendInterval)
+    {
+        mStateSendAccumulator = 0.0;
+        sendLocalPlayerState();
+    }
+
+    mEntities->update(pDeltaTime);
+    mEntities->setLocal(mLocalUsername, mLocalPosition, pDeltaTime);
+
+    for (const DamageEvent& tEvent : mEntities->takeDamageEvents())
+    {
+        mDamageNumbers.add(tEvent.targetId, tEvent.damage, tEvent.isAgainstLocal, tEvent.isByLocal);
+    }
+
+    mDamageNumbers.update(static_cast<float>(pDeltaTime));
+    mHud->setSafeZone(mMap && mMap->isSafe(mLocalPosition.x, mLocalPosition.z));
+
+    glm::vec3 tFacing = mCamera->getFrontVector();
+    float tFacingDegrees = glm::degrees(std::atan2(tFacing.x, -tFacing.z));
+
+    std::vector<glm::vec3> tOthers;
+    tOthers.reserve(mEntities->getAll().size());
+
+    for (const auto& [tId, tEntity] : mEntities->getAll())
+    {
+        if (tId != WorldEntities::kLocalId && tEntity.type != EntityType::eGroundItem)
+        {
+            tOthers.push_back(WorldEntities::getPosition(tEntity));
+        }
+    }
+
+    mHud->update(pDeltaTime, mLocalPosition, tFacingDegrees, tOthers);
+}
+
+void WorldScene::updatePickup()
+{
+    if (mPendingPickupId == 0)
+    {
+        return;
+    }
+
+    auto tPosition = mEntities->findPosition(mPendingPickupId);
+
+    if (!tPosition)
+    {
+        mPendingPickupId = 0;
+        return;
+    }
+
+    constexpr float kPickupReach = 2.8f;
+
+    if (glm::distance(glm::vec2(tPosition->x, tPosition->z), glm::vec2(mLocalPosition.x, mLocalPosition.z)) <= kPickupReach)
+    {
+        mEngine.getNetworkManager().getWorldController().sendPickup(mPendingPickupId);
+        mPendingPickupId = 0;
+        mAutoWalk->stop();
+    }
+    else if (!mAutoWalk->isActive())
+    {
+        mPendingPickupId = 0;
+    }
+}
+
+void WorldScene::onPickupResult(services::world::PickupResult pResult)
+{
+    switch (pResult)
+    {
+        case services::world::PICKUP_RESULT_NOT_OWNER: mHud->showNotice("This belongs to someone else for now."); break;
+        case services::world::PICKUP_RESULT_TOO_FAR: mHud->showNotice("Too far away to pick that up."); break;
+        case services::world::PICKUP_RESULT_INVENTORY_FULL: mHud->showNotice("Your bag is full."); break;
+        case services::world::PICKUP_RESULT_NOT_FOUND: mHud->showNotice("That item is gone."); break;
+        case services::world::PICKUP_RESULT_DEAD: mHud->showNotice("You cannot do that while dead."); break;
+        default: break;
+    }
+}
+
+void WorldScene::updateAttack(double pDeltaTime)
+{
+    mAttackCooldown -= pDeltaTime;
+    mComboResetTimer -= pDeltaTime;
+    mAttackRootTimer -= pDeltaTime;
+
+    if (!mIsAttackHeld)
+    {
+        mHasWarnedSafeZone = false;
+        return;
+    }
+
+    if (mIsLocalDead || mAttackCooldown > 0.0 || !mMap)
+    {
+        return;
+    }
+
+    if (mMap->isSafe(mLocalPosition.x, mLocalPosition.z))
+    {
+        if (!mHasWarnedSafeZone)
+        {
+            mHud->showNotice("You cannot fight here.");
+            mHasWarnedSafeZone = true;
+        }
+
+        return;
+    }
+
+    if (mComboResetTimer <= 0.0)
+    {
+        mCombo = 0;
+    }
+
+    const WorldEntity* tLocal = mEntities->getLocal();
+    float tFacing = tLocal ? tLocal->facing : 0.0f;
+
+    mEngine.getNetworkManager().getWorldController().sendAttack(tFacing, mCombo);
+    mEntities->playLocalAttack(mCombo);
+    mAutoWalk->stop();
+
+    mCombo = (mCombo + 1) % 3;
+    mAttackCooldown = WorldView::kAttackIntervalSeconds;
+    mComboResetTimer = kComboWindowSeconds;
+    mAttackRootTimer = WorldView::kAttackIntervalSeconds;
+}
+
+glm::vec3 WorldScene::slideLocal(glm::vec3 pPosition, glm::vec2 pStep) const
+{
+    const MapData& tField = *mMap;
+
+    if (tField.isMoveAllowed(pPosition.x, pPosition.z, pPosition.x + pStep.x, pPosition.z + pStep.y))
+    {
+        pPosition.x += pStep.x;
+        pPosition.z += pStep.y;
+    }
+    else if (tField.isMoveAllowed(pPosition.x, pPosition.z, pPosition.x + pStep.x, pPosition.z))
+    {
+        pPosition.x += pStep.x;
+    }
+    else if (tField.isMoveAllowed(pPosition.x, pPosition.z, pPosition.x, pPosition.z + pStep.y))
+    {
+        pPosition.z += pStep.y;
+    }
+
+    return pPosition;
+}
+
+void WorldScene::updateLocalMovement(double pDeltaTime)
+{
+    glm::vec2 tRootMotion = mEntities->takeLocalRootMotion();
+
+    if (mIsLocalDead || mAttackRootTimer > 0.0)
+    {
+        mPreviousLocalPosition = mLocalPosition;
+
+        if (!mIsLocalDead && mMap && glm::length(tRootMotion) > 0.0f)
+        {
+            mLocalPosition = slideLocal(mLocalPosition, tRootMotion);
+            mLocalPosition.y = mMap->getHeightAt(mLocalPosition.x, mLocalPosition.z) + WorldView::kPlayerBoxHalfExtents.y;
+        }
+
+        return;
+    }
+
+    float tSpeed = MovementRules::kWalkSpeed * static_cast<float>(pDeltaTime);
     glm::vec3 tMovement(0.0f);
 
-    // Flattened to the ground plane - classic MMO characters don't
-    // climb/descend just because the camera is pitched up or down.
     glm::vec3 tFront = mCamera->getFrontVector();
     tFront.y = 0.0f;
     if (glm::length(tFront) > 0.0001f) tFront = glm::normalize(tFront);
@@ -294,34 +577,32 @@ void WorldScene::update(double pDeltaTime)
     if (mIsMovingRight)    tMovement += tRight;
     if (mIsMovingLeft)     tMovement -= tRight;
 
-    if (glm::length(tMovement) > 0.0f)
+    mPreviousLocalPosition = mLocalPosition;
+
+    glm::vec3 tPosition = glm::length(tRootMotion) > 0.0f ? slideLocal(mLocalPosition, tRootMotion) : mLocalPosition;
+
+    bool tIsManual = glm::length(tMovement) > 0.0f;
+
+    if (tIsManual)
+    {
+        mAutoWalk->stop();
+    }
+    else if (mAutoWalk->isActive())
+    {
+        glm::vec2 tNext = mAutoWalk->advance(*mMap, glm::vec2(tPosition.x, tPosition.z), tSpeed, pDeltaTime);
+        tPosition.x = tNext.x;
+        tPosition.z = tNext.y;
+    }
+
+    if (tIsManual)
     {
         tMovement = glm::normalize(tMovement) * tSpeed;
-        mCamera->moveTarget(tMovement);
+        tPosition = slideLocal(tPosition, glm::vec2(tMovement.x, tMovement.z));
     }
 
-    mStateSendAccumulator += pDeltaTime;
+    tPosition.y = mMap->getHeightAt(tPosition.x, tPosition.z) + WorldView::kPlayerBoxHalfExtents.y;
 
-    if (mStateSendAccumulator >= kStateSendInterval)
-    {
-        mStateSendAccumulator = 0.0;
-        sendLocalPlayerState();
-    }
-
-    for (auto& [tPlayerId, tVisual] : mRemotePlayers)
-    {
-        tVisual.interpolationElapsed += pDeltaTime;
-    }
-
-    rebuildRemotePlayerBoxes();
-
-    if (mLocalCharacterBox)
-    {
-        std::vector<glm::vec3> tPositions{ mCamera->getTargetPosition() };
-        std::vector<glm::vec3> tSizes{ glm::vec3(1.0f, 2.0f, 1.0f) };
-        std::vector<glm::vec3> tColors{ kLocalCharacterColor };
-        mLocalCharacterBox->setBoxes(tPositions, tSizes, tColors);
-    }
+    mLocalPosition = tPosition;
 }
 
 void WorldScene::render()
@@ -332,73 +613,150 @@ void WorldScene::render()
     mViewportWidth = tWidth;
     mViewportHeight = tHeight;
 
+    double tAlpha = mEngine.getInterpolationAlpha();
+    double tExtraSeconds = tAlpha * mEngine.getFixedDeltaTime();
+
+    glm::vec3 tLocalRenderPosition = glm::mix(mPreviousLocalPosition, mLocalPosition, static_cast<float>(tAlpha));
+
+    mCamera->setTargetPosition(tLocalRenderPosition + mCameraBob.getOffset(mCamera->getRightVector(), static_cast<float>(tAlpha)));
     mCamera->updateProjection(tWidth, tHeight);
     mCamera->update();
 
+    constexpr float kEyeClearance = 1.0f;
+    const glm::vec3& tEye = mCamera->getPosition();
+    mCamera->setMinimumEyeHeight(mMap->getHeightAt(tEye.x, tEye.z) + kEyeClearance);
+    mCamera->update();
+
+    if (mLocalCharacterBox)
+    {
+        std::vector<glm::vec3> tPositions;
+        std::vector<glm::vec3> tSizes;
+        std::vector<glm::vec3> tColors;
+
+        if (auto tEnd = mAutoWalk->getDestination())
+        {
+            tPositions.emplace_back(tEnd->x, mMap->getHeightAt(tEnd->x, tEnd->y) + kDestinationMarkerSize.y * 0.5f, tEnd->y);
+            tSizes.push_back(kDestinationMarkerSize);
+            tColors.push_back(kDestinationMarkerColor);
+        }
+
+        for (const auto& [tId, tEntity] : mEntities->getAll())
+        {
+            if (tEntity.type != EntityType::eGroundItem)
+            {
+                continue;
+            }
+
+            glm::vec3 tBase = WorldEntities::getPosition(tEntity, tExtraSeconds);
+
+            if (tEntity.gold > 0)
+            {
+                tPositions.push_back(tBase + glm::vec3(0.0f, 0.06f, 0.0f));
+                tSizes.emplace_back(0.5f, 0.12f, 0.5f);
+                tColors.emplace_back(0.85f, 0.65f, 0.1f);
+                tPositions.push_back(tBase + glm::vec3(0.0f, 0.18f, 0.0f));
+                tSizes.emplace_back(0.3f, 0.12f, 0.3f);
+                tColors.emplace_back(1.0f, 0.82f, 0.2f);
+            }
+            else if (!mItemAppearance->find({ tEntity.itemTemplateId, 0 }))
+            {
+                tPositions.push_back(tBase + glm::vec3(0.0f, 0.15f, 0.0f));
+                tSizes.emplace_back(0.3f, 0.3f, 0.3f);
+                tColors.emplace_back(0.45f, 0.75f, 1.0f);
+            }
+        }
+
+        mLocalCharacterBox->setBoxes(tPositions, tSizes, tColors);
+    }
+
     glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     ShaderManager& tShaderManager = mEngine.getShaderManager();
-    ShaderProgram* tBoxShader = tShaderManager.getProgram("box_instanced");
+
+    auto tSetWorldUniforms = [&](ShaderProgram* pShader)
+    {
+        pShader->setMat4("uViewProjection", mCamera->getViewProjectionMatrix());
+        pShader->setVec3("uCameraPosition", mCamera->getPosition());
+        pShader->setVec3("uFogColor", kSkyColor);
+        pShader->setFloat("uFogStart", kFogStart);
+        pShader->setFloat("uFogEnd", WorldView::kViewDistance);
+        pShader->setVec3("uLightDirection", WorldView::kLightDirection);
+    };
+
+    ShaderProgram* tTerrainShader = tShaderManager.getProgram("world_terrain");
+
+    if (tTerrainShader && mTerrain)
+    {
+        tTerrainShader->bind();
+        tSetWorldUniforms(tTerrainShader);
+
+        mTerrain->getVertexArrayObject().bind();
+        mTerrain->drawChunksNear(mCamera->getPosition(), WorldView::kViewDistance);
+
+        tTerrainShader->unbind();
+    }
+
+    ShaderProgram* tModelShader = tShaderManager.getProgram("world_model");
+
+    if (tModelShader)
+    {
+        tModelShader->bind();
+        tSetWorldUniforms(tModelShader);
+        tModelShader->setInt("uTexture", 0);
+
+        for (const std::shared_ptr<Model>& tModel : mMapModels)
+        {
+            tModel->draw(0);
+        }
+
+        tModelShader->unbind();
+    }
+
+    ShaderProgram* tSkinnedShader = tShaderManager.getProgram("world_skinned");
+
+    if (tSkinnedShader)
+    {
+        tSkinnedShader->bind();
+        tSetWorldUniforms(tSkinnedShader);
+        tSkinnedShader->setInt("uTexture", 0);
+
+        mEntityRenderer->draw(*tSkinnedShader, *mEntities, tExtraSeconds);
+
+        tSkinnedShader->unbind();
+    }
+
+    ShaderProgram* tBoxShader = tShaderManager.getProgram("world_box");
 
     if (tBoxShader)
     {
         tBoxShader->bind();
+        tSetWorldUniforms(tBoxShader);
 
-        tBoxShader->setMat4("uViewProjection", mCamera->getViewProjectionMatrix());
-
-        mBoxContainer->getVertexArrayObject().bind();
-
-        glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, mBoxContainer->getInstanceCount());
-
-        if (mRemotePlayerBoxes && mRemotePlayerBoxes->getInstanceCount() > 0)
+        for (BoxContainer* tBoxes : { mBoxContainer.get(), mLocalCharacterBox.get() })
         {
-            mRemotePlayerBoxes->getVertexArrayObject().bind();
-            glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, mRemotePlayerBoxes->getInstanceCount());
-        }
-
-        if (mLocalCharacterBox && mLocalCharacterBox->getInstanceCount() > 0)
-        {
-            mLocalCharacterBox->getVertexArrayObject().bind();
-            glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, mLocalCharacterBox->getInstanceCount());
+            if (tBoxes && tBoxes->getInstanceCount() > 0)
+            {
+                tBoxes->getVertexArrayObject().bind();
+                glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, tBoxes->getInstanceCount());
+            }
         }
 
         tBoxShader->unbind();
     }
 
-    ShaderProgram* tTerrainShader = tShaderManager.getProgram("terrain");
-    if (tTerrainShader && mTerrain)
+    for (const auto& [tId, tEntity] : mEntities->getAll())
     {
-        tTerrainShader->bind();
-        // tTerrainShader->setVec3("uCameraPos", mCamera->getPosition());
-        tTerrainShader->setMat4("uViewProjection", mCamera->getViewProjectionMatrix());
+        bool tShowsHealth = tEntity.type != EntityType::eNpc && tEntity.type != EntityType::eGroundItem && tId != WorldEntities::kLocalId && !tEntity.isDead
+                         && (tEntity.type == EntityType::eMonster || tEntity.healthPercent < 100);
 
-        // Cheap per-map visual distinction without a real content pipeline -
-        // Town renders at natural color, Forest gets a strong warm/autumn
-        // shift (pushes the green/blue ground gradient toward orange-brown)
-        // so the two are unmistakable at a glance, not just subtly different.
-        glm::vec3 tTint = (mCurrentMapId == 0) ? glm::vec3(1.0f, 1.0f, 1.0f) : glm::vec3(1.6f, 0.55f, 0.3f);
-        tTerrainShader->setVec3("uTint", tTint);
+        std::string tTagName = tEntity.level > 0 ? "Lv " + std::to_string(tEntity.level) + " " + tEntity.name : tEntity.name;
 
-        mTerrain->getVertexArrayObject().bind();
-        glDrawElements(GL_TRIANGLES, mTerrain->getIndexCount(), GL_UNSIGNED_INT, 0);
-        tTerrainShader->unbind();
+        renderNameplate(WorldEntities::getPosition(tEntity, tExtraSeconds) + tEntity.getHeadTopOffset(), tTagName, tEntity.speechText,
+                        getNameColor(tEntity), tShowsHealth ? static_cast<int>(tEntity.healthPercent) : -1);
     }
 
-    // Nameplates - drawn last, as a screen-space overlay on top of the 3D
-    // scene (ImGui's own render happens later in GuiLayer::end(), so
-    // anything queued into its draw list here still shows up this frame).
-    renderNameplate(mCamera->getTargetPosition(), mLocalUsername);
+    renderDamageNumbers(tExtraSeconds);
 
-    for (const auto& [tPlayerId, tVisual] : mRemotePlayers)
-    {
-        renderNameplate(getInterpolatedPosition(tVisual), tVisual.username);
-    }
-
-    // Right-click target context menu - a plain ImGui popup rather than a
-    // Panel, since it's transient/positional (opens at the cursor, closes
-    // on any outside click) rather than a persistent window. Extending to
-    // monster targets later just means branching on target.kind here.
     if (mContextMenuOpenRequested)
     {
         ImGui::SetNextWindowPos(toGlobalImGuiPos(ImVec2(mContextMenuScreenPos.x, mContextMenuScreenPos.y)));
@@ -415,12 +773,12 @@ void WorldScene::render()
 
             if (ImGui::MenuItem("Chat"))
             {
-                openChatWith(mContextMenuTarget->id, mContextMenuTarget->name);
+                mHud->openWhisper(mContextMenuTarget->id, mContextMenuTarget->name);
                 ImGui::CloseCurrentPopup();
             }
 
             ImGui::BeginDisabled();
-            ImGui::MenuItem("Trade"); // placeholder - wired up later
+            ImGui::MenuItem("Trade");
             ImGui::EndDisabled();
         }
 
@@ -428,12 +786,8 @@ void WorldScene::render()
     }
     else
     {
-        // Popup isn't open anymore (dismissed, or just closed above) -
-        // release the target it referred to.
         mContextMenuTarget.reset();
     }
-
-    renderUnreadChatIndicators();
 }
 
 bool WorldScene::handleEvent(SDL_Event* pEvent)
@@ -442,11 +796,6 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
     {
         bool tIsPressed = (pEvent->type == SDL_EVENT_KEY_DOWN);
 
-        // While an ImGui text field (the chat window's input box) has
-        // keyboard focus, WASD should type into it instead of moving the
-        // character. A key-UP still goes through even then, so releasing a
-        // key right after clicking into chat doesn't leave that direction
-        // stuck "held".
         if (tIsPressed && ImGui::GetIO().WantCaptureKeyboard)
         {
             return false;
@@ -454,37 +803,38 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 
         switch (pEvent->key.key)
         {
-            case SDLK_W:
-            {
-                mIsMovingForward = tIsPressed;
+            case SDLK_W: mIsMovingForward = tIsPressed;  return true;
+            case SDLK_S: mIsMovingBackward = tIsPressed; return true;
+            case SDLK_A: mIsMovingLeft = tIsPressed;     return true;
+            case SDLK_D: mIsMovingRight = tIsPressed;    return true;
+            case SDLK_SPACE: mIsAttackHeld = tIsPressed; return true;
+            case SDLK_F10:
+                if (tIsPressed && mAttachmentPanel)
+                {
+                    mAttachmentPanel->isOpen = !mAttachmentPanel->isOpen;
+                }
                 return true;
-            }
-            case SDLK_S:
-            {
-                mIsMovingBackward = tIsPressed;
-                return true;
-            }
-            case SDLK_A:
-            {
-                mIsMovingLeft = tIsPressed;
-                return true;
-            }
-            case SDLK_D:
-            {
-                mIsMovingRight = tIsPressed;
-                return true;
-            }
+            default: break;
         }
+
+        return tIsPressed && mHud->handleKeyDown(pEvent->key);
+    }
+
+    if (pEvent->type == SDL_EVENT_WINDOW_FOCUS_LOST)
+    {
+        mIsAttackHeld = false;
+        endOrbit();
+        return false;
     }
 
     if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_RIGHT)
     {
-        // Let a hovered ImGui window (chat, context menu) have the click -
-        // don't also start orbiting or treat it as a world target-pick.
         if (ImGui::GetIO().WantCaptureMouse)
         {
             return false;
         }
+
+        mHud->closeWorldChat();
 
         mIsOrbiting = true;
         mOrbitDragDistance = 0.0f;
@@ -493,18 +843,44 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
         return true;
     }
 
+    if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_LEFT && mHud->isSystemMenuOpen())
+    {
+        return true;
+    }
+
+    if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_LEFT)
+    {
+        if (!ImGui::GetIO().WantCaptureMouse)
+        {
+            mHud->closeWorldChat();
+
+            glm::vec2 tPixel(pEvent->button.x, pEvent->button.y);
+
+            if (auto tTarget = mPicker->pickTarget(tPixel))
+            {
+                mAutoWalk->follow(tTarget->id);
+                mPendingPickupId = tTarget->type == EntityType::eGroundItem ? tTarget->id : 0;
+                return true;
+            }
+
+            mPendingPickupId = 0;
+
+            if (auto tGround = mPicker->pickGround(*mMap, tPixel))
+            {
+                mAutoWalk->walkTo(*mMap, glm::vec2(mLocalPosition.x, mLocalPosition.z), glm::vec2(tGround->x, tGround->z));
+                return true;
+            }
+        }
+    }
+
     if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_UP && pEvent->button.button == SDL_BUTTON_RIGHT)
     {
         bool tWasOrbiting = mIsOrbiting;
-        mIsOrbiting = false;
-        SDL_SetWindowRelativeMouseMode(mEngine.getWindow(), false);
+        endOrbit();
 
-        // A right-click that barely moved is a target-pick, not a camera
-        // orbit - open the context menu next frame's render() (ImGui popups
-        // can only be opened while the ImGui frame is active).
-        if (tWasOrbiting && mOrbitDragDistance < kClickDragThresholdPixels)
+        if (tWasOrbiting && mOrbitDragDistance < kClickDragThresholdPixels && !mHud->isSystemMenuOpen())
         {
-            if (auto tTarget = pickTargetAt(mRightClickDownPos))
+            if (auto tTarget = mPicker->pickTarget(mRightClickDownPos); tTarget && tTarget->type == EntityType::ePlayer)
             {
                 mContextMenuTarget = *tTarget;
                 mContextMenuScreenPos = mRightClickDownPos;
@@ -532,8 +908,6 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 
     if (pEvent->type == SDL_EVENT_MOUSE_WHEEL)
     {
-        // Let scrolling a chat window's history (or any other ImGui panel)
-        // scroll it instead of also zooming the world camera underneath.
         if (ImGui::GetIO().WantCaptureMouse)
         {
             return false;
@@ -550,147 +924,153 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
     return false;
 }
 
-void WorldScene::onPlayerJoined(const WorldController::PlayerSnapshot& pSnapshot)
+void WorldScene::onSessionResumed()
 {
-    glm::vec3 tPosition(pSnapshot.x, pSnapshot.y, pSnapshot.z);
+    mAutoWalk->stop();
 
-    // Appears immediately at the right spot - nothing to glide from yet.
-    RemotePlayerVisual tVisual;
-    tVisual.previousPosition = tPosition;
-    tVisual.targetPosition = tPosition;
-    tVisual.yaw = pSnapshot.yaw;
-    tVisual.interpolationElapsed = kInterpolationDuration;
-    tVisual.username = pSnapshot.username;
+    mEntities->clearRemote();
 
-    mRemotePlayers[pSnapshot.playerId] = tVisual;
+    mIsMovingForward = false;
+    mIsMovingBackward = false;
+    mIsMovingLeft = false;
+    mIsMovingRight = false;
+    mIsAttackHeld = false;
+    endOrbit();
+    mContextMenuTarget.reset();
+
+    mHasSentInitialState = false;
 }
 
-void WorldScene::onPlayerStateUpdate(const WorldController::PlayerSnapshot& pSnapshot)
+void WorldScene::onWorldSnapshot(const WorldController::WorldSnapshot& pSnapshot)
 {
-    auto tIterator = mRemotePlayers.find(pSnapshot.playerId);
+    mEntities->applySnapshot(pSnapshot);
 
-    if (tIterator == mRemotePlayers.end())
+    if (pSnapshot.selfVitals)
     {
-        return; // no join seen for this id yet - ignore a stray update
+        mLocalKingdom = pSnapshot.selfVitals->kingdom;
+        mIsLocalDead = pSnapshot.selfVitals->health <= 0;
+        mHud->onSelfVitals(*pSnapshot.selfVitals);
     }
 
-    RemotePlayerVisual& tVisual = tIterator->second;
+    if (pSnapshot.selfCorrection && mCamera)
+    {
+        const auto& tCorrection = *pSnapshot.selfCorrection;
 
-    // Start the next glide from wherever the box currently is on screen
-    // (not the old target) so back-to-back updates don't cause a jump.
-    tVisual.previousPosition = getInterpolatedPosition(tVisual);
-    tVisual.targetPosition = glm::vec3(pSnapshot.x, pSnapshot.y, pSnapshot.z);
-    tVisual.yaw = pSnapshot.yaw;
-    tVisual.interpolationElapsed = 0.0;
-}
+        teleportLocalPosition(glm::vec3(tCorrection.x, tCorrection.y, tCorrection.z));
 
-void WorldScene::onPlayerLeft(uint64_t pPlayerId)
-{
-    mRemotePlayers.erase(pPlayerId);
+        mLastSentPosition = mLocalPosition;
+
+        mAutoWalk->onRepositioned(*mMap, glm::vec2(mLocalPosition.x, mLocalPosition.z));
+
+        mHasSentInitialState = true;
+    }
 }
 
 void WorldScene::onMapChanged(const WorldController::MapSnapshot& pSnapshot)
 {
-    // A portal fired server-side - none of the old map's players belong in
-    // this view any more, and the server has already fully committed the
-    // move, so just reflect what it told us.
-    mRemotePlayers.clear();
+    mEntities->clearRemote();
+    mHud->clearWorldChat();
 
     if (mCamera)
     {
-        mCamera->setTargetPosition(glm::vec3(pSnapshot.x, pSnapshot.y, pSnapshot.z));
+        teleportLocalPosition(glm::vec3(pSnapshot.x, pSnapshot.y, pSnapshot.z));
         mCamera->setYaw(glm::degrees(pSnapshot.yaw));
     }
 
-    mCurrentMapId = pSnapshot.mapId;
     mHasSentInitialState = false;
 
-    applyMapVisuals();
-}
+    mAutoWalk->stop();
 
-glm::vec3 WorldScene::getInterpolatedPosition(const RemotePlayerVisual& pVisual) const
-{
-    float tProgress = static_cast<float>(std::min(pVisual.interpolationElapsed / kInterpolationDuration, 1.0));
-    return glm::mix(pVisual.previousPosition, pVisual.targetPosition, tProgress);
-}
-
-void WorldScene::rebuildRemotePlayerBoxes()
-{
-    if (!mRemotePlayerBoxes)
+    if (!mMap || mMap->getId() != pSnapshot.mapId)
     {
-        return;
+        loadMap(pSnapshot.mapId);
     }
+}
+
+void WorldScene::teleportLocalPosition(const glm::vec3& pPosition)
+{
+    mLocalPosition = pPosition;
+    mPreviousLocalPosition = pPosition;
+
+    if (mEntities)
+    {
+        mEntities->teleportLocal(pPosition);
+    }
+}
+
+void WorldScene::loadMap(uint32_t pMapId)
+{
+    const MapCatalog& tCatalog = mEngine.getMapCatalog();
+
+    mMap = tCatalog.getMap(pMapId);
+
+    if (!mMap)
+    {
+        SDL_Log("WorldScene: unknown map %u, client data may be out of date", pMapId);
+        mMap = tCatalog.getStartMap(0);
+    }
+
+    mTerrain = std::make_unique<Terrain>(*mMap);
+    mTerrain->initialize();
 
     std::vector<glm::vec3> tPositions;
     std::vector<glm::vec3> tSizes;
     std::vector<glm::vec3> tColors;
 
-    tPositions.reserve(mRemotePlayers.size());
-    tSizes.reserve(mRemotePlayers.size());
-    tColors.reserve(mRemotePlayers.size());
+    tPositions.reserve(mMap->getObjects().size() + 1);
+    tSizes.reserve(tPositions.capacity());
+    tColors.reserve(tPositions.capacity());
 
-    for (const auto& [tPlayerId, tVisual] : mRemotePlayers)
+    std::unordered_map<std::shared_ptr<Model>, std::pair<std::vector<glm::vec3>, std::vector<glm::vec3>>> tModelInstances;
+    AssetManager& tAssets = mEngine.getAssetManager();
+
+    for (const MapObject& tObject : mMap->getObjects())
     {
-        tPositions.push_back(getInterpolatedPosition(tVisual));
-        tSizes.emplace_back(1.0f, 2.0f, 1.0f);
-        tColors.push_back(getColorForPlayerId(tPlayerId));
+        if (std::shared_ptr<Model> tModel = tObject.model.empty() ? nullptr : tAssets.getModel("models/" + tObject.model + ".glb"))
+        {
+            auto& [tOffsets, tParams] = tModelInstances[tModel];
+            float tGround = mMap->getHeightAt(tObject.x, tObject.z);
+            tOffsets.emplace_back(tObject.x, tGround + tObject.elevation, tObject.z);
+            tParams.emplace_back(tObject.yaw, tObject.scale, tObject.stretch);
+            continue;
+        }
+
+        if (tObject.isHidden)
+        {
+            continue;
+        }
+
+        tPositions.push_back(WorldPicker::getObjectCenter(*mMap, tObject));
+        tSizes.emplace_back(tObject.sizeX, tObject.sizeY, tObject.sizeZ);
+        tColors.emplace_back(tObject.color[0], tObject.color[1], tObject.color[2]);
     }
 
-    mRemotePlayerBoxes->setBoxes(tPositions, tSizes, tColors);
-}
+    constexpr float kWaterThickness = 0.1f;
+    const float tWorldSize = mMap->getWorldSize();
 
-void WorldScene::applyMapVisuals()
-{
-    if (!mBoxContainer)
-    {
-        return;
-    }
-
-    const glm::vec3 tTownDecorColor(1.0f, 0.5f, 0.2f);
-    const glm::vec3 tForestDecorColor(0.35f, 0.22f, 0.1f);
-    const glm::vec3 tPortalColor(1.0f, 0.0f, 0.0f);
-
-    std::vector<glm::vec3> tPositions;
-    std::vector<glm::vec3> tSizes;
-    std::vector<glm::vec3> tColors;
-
-    if (mCurrentMapId == 0) // Town
-    {
-        tPositions.emplace_back(0.0f, 0.0f, 0.0f);
-        tSizes.emplace_back(1.0f, 1.0f, 1.0f);
-        tColors.push_back(tTownDecorColor);
-
-        tPositions.emplace_back(5.0f, 2.0f, -5.0f);
-        tSizes.emplace_back(2.0f, 2.0f, 2.0f);
-        tColors.push_back(tTownDecorColor);
-
-        tPositions.emplace_back(-5.0f, -2.0f, 0.0f);
-        tSizes.emplace_back(1.0f, 3.0f, 1.0f);
-        tColors.push_back(tTownDecorColor);
-    }
-    else // Forest
-    {
-        tPositions.emplace_back(-6.0f, 1.0f, 3.0f);
-        tSizes.emplace_back(1.0f, 4.0f, 1.0f);
-        tColors.push_back(tForestDecorColor);
-
-        tPositions.emplace_back(-3.0f, 0.5f, -4.0f);
-        tSizes.emplace_back(1.5f, 1.0f, 1.5f);
-        tColors.push_back(tForestDecorColor);
-
-        tPositions.emplace_back(4.0f, 1.5f, 6.0f);
-        tSizes.emplace_back(1.0f, 3.0f, 1.0f);
-        tColors.push_back(tForestDecorColor);
-    }
-
-    // Portal marker - both maps' outgoing portal sits at the same local
-    // coordinate (matches MapCatalog on the server), sized to stand out and
-    // colored red to be easy to spot and walk into.
-    tPositions.emplace_back(15.0f, 1.0f, 0.0f);
-    tSizes.emplace_back(2.0f, 4.0f, 2.0f);
-    tColors.push_back(tPortalColor);
+    tPositions.emplace_back(0.0f, mMap->getWaterLevel() - kWaterThickness * 0.5f, 0.0f);
+    tSizes.emplace_back(tWorldSize, kWaterThickness, tWorldSize);
+    tColors.push_back(kWaterColor);
 
     mBoxContainer->setBoxes(tPositions, tSizes, tColors);
+
+    mMapModels.clear();
+
+    for (const auto& [tModel, tInstances] : tModelInstances)
+    {
+        tModel->setInstances(tInstances.first, tInstances.second);
+        mMapModels.push_back(tModel);
+    }
+
+    constexpr int kMapImageSize = 1024;
+
+    std::string tImageName = "map-" + std::to_string(mMap->getId());
+    MapImage tImage = MapImageFactory::create(*mMap, kMapImageSize);
+    mEngine.getRmlUiLayer().registerGeneratedImage(tImageName, tImage.size, tImage.size, std::move(tImage.rgba));
+
+    mHud->setMap(tImageName, mMap->getName(), mMap->getWorldSize());
+
+    SDL_Log("WorldScene: map %u - %s", mMap->getId(), mMap->getName().c_str());
 }
 
 void WorldScene::sendLocalPlayerState()
@@ -700,7 +1080,7 @@ void WorldScene::sendLocalPlayerState()
         return;
     }
 
-    const glm::vec3& tPosition = mCamera->getTargetPosition();
+    const glm::vec3& tPosition = mLocalPosition;
     const glm::vec3& tFront = mCamera->getFrontVector();
     float tYaw = std::atan2(tFront.z, tFront.x);
 
@@ -708,7 +1088,7 @@ void WorldScene::sendLocalPlayerState()
     {
         glm::vec3 tDelta = tPosition - mLastSentPosition;
         float tPositionDeltaSq = glm::dot(tDelta, tDelta);
-        float tYawDelta = std::fabs(tYaw - mLastSentYaw);
+        float tYawDelta = std::fabs(std::remainder(tYaw - mLastSentYaw, glm::two_pi<float>()));
 
         if (tPositionDeltaSq < kMinPositionDeltaSq && tYawDelta < kMinYawDelta)
         {
@@ -723,40 +1103,27 @@ void WorldScene::sendLocalPlayerState()
     mHasSentInitialState = true;
 }
 
-void WorldScene::renderNameplate(const glm::vec3& pWorldPosition, const std::string& pName)
+std::optional<ImVec2> WorldScene::projectToScreen(const glm::vec3& pWorldPosition) const
 {
-    if (pName.empty() || !mCamera)
+    if (!mCamera)
     {
-        return;
+        return std::nullopt;
     }
 
-    // Project the character's own position (not a world-space-raised head
-    // point) - raising the point in world space before projecting makes the
-    // apparent screen-space offset balloon with perspective/distance, which
-    // is what pushed the text far above the character. Instead project the
-    // base position and add a small, constant offset in screen pixels.
     glm::vec4 tClip = mCamera->getViewProjectionMatrix() * glm::vec4(pWorldPosition, 1.0f);
 
     if (tClip.w <= 0.01f)
     {
-        return; // behind (or right at) the camera
+        return std::nullopt;
     }
 
     glm::vec3 tNdc = glm::vec3(tClip) / tClip.w;
 
     if (tNdc.x < -1.2f || tNdc.x > 1.2f || tNdc.y < -1.2f || tNdc.y > 1.2f)
     {
-        return; // well outside the viewport
+        return std::nullopt;
     }
 
-    // Map NDC into the SAME physical-pixel space mCamera's projection aspect
-    // ratio was built from (mViewportWidth/Height, refreshed in render()),
-    // then convert that into ImGui's own coordinate space via
-    // DisplayFramebufferScale. Using ImGui::GetIO().DisplaySize directly
-    // here would silently disagree with the 3D projection whenever the
-    // window's per-monitor DPI scale isn't 1 - on screens where it is, the
-    // two happen to match and nothing looks wrong, which is why this only
-    // showed up on some windows/monitors and not others.
     ImGuiIO& tIo = ImGui::GetIO();
     ImVec2 tFramebufferScale = tIo.DisplayFramebufferScale;
     if (tFramebufferScale.x <= 0.0f) tFramebufferScale.x = 1.0f;
@@ -765,252 +1132,137 @@ void WorldScene::renderNameplate(const glm::vec3& pWorldPosition, const std::str
     float tPhysicalX = (tNdc.x * 0.5f + 0.5f) * static_cast<float>(mViewportWidth);
     float tPhysicalY = (1.0f - (tNdc.y * 0.5f + 0.5f)) * static_cast<float>(mViewportHeight);
 
-    ImVec2 tScreenPos(
-        tPhysicalX / tFramebufferScale.x,
-        tPhysicalY / tFramebufferScale.y
-    );
+    return ImVec2(tPhysicalX / tFramebufferScale.x, tPhysicalY / tFramebufferScale.y);
+}
 
-    ImVec2 tTextSize = ImGui::CalcTextSize(pName.c_str());
-    ImVec2 tCentered(tScreenPos.x - tTextSize.x * 0.5f, tScreenPos.y - kNameplatePixelOffset - tTextSize.y);
+ImU32 WorldScene::getNameColor(const WorldEntity& pEntity) const
+{
+    if (pEntity.isDead)
+    {
+        return IM_COL32(150, 150, 150, 255);
+    }
 
-    // GuiLayer enables ImGuiConfigFlags_ViewportsEnable, which puts every
-    // ImGui draw-list coordinate (including GetBackgroundDrawList()'s) in
-    // GLOBAL desktop space rather than window-local space - see
-    // toGlobalImGuiPos() for why.
-    tCentered = toGlobalImGuiPos(tCentered);
+    switch (pEntity.type)
+    {
+        case EntityType::eNpc:     return IM_COL32(242, 184, 82, 255);
+        case EntityType::eMonster: return IM_COL32(255, 140, 110, 255);
+        case EntityType::eGroundItem: return IM_COL32(255, 224, 120, 255);
+        default: break;
+    }
 
-    // The BACKGROUND draw list (not foreground) - it's composited before any
-    // ImGui window, so windows (the chat panel, the context menu, ...) draw
-    // over it instead of the nameplate text sitting on top of them. It still
-    // renders over the raw OpenGL 3D scene, since that's drawn earlier in
-    // the frame, outside ImGui entirely - exactly the layering we want:
-    // world < nameplates < UI windows.
+    if (pEntity.id != WorldEntities::kLocalId && mLocalKingdom != 0 && pEntity.kingdom != 0 && pEntity.kingdom != mLocalKingdom)
+    {
+        return IM_COL32(255, 102, 102, 255);
+    }
+
+    return IM_COL32(255, 255, 255, 255);
+}
+
+void WorldScene::renderNameplate(const glm::vec3& pWorldPosition, const std::string& pName, const std::string& pSpeechText,
+                                 ImU32 pNameColor, int pHealthPercent)
+{
+    if (pName.empty())
+    {
+        return;
+    }
+
+    std::optional<ImVec2> tScreenPos = projectToScreen(pWorldPosition);
+
+    if (!tScreenPos)
+    {
+        return;
+    }
+
     ImDrawList* tDrawList = ImGui::GetBackgroundDrawList(ImGui::GetMainViewport());
 
-    // A small drop shadow keeps the name legible over any background.
+    ImVec2 tTextSize = ImGui::CalcTextSize(pName.c_str());
+    ImVec2 tCentered = toGlobalImGuiPos(ImVec2(tScreenPos->x - tTextSize.x * 0.5f, tScreenPos->y - kNameplatePixelOffset - tTextSize.y));
+
     tDrawList->AddText(ImVec2(tCentered.x + 1.0f, tCentered.y + 1.0f), IM_COL32(0, 0, 0, 200), pName.c_str());
-    tDrawList->AddText(tCentered, IM_COL32(255, 255, 255, 255), pName.c_str());
+    tDrawList->AddText(tCentered, pNameColor, pName.c_str());
+
+    if (pHealthPercent >= 0)
+    {
+        ImVec2 tBarMin = toGlobalImGuiPos(ImVec2(tScreenPos->x - kHealthBarWidth * 0.5f, tScreenPos->y - kNameplatePixelOffset + 2.0f));
+        ImVec2 tBarMax(tBarMin.x + kHealthBarWidth, tBarMin.y + kHealthBarHeight);
+        float tFill = kHealthBarWidth * static_cast<float>(std::clamp(pHealthPercent, 0, 100)) / 100.0f;
+
+        tDrawList->AddRectFilled(tBarMin, tBarMax, IM_COL32(26, 26, 32, 220));
+        tDrawList->AddRectFilled(tBarMin, ImVec2(tBarMin.x + tFill, tBarMax.y), IM_COL32(198, 62, 62, 255));
+        tDrawList->AddRect(tBarMin, tBarMax, IM_COL32(64, 64, 76, 255));
+    }
+
+    if (!pSpeechText.empty())
+    {
+        float tSpeechOffset = pHealthPercent >= 0 ? kHealthBarHeight + 4.0f : 0.0f;
+        ImVec2 tSpeechTextSize = ImGui::CalcTextSize(pSpeechText.c_str());
+        ImVec2 tSpeechPos = toGlobalImGuiPos(ImVec2(tScreenPos->x - tSpeechTextSize.x * 0.5f,
+                                                    tScreenPos->y - kNameplatePixelOffset + kSpeechBubbleLineGap + tSpeechOffset));
+
+        tDrawList->AddText(ImVec2(tSpeechPos.x + 1.0f, tSpeechPos.y + 1.0f), IM_COL32(0, 0, 0, 200), pSpeechText.c_str());
+        tDrawList->AddText(tSpeechPos, IM_COL32(255, 255, 255, 255), pSpeechText.c_str());
+    }
+}
+
+void WorldScene::renderDamageNumbers(double pExtraSeconds)
+{
+    ImDrawList* tDrawList = ImGui::GetBackgroundDrawList(ImGui::GetMainViewport());
+    for (const DamageNumber& tNumber : mDamageNumbers.getAll())
+    {
+        auto tEntity = mEntities->getAll().find(tNumber.entityId);
+
+        if (tEntity == mEntities->getAll().end())
+        {
+            continue;
+        }
+
+        float tProgress = tNumber.age / DamageNumbers::kLifetimeSeconds;
+        glm::vec3 tPosition = WorldEntities::getPosition(tEntity->second, pExtraSeconds) + tEntity->second.getHeadTopOffset()
+                            + glm::vec3(0.0f, DamageNumbers::kRiseUnits * tProgress, 0.0f);
+
+        std::optional<ImVec2> tScreenPos = projectToScreen(tPosition);
+
+        if (!tScreenPos)
+        {
+            continue;
+        }
+
+        int tAlpha = static_cast<int>(255.0f * (1.0f - tProgress * tProgress));
+        ImU32 tColor = tNumber.isAgainstLocal ? IM_COL32(255, 102, 102, tAlpha)
+                     : tNumber.isByLocal ? IM_COL32(255, 255, 255, tAlpha)
+                     : IM_COL32(200, 200, 210, tAlpha);
+
+        ImFont* tFont = ImGui::GetFont();
+        float tSize = ImGui::GetFontSize() * kDamageFontScale;
+        ImVec2 tTextSize = tFont->CalcTextSizeA(tSize, FLT_MAX, 0.0f, tNumber.text.c_str());
+        ImVec2 tPos = toGlobalImGuiPos(ImVec2(tScreenPos->x - tTextSize.x * 0.5f, tScreenPos->y - kNameplatePixelOffset - tTextSize.y * 2.0f));
+
+        tDrawList->AddText(tFont, tSize, ImVec2(tPos.x + 1.0f, tPos.y + 1.0f), IM_COL32(0, 0, 0, tAlpha), tNumber.text.c_str());
+        tDrawList->AddText(tFont, tSize, tPos, tColor, tNumber.text.c_str());
+    }
 }
 
 ImVec2 WorldScene::toGlobalImGuiPos(const ImVec2& pWindowLocalPos) const
 {
-    // GuiLayer enables ImGuiConfigFlags_ViewportsEnable, under which every
-    // ImGui coordinate (draw-list positions, SetNextWindowPos, ...) is in
-    // GLOBAL desktop space rather than this window's own local space - the
-    // main viewport's Pos is this window's position on the desktop, (0,0)
-    // only when the window happens to sit at the screen's origin. Skipping
-    // this made screen-space UI (nameplates, and now the context menu) sit
-    // at a fixed spot on the monitor instead of tracking the window.
     ImGuiViewport* tViewport = ImGui::GetMainViewport();
     ImVec2 tOffset = tViewport ? tViewport->Pos : ImVec2(0.0f, 0.0f);
 
     return ImVec2(pWindowLocalPos.x + tOffset.x, pWindowLocalPos.y + tOffset.y);
 }
 
-std::optional<WorldScene::TargetInfo> WorldScene::pickTargetAt(const glm::vec2& pWindowLocalPixel) const
+bool WorldScene::isCapturingMouse() const
 {
-    if (!mCamera)
-    {
-        return std::nullopt;
-    }
-
-    // The mouse coordinates SDL hands us are in the window's logical size
-    // (SDL_GetWindowSize), not its physical framebuffer size
-    // (SDL_GetWindowSizeInPixels, what mViewportWidth/Height track) - the
-    // window was created with SDL_WINDOW_HIGH_PIXEL_DENSITY, so under DPI
-    // scaling those two differ. Normalizing by the logical size here (to
-    // get a 0..1 fraction of the window) sidesteps that entirely: the
-    // fraction is the same regardless of which size is used, as long as
-    // the numerator and denominator are in the same space.
-    int tLogicalWidth = 1;
-    int tLogicalHeight = 1;
-    SDL_GetWindowSize(mEngine.getWindow(), &tLogicalWidth, &tLogicalHeight);
-
-    if (tLogicalWidth <= 0 || tLogicalHeight <= 0)
-    {
-        return std::nullopt;
-    }
-
-    float tNdcX = (pWindowLocalPixel.x / static_cast<float>(tLogicalWidth)) * 2.0f - 1.0f;
-    float tNdcY = 1.0f - (pWindowLocalPixel.y / static_cast<float>(tLogicalHeight)) * 2.0f;
-
-    glm::mat4 tInverseViewProjection = glm::inverse(mCamera->getViewProjectionMatrix());
-
-    glm::vec4 tNearPoint = tInverseViewProjection * glm::vec4(tNdcX, tNdcY, -1.0f, 1.0f);
-    glm::vec4 tFarPoint = tInverseViewProjection * glm::vec4(tNdcX, tNdcY, 1.0f, 1.0f);
-
-    if (std::fabs(tNearPoint.w) < 1e-6f || std::fabs(tFarPoint.w) < 1e-6f)
-    {
-        return std::nullopt;
-    }
-
-    glm::vec3 tRayOrigin = glm::vec3(tNearPoint) / tNearPoint.w;
-    glm::vec3 tRayEnd = glm::vec3(tFarPoint) / tFarPoint.w;
-    glm::vec3 tRayDirection = tRayEnd - tRayOrigin;
-
-    if (glm::length(tRayDirection) < 1e-8f)
-    {
-        return std::nullopt;
-    }
-
-    tRayDirection = glm::normalize(tRayDirection);
-
-    bool tHasHit = false;
-    float tClosestDistance = std::numeric_limits<float>::max();
-    uint64_t tClosestPlayerId = 0;
-
-    for (const auto& [tPlayerId, tVisual] : mRemotePlayers)
-    {
-        glm::vec3 tCenter = getInterpolatedPosition(tVisual);
-        glm::vec3 tBoxMin = tCenter - kPlayerBoxHalfExtents;
-        glm::vec3 tBoxMax = tCenter + kPlayerBoxHalfExtents;
-
-        // Standard slab-based ray-vs-AABB test.
-        float tEntry = 0.0f;
-        float tExit = std::numeric_limits<float>::max();
-        bool tIntersects = true;
-
-        for (int tAxis = 0; tAxis < 3 && tIntersects; ++tAxis)
-        {
-            float tOrigin = tRayOrigin[tAxis];
-            float tDirection = tRayDirection[tAxis];
-            float tMinBound = tBoxMin[tAxis];
-            float tMaxBound = tBoxMax[tAxis];
-
-            if (std::fabs(tDirection) < 1e-8f)
-            {
-                if (tOrigin < tMinBound || tOrigin > tMaxBound)
-                {
-                    tIntersects = false;
-                }
-            }
-            else
-            {
-                float tInvDirection = 1.0f / tDirection;
-                float tSlabEntry = (tMinBound - tOrigin) * tInvDirection;
-                float tSlabExit = (tMaxBound - tOrigin) * tInvDirection;
-
-                if (tSlabEntry > tSlabExit)
-                {
-                    std::swap(tSlabEntry, tSlabExit);
-                }
-
-                tEntry = std::max(tEntry, tSlabEntry);
-                tExit = std::min(tExit, tSlabExit);
-
-                if (tEntry > tExit)
-                {
-                    tIntersects = false;
-                }
-            }
-        }
-
-        if (tIntersects && tEntry < tClosestDistance)
-        {
-            tClosestDistance = tEntry;
-            tClosestPlayerId = tPlayerId;
-            tHasHit = true;
-        }
-    }
-
-    if (!tHasHit)
-    {
-        return std::nullopt;
-    }
-
-    auto tIterator = mRemotePlayers.find(tClosestPlayerId);
-    std::string tName = (tIterator != mRemotePlayers.end() && !tIterator->second.username.empty())
-        ? tIterator->second.username
-        : ("Player" + std::to_string(tClosestPlayerId));
-
-    return TargetInfo{ TargetKind::ePlayer, tClosestPlayerId, tName };
+    return mIsOrbiting;
 }
 
-std::shared_ptr<ChatPanel> WorldScene::ensureChatPanel(uint64_t pTargetId, const std::string& pTargetUsername)
+void WorldScene::endOrbit()
 {
-    auto tIterator = mChatPanels.find(pTargetId);
-
-    if (tIterator != mChatPanels.end())
-    {
-        return tIterator->second;
-    }
-
-    auto tPanel = std::make_shared<ChatPanel>(pTargetId, pTargetUsername);
-    tPanel->isOpen = false; // stays hidden until the player actually opens it
-    mChatPanels[pTargetId] = tPanel;
-    mEngine.getGuiLayer().addPanel(tPanel);
-    return tPanel;
+    mIsOrbiting = false;
+    SDL_SetWindowRelativeMouseMode(mEngine.getWindow(), false);
 }
 
-void WorldScene::openChatWith(uint64_t pTargetId, const std::string& pTargetUsername)
+bool WorldScene::onCloseRequested()
 {
-    auto tPanel = ensureChatPanel(pTargetId, pTargetUsername);
-    tPanel->show();
-    ImGui::SetWindowFocus(tPanel->name.c_str());
-}
-
-void WorldScene::onDirectMessageReceived(uint64_t pFromPlayerId, const std::string& pFromUsername, const std::string& pText)
-{
-    // Deliberately doesn't call openChatWith - an incoming whisper queues
-    // into the (possibly hidden) panel's history and flags it unread
-    // instead of popping the window open on top of whatever the player is
-    // doing; renderUnreadChatIndicators() surfaces it as a blinking entry
-    // instead.
-    auto tPanel = ensureChatPanel(pFromPlayerId, pFromUsername);
-    tPanel->appendIncoming(pFromUsername, pText);
-}
-
-void WorldScene::renderUnreadChatIndicators()
-{
-    std::vector<std::shared_ptr<ChatPanel>> tUnreadPanels;
-
-    for (auto& [tTargetId, tPanel] : mChatPanels)
-    {
-        if (tPanel->hasUnread())
-        {
-            tUnreadPanels.push_back(tPanel);
-        }
-    }
-
-    if (tUnreadPanels.empty())
-    {
-        return;
-    }
-
-    // Simple on/off blink (not a smooth pulse) - alternates the entry's
-    // color on a fixed period so it visibly catches the eye without
-    // affecting whether it can be clicked.
-    bool tBlinkOn = std::fmod(ImGui::GetTime(), 1.0) < 0.5;
-    ImVec4 tBlinkColor = tBlinkOn ? UiTheme::kDanger : UiTheme::kDangerDim;
-
-    ImVec2 tDisplaySize = ImGui::GetIO().DisplaySize;
-    ImVec2 tWindowLocalPos(tDisplaySize.x - 220.0f, 60.0f);
-
-    ImGui::SetNextWindowPos(toGlobalImGuiPos(tWindowLocalPos));
-    ImGui::SetNextWindowBgAlpha(0.0f);
-
-    ImGuiWindowFlags tFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
-
-    if (ImGui::Begin("##UnreadChatIndicators", nullptr, tFlags))
-    {
-        for (const auto& tPanel : tUnreadPanels)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, tBlinkColor);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, tBlinkColor);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, tBlinkColor);
-
-            std::string tLabel = "New message: " + tPanel->getTargetUsername();
-
-            if (ImGui::Button(tLabel.c_str(), ImVec2(200, 0)))
-            {
-                openChatWith(tPanel->getTargetPlayerId(), tPanel->getTargetUsername());
-            }
-
-            ImGui::PopStyleColor(3);
-        }
-    }
-
-    ImGui::End();
+    mHud->handleEscape();
+    return true;
 }

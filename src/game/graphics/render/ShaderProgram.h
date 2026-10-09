@@ -37,6 +37,7 @@ public:
 
     void setBool(const std::string& pUniformName, bool pValue);
     void setInt(const std::string& pUniformName, int pValue);
+    void setFloat(const std::string& pUniformName, float pValue);
     void setVec3(const std::string& pUniformName, const glm::vec3& pValue);
     void setMat4(const std::string& pUniformName, const glm::mat4& pValue);
     void setMat4Array(const std::string& pUniformName, const glm::mat4* pArray, unsigned int pCount);

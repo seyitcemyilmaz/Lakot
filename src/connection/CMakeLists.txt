@@ -14,6 +14,8 @@ set(PROTO_FILES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/auth.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/chat.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/game.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/inventory.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/shop.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/proto/services/world.proto
 )

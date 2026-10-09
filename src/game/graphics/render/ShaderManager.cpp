@@ -88,3 +88,8 @@ ShaderProgram* ShaderManager::getProgram(const std::string& pName) const
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Shader program '%s' not found!", pName.c_str());
     return nullptr;
 }
+
+bool ShaderManager::hasProgram(const std::string& pName) const
+{
+    return mPrograms.find(pName) != mPrograms.end();
+}

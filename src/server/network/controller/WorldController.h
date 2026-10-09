@@ -1,16 +1,19 @@
 #ifndef LAKOT_SERVER_WORLDCONTROLLER_H
 #define LAKOT_SERVER_WORLDCONTROLLER_H
 
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <connection.pb.h>
 
 #include "BaseController.h"
+#include "../../world/Zone.h"
 #include "../../world/WorldRegistry.h"
-#include "../../world/MapCatalog.h"
+#include "MapCatalog.h"
 
 namespace lakot
 {
@@ -18,54 +21,93 @@ namespace lakot
 template <typename MessageType>
 class NetworkSession;
 
+// Routes network traffic to the right Zone and back out to the right session.
+//
+// It owns no world state of its own beyond the bookkeeping needed to do that
+// routing: which zone a character is currently in, and their name. All actual
+// simulation lives inside the zones, each on its own thread (see Zone.h), so
+// this class only ever posts into them and never reads their state.
 class WorldController : public BaseController
 {
 public:
-    WorldController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager);
+    WorldController(NetworkManager& pNetworkManager,
+                    RepositoryManager& pRepositoryManager,
+                    const ItemCatalog& pItemCatalog,
+                    const MapCatalog& pMapCatalog,
+                    const MonsterCatalog& pMonsterCatalog);
 
     void initialize() override;
 
-    // Called from AuthController's successful-login branch, before the
-    // login response goes out - pre-assigns a returning player's map from
-    // their restored state so their first PlayerStateUpdate routes to the
-    // correct registry instead of defaulting to Town.
-    void seedPlayerMap(uint64_t pUserId, services::world::MapId pMapId);
+    // Stops every zone, which flushes all tracked positions to storage on the
+    // way out. Called from Server's destructor before the database pool is
+    // torn down.
+    void shutdown();
 
-    // Also called from AuthController at login, alongside seedPlayerMap -
-    // caches the username so PlayerJoined pushes can include it without an
-    // extra DB round-trip.
-    void setPlayerUsername(uint64_t pUserId, const std::string& pUsername);
+    // Called from CharacterController once a character has been loaded: puts it
+    // into its stored map's zone and caches the name used for nameplates and
+    // whisper lookups.
+    void enterWorld(const CharacterSnapshot& pCharacter,
+                    uint32_t pMapId,
+                    const PlayerState& pState);
 
-    std::string getPlayerUsername(uint64_t pUserId);
+    // See Zone::resumePlayer.
+    void resumeCharacter(uint64_t pCharacterId);
 
-    // Used by ChatController to resolve a whisper's "message_to" username
-    // into an online player's id - nullopt if nobody by that name is
-    // currently logged in.
-    std::optional<uint64_t> findOnlinePlayerIdByUsername(const std::string& pUsername);
+
+    std::string getCharacterName(uint64_t pCharacterId);
+
+    // Resolves a whisper's "message_to" name to an online character id -
+    // nullopt if nobody by that name is currently logged in.
+    std::optional<uint64_t> findOnlineCharacterIdByName(const std::string& pName);
+
+    // Hands pPacket to the sender's zone for delivery to everyone in their
+    // area of interest. Used by ChatController for nearby ("!"-less) world
+    // chat. The zone answers "who is nearby" on its own thread; nothing here
+    // reads that state.
+    void sendNearby(uint64_t pOriginCharacterId, Zone::Packet pPacket);
+
+    // Runs pAction against a character on whichever zone thread owns it - see
+    // Zone::withCharacter. Returning true from pAction makes the zone push an
+    // InventoryUpdate. The single entry point for anything outside the world
+    // layer (InventoryController today, quest scripts later) that needs to
+    // change a character.
+    void withCharacter(uint64_t pCharacterId, std::function<bool(Character&)> pAction);
 
 private:
-    // One registry per map - a player moving between maps is just removed
-    // from one and inserted into another (existing leave/join paths).
-    std::unordered_map<uint32_t, WorldRegistry> mRegistries;
+    // Zones are constructed in initialize(), not the constructor, because
+    // each needs the ItemCatalog and that is only filled once the database is
+    // up - see Server::initialize().
+    std::unordered_map<uint32_t, std::unique_ptr<Zone>> mZones;
 
-    // Guards all three maps below - small, only touched at login/disconnect/
-    // portal time (never per movement update), so sharing one lock is simplest.
+    const ItemCatalog& mItemCatalog;
+    const MapCatalog& mMapCatalog;
+    const MonsterCatalog& mMonsterCatalog;
+
+    const std::string mScriptDirectory{"scripts"};
+
+    // Guards both maps below. Only touched at login/disconnect/portal time,
+    // never per movement update, so one lock is simplest.
     std::mutex mPlayerMetaMutex;
-    std::unordered_map<uint64_t, uint32_t> mPlayerMapAssignment;
-    std::unordered_map<uint64_t, std::string> mPlayerUsernames;
-    std::unordered_map<std::string, uint64_t> mUsernameToUserId;
+    std::unordered_map<uint64_t, uint32_t> mCharacterZone;
+    std::unordered_map<uint64_t, std::string> mCharacterNames;
+    std::unordered_map<std::string, uint64_t> mNameToCharacterId;
 
     void handlePlayerStateUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
-    void handlePlayerDisconnect(uint64_t pUserId);
+    void handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handlePickupItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handlePlayerDisconnect(uint64_t pCharacterId);
 
-    services::world::MapId getOrAssignPlayerMap(uint64_t pUserId);
-    WorldRegistry& getRegistryForMap(services::world::MapId pMapId);
+    Zone* getZone(uint32_t pMapId);
+    std::optional<uint32_t> getCharacterZone(uint64_t pCharacterId);
 
-    void teleportPlayer(uint64_t pUserId, services::world::MapId pFromMapId, const PortalDefinition& pPortal);
+    // The Zone::TransferFunction implementation - moves a character between
+    // two zones and tells their client about the new map.
+    void transferCharacter(const CharacterSnapshot& pCharacter,
+                           uint32_t pTargetMapId,
+                           const PlayerState& pSpawnState);
 
-    void sendPlayerJoined(uint64_t pTargetUserId, uint64_t pPlayerId, const PlayerState& pState);
-    void sendPlayerLeft(uint64_t pTargetUserId, uint64_t pPlayerId);
-    void sendMapChanged(uint64_t pTargetUserId, services::world::MapId pMapId, const PlayerState& pState);
+    void sendToCharacter(uint64_t pCharacterId, Zone::Packet pPacket);
+    void sendMapChanged(uint64_t pCharacterId, uint32_t pMapId, const PlayerState& pState);
 };
 
 }

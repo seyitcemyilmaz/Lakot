@@ -22,6 +22,8 @@ public:
 
     ShaderProgram* getProgram(const std::string& pName) const;
 
+    bool hasProgram(const std::string& pName) const;
+
 private:
     std::unordered_map<std::string, ShaderProgram*> mPrograms;
 };

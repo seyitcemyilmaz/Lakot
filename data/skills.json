@@ -1,0 +1,1338 @@
+{
+ "maxSkillLevel": 20,
+ "classLevelCap": 99,
+ "jobUnlockLevel": 10,
+ "scaling": "damage = coef(L) * attack; heal/shield = base + coef(L) * stat; coef(L) = value.coef + value.perSkillLevel * (L - 1); durations/cc grow by durPerSkillLevel/ccPerSkillLevel per level above 1; magnitudeCap caps buff/debuff magnitudes; tier multipliers (see tiers) apply on top of the Normal level 20 result: value x valueMult, cooldown x cooldownMult, mpCost x mpMult",
+ "skills": [
+  {
+   "id": "alp_kesik_darbe",
+   "name": "Kesik Darbe",
+   "class": "alp",
+   "path": "fixed",
+   "unlockLevel": 1,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 2.5,
+   "angle": 90,
+   "cooldown": 3,
+   "mpCost": 6,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.6,
+    "perSkillLevel": 0.08
+   },
+   "effect": {
+    "cast": "alp_kesik_darbe_cast",
+    "hit": "alp_kesik_darbe_hit"
+   },
+   "bookItemId": 5001
+  },
+  {
+   "id": "alp_demir_durus",
+   "name": "Demir Duruş",
+   "class": "alp",
+   "path": "kalkan",
+   "unlockLevel": 10,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 25,
+   "mpCost": 15,
+   "duration": 8,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.25,
+    "perSkillLevel": 0.01
+   },
+   "effectType": "damageReduction",
+   "magnitudeCap": 0.45,
+   "effect": {
+    "cast": "alp_demir_durus_cast",
+    "hit": "alp_demir_durus_hit"
+   },
+   "bookItemId": 5002
+  },
+  {
+   "id": "alp_kalkan_darbesi",
+   "name": "Kalkan Darbesi",
+   "class": "alp",
+   "path": "kalkan",
+   "unlockLevel": 16,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 2.2,
+   "cooldown": 12,
+   "mpCost": 14,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0.05
+   },
+   "ccType": "stun",
+   "ccSeconds": 1.5,
+   "ccPerSkillLevel": 0.025,
+   "effect": {
+    "cast": "alp_kalkan_darbesi_cast",
+    "hit": "alp_kalkan_darbesi_hit"
+   },
+   "bookItemId": 5003
+  },
+  {
+   "id": "alp_koruyucu",
+   "name": "Koruyucu",
+   "class": "alp",
+   "path": "kalkan",
+   "unlockLevel": 24,
+   "kind": "buff",
+   "targeting": "ally",
+   "range": 10,
+   "cooldown": 30,
+   "mpCost": 22,
+   "duration": 8,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.4,
+    "perSkillLevel": 0.01
+   },
+   "effectType": "redirectAllyDamage",
+   "magnitudeCap": 0.6,
+   "effect": {
+    "cast": "alp_koruyucu_cast",
+    "hit": "alp_koruyucu_hit"
+   },
+   "bookItemId": 5004
+  },
+  {
+   "id": "alp_sarsilmaz",
+   "name": "Sarsılmaz",
+   "class": "alp",
+   "path": "kalkan",
+   "unlockLevel": 34,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 40,
+   "mpCost": 20,
+   "duration": 6,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0
+   },
+   "effectType": "ccImmunity",
+   "durPerSkillLevel": 0.15,
+   "effect": {
+    "cast": "alp_sarsilmaz_cast",
+    "hit": "alp_sarsilmaz_hit"
+   },
+   "bookItemId": 5005
+  },
+  {
+   "id": "alp_kale",
+   "name": "Kale",
+   "class": "alp",
+   "path": "kalkan",
+   "unlockLevel": 46,
+   "kind": "buff",
+   "targeting": "area",
+   "range": 0,
+   "radius": 8,
+   "cooldown": 60,
+   "mpCost": 35,
+   "duration": 12,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.2,
+    "perSkillLevel": 0.005
+   },
+   "areaCenter": "self",
+   "effectType": "defenseAura",
+   "magnitudeCap": 0.3,
+   "effect": {
+    "cast": "alp_kale_cast",
+    "hit": "alp_kale_hit",
+    "area": "alp_kale_area"
+   },
+   "bookItemId": 5006
+  },
+  {
+   "id": "alp_kasirga",
+   "name": "Kasırga",
+   "class": "alp",
+   "path": "ofke",
+   "unlockLevel": 10,
+   "kind": "damage",
+   "targeting": "area",
+   "range": 0,
+   "radius": 3.5,
+   "cooldown": 10,
+   "mpCost": 20,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.4,
+    "perSkillLevel": 0.07
+   },
+   "areaCenter": "self",
+   "effect": {
+    "cast": "alp_kasirga_cast",
+    "hit": "alp_kasirga_hit",
+    "area": "alp_kasirga_area"
+   },
+   "bookItemId": 5007
+  },
+  {
+   "id": "alp_kan_davasi",
+   "name": "Kan Davası",
+   "class": "alp",
+   "path": "ofke",
+   "unlockLevel": 16,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 30,
+   "mpCost": 15,
+   "duration": 10,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.3,
+    "perSkillLevel": 0.015
+   },
+   "effectType": "missingHealthDamage",
+   "note": "bonus damage up to magnitude when health near 0",
+   "magnitudeCap": 0.6,
+   "effect": {
+    "cast": "alp_kan_davasi_cast",
+    "hit": "alp_kan_davasi_hit"
+   },
+   "bookItemId": 5008
+  },
+  {
+   "id": "alp_yarici_darbe",
+   "name": "Yarıcı Darbe",
+   "class": "alp",
+   "path": "ofke",
+   "unlockLevel": 24,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 2.4,
+   "cooldown": 8,
+   "mpCost": 16,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 2.2,
+    "perSkillLevel": 0.1
+   },
+   "armorPenetration": 0.4,
+   "effect": {
+    "cast": "alp_yarici_darbe_cast",
+    "hit": "alp_yarici_darbe_hit"
+   },
+   "bookItemId": 5009
+  },
+  {
+   "id": "alp_kudurma",
+   "name": "Kudurma",
+   "class": "alp",
+   "path": "ofke",
+   "unlockLevel": 34,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 40,
+   "mpCost": 20,
+   "duration": 10,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.3,
+    "perSkillLevel": 0.01
+   },
+   "effectType": "attackSpeed",
+   "magnitudeCap": 0.45,
+   "effect": {
+    "cast": "alp_kudurma_cast",
+    "hit": "alp_kudurma_hit"
+   },
+   "bookItemId": 5010
+  },
+  {
+   "id": "alp_yer_sarsan",
+   "name": "Yer Sarsan",
+   "class": "alp",
+   "path": "ofke",
+   "unlockLevel": 46,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 5,
+   "angle": 100,
+   "cooldown": 14,
+   "mpCost": 24,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.6,
+    "perSkillLevel": 0.08
+   },
+   "slow": 0.4,
+   "slowSeconds": 3,
+   "effect": {
+    "cast": "alp_yer_sarsan_cast",
+    "hit": "alp_yer_sarsan_hit",
+    "area": "alp_yer_sarsan_area"
+   },
+   "bookItemId": 5011
+  },
+  {
+   "id": "kurtcu_cift_vurus",
+   "name": "Çift Vuruş",
+   "class": "kurtcu",
+   "path": "fixed",
+   "unlockLevel": 1,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 12,
+   "cooldown": 3,
+   "mpCost": 6,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.9,
+    "perSkillLevel": 0.045
+   },
+   "hits": 2,
+   "note": "bow range 12, dagger range 2.2; coef is per hit",
+   "effect": {
+    "cast": "kurtcu_cift_vurus_cast",
+    "hit": "kurtcu_cift_vurus_hit"
+   },
+   "bookItemId": 5012
+  },
+  {
+   "id": "kurtcu_ok_yagmuru",
+   "name": "Ok Yağmuru",
+   "class": "kurtcu",
+   "path": "ok",
+   "unlockLevel": 10,
+   "kind": "damage",
+   "targeting": "area",
+   "range": 14,
+   "radius": 4,
+   "cooldown": 14,
+   "mpCost": 26,
+   "duration": 3,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.7,
+    "perSkillLevel": 0.035
+   },
+   "areaCenter": "ground",
+   "ticks": 4,
+   "note": "coef is per tick",
+   "effect": {
+    "cast": "kurtcu_ok_yagmuru_cast",
+    "hit": "kurtcu_ok_yagmuru_hit",
+    "area": "kurtcu_ok_yagmuru_area"
+   },
+   "bookItemId": 5013
+  },
+  {
+   "id": "kurtcu_delici_ok",
+   "name": "Delici Ok",
+   "class": "kurtcu",
+   "path": "ok",
+   "unlockLevel": 16,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 14,
+   "angle": 10,
+   "cooldown": 9,
+   "mpCost": 16,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.5,
+    "perSkillLevel": 0.075
+   },
+   "note": "line, pierces all targets",
+   "effect": {
+    "cast": "kurtcu_delici_ok_cast",
+    "hit": "kurtcu_delici_ok_hit"
+   },
+   "bookItemId": 5014
+  },
+  {
+   "id": "kurtcu_zehirli_ok",
+   "name": "Zehirli Ok",
+   "class": "kurtcu",
+   "path": "ok",
+   "unlockLevel": 24,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 12,
+   "cooldown": 12,
+   "mpCost": 14,
+   "duration": 8,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.35,
+    "perSkillLevel": 0.018
+   },
+   "effectType": "poisonOverTime",
+   "note": "coef is per second",
+   "effect": {
+    "cast": "kurtcu_zehirli_ok_cast",
+    "hit": "kurtcu_zehirli_ok_hit"
+   },
+   "bookItemId": 5015
+  },
+  {
+   "id": "kurtcu_kartal_gozu",
+   "name": "Kartal Gözü",
+   "class": "kurtcu",
+   "path": "ok",
+   "unlockLevel": 34,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 45,
+   "mpCost": 18,
+   "duration": 15,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.3,
+    "perSkillLevel": 0.01
+   },
+   "effectType": "rangeAndCrit",
+   "critChance": 0.15,
+   "magnitudeCap": 0.5,
+   "effect": {
+    "cast": "kurtcu_kartal_gozu_cast",
+    "hit": "kurtcu_kartal_gozu_hit"
+   },
+   "bookItemId": 5016
+  },
+  {
+   "id": "kurtcu_sabitleyen_ok",
+   "name": "Sabitleyen Ok",
+   "class": "kurtcu",
+   "path": "ok",
+   "unlockLevel": 46,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 14,
+   "cooldown": 18,
+   "mpCost": 18,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.8,
+    "perSkillLevel": 0.04
+   },
+   "ccType": "root",
+   "ccSeconds": 2.0,
+   "ccPerSkillLevel": 0.04,
+   "effect": {
+    "cast": "kurtcu_sabitleyen_ok_cast",
+    "hit": "kurtcu_sabitleyen_ok_hit"
+   },
+   "bookItemId": 5017
+  },
+  {
+   "id": "kurtcu_golgeye_karis",
+   "name": "Gölgeye Karış",
+   "class": "kurtcu",
+   "path": "hancer",
+   "unlockLevel": 10,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 35,
+   "mpCost": 15,
+   "duration": 8,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0
+   },
+   "effectType": "stealth",
+   "durPerSkillLevel": 0.2,
+   "note": "breaks on attack or damage taken",
+   "effect": {
+    "cast": "kurtcu_golgeye_karis_cast",
+    "hit": "kurtcu_golgeye_karis_hit"
+   },
+   "bookItemId": 5018
+  },
+  {
+   "id": "kurtcu_arkadan_vurus",
+   "name": "Arkadan Vuruş",
+   "class": "kurtcu",
+   "path": "hancer",
+   "unlockLevel": 16,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 2.2,
+   "cooldown": 10,
+   "mpCost": 15,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.2,
+    "perSkillLevel": 0.06
+   },
+   "backstabMultiplier": 2.3,
+   "note": "coef x backstabMultiplier when behind target",
+   "effect": {
+    "cast": "kurtcu_arkadan_vurus_cast",
+    "hit": "kurtcu_arkadan_vurus_hit"
+   },
+   "bookItemId": 5019
+  },
+  {
+   "id": "kurtcu_kesik_zinciri",
+   "name": "Kesik Zinciri",
+   "class": "kurtcu",
+   "path": "hancer",
+   "unlockLevel": 24,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 2.2,
+   "cooldown": 12,
+   "mpCost": 20,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.6,
+    "perSkillLevel": 0.03
+   },
+   "hits": 4,
+   "note": "coef is per hit",
+   "effect": {
+    "cast": "kurtcu_kesik_zinciri_cast",
+    "hit": "kurtcu_kesik_zinciri_hit"
+   },
+   "bookItemId": 5020
+  },
+  {
+   "id": "kurtcu_zehirli_bicak",
+   "name": "Zehirli Bıçak",
+   "class": "kurtcu",
+   "path": "hancer",
+   "unlockLevel": 34,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 30,
+   "mpCost": 14,
+   "duration": 12,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.25,
+    "perSkillLevel": 0.012
+   },
+   "effectType": "poisonOnHit",
+   "note": "coef is poison per second on hit, 4 s",
+   "effect": {
+    "cast": "kurtcu_zehirli_bicak_cast",
+    "hit": "kurtcu_zehirli_bicak_hit"
+   },
+   "bookItemId": 5021
+  },
+  {
+   "id": "kurtcu_siyril",
+   "name": "Sıyrıl",
+   "class": "kurtcu",
+   "path": "hancer",
+   "unlockLevel": 46,
+   "kind": "movement",
+   "targeting": "self",
+   "range": 6,
+   "cooldown": 30,
+   "mpCost": 12,
+   "duration": 1.5,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0
+   },
+   "effectType": "dashDodge",
+   "dodgeChance": 1.0,
+   "note": "dash 6 m, dodge during dash",
+   "effect": {
+    "cast": "kurtcu_siyril_cast",
+    "hit": "kurtcu_siyril_hit"
+   },
+   "bookItemId": 5022
+  },
+  {
+   "id": "bahadir_ruh_darbesi",
+   "name": "Ruh Darbesi",
+   "class": "bahadir",
+   "path": "fixed",
+   "unlockLevel": 1,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 4,
+   "angle": 120,
+   "cooldown": 3,
+   "mpCost": 8,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.5,
+    "perSkillLevel": 0.075
+   },
+   "effect": {
+    "cast": "bahadir_ruh_darbesi_cast",
+    "hit": "bahadir_ruh_darbesi_hit"
+   },
+   "bookItemId": 5023
+  },
+  {
+   "id": "bahadir_alev_kesigi",
+   "name": "Alev Kesiği",
+   "class": "bahadir",
+   "path": "ates",
+   "unlockLevel": 10,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 5,
+   "angle": 60,
+   "cooldown": 6,
+   "mpCost": 14,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.8,
+    "perSkillLevel": 0.09
+   },
+   "effect": {
+    "cast": "bahadir_alev_kesigi_cast",
+    "hit": "bahadir_alev_kesigi_hit"
+   },
+   "bookItemId": 5024
+  },
+  {
+   "id": "bahadir_ates_cemberi",
+   "name": "Ateş Çemberi",
+   "class": "bahadir",
+   "path": "ates",
+   "unlockLevel": 16,
+   "kind": "damage",
+   "targeting": "area",
+   "range": 0,
+   "radius": 4,
+   "cooldown": 16,
+   "mpCost": 28,
+   "duration": 5,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.5,
+    "perSkillLevel": 0.025
+   },
+   "areaCenter": "self",
+   "ticks": 5,
+   "note": "coef is per second",
+   "effect": {
+    "cast": "bahadir_ates_cemberi_cast",
+    "hit": "bahadir_ates_cemberi_hit",
+    "area": "bahadir_ates_cemberi_area"
+   },
+   "bookItemId": 5025
+  },
+  {
+   "id": "bahadir_kor_yagmuru",
+   "name": "Kor Yağmuru",
+   "class": "bahadir",
+   "path": "ates",
+   "unlockLevel": 24,
+   "kind": "damage",
+   "targeting": "area",
+   "range": 14,
+   "radius": 4,
+   "cooldown": 14,
+   "mpCost": 32,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 2.2,
+    "perSkillLevel": 0.11
+   },
+   "areaCenter": "ground",
+   "effect": {
+    "cast": "bahadir_kor_yagmuru_cast",
+    "hit": "bahadir_kor_yagmuru_hit",
+    "area": "bahadir_kor_yagmuru_area"
+   },
+   "bookItemId": 5026
+  },
+  {
+   "id": "bahadir_yanan_zirh",
+   "name": "Yanan Zırh",
+   "class": "bahadir",
+   "path": "ates",
+   "unlockLevel": 34,
+   "kind": "buff",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 30,
+   "mpCost": 20,
+   "duration": 10,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.5,
+    "perSkillLevel": 0.025
+   },
+   "effectType": "reflectFire",
+   "note": "coef of attack dealt to each attacker",
+   "effect": {
+    "cast": "bahadir_yanan_zirh_cast",
+    "hit": "bahadir_yanan_zirh_hit"
+   },
+   "bookItemId": 5027
+  },
+  {
+   "id": "bahadir_ejder_solugu",
+   "name": "Ejder Soluğu",
+   "class": "bahadir",
+   "path": "ates",
+   "unlockLevel": 46,
+   "kind": "damage",
+   "targeting": "cone",
+   "range": 6,
+   "angle": 70,
+   "cooldown": 20,
+   "mpCost": 42,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 3.0,
+    "perSkillLevel": 0.15
+   },
+   "effect": {
+    "cast": "bahadir_ejder_solugu_cast",
+    "hit": "bahadir_ejder_solugu_hit",
+    "area": "bahadir_ejder_solugu_area"
+   },
+   "bookItemId": 5028
+  },
+  {
+   "id": "bahadir_kara_lanet",
+   "name": "Kara Lanet",
+   "class": "bahadir",
+   "path": "golge",
+   "unlockLevel": 10,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 10,
+   "cooldown": 15,
+   "mpCost": 18,
+   "duration": 10,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.25,
+    "perSkillLevel": 0.005
+   },
+   "effectType": "defenseDown",
+   "magnitudeCap": 0.35,
+   "effect": {
+    "cast": "bahadir_kara_lanet_cast",
+    "hit": "bahadir_kara_lanet_hit"
+   },
+   "bookItemId": 5029
+  },
+  {
+   "id": "bahadir_can_emen_kilic",
+   "name": "Can Emen Kılıç",
+   "class": "bahadir",
+   "path": "golge",
+   "unlockLevel": 16,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 2.4,
+   "cooldown": 9,
+   "mpCost": 16,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.6,
+    "perSkillLevel": 0.08
+   },
+   "lifesteal": 0.5,
+   "note": "lifesteal of damage dealt",
+   "effect": {
+    "cast": "bahadir_can_emen_kilic_cast",
+    "hit": "bahadir_can_emen_kilic_hit"
+   },
+   "bookItemId": 5030
+  },
+  {
+   "id": "bahadir_korku",
+   "name": "Korku",
+   "class": "bahadir",
+   "path": "golge",
+   "unlockLevel": 24,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 8,
+   "cooldown": 25,
+   "mpCost": 22,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0
+   },
+   "ccType": "fear",
+   "ccSeconds": 2.0,
+   "ccPerSkillLevel": 0.05,
+   "effect": {
+    "cast": "bahadir_korku_cast",
+    "hit": "bahadir_korku_hit"
+   },
+   "bookItemId": 5031
+  },
+  {
+   "id": "bahadir_golge_adimi",
+   "name": "Gölge Adımı",
+   "class": "bahadir",
+   "path": "golge",
+   "unlockLevel": 34,
+   "kind": "movement",
+   "targeting": "single",
+   "range": 10,
+   "cooldown": 12,
+   "mpCost": 14,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.8,
+    "perSkillLevel": 0.04
+   },
+   "note": "teleport behind target, then strike",
+   "effect": {
+    "cast": "bahadir_golge_adimi_cast",
+    "hit": "bahadir_golge_adimi_hit"
+   },
+   "bookItemId": 5032
+  },
+  {
+   "id": "bahadir_kara_sis",
+   "name": "Kara Sis",
+   "class": "bahadir",
+   "path": "golge",
+   "unlockLevel": 46,
+   "kind": "debuff",
+   "targeting": "area",
+   "range": 12,
+   "radius": 5,
+   "cooldown": 22,
+   "mpCost": 30,
+   "duration": 6,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.2,
+    "perSkillLevel": 0.01
+   },
+   "areaCenter": "ground",
+   "slow": 0.35,
+   "slowSeconds": 6,
+   "note": "coef is damage per second",
+   "effect": {
+    "cast": "bahadir_kara_sis_cast",
+    "hit": "bahadir_kara_sis_hit",
+    "area": "bahadir_kara_sis_area"
+   },
+   "bookItemId": 5033
+  },
+  {
+   "id": "kam_ruh_oku",
+   "name": "Ruh Oku",
+   "class": "kam",
+   "path": "fixed",
+   "unlockLevel": 1,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 12,
+   "cooldown": 3,
+   "mpCost": 7,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 1.5,
+    "perSkillLevel": 0.075
+   },
+   "effect": {
+    "cast": "kam_ruh_oku_cast",
+    "hit": "kam_ruh_oku_hit"
+   },
+   "bookItemId": 5034
+  },
+  {
+   "id": "kam_sifa_duasi",
+   "name": "Şifa Duası",
+   "class": "kam",
+   "path": "sifa",
+   "unlockLevel": 10,
+   "kind": "heal",
+   "targeting": "ally",
+   "range": 10,
+   "cooldown": 5,
+   "mpCost": 14,
+   "value": {
+    "stat": "intelligence",
+    "base": 30,
+    "coef": 2.5,
+    "perSkillLevel": 0.15
+   },
+   "effect": {
+    "cast": "kam_sifa_duasi_cast",
+    "hit": "kam_sifa_duasi_hit"
+   },
+   "bookItemId": 5035
+  },
+  {
+   "id": "kam_yagmur_duasi",
+   "name": "Yağmur Duası",
+   "class": "kam",
+   "path": "sifa",
+   "unlockLevel": 16,
+   "kind": "heal",
+   "targeting": "area",
+   "range": 10,
+   "radius": 5,
+   "cooldown": 20,
+   "mpCost": 28,
+   "duration": 8,
+   "value": {
+    "stat": "intelligence",
+    "base": 8,
+    "coef": 0.6,
+    "perSkillLevel": 0.035
+   },
+   "areaCenter": "ground",
+   "ticks": 8,
+   "note": "value is per tick per ally",
+   "effect": {
+    "cast": "kam_yagmur_duasi_cast",
+    "hit": "kam_yagmur_duasi_hit",
+    "area": "kam_yagmur_duasi_area"
+   },
+   "bookItemId": 5036
+  },
+  {
+   "id": "kam_koruyucu_ruh",
+   "name": "Koruyucu Ruh",
+   "class": "kam",
+   "path": "sifa",
+   "unlockLevel": 24,
+   "kind": "buff",
+   "targeting": "ally",
+   "range": 10,
+   "cooldown": 18,
+   "mpCost": 20,
+   "duration": 10,
+   "value": {
+    "stat": "intelligence",
+    "base": 40,
+    "coef": 3.0,
+    "perSkillLevel": 0.15
+   },
+   "effectType": "absorbShield",
+   "effect": {
+    "cast": "kam_koruyucu_ruh_cast",
+    "hit": "kam_koruyucu_ruh_hit"
+   },
+   "bookItemId": 5037
+  },
+  {
+   "id": "kam_arinma",
+   "name": "Arınma",
+   "class": "kam",
+   "path": "sifa",
+   "unlockLevel": 34,
+   "kind": "heal",
+   "targeting": "ally",
+   "range": 10,
+   "cooldown": 15,
+   "mpCost": 12,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 1.0,
+    "perSkillLevel": 0
+   },
+   "effectType": "cleanse",
+   "note": "removes poison and curses, no healing",
+   "effect": {
+    "cast": "kam_arinma_cast",
+    "hit": "kam_arinma_hit"
+   },
+   "bookItemId": 5038
+  },
+  {
+   "id": "kam_tengrinin_lutfu",
+   "name": "Tengri'nin Lütfu",
+   "class": "kam",
+   "path": "sifa",
+   "unlockLevel": 46,
+   "kind": "heal",
+   "targeting": "ally",
+   "range": 6,
+   "cooldown": 300,
+   "mpCost": 60,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.3,
+    "perSkillLevel": 0.01
+   },
+   "castTime": 3,
+   "effectType": "resurrect",
+   "note": "magnitude is health fraction on revive; target must be dead",
+   "magnitudeCap": 0.6,
+   "effect": {
+    "cast": "kam_tengrinin_lutfu_cast",
+    "hit": "kam_tengrinin_lutfu_hit"
+   },
+   "bookItemId": 5039
+  },
+  {
+   "id": "kam_kurt_ruhu_cagir",
+   "name": "Kurt Ruhu Çağır",
+   "class": "kam",
+   "path": "ruh",
+   "unlockLevel": 10,
+   "kind": "summon",
+   "targeting": "self",
+   "range": 0,
+   "cooldown": 45,
+   "mpCost": 30,
+   "duration": 30,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.6,
+    "perSkillLevel": 0.03
+   },
+   "summonId": "spirit_wolf",
+   "summonHealthFraction": 0.6,
+   "note": "coef is bite damage on caster attack",
+   "effect": {
+    "cast": "kam_kurt_ruhu_cagir_cast",
+    "hit": "kam_kurt_ruhu_cagir_hit"
+   },
+   "bookItemId": 5040
+  },
+  {
+   "id": "kam_yildirim",
+   "name": "Yıldırım",
+   "class": "kam",
+   "path": "ruh",
+   "unlockLevel": 16,
+   "kind": "damage",
+   "targeting": "single",
+   "range": 14,
+   "cooldown": 8,
+   "mpCost": 20,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 2.4,
+    "perSkillLevel": 0.12
+   },
+   "effect": {
+    "cast": "kam_yildirim_cast",
+    "hit": "kam_yildirim_hit"
+   },
+   "bookItemId": 5041
+  },
+  {
+   "id": "kam_ata_ruhlari",
+   "name": "Ata Ruhları",
+   "class": "kam",
+   "path": "ruh",
+   "unlockLevel": 24,
+   "kind": "damage",
+   "targeting": "self",
+   "range": 0,
+   "radius": 3,
+   "cooldown": 25,
+   "mpCost": 28,
+   "duration": 8,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.5,
+    "perSkillLevel": 0.025
+   },
+   "areaCenter": "self",
+   "tickInterval": 0.5,
+   "note": "orbiting spirits, coef per tick",
+   "effect": {
+    "cast": "kam_ata_ruhlari_cast",
+    "hit": "kam_ata_ruhlari_hit",
+    "area": "kam_ata_ruhlari_area"
+   },
+   "bookItemId": 5042
+  },
+  {
+   "id": "kam_ruh_zinciri",
+   "name": "Ruh Zinciri",
+   "class": "kam",
+   "path": "ruh",
+   "unlockLevel": 34,
+   "kind": "debuff",
+   "targeting": "single",
+   "range": 10,
+   "cooldown": 25,
+   "mpCost": 24,
+   "duration": 8,
+   "value": {
+    "stat": "none",
+    "base": 0,
+    "coef": 0.5,
+    "perSkillLevel": 0.01
+   },
+   "effectType": "damageShare",
+   "maxLinked": 3,
+   "magnitudeCap": 0.7,
+   "effect": {
+    "cast": "kam_ruh_zinciri_cast",
+    "hit": "kam_ruh_zinciri_hit"
+   },
+   "bookItemId": 5043
+  },
+  {
+   "id": "kam_kara_firtina",
+   "name": "Kara Fırtına",
+   "class": "kam",
+   "path": "ruh",
+   "unlockLevel": 46,
+   "kind": "damage",
+   "targeting": "area",
+   "range": 14,
+   "radius": 6,
+   "cooldown": 50,
+   "mpCost": 50,
+   "duration": 10,
+   "value": {
+    "stat": "attack",
+    "base": 0,
+    "coef": 0.3,
+    "perSkillLevel": 0.015
+   },
+   "areaCenter": "ground",
+   "tickInterval": 0.5,
+   "note": "coef per tick",
+   "effect": {
+    "cast": "kam_kara_firtina_cast",
+    "hit": "kam_kara_firtina_hit",
+    "area": "kam_kara_firtina_area"
+   },
+   "bookItemId": 5044
+  }
+ ],
+ "tiers": {
+  "order": [
+   "normal",
+   "master",
+   "grandMaster",
+   "perfect"
+  ],
+  "normal": {
+   "label": "Normal",
+   "levels": 20,
+   "source": "skillPoints",
+   "pointsPerCharacterLevel": 1,
+   "valueMult": 1.0,
+   "cooldownMult": 1.0,
+   "mpMult": 1.0
+  },
+  "master": {
+   "label": "U",
+   "levels": 10,
+   "source": "skillBook",
+   "bookItemIdField": "bookItemId",
+   "requires": "normal level 20",
+   "consumeOnFail": true,
+   "successChance": [
+    0.95,
+    0.85,
+    0.75,
+    0.65,
+    0.55,
+    0.45,
+    0.35,
+    0.25,
+    0.15,
+    0.08
+   ],
+   "readCooldownSeconds": [
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000,
+    3300,
+    3600
+   ],
+   "valueMult": [
+    1.03,
+    1.06,
+    1.09,
+    1.12,
+    1.15,
+    1.18,
+    1.21,
+    1.24,
+    1.27,
+    1.3
+   ],
+   "cooldownMult": [
+    0.99,
+    0.98,
+    0.97,
+    0.96,
+    0.95,
+    0.94,
+    0.93,
+    0.92,
+    0.91,
+    0.9
+   ],
+   "mpMult": [
+    0.99,
+    0.98,
+    0.97,
+    0.96,
+    0.95,
+    0.94,
+    0.93,
+    0.92,
+    0.91,
+    0.9
+   ],
+   "effectStyle": "color"
+  },
+  "grandMaster": {
+   "label": "B",
+   "levels": 10,
+   "source": "soulStone",
+   "stoneItemId": 6001,
+   "requires": "master level 10",
+   "consumeOnFail": false,
+   "successChance": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "readCooldownSeconds": [
+    7200,
+    9000,
+    10800,
+    12600,
+    14400,
+    16200,
+    18000,
+    19800,
+    21600,
+    23400
+   ],
+   "valueMult": [
+    1.34,
+    1.38,
+    1.42,
+    1.46,
+    1.5,
+    1.54,
+    1.58,
+    1.62,
+    1.66,
+    1.7
+   ],
+   "cooldownMult": [
+    0.89,
+    0.87,
+    0.85,
+    0.83,
+    0.81,
+    0.79,
+    0.77,
+    0.75,
+    0.73,
+    0.71
+   ],
+   "mpMult": [
+    0.88,
+    0.86,
+    0.84,
+    0.82,
+    0.8,
+    0.78,
+    0.76,
+    0.74,
+    0.72,
+    0.7
+   ],
+   "effectStyle": "scale"
+  },
+  "perfect": {
+   "label": "K",
+   "levels": 1,
+   "source": "questOrRareItem",
+   "rareItemId": 6101,
+   "requires": "grandMaster level 10",
+   "oneShot": true,
+   "valueMult": 1.85,
+   "cooldownMult": 0.65,
+   "mpMult": 0.65,
+   "effectStyle": "scaleAndColor"
+  },
+  "reset": {
+   "affects": [
+    "normal"
+   ],
+   "keeps": [
+    "master",
+    "grandMaster",
+    "perfect"
+   ],
+   "pathChoiceReversible": false,
+   "cost": {
+    "gold": 0,
+    "orRareItemId": 6102
+   },
+   "note": "gold amount set when the reset NPC exists"
+  }
+ }
+}

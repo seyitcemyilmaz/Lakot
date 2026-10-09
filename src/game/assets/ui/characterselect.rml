@@ -1,0 +1,78 @@
+<rml>
+<head>
+    <title>Character Select</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<!--
+    data-model lives on the .card wrapper, NOT on <body> - a data-model on
+    <body> breaks data-for in RmlUi 6.1 (fixed upstream in 6.2, PR #790), and
+    the character list below is a data-for. Same reason chat.rml is structured
+    this way.
+
+    The screen has exactly two modes, and each is ONE wrapper div that toggles
+    as a unit rather than a handful of siblings toggling individually. That is
+    partly clarity and partly the RmlUi 6.1 layout bug documented in
+    login.rml: several data-if siblings changing in the same update, with a
+    multi-child static block staying visible through it, can permanently
+    corrupt the card's width. Two mutually exclusive wrappers keep each update
+    to a single pair of toggles.
+-->
+<body class="screen-center">
+    <div class="card" data-model="character_select">
+        <div class="title">CHARACTERS</div>
+        <div class="char-slots" data-if="has_kingdom">{{ kingdom_label }}</div>
+
+        <!-- ===== Mode 1: pick an existing character ===== -->
+        <div data-if="!is_creating">
+            <div class="char-slots">{{ slots_label }}</div>
+
+            <div class="char-list">
+                <div class="char-row" data-for="character : characters"
+                     data-class-is-selected="character.is_selected"
+                     data-event-click="select(character.index)">
+                    <div class="char-name">{{ character.name }}</div>
+                    <div class="char-meta">{{ character.location }}</div>
+                </div>
+
+                <div class="char-empty" data-if="!has_characters">
+                    No characters yet. Create one to start playing.
+                </div>
+            </div>
+
+            <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
+
+            <div class="btn-primary" data-class-is-busy="is_busy || !has_selection"
+                 data-event-click="enter_world">ENTER WORLD</div>
+
+            <div class="btn-secondary" data-if="has_free_slot" data-event-click="begin_create">CREATE NEW CHARACTER</div>
+
+            <div class="link" data-event-click="logout">Log out</div>
+        </div>
+
+        <!-- ===== Mode 2: create a new character ===== -->
+        <div data-if="is_creating">
+            <!-- Only for an account's first character: the kingdom is chosen
+                 once and every later character shares it. -->
+            <div data-if="!has_kingdom">
+                <div class="field-label">Choose your kingdom - every character on this account will belong to it.</div>
+
+                <div class="char-row" data-for="kingdom : kingdoms"
+                     data-class-is-selected="kingdom.is_selected"
+                     data-event-click="choose_kingdom(kingdom.id)">
+                    <div class="char-name" data-style-color="kingdom.color">{{ kingdom.name }}</div>
+                    <div class="char-meta">{{ kingdom.description }}</div>
+                </div>
+            </div>
+
+            <div class="field-label">Character name</div>
+            <input type="text" class="field" data-value="new_name" data-event-keydown="name_keydown"/>
+
+            <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
+
+            <div class="btn-primary" data-class-is-busy="is_busy" data-event-click="confirm_create">CREATE</div>
+
+            <div class="link" data-event-click="cancel_create">Back to character list</div>
+        </div>
+    </div>
+</body>
+</rml>

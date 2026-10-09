@@ -1,0 +1,27 @@
+<rml>
+<head>
+    <title>Skill Bar</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="skillbar-screen">
+    <!-- Still no data-model - the "flashing" feedback below is a plain CSS
+         class SkillBarRmlController toggles directly via Element::SetClass
+         (GetElementById), the same way ChatRmlController already flips
+         "is-minimized" without any data binding. Real item/skill binding is
+         still a later pass. -->
+    <div class="skillbar-bar">
+        <div class="skillbar-panel">
+            <div class="skillbar-slot" id="skill-slot-1"><span class="skillbar-slot-label">1</span></div>
+            <div class="skillbar-slot" id="skill-slot-2"><span class="skillbar-slot-label">2</span></div>
+            <div class="skillbar-slot" id="skill-slot-3"><span class="skillbar-slot-label">3</span></div>
+            <div class="skillbar-slot" id="skill-slot-4"><span class="skillbar-slot-label">4</span></div>
+            <div class="skillbar-slot" id="skill-slot-5"><span class="skillbar-slot-label">5</span></div>
+            <div class="skillbar-slot" id="skill-slot-f1"><span class="skillbar-slot-label">F1</span></div>
+            <div class="skillbar-slot" id="skill-slot-f2"><span class="skillbar-slot-label">F2</span></div>
+            <div class="skillbar-slot" id="skill-slot-f3"><span class="skillbar-slot-label">F3</span></div>
+            <div class="skillbar-slot" id="skill-slot-f4"><span class="skillbar-slot-label">F4</span></div>
+            <div class="skillbar-slot" id="skill-slot-f5"><span class="skillbar-slot-label">F5</span></div>
+        </div>
+    </div>
+</body>
+</rml>

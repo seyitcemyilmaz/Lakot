@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package services.inventory;
+
+import "services/game.proto";
+
+// The bag: what the player owns, and the two things they can do with it.
+//
+// Item CONTENT (what a sword is called, what it grants) and item OWNERSHIP
+// (that this player has one, in this slot) are separate messages on purpose.
+// Content is identical for every player and changes only when the game is
+// patched, so it is sent once per session; ownership changes constantly.
+
+// One entry of the item catalog. Mirrors the server's ItemTemplate.
+message ItemTemplate {
+    uint32 template_id = 1;
+    string name = 2;
+
+    // Both mirror the server's ItemType / EquipSlotType.
+    uint32 type = 3;
+    uint32 equip_slot = 4;
+
+    uint32 max_stack = 5;
+    uint32 required_level = 6;
+
+    int32 bonus_attack = 7;
+    int32 bonus_defense = 8;
+    int32 bonus_max_health = 9;
+    int32 bonus_max_mana = 10;
+
+    // Footprint in bag cells - how many columns and rows this item covers.
+    uint32 width = 11;
+    uint32 height = 12;
+
+    // Icon file name (not a path) - the client resolves it against its own
+    // texture directory. Empty means no art exists for this item yet, which
+    // the client renders as a neutral placeholder rather than a broken image.
+    string icon = 13;
+
+    string model = 14;
+    fixed32 tint = 15;
+}
+
+// Pushed once, when the player enters the world. Without it the client only
+// has template ids and cannot name, describe, or SIZE anything it is holding.
+message ItemTemplateList {
+    repeated ItemTemplate templates = 1;
+
+    // The bag's shape, sent rather than hardcoded in the client so growing it
+    // (more pages, a wider grid) is a server change alone. A client that
+    // assumed 5x12x2 would silently mis-render the day that changes.
+    uint32 grid_width = 2;
+    uint32 page_height = 3;
+    uint32 page_count = 4;
+}
+
+// Pushed whenever what the player owns changes - a script handing out a
+// reward, an equip, a level-up. Carries the WHOLE inventory rather than a
+// diff: a bag is at most a few dozen rows, and a full replace can never drift
+// out of sync with the server the way a missed or reordered delta can.
+//
+// Stats ride along because so much of what changes items also changes stats
+// (equipping armour moves max health), and sending them separately would let
+// the client render an item bonus that its own stat panel does not yet agree
+// with.
+message InventoryUpdate {
+    repeated services.game.ItemInstance items = 1;
+    services.game.CharacterStats stats = 2;
+}
+
+message EquipItemRequest {
+    uint32 bag_slot = 1;
+}
+
+message UnequipItemRequest {
+    // The EquipSlotType value to clear.
+    uint32 equip_slot = 1;
+    // Where in the bag it should land; without it, the first free place.
+    optional uint32 bag_slot = 2;
+}
+
+message MoveItemRequest {
+    uint32 from_slot = 1;
+    uint32 to_slot = 2;
+}
+
+enum InventoryActionStatus {
+    INVENTORY_ACTION_OK = 0;
+    INVENTORY_ACTION_FAILED = 1;
+}
+
+// Answers an equip/unequip request. On success an InventoryUpdate follows
+// with the new state, so this only has to carry whether it worked - the
+// client never has to guess the result of its own action.
+message InventoryActionResponse {
+    InventoryActionStatus status = 1;
+}

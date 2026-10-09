@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package services.game;
+
+// Shared gameplay data shapes, used INSIDE other services' messages.
+//
+// This file deliberately owns no request/response pair and therefore no
+// 1000-wide tag block of its own - it is a type library, not a service. The
+// first message that actually carries items on its own (an inventory update
+// push, once the bag UI exists) gets its own service and block and reuses
+// these same types, rather than redefining them.
+//
+// They live here instead of in auth.proto because an item is not an
+// authentication concept; auth.proto only happens to be where the enter-world
+// handshake currently delivers them.
+
+// A character's numbers as the client should display them.
+//
+// Base values AND derived ones are both sent. The derived ones are computed
+// from the balance formulas (see StatFormula on the server), and the server
+// is the only thing that knows them - a client recomputing max_health itself
+// would be a second copy of the balance rules, guaranteed to drift.
+message CharacterStats {
+    uint32 level = 1;
+    uint64 experience = 2;
+
+    // How much more experience is needed to reach the next level, so the
+    // client can draw a progress bar without knowing the curve.
+    uint64 experience_for_next_level = 3;
+
+    int32 health = 4;
+    int32 max_health = 5;
+    int32 mana = 6;
+    int32 max_mana = 7;
+
+    int32 strength = 8;
+    int32 dexterity = 9;
+    int32 intelligence = 10;
+    int32 vitality = 11;
+
+    int32 attack = 12;
+    int32 defense = 13;
+
+    uint64 gold = 14;
+}
+
+// Where an item is. Mirrors the server's ItemLocationType.
+enum ItemLocation {
+    ITEM_LOCATION_INVENTORY = 0;
+    ITEM_LOCATION_EQUIPPED = 1;
+}
+
+// One item the player owns. Only the template id is sent, not the template's
+// name or bonuses - those are static data the client will eventually hold its
+// own copy of, and repeating them on every item would make an inventory
+// message several times larger for no gain.
+message ItemInstance {
+    uint32 template_id = 1;
+    uint32 count = 2;
+    ItemLocation location = 3;
+
+    // Bag position when location is INVENTORY, body slot when EQUIPPED.
+    uint32 slot = 4;
+}

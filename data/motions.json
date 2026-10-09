@@ -1,0 +1,6 @@
+{
+  "sources": [
+    "motions/idle.glb",
+    "motions/run.glb"
+  ]
+}

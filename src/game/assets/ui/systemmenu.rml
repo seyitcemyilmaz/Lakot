@@ -1,0 +1,29 @@
+<rml>
+<head>
+    <title>Menu</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="screen-center system-menu-screen">
+    <div class="card system-menu" data-model="system_menu">
+        <div data-if="!is_settings_open">
+            <div class="title">MENU</div>
+
+            <div class="btn-primary" data-event-click="resume">RESUME</div>
+            <div class="btn-secondary" data-event-click="open_settings">Settings</div>
+            <div class="btn-secondary" data-event-click="logout">Log Out</div>
+            <div class="btn-secondary" data-event-click="quit">Quit Game</div>
+        </div>
+
+        <div data-if="is_settings_open">
+            <div class="title">SETTINGS</div>
+
+            <div class="field-label">Display</div>
+            <div class="btn-secondary settings-option" data-for="option : display_options"
+                 data-class-is-selected="option.is_selected"
+                 data-event-click="select_display(option.index)">{{ option.label }}</div>
+
+            <div class="btn-primary" data-event-click="close_settings">BACK</div>
+        </div>
+    </div>
+</body>
+</rml>

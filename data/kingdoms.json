@@ -1,0 +1,26 @@
+{
+    "defaultStartMap": 101,
+    "kingdoms": [
+        {
+            "id": 1,
+            "name": "Altunay",
+            "description": "Golden fields and river plains. Farmers, traders and riders.",
+            "color": "#D9A640",
+            "startMap": 101
+        },
+        {
+            "id": 2,
+            "name": "Demirkaya",
+            "description": "Iron mountains and deep mines. Smiths and stubborn warriors.",
+            "color": "#8CA6C8",
+            "startMap": 201
+        },
+        {
+            "id": 3,
+            "name": "Sisvadi",
+            "description": "Misty forests and hidden valleys. Hunters and mystics.",
+            "color": "#7FB77E",
+            "startMap": 301
+        }
+    ]
+}

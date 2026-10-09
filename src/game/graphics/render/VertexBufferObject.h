@@ -1,6 +1,7 @@
 #ifndef LAKOT_VERTEXBUFFEROBJECT_H
 #define LAKOT_VERTEXBUFFEROBJECT_H
 
+#include <cstddef>
 #include <vector>
 #include <string>
 
@@ -80,6 +81,9 @@ private:
 
     unsigned int mDataCount;
 
+    // Size of the GL storage currently allocated, in bytes.
+    size_t mCapacityBytes{0};
+
     VertexBufferObjectBufferType mBufferType;
     VertexBufferObjectDrawType mDrawType;
     VertexBufferObjectDataType mDataType;
@@ -88,6 +92,8 @@ private:
 
     unsigned int getTypeInternal() const;
     unsigned int getDrawTypeInternal() const;
+
+    void upload(const void* pData, size_t pCount, size_t pElementSize);
 };
 
 }

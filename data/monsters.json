@@ -1,0 +1,274 @@
+{
+  "monsters": [
+    {
+      "id": 1,
+      "name": "Bozkır Haydudu",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 7,
+      "maxHealth": 160,
+      "attack": 14,
+      "defense": 4,
+      "experience": 700,
+      "moveSpeed": 3.5,
+      "aggroRange": 8,
+      "attackRange": 1.8,
+      "attackInterval": 1.6,
+      "leashRange": 30,
+      "respawnSeconds": 30,
+      "aggressive": true,
+      "gold": {
+        "min": 30,
+        "max": 70,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.2,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 5,
+          "chance": 0.1,
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Bozkır Kurdu",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 3,
+      "maxHealth": 70,
+      "attack": 8,
+      "defense": 1,
+      "experience": 120,
+      "moveSpeed": 4.2,
+      "aggroRange": 10,
+      "attackRange": 1.6,
+      "attackInterval": 1.3,
+      "leashRange": 35,
+      "respawnSeconds": 20,
+      "aggressive": true,
+      "gold": {
+        "min": 8,
+        "max": 20,
+        "chance": 0.5
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Yaban Domuzu",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 5,
+      "maxHealth": 130,
+      "attack": 12,
+      "defense": 3,
+      "experience": 330,
+      "moveSpeed": 3.8,
+      "aggroRange": 4,
+      "attackRange": 1.8,
+      "attackInterval": 1.8,
+      "leashRange": 25,
+      "respawnSeconds": 25,
+      "aggressive": false,
+      "gold": {
+        "min": 15,
+        "max": 40,
+        "chance": 0.6
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Haydut Okçusu",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 10,
+      "maxHealth": 220,
+      "attack": 20,
+      "defense": 5,
+      "experience": 1400,
+      "moveSpeed": 3.5,
+      "aggroRange": 12,
+      "attackRange": 1.8,
+      "attackInterval": 1.8,
+      "leashRange": 35,
+      "respawnSeconds": 40,
+      "aggressive": true,
+      "gold": {
+        "min": 60,
+        "max": 140,
+        "chance": 0.85
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.25,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 3002,
+          "chance": 0.03,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Haydut Başı",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 14,
+      "maxHealth": 900,
+      "attack": 34,
+      "defense": 10,
+      "experience": 6000,
+      "moveSpeed": 3.4,
+      "aggroRange": 10,
+      "attackRange": 2.2,
+      "attackInterval": 1.8,
+      "leashRange": 40,
+      "respawnSeconds": 300,
+      "aggressive": true,
+      "gold": {
+        "min": 300,
+        "max": 600,
+        "chance": 1.0
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.6,
+          "min": 2,
+          "max": 4
+        },
+        {
+          "itemId": 1003,
+          "chance": 0.25,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 1004,
+          "chance": 0.1,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2002,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Albastı",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 12,
+      "maxHealth": 380,
+      "attack": 26,
+      "defense": 6,
+      "experience": 2200,
+      "moveSpeed": 3.8,
+      "aggroRange": 10,
+      "attackRange": 1.8,
+      "attackInterval": 1.6,
+      "leashRange": 40,
+      "respawnSeconds": 90,
+      "aggressive": true,
+      "gold": {
+        "min": 100,
+        "max": 220,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 6,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Tepegöz",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 18,
+      "maxHealth": 3500,
+      "attack": 60,
+      "defense": 16,
+      "experience": 20000,
+      "moveSpeed": 3.2,
+      "aggroRange": 14,
+      "attackRange": 2.8,
+      "attackInterval": 2.2,
+      "leashRange": 60,
+      "respawnSeconds": 1800,
+      "aggressive": true,
+      "gold": {
+        "min": 1500,
+        "max": 3000,
+        "chance": 1.0
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 1.0,
+          "min": 3,
+          "max": 5
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 1006,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 3003,
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    }
+  ]
+}

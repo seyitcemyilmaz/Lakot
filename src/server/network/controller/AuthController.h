@@ -1,9 +1,13 @@
 #ifndef LAKOT_SERVER_AUTHCONTROLLER_H
 #define LAKOT_SERVER_AUTHCONTROLLER_H
 
+#include <string>
+
 #include <connection.pb.h>
 
 #include "BaseController.h"
+
+#include "../../security/LoginAttemptLimiter.h"
 
 namespace lakot
 {
@@ -16,22 +20,28 @@ class WorldController;
 class AuthController : public BaseController
 {
 public:
-    AuthController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager);
+    AuthController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager, WorldController& pWorldController);
 
     void initialize() override;
 
-    // Set once from Server's constructor, after both controllers exist -
-    // lets a successful login seed WorldController's map assignment for the
-    // player (from their restored state) before the login response goes
-    // out, so their first PlayerStateUpdate lands in the right map.
-    void setWorldController(WorldController& pWorldController);
-
 private:
-    WorldController* mWorldController = nullptr;
+    WorldController& mWorldController;
+
+    LoginAttemptLimiter mAttemptLimiter;
+
+    static std::string getRemoteAddress(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
+
+    void sendRejection(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                       const connection::Message& pRequestMessage,
+                       common::StatusCode pStatusCode,
+                       const std::string& pMessage,
+                       bool pIsLogin);
 
     void handleRegisterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
-
     void handleLoginRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+
+    void handleResumeSessionRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleLogoutRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };
 
 }

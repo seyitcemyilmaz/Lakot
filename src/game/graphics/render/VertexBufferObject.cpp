@@ -34,6 +34,7 @@ void VertexBufferObject::initialize()
 void VertexBufferObject::deinitialize()
 {
     glDeleteBuffers(1, &mId);
+    mCapacityBytes = 0;
 }
 
 void VertexBufferObject::bind()
@@ -99,137 +100,40 @@ void VertexBufferObject::setIsInstanced(bool pIsInstanced)
 
 void VertexBufferObject::setData(const std::vector<unsigned int>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(unsigned int), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(unsigned int));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::vec2>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::vec2), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(glm::vec2));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::vec3>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::vec3), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(glm::vec3));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::vec4>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::vec4), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(glm::vec4));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::ivec2>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::ivec2), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(glm::ivec2));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::ivec3>& pData)
 {
-    unsigned int tBufferType = getTypeInternal();
-
-    if (tBufferType == UINT_MAX)
-    {
-        return;
-    }
-
-    unsigned int tDrawType = getDrawTypeInternal();
-
-    if (tDrawType == UINT_MAX)
-    {
-        return;
-    }
-
-    mDataCount = static_cast<unsigned int>(pData.size());
-
-    bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::ivec3), pData.data(), tDrawType);
+    upload(pData.data(), pData.size(), sizeof(glm::ivec3));
 }
 
 void VertexBufferObject::setData(const std::vector<glm::ivec4>& pData)
+{
+    upload(pData.data(), pData.size(), sizeof(glm::ivec4));
+}
+
+void VertexBufferObject::upload(const void* pData, size_t pCount, size_t pElementSize)
 {
     unsigned int tBufferType = getTypeInternal();
 
@@ -245,10 +149,26 @@ void VertexBufferObject::setData(const std::vector<glm::ivec4>& pData)
         return;
     }
 
-    mDataCount = static_cast<unsigned int>(pData.size());
+    mDataCount = static_cast<unsigned int>(pCount);
+
+    size_t tByteSize = pCount * pElementSize;
 
     bind();
-    glBufferData(tBufferType, mDataCount * sizeof(glm::ivec4), pData.data(), tDrawType);
+
+    // Reuses the existing storage when the data still fits, so a per-frame
+    // update of a few instances does not reallocate the buffer every time.
+    if (tByteSize <= mCapacityBytes)
+    {
+        if (tByteSize > 0)
+        {
+            glBufferSubData(tBufferType, 0, static_cast<GLsizeiptr>(tByteSize), pData);
+        }
+
+        return;
+    }
+
+    glBufferData(tBufferType, static_cast<GLsizeiptr>(tByteSize), pData, tDrawType);
+    mCapacityBytes = tByteSize;
 }
 
 unsigned int VertexBufferObject::getTypeInternal() const

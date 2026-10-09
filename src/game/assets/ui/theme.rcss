@@ -1,0 +1,1590 @@
+/*
+    Shared RmlUi palette - the RCSS counterpart to src/game/gui/UiTheme.h.
+    Colors are the exact same values (converted to hex) so the RmlUi-rendered
+    UI matches the ImGui reskin instead of introducing a fourth palette.
+    Flat colors + rounding only, same "honest scope" as the ImGui reskin -
+    no art assets exist yet for anything fancier.
+
+    Design tokens: every color/spacing/radius/font-size value below traces to
+    a named token. These are reference values only, not
+    live RCSS custom properties - custom properties and var() were only
+    added to RCSS in RmlUi 6.3 (see mikke89/RmlUi changelog.md, "RCSS
+    variables and custom properties"), and this project's vcpkg port
+    installs 6.1, which rejects that syntax outright ("Syntax error parsing
+    property declaration") - the exact same "docs describe master, not our
+    pinned version" trap as the data-for/body-model bug fixed earlier in
+    ChatRmlController's history. Revisit this once the vcpkg RmlUi port is
+    upgraded to 6.3+.
+*/
+
+/*
+    Root cause of the field/button right-edge overflow: RmlUi's default box
+    model is content-box (like CSS), so "width: 100%" plus an element's own
+    padding adds up to MORE than 100% of the container - the extra width
+    (exactly the left+right padding) spills out past the right edge, eating
+    the container's own right-side padding and beyond, while the left edge
+    stays put. That reads as "the box isn't centered in its background" even
+    though every width below is a plain 100%. border-box makes padding
+    count toward the declared width instead of adding to it, everywhere,
+    so this class of bug can't come back as new rules get added.
+*/
+* { box-sizing: border-box; }
+
+body
+{
+    font-family: Roboto;
+    font-size: 19dp;
+    color: #EBEBF0;
+}
+
+.screen-center
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    /* If the window is ever shorter than the card's content, scroll instead
+       of letting the card's top (the title) get pushed above the window's
+       top edge by flex's vertical centering. */
+    overflow-y: auto;
+}
+
+.card
+{
+    display: block;
+    /* Was a fixed 400px - overflowed past both window edges once the window
+       got narrower than 400px + this padding (reproduced by resizing to
+       420px wide). Percentage width with a cap keeps it centered and fully
+       inside the window at any size, while still capping at the original
+       400px on normal/wide windows. */
+    width: 90%;
+    max-width: 400dp;
+    padding: 24dp;
+    background-color: #2B2B33;
+    border-radius: 10dp;
+}
+
+.title
+{
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 24dp;
+    color: #D9A640;
+    margin-bottom: 6dp;
+}
+
+.field-label
+{
+    display: block;
+    margin-top: 10dp;
+    color: #9999A8;
+    font-size: 15dp;
+}
+
+.field
+{
+    display: block;
+    width: 100%;
+    padding: 10dp 12dp;
+    margin-top: 10dp;
+    background-color: #212129;
+    color: #EBEBF0;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+}
+
+.field:focus
+{
+    border-color: #D9A640;
+}
+
+.status
+{
+    display: block;
+    text-align: center;
+    margin-top: 14dp;
+    min-height: 19dp;
+}
+
+.status.status-info
+{
+    color: #8CBFF2;
+}
+
+.status.status-error
+{
+    color: #FF6666;
+}
+
+.btn-primary
+{
+    display: block;
+    width: 100%;
+    margin-top: 16dp;
+    padding: 12dp;
+    text-align: center;
+    background-color: #D9A640;
+    color: #212129;
+    font-weight: bold;
+    border-radius: 8dp;
+}
+
+.btn-primary:hover
+{
+    background-color: #F2B852;
+}
+
+.btn-primary:active
+{
+    background-color: #B88A2E;
+}
+
+.btn-primary.is-busy
+{
+    background-color: #40404c;
+    color: #9999A8;
+}
+
+.link
+{
+    display: block;
+    text-align: center;
+    margin-top: 10dp;
+    color: #8CBFF2;
+}
+
+.link:hover
+{
+    color: #F2B852;
+}
+
+.dev-login-section
+{
+    display: block;
+    margin-top: 16dp;
+    padding-top: 14dp;
+    border-top-width: 1px;
+    border-top-color: #40404c;
+}
+
+.dev-login-label
+{
+    display: block;
+    text-align: center;
+    color: #9999A8;
+    margin-bottom: 8dp;
+}
+
+.btn-secondary
+{
+    display: block;
+    width: 100%;
+    margin-top: 8dp;
+    padding: 8dp;
+    text-align: center;
+    background-color: #212129;
+    color: #EBEBF0;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+}
+
+.btn-secondary:hover
+{
+    border-color: #D9A640;
+    color: #D9A640;
+}
+
+/* ===== Character select (src/game/assets/ui/characterselect.rml) =====
+   Sits between login and the world. Reuses .card/.title/.field/.status/
+   .btn-primary/.btn-secondary/.link as-is (rule 7 - one visual language
+   across every screen); the rules below only add what a selectable list
+   needs and introduce no new colors or spacing values. */
+
+.char-slots
+{
+    display: block;
+    text-align: center;
+    margin-bottom: 10dp;
+    color: #9999A8;
+    font-size: 15dp;
+}
+
+.char-list
+{
+    display: block;
+    margin-top: 8dp;
+}
+
+/* 32px minimum height rather than the 20px .chat-icon-btn precedent (rule 6 -
+   Fitts's Law): this is the primary control of the whole screen, and the
+   padding below already puts a two-line row well past that floor. */
+.char-row
+{
+    display: block;
+    min-height: 32dp;
+    padding: 10dp 12dp;
+    margin-top: 6dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.char-row:hover
+{
+    border-color: #6A6A78;
+}
+
+/* Selection has to survive hover - a hovered-but-unselected row and the
+   actually-selected row must never look the same, so this uses the accent
+   border plus a lifted fill rather than only a border tint. */
+.char-row.is-selected
+{
+    background-color: #292933;
+    border-color: #D9A640;
+}
+
+.char-name
+{
+    display: block;
+    color: #EBEBF0;
+}
+
+.char-row.is-selected .char-name
+{
+    color: #D9A640;
+}
+
+.char-meta
+{
+    display: block;
+    margin-top: 4dp;
+    color: #9999A8;
+    font-size: 15dp;
+}
+
+/* Empty state - an account with no characters yet. A muted, dashed-looking
+   panel (flat fill, no border accent) so it reads as an absence rather than
+   as another selectable row. */
+.char-empty
+{
+    display: block;
+    padding: 16dp 12dp;
+    margin-top: 6dp;
+    text-align: center;
+    color: #9999A8;
+    font-size: 15dp;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+}
+
+/* ===== Inventory (src/game/assets/ui/inventory.rml) ===== */
+
+.inventory-screen
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.inventory-root
+{
+    display: block;
+}
+
+.inventory-window
+{
+    position: absolute;
+    bottom: 73dp;
+    right: 12dp;
+    width: 216dp;
+
+    display: flex;
+    flex-direction: column;
+    padding: 12dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+    pointer-events: auto;
+}
+
+.inv-body
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 8dp;
+}
+
+.inv-doll
+{
+    position: relative;
+    flex-shrink: 0;
+    /* Keep in sync with DOLL_WIDTH/DOLL_HEIGHT in tools/generate_placeholder_art.py. */
+    width: 188dp;
+    height: 194dp;
+    margin-bottom: 8dp;
+    background-color: #1A1A20;
+    border-width: 1px;
+    border-color: #2F2F38;
+    border-radius: 6dp;
+    decorator: image(textures/paperdoll.tga);
+}
+
+.inv-doll-slot
+{
+    position: absolute;
+    background-color: rgba(33, 33, 41, 230);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.inv-doll-slot:hover
+{
+    border-color: #6A6A78;
+}
+
+.inv-doll-slot.is-filled
+{
+    background-color: rgba(41, 41, 51, 235);
+    border-color: #D9A640;
+}
+
+.inv-doll-slot .inv-piece
+{
+    margin-left: -1px;
+    margin-top: -1px;
+    border-color: #D9A640;
+}
+
+/* ---- Bag ---- */
+
+.inv-bag
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.inv-grid
+{
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+}
+
+/* Keep in sync with kCellSize in InventoryRmlController. */
+.inv-cell
+{
+    position: absolute;
+    width: 32dp;
+    height: 32dp;
+    background-color: #1A1A20;
+    border-width: 1px;
+    border-color: #2F2F38;
+}
+
+.inv-piece
+{
+    position: absolute;
+    padding: 1dp;
+    background-color: rgba(58, 58, 68, 200);
+    border-width: 1px;
+    border-color: #6A6A78;
+    border-radius: 4dp;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.15s, background-color 0.15s, opacity 0.15s;
+}
+
+.inv-piece:hover
+{
+    background-color: rgba(74, 64, 48, 220);
+    border-color: #D9A640;
+}
+
+.inv-piece.is-dragged
+{
+    opacity: 0.35;
+}
+
+.inv-piece img
+{
+    width: 100%;
+    height: 100%;
+}
+
+.inv-piece-count
+{
+    position: absolute;
+    right: 2dp;
+    bottom: 1dp;
+    padding: 0dp 3dp;
+    font-size: 13dp;
+    color: #EBEBF0;
+    background-color: rgba(0, 0, 0, 200);
+    border-radius: 3dp;
+}
+
+.inv-pages
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 8dp;
+}
+
+.inv-page-btn
+{
+    display: block;
+    width: 32dp;
+    height: 24dp;
+    margin: 0dp 2dp;
+    padding-top: 2dp;
+    text-align: center;
+    font-size: 15dp;
+    background-color: #212129;
+    color: #9999A8;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.inv-page-btn:hover
+{
+    border-color: #6A6A78;
+}
+
+.inv-page-btn.is-active
+{
+    background-color: #292933;
+    border-color: #D9A640;
+    color: #D9A640;
+}
+
+.inv-status
+{
+    display: block;
+    margin-top: 8dp;
+    text-align: center;
+    font-size: 13dp;
+    color: #FF6666;
+}
+
+.inv-tooltip
+{
+    position: absolute;
+    z-index: 10;
+    width: 200dp;
+    padding: 8dp 10dp;
+    background-color: rgba(10, 10, 14, 245);
+    border-width: 1px;
+    border-color: #D9A640;
+    border-radius: 6dp;
+    pointer-events: none;
+}
+
+.inv-tooltip-name
+{
+    display: block;
+    color: #D9A640;
+    font-size: 15dp;
+}
+
+.inv-tooltip-line
+{
+    display: block;
+    margin-top: 2dp;
+    font-size: 13dp;
+    color: #EBEBF0;
+}
+
+.inv-tooltip-hint
+{
+    display: block;
+    margin-top: 6dp;
+    font-size: 13dp;
+    color: #9999A8;
+}
+
+.inv-drag-ghost
+{
+    position: absolute;
+    z-index: 10;
+    padding: 1dp;
+    background-color: rgba(58, 58, 68, 120);
+    border-width: 1px;
+    border-color: #D9A640;
+    border-radius: 4dp;
+    opacity: 0.85;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.inv-drag-ghost img
+{
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== Character sheet (src/game/assets/ui/character.rml) =====
+   Split out of the inventory panel: the bag is about what you are carrying,
+   the sheet about what you are - and cramming both into one window is what
+   forced the grid to be unreadably small. */
+
+.character-screen
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.character-window
+{
+    position: absolute;
+    top: 30dp;
+    left: 30dp;
+    width: 260dp;
+    display: flex;
+    flex-direction: column;
+    padding: 14dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+    max-height: 94%;
+    overflow-y: auto;
+    pointer-events: auto;
+}
+
+.char-sheet-name
+{
+    display: block;
+    margin-top: 10dp;
+    font-size: 19dp;
+    color: #EBEBF0;
+}
+
+.char-sheet-sub
+{
+    display: block;
+    margin-bottom: 10dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.char-bar-label
+{
+    display: block;
+    margin-top: 8dp;
+    font-size: 13dp;
+    color: #9999A8;
+}
+
+.char-bar-value
+{
+    color: #EBEBF0;
+}
+
+.char-bar
+{
+    display: block;
+    width: 100%;
+    height: 12dp;
+    margin-top: 3dp;
+    background-color: #1A1A20;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 3dp;
+    overflow: hidden;
+}
+
+.char-bar-fill
+{
+    display: block;
+    height: 100%;
+    transition: width 0.2s quadratic-out;
+}
+
+.char-bar-health { background-color: #C63E3E; }
+.char-bar-mana   { background-color: #8CBFF2; }
+.char-bar-exp    { background-color: #D9A640; }
+
+.char-sheet-section
+{
+    display: block;
+    margin-top: 14dp;
+    padding-bottom: 4dp;
+    font-size: 15dp;
+    color: #D9A640;
+    border-bottom-width: 1px;
+    border-bottom-color: #40404c;
+}
+
+.char-sheet-rows
+{
+    display: block;
+    margin-top: 6dp;
+}
+
+.char-sheet-row
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 3dp;
+    font-size: 15dp;
+}
+
+.char-sheet-key { color: #9999A8; }
+.char-sheet-val { color: #EBEBF0; }
+
+/* ===== Chat window (src/game/assets/ui/chat.rml) ===== */
+
+/* Was a Kenney "Fantasy UI Borders" 9-slice tiled-box decorator (a chunky
+   pixel-art white ornamental frame) - reverted after actually seeing it
+   rendered over the game's flat, low-poly scene: the two art directions
+   fought each other rather than reading as one game ("one visual language").
+   This now matches the flat border+radius treatment every other panel in
+   this file uses (.card, .field, .btn-secondary), just with the same
+   translucent dark fill as before so the world stays faintly visible behind
+   a floating window. The unused chat-frame.png/.tga assets are left in
+   place under textures/ in case a *deliberate*, evenly-applied ornamental
+   restyle (covering login too, not just chat) is done later. */
+.chat-window
+{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 300dp;
+    height: 360dp;
+    padding: 14dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+}
+
+.chat-window.is-minimized
+{
+    width: 110dp;
+    height: auto;
+    left: auto;
+    right: 204dp;
+    padding: 6dp;
+    background-color: transparent;
+    border-width: 0;
+}
+
+/* Pure layout passthrough for the data-model wrapper div (see chat.rml) -
+   fills the same flex space its children used to occupy directly as
+   .chat-window's own flex items, so this extra nesting level changes
+   nothing visually. flex:1 1 auto rather than height:100% - the latter
+   silently computes to 0 while .chat-window is height:auto (minimized/icon
+   mode), a known CSS "percentage height against an auto-height ancestor"
+   quirk RmlUi reproduces too; flex-grow fills the same space in fixed-height
+   full-window mode without that failure mode in auto-height icon mode. */
+.chat-body
+{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+/* ===== Minimized-state notification (right-edge mail icon) ===== */
+
+.mail-notification
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* No icon art exists for this (the one image asset this project tried,
+   Kenney's fantasy border, read as a clashing art style once actually seen -
+   see .chat-window's history) - a plain rectangle plus a rotated square
+   overlapping its top edge (a stylized envelope flap/seal) instead, using
+   only flat fills, consistent with the rest of this file. Solid black
+   (matching .chat-tab), not the surface gray theme.rcss uses elsewhere -
+   with .chat-window.is-minimized now transparent, this needs to read as its
+   own object against literally anything (sky, terrain, another player) the
+   3D scene puts behind it, not blend into a dark backdrop that no longer
+   exists here. */
+.mail-icon
+{
+    position: relative;
+    width: 44dp;
+    height: 30dp;
+    margin-top: 4dp;
+    background-color: #000000;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+}
+
+.mail-icon-flap
+{
+    position: absolute;
+    left: 14dp;
+    top: -8dp;
+    width: 16dp;
+    height: 16dp;
+    background-color: #9999A8;
+    border-radius: 2dp;
+    transform: rotate(45deg);
+}
+
+/* Only pulses while there's an actual unread message - stops the moment the
+   conversation is opened (has_unread is cleared in ChatRmlController::show()).
+   RCSS's `animation` shorthand takes the keyframes name LAST, not first like
+   a CSS author's muscle memory expects (<duration> <tweening-function>
+   <iterations> <name>) - confirmed against the changelog and by actually
+   running this exact declaration in the RmlUi 6.1 test harness. Also note "ease"/"ease-in-out"
+   aren't real RCSS tweening names (that's CSS's own vocabulary) - RmlUi's
+   set is back/bounce/circular/cubic/elastic/exponential/linear/quadratic/
+   quartic/quintic/sine, each with a -in/-out/-in-out suffix. */
+.mail-icon.blinking
+{
+    animation: 1s sine-in-out infinite mail-blink;
+}
+
+@keyframes mail-blink
+{
+    0%, 100% { background-color: #000000; }
+    50% { background-color: #D9A640; }
+}
+
+.mail-icon.blinking .mail-icon-flap
+{
+    animation: 1s sine-in-out infinite mail-blink-flap;
+}
+
+@keyframes mail-blink-flap
+{
+    0%, 100% { background-color: #9999A8; }
+    50% { background-color: #F2B852; }
+}
+
+.mail-sender
+{
+    margin-top: 4dp;
+    padding: 2dp 6dp;
+    background-color: #000000;
+    border-radius: 4dp;
+    font-size: 13dp;
+    color: #EBEBF0;
+    text-align: center;
+    max-width: 100dp;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.chat-titlebar
+{
+    /* RmlUi flex column does not stretch children to full width by default. */
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    cursor: move;
+}
+
+.chat-tab
+{
+    display: block;
+    padding: 4dp 10dp;
+    background-color: #000000;
+    color: #EBEBF0;
+    font-size: 15dp;
+    border-radius: 4dp;
+    max-width: 160dp;
+    overflow: hidden;
+}
+
+.chat-tab.has-unread
+{
+    color: #FF6666;
+}
+
+.chat-titlebar-buttons
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.chat-icon-btn
+{
+    display: block;
+    /* flex-shrink:0 - without it, an oversized sibling (the name-edit row's
+       .chat-name-input, once it's holding a long typed username) could
+       shrink this NEXT TO zero or let its own rendered content overlap the
+       always-present minimize/close buttons after it, instead of the
+       INPUT being the one to give up space (see .chat-name-input's own
+       min-width:0 below - the two fixes go together). */
+    flex-shrink: 0;
+    width: 24dp;
+    height: 24dp;
+    margin-left: 4dp;
+    line-height: 24dp;
+    font-size: 15dp;
+    text-align: center;
+    background-color: #212129;
+    color: #9999A8;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+/* .chat-icon-btn's 20px square fits a single character ("_", "X") - "OK" is
+   two, and was clipping/overflowing that box. Widening only this one
+   (higher specificity than .chat-icon-btn alone, so it always wins
+   regardless of rule order) rather than the shared base rule, which every
+   other icon button still wants narrow. .chat-name-input's own flex:1 1
+   auto + min-width:0 (below) already gives up whatever extra space this
+   needs, no separate change required there. */
+.chat-icon-btn.chat-confirm-btn
+{
+    width: 32dp;
+}
+
+.chat-icon-btn:hover
+{
+    color: #D9A640;
+    border-color: #D9A640;
+}
+
+.chat-history
+{
+    display: block;
+    flex: 1 1 auto;
+    margin-top: 10dp;
+    padding: 6dp 8dp;
+    overflow-y: auto;
+}
+
+.chat-line
+{
+    display: block;
+    margin-bottom: 2dp;
+    /* Only world chat's controller ever adds .faded (see below) - whisper's
+       ChatRmlController never touches this class, so this transition is a
+       harmless no-op there (no value it applies to ever changes).
+       "linear-out", not bare "linear" - RCSS has no bare tween keyword (only
+       <name>-in/-out/-in-out; confirmed against RmlUi 6.1's own
+       PropertyParserAnimation.cpp keyword table), so "linear" alone fails to
+       parse as a tween AND as a property name and silently drops the whole
+       transition declaration - caught in scratchpad/rmlrepro by opacity
+       jumping straight to 0 instead of interpolating. */
+    transition: opacity 1s linear-out;
+}
+
+/* World chat only (see WorldChatRmlController::update()) - a message fades
+   out 5s after being posted, unless the panel is open (fading is paused
+   while actively chatting - see is_open). */
+.chat-line.faded
+{
+    opacity: 0;
+}
+
+.msg-author
+{
+    margin-right: 4dp;
+    font-weight: bold;
+}
+
+.msg-author.msg-local
+{
+    color: #8CBFF2;
+}
+
+.msg-author.msg-remote
+{
+    color: #D9CC8C;
+}
+
+/* World chat only - the message TEXT's color (not the author name above,
+   which is about WHO sent it and applies to whisper too) reflects WHAT KIND
+   of message it was: "!"-prefixed server-wide broadcast (blue, the same
+   --info token used elsewhere) vs a plain nearby-only message (literal
+   white, not the usual #EBEBF0 body text token - asked for explicitly). */
+.msg-global
+{
+    color: #8CBFF2;
+}
+
+.msg-nearby
+{
+    color: #FFFFFF;
+}
+
+.chat-input-row
+{
+    display: flex;
+    flex-direction: row;
+    margin-top: 8dp;
+}
+
+/* World chat's scope toggle - to the left of the input, per the user's
+   request. Two states: "Within Range" (default, nearby-only) and "World"
+   (server-wide) - clicking cycles between them (WorldChatRmlController::
+   onScopeToggleClicked). Same flex-shrink:0 reasoning as .chat-send-btn
+   below (a fixed-role button flanking the input, never the one that gives
+   up space when the row is tight) but min-width alone, not a hard width -
+   "Within Range" and "World" are different lengths and neither should ever
+   clip or force the OTHER state to look wrong. */
+.chat-scope-btn
+{
+    display: block;
+    flex-shrink: 0;
+    min-width: 92dp;
+    margin-right: 6dp;
+    padding: 6dp 10dp;
+    text-align: center;
+    background-color: #212129;
+    color: #9999A8;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.chat-scope-btn:hover
+{
+    border-color: #8CBFF2;
+}
+
+/* "World" mode - the same blue used for .msg-global text, so the button's
+   own color already previews what a message sent right now would look
+   like to everyone. */
+.chat-scope-btn.scope-global
+{
+    background-color: #1A2530;
+    border-color: #8CBFF2;
+    color: #8CBFF2;
+}
+
+.chat-input
+{
+    flex: 1 1 auto;
+    padding: 6dp 8dp;
+    background-color: #212129;
+    color: #EBEBF0;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+}
+
+.chat-input:focus
+{
+    border-color: #D9A640;
+}
+
+.chat-send-btn
+{
+    display: block;
+    /* flex-shrink:0 + a min-width a little past the tight text-fit - without
+       this, the flex row's default flex-shrink:1 lets this button get
+       squeezed narrower than "Send" needs whenever the row is tight (e.g.
+       right after the chat window is created and a reflow lands before the
+       layout has fully settled), which reads as the text overflowing the
+       button on one side rather than centering. The input (.chat-input,
+       flex: 1 1 auto) is the one meant to give up space, never this. */
+    flex-shrink: 0;
+    min-width: 64dp;
+    margin-left: 6dp;
+    padding: 6dp 14dp;
+    text-align: center;
+    background-color: #D9A640;
+    color: #212129;
+    font-weight: bold;
+    border-radius: 6dp;
+}
+
+.chat-send-btn:hover
+{
+    background-color: #F2B852;
+}
+
+.chat-send-btn:active
+{
+    background-color: #B88A2E;
+}
+
+/* Whisper-only: a failed send (bad/offline username) shown in the window
+   itself instead of only a console log - see ChatRmlController::onSendResult.
+   The shared --danger red, same token world chat's own send-failure could
+   reuse if it ever needs one, no new color introduced. */
+.chat-status
+{
+    margin-top: 8dp;
+    color: #FF6666;
+}
+
+/* The specific message line that failed to send (same red as .chat-status
+   above, so "why" and "which one" read as the same kind of feedback) - lets
+   a failed send be told apart from a successful one at a glance, not just
+   via the separate status line below the input row. */
+.msg-failed
+{
+    color: #FF6666;
+}
+
+/* Restyle RmlUi's generated scrollbar elements to match the theme instead
+   of leaving the library default look. */
+.chat-history scrollbarvertical
+{
+    width: 10dp;
+}
+
+.chat-history scrollbarvertical slidertrack
+{
+    background-color: #212129;
+}
+
+.chat-history scrollbarvertical sliderbar
+{
+    background-color: #40404c;
+    border-radius: 4dp;
+}
+
+.chat-history scrollbarvertical sliderbar:hover
+{
+    background-color: #D9A640;
+}
+
+/* ===== World/say chat (src/game/assets/ui/worldchat.rml) =====
+   Floating "ambient" overlay directly above the skill bar (Lineage/WoW-style
+   chat log), not a bordered window like .chat-window (whisper) - reuses
+   .chat-body/.chat-history/.chat-line/.msg-author/.chat-input-row/
+   .chat-input/.chat-send-btn as-is (same visual language) but its own panel
+   look only appears while open (.chat-body.is-open below), driven by
+   WorldChatRmlController::open()/close(). Still uses .chat-body as the
+   data-model host div, NOT <body> - see worldchat.rml's own comment - so
+   the is-open toggle (data-class-is-open, bound to the "world_chat" model)
+   has to live on .chat-body too: a data-class-* attribute on <body> itself
+   would sit OUTSIDE the model's scope (data-model only reaches descendants)
+   and silently never resolve. That's also why .world-chat-window itself
+   stays a plain unstyled positioning shell below, with no background of its
+   own - the panel look toggles on .chat-body, not on it. */
+.world-chat-window
+{
+    position: absolute;
+    /* 516px == .skillbar-panel's measured rendered width (10 slots x 48px +
+       9 x 4px inter-slot margins - verified in scratchpad/rmlrepro against
+       the real skillbar.rml/theme.rcss via GetBox(), not hand-calculated).
+       left:50% + a negative half-width margin is the standard RCSS centering
+       trick (translateX(-50%) was deliberately avoided - untested in this
+       codebase, whereas this technique is already proven all over
+       login.rml). Keep both this and the bottom offset below in sync with
+       skillbar.rml if its slot count/size ever changes. */
+    left: 50%;
+    width: 516dp;
+    margin-left: -258dp;
+    /* 73px == .skillbar-bar's measured rendered height (65px) + 8px gap, so
+       this sits directly above the skill bar with a small breathing gap. */
+    bottom: 73dp;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ambient/closed look: no background, minimal padding - just floating text.
+   The generic .chat-body rule (flex column, width:100%, flex:1 1 auto)
+   still applies underneath this. */
+.world-chat-window .chat-body
+{
+    padding: 4dp 8dp;
+}
+
+/* Open look (Enter was pressed) - the same flat/dark panel styling every
+   other window in this file uses, appearing only while actively chatting. */
+.world-chat-window .chat-body.is-open
+{
+    padding: 14dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+}
+
+/* No titlebar above this history any more (unlike whisper's .chat-window),
+   so the generic .chat-history's 10px margin-top (spacing below a titlebar)
+   is dropped. Capped height + overflow:hidden while closed - old, already-
+   faded lines (see .chat-line.faded below) stay clipped out of view rather
+   than growing the box forever; scrollHistoryToBottom() (already called
+   after every appendLine()) keeps the newest lines the ones actually shown.
+   overflow:auto only once open, so the full history can be scrolled back
+   through while actively chatting. */
+.world-chat-window .chat-history
+{
+    margin-top: 0;
+    max-height: 130dp;
+    overflow-y: hidden;
+}
+
+.world-chat-window .chat-body.is-open .chat-history
+{
+    overflow-y: auto;
+}
+
+/* .chat-titlebar's cursor:move (whisper's drag affordance) doesn't apply
+   here - this window never moves. */
+.world-chat-window .chat-titlebar
+{
+    cursor: default;
+}
+
+/* ===== Skill bar (src/game/assets/ui/skillbar.rml) =====
+   Visual shell only - see SkillBarRmlController. Same flat/dark visual
+   language as .chat-window/.world-chat-window (rule 7 in the design skill -
+   one language across every screen), not the reference screenshot's ornate
+   fantasy art. */
+
+/* pointer-events:none here is load-bearing, not decorative - without it
+   this element (sized to the full viewport so its single child can be
+   pinned to the bottom) swallowed every mouse event over the whole screen,
+   including the transparent area above the bar, which blocked WorldScene's
+   camera-orbit drag entirely. auto is restored on .skillbar-bar below so the
+   bar itself still reacts to hover/click. */
+.skillbar-screen
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* The full-width strip the user asked for ("skill barın olduğu satırı arka
+   plan rengiyle komple doldur") - room is deliberately left on both sides of
+   .skillbar-panel below for whatever gets added there later. */
+.skillbar-bar
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 8dp 0;
+    background-color: rgba(18, 18, 24, 235);
+    border-top-width: 1px;
+    border-top-color: #40404c;
+    pointer-events: auto;
+}
+
+.skillbar-panel
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.skillbar-slot
+{
+    position: relative;
+    width: 48dp;
+    height: 48dp;
+    margin-left: 4dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.skillbar-slot:first-child
+{
+    margin-left: 0;
+}
+
+/* hover is just "you're over this slot" (border only, no action implied);
+   .flashing is the one "this slot was activated" look, applied identically
+   whether that came from the matching keybind or a right-click on the slot
+   (SkillBarRmlController::triggerFlash() is the single call both paths use) -
+   the user was explicit these must look the same, not two different colors. */
+.skillbar-slot:hover
+{
+    border-color: #6A6A78;
+}
+
+.skillbar-slot.flashing
+{
+    border-color: #D9A640;
+    background-color: #292933;
+}
+
+.skillbar-slot-label
+{
+    position: absolute;
+    top: 2dp;
+    left: 2dp;
+    font-size: 13dp;
+    color: #9999A8;
+}
+
+/* ===== Whisper title bar "unconfirmed target" edit mode (chat.rml) =====
+   Shift+Enter (WorldScene::openBlankWhisperWindow) opens a normal
+   .chat-window with no target yet - see ChatRmlController::mIsTargetConfirmed.
+   Reuses .chat-icon-btn (the same minimize "_"/close "X" look) for the
+   confirm "OK" button rather than inventing a new button style. */
+.chat-tab-edit
+{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* min-width:0 overrides the flex-item default of min-width:auto, which
+       otherwise refuses to shrink below this row's CONTENT width (the name
+       input's typed text) - without it, a longer username pushed .chat-tab-edit
+       past its allotted share of .chat-titlebar and visually collided with/
+       overlapped .chat-titlebar-buttons (minimize/close) instead of the
+       input being the one to compress. */
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.chat-name-label
+{
+    flex-shrink: 0;
+    margin-right: 6dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.chat-name-input
+{
+    /* Same min-width:0 reasoning as .chat-tab-edit above - this is the
+       actual element whose typed content was refusing to shrink. */
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-right: 6dp;
+    padding: 4dp 6dp;
+    background-color: #212129;
+    color: #EBEBF0;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+}
+
+.chat-name-input:focus
+{
+    border-color: #D9A640;
+}
+
+/* ===== System menu (src/game/assets/ui/systemmenu.rml) =====
+   The in-world Escape menu. Reuses .card/.title/.btn-primary/.btn-secondary;
+   only narrows the card, since it holds a few buttons and no form. */
+.system-menu-screen
+{
+    pointer-events: none;
+}
+
+.system-menu
+{
+    max-width: 300dp;
+    pointer-events: auto;
+}
+
+.settings-option
+{
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.settings-option.is-selected
+{
+    border-color: #D9A640;
+    color: #D9A640;
+}
+
+/* ===== Reconnect overlay (src/game/assets/ui/reconnect.rml) =====
+   Covers whatever scene is showing while a dropped connection is resumed.
+   The scrim dims the frozen world behind it (it is not interactive), and
+   the full-window body also swallows clicks meant for it. */
+.reconnect-screen
+{
+    background-color: rgba(18, 18, 24, 160);
+}
+
+.reconnect-card
+{
+    max-width: 340dp;
+}
+
+/* ===== Minimap (src/game/assets/ui/minimap.rml) =====
+   Top-right, always on, click-through. The same flat translucent panel as
+   the bag and the character sheet (rule 7). The only saturated colour is the
+   player's own arrow, in the accent (rule 1). */
+.minimap-screen
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.minimap
+{
+    position: absolute;
+    top: 12dp;
+    right: 12dp;
+    width: 180dp;
+    padding: 4dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+}
+
+/* 170px must match kViewPixels in MinimapRmlController.cpp. */
+.minimap-view
+{
+    position: relative;
+    width: 170dp;
+    height: 170dp;
+    overflow: hidden;
+    border-radius: 6dp;
+    background-color: #212129;
+}
+
+.minimap-image
+{
+    position: absolute;
+}
+
+.minimap-dot
+{
+    position: absolute;
+    width: 6dp;
+    height: 6dp;
+    border-width: 1px;
+    border-color: #000000;
+    border-radius: 3dp;
+    background-color: #EBEBF0;
+}
+
+.minimap-caption
+{
+    display: block;
+    margin-top: 4dp;
+    text-align: center;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.minimap-name
+{
+    display: block;
+    color: #EBEBF0;
+}
+
+/* The player marker, shared by the minimap and the world map: a dot with a
+   short nose pointing the way the player faces. Positioned by its centre -
+   the negative margins undo half its size - so it rotates in place. */
+.map-arrow
+{
+    position: absolute;
+    width: 16dp;
+    height: 16dp;
+    margin-left: -8dp;
+    margin-top: -8dp;
+}
+
+.minimap-arrow
+{
+    left: 85dp;
+    top: 85dp;
+}
+
+.map-arrow-body
+{
+    position: absolute;
+    left: 4dp;
+    top: 4dp;
+    width: 8dp;
+    height: 8dp;
+    border-width: 1px;
+    border-color: #000000;
+    border-radius: 4dp;
+    background-color: #D9A640;
+}
+
+.map-arrow-nose
+{
+    position: absolute;
+    left: 6dp;
+    top: 0dp;
+    width: 4dp;
+    height: 6dp;
+    border-radius: 4dp;
+    background-color: #D9A640;
+}
+
+/* ===== World map (src/game/assets/ui/worldmap.rml) =====
+   Toggled with M. Centred; the body is click-through, the window is not. */
+.worldmap-screen
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* A fixed width, like .character-window: with an auto width the titlebar's
+   width:100% resolved against the whole screen and stretched the window
+   across it. 510 = the 480px map + 14px padding and 1px border per side. */
+.worldmap-window
+{
+    width: 510dp;
+    display: flex;
+    flex-direction: column;
+    padding: 14dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+    pointer-events: auto;
+}
+
+.worldmap-view
+{
+    position: relative;
+    width: 480dp;
+    height: 480dp;
+    margin-top: 10dp;
+    overflow: hidden;
+    border-radius: 6dp;
+}
+
+.worldmap-image
+{
+    width: 480dp;
+    height: 480dp;
+}
+
+/* ===== Vitals (src/game/assets/ui/vitals.rml) ===== */
+
+.vitals-screen
+{
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.vitals-root
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.vitals-panel
+{
+    position: absolute;
+    left: 16dp;
+    bottom: 14dp;
+    width: 240dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.vitals-row
+{
+    display: flex;
+    justify-content: space-between;
+}
+
+.vitals-level
+{
+    color: #D9A640;
+}
+
+.vitals-value
+{
+    color: #EBEBF0;
+}
+
+.vitals-bar
+{
+    height: 14dp;
+    margin-top: 4dp;
+}
+
+.vitals-bar-thin
+{
+    height: 6dp;
+}
+
+.vitals-safe-zone
+{
+    position: absolute;
+    top: 16dp;
+    left: 50%;
+    width: 160dp;
+    margin-left: -80dp;
+    padding: 4dp 0;
+    text-align: center;
+    font-size: 15dp;
+    color: #8CBFF2;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+}
+
+.vitals-notice
+{
+    position: absolute;
+    top: 56dp;
+    left: 50%;
+    width: 400dp;
+    margin-left: -200dp;
+    text-align: center;
+    font-size: 19dp;
+    color: #FF6666;
+}
+
+.vitals-death
+{
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    width: 400dp;
+    margin-left: -200dp;
+    text-align: center;
+}
+
+.vitals-death-title
+{
+    font-size: 24dp;
+    color: #FF6666;
+}
+
+.vitals-death-timer
+{
+    margin-top: 8dp;
+    font-size: 19dp;
+    color: #EBEBF0;
+}

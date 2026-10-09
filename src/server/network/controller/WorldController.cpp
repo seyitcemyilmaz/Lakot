@@ -1,21 +1,37 @@
 #include "WorldController.h"
 
+#include <filesystem>
+#include <iostream>
+#include <syncstream>
+
 #include "../NetworkManager.h"
 
 using namespace lakot;
 
-WorldController::WorldController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager)
+WorldController::WorldController(NetworkManager& pNetworkManager,
+                                 RepositoryManager& pRepositoryManager,
+                                 const ItemCatalog& pItemCatalog,
+                                 const MapCatalog& pMapCatalog,
+                                 const MonsterCatalog& pMonsterCatalog)
     : BaseController(pNetworkManager, pRepositoryManager)
+    , mItemCatalog(pItemCatalog)
+    , mMapCatalog(pMapCatalog)
+    , mMonsterCatalog(pMonsterCatalog)
 {
-    // Fixed, known set of maps for v1 - populated once up front so
-    // mRegistries never needs to be modified (and therefore never needs its
-    // own lock) after construction.
-    mRegistries.try_emplace(services::world::MAP_TOWN);
-    mRegistries.try_emplace(services::world::MAP_FOREST);
+
 }
 
 void WorldController::initialize()
 {
+    // One zone per map in the catalog. Built here rather than in the
+    // constructor because a zone needs the ItemCatalog, and that is only
+    // loaded once the database is up. Never modified afterwards, so mZones
+    // needs no lock.
+    for (uint32_t tMapId : mMapCatalog.getMapIds())
+    {
+        mZones.emplace(tMapId, std::make_unique<Zone>(*mMapCatalog.getMap(tMapId), mMapCatalog, mItemCatalog, mMonsterCatalog));
+    }
+
     mNetworkManager.getDispatcher().registerHandler(protocol::Request::kPlayerStateUpdate, PacketType::Request,
         [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
         {
@@ -23,20 +39,155 @@ void WorldController::initialize()
         }
     );
 
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kAttackRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleAttackRequest(pSession, pMessage);
+        }
+    );
+
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kPickupItemRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handlePickupItemRequest(pSession, pMessage);
+        }
+    );
+
     mNetworkManager.setOnUserDisconnected(
-    [this](uint64_t pUserId)
+    [this](uint64_t pCharacterId)
     {
-        this->handlePlayerDisconnect(pUserId);
+        this->handlePlayerDisconnect(pCharacterId);
     });
+
+    for (auto& [tMapId, tZone] : mZones)
+    {
+        tZone->start(
+            [this](uint64_t pCharacterId, Zone::Packet pPacket)
+            {
+                this->sendToCharacter(pCharacterId, std::move(pPacket));
+            },
+            [this](const CharacterSnapshot& pCharacter, uint32_t pTargetMapId, const PlayerState& pSpawnState)
+            {
+                this->transferCharacter(pCharacter, pTargetMapId, pSpawnState);
+            },
+            [this](const Zone::PersistData& pData)
+            {
+                mRepositoryManager.getCharacterRepository().saveCharacterState(
+                    pData.characterId, pData.mapId,
+                    pData.position.x, pData.position.y, pData.position.z, pData.position.yaw,
+                    pData.stats);
+
+                mRepositoryManager.getItemRepository().saveCharacterItems(
+                    pData.characterId, pData.items);
+            },
+            // Resolved against the executable, not the source tree - the same
+            // reasoning as the game client's asset path.
+            (std::filesystem::path(mScriptDirectory)).string());
+    }
+}
+
+void WorldController::shutdown()
+{
+    for (auto& [tMapId, tZone] : mZones)
+    {
+        tZone->stop();
+    }
+}
+
+Zone* WorldController::getZone(uint32_t pMapId)
+{
+    auto tIterator = mZones.find(pMapId);
+    return tIterator == mZones.end() ? nullptr : tIterator->second.get();
+}
+
+std::optional<uint32_t> WorldController::getCharacterZone(uint64_t pCharacterId)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mCharacterZone.find(pCharacterId);
+
+    if (tIterator == mCharacterZone.end())
+    {
+        return std::nullopt;
+    }
+
+    return tIterator->second;
+}
+
+void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
+                                 uint32_t pMapId,
+                                 const PlayerState& pState)
+{
+    uint64_t pCharacterId = pCharacter.characterId;
+    const std::string& pName = pCharacter.name;
+
+    // AuthController already relocates characters saved on a map that no
+    // longer exists; this is the last line of defence against landing in no
+    // zone at all.
+    Zone* tZone = getZone(pMapId);
+
+    if (!tZone)
+    {
+        std::osyncstream(std::cerr) << "[World] Bilinmeyen harita id: " << pMapId << std::endl;
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+        mCharacterZone[pCharacterId] = pMapId;
+        mCharacterNames[pCharacterId] = pName;
+        mNameToCharacterId[pName] = pCharacterId;
+    }
+
+    tZone->enterPlayer(pCharacter, pState);
+}
+
+void WorldController::handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tCharacterId = pSession->getCharacterId();
+    auto tMapId = tCharacterId != 0 ? getCharacterZone(tCharacterId) : std::nullopt;
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (tZone)
+    {
+        const auto& tRequest = pMessage.request().attack_request();
+        tZone->attack(tCharacterId, tRequest.yaw(), tRequest.combo());
+    }
+}
+
+void WorldController::handlePickupItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tCharacterId = pSession->getCharacterId();
+    auto tMapId = tCharacterId != 0 ? getCharacterZone(tCharacterId) : std::nullopt;
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (tZone)
+    {
+        tZone->pickUp(tCharacterId, pMessage.request().pickup_item_request().entity_id(), pMessage.request().header().id());
+    }
 }
 
 void WorldController::handlePlayerStateUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
 {
-    uint64_t tUserId = pSession->getUserId();
+    uint64_t tCharacterId = pSession->getCharacterId();
 
-    if (tUserId == 0)
+    if (tCharacterId == 0)
     {
-        return; // not logged in yet - ignore
+        return; // authenticated but not in the world yet (character select)
+    }
+
+    auto tMapId = getCharacterZone(tCharacterId);
+
+    if (!tMapId)
+    {
+        return; // not in any zone (never entered the world, or already left)
+    }
+
+    Zone* tZone = getZone(*tMapId);
+
+    if (!tZone)
+    {
+        return;
     }
 
     const auto& tUpdate = pMessage.request().player_state_update();
@@ -48,239 +199,108 @@ void WorldController::handlePlayerStateUpdate(std::shared_ptr<NetworkSession<con
     tState.z = tPosition.z();
     tState.yaw = tUpdate.yaw();
 
-    services::world::MapId tCurrentMapId = getOrAssignPlayerMap(tUserId);
+    // Posts into the zone thread and returns - no world state is read or
+    // written on this I/O thread, and no lock is taken.
+    tZone->submitState(tCharacterId, tState);
+}
 
-    if (auto tPortal = MapCatalog::findPortalAt(tCurrentMapId, tState.x, tState.z))
+void WorldController::resumeCharacter(uint64_t pCharacterId)
+{
+    auto tMapId = getCharacterZone(pCharacterId);
+
+    if (!tMapId)
     {
-        teleportPlayer(tUserId, tCurrentMapId, *tPortal);
         return;
     }
 
-    WorldRegistry& tRegistry = getRegistryForMap(tCurrentMapId);
-    VisibilityChange tChange = tRegistry.updatePlayer(tUserId, tState);
-
-    for (uint64_t tOtherId : tChange.entered)
+    if (Zone* tZone = getZone(*tMapId))
     {
-        // Tell the already-present player about the mover, and the mover
-        // about the already-present player - discovery is symmetric.
-        sendPlayerJoined(tOtherId, tUserId, tState);
-
-        if (auto tOtherState = tRegistry.getState(tOtherId))
-        {
-            sendPlayerJoined(tUserId, tOtherId, *tOtherState);
-        }
-    }
-
-    for (uint64_t tOtherId : tChange.exited)
-    {
-        sendPlayerLeft(tOtherId, tUserId);
-        sendPlayerLeft(tUserId, tOtherId);
-    }
-
-    if (!tChange.stillNearby.empty())
-    {
-        connection::Message tBroadcastMessage;
-        auto* tBroadcast = tBroadcastMessage.mutable_response()->mutable_player_state_broadcast();
-        tBroadcast->set_player_id(tUserId);
-        tBroadcast->mutable_position()->set_x(tState.x);
-        tBroadcast->mutable_position()->set_y(tState.y);
-        tBroadcast->mutable_position()->set_z(tState.z);
-        tBroadcast->set_yaw(tState.yaw);
-
-        for (uint64_t tOtherId : tChange.stillNearby)
-        {
-            if (auto tOtherSession = mNetworkManager.getSessionRegistry().get(tOtherId))
-            {
-                tOtherSession->send(tBroadcastMessage);
-            }
-        }
+        tZone->resumePlayer(pCharacterId);
     }
 }
 
-void WorldController::handlePlayerDisconnect(uint64_t pUserId)
+void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
 {
-    services::world::MapId tMapId;
+    std::optional<uint32_t> tMapId;
 
     {
         std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
 
-        auto tIterator = mPlayerMapAssignment.find(pUserId);
+        auto tIterator = mCharacterZone.find(pCharacterId);
 
-        if (tIterator == mPlayerMapAssignment.end())
+        if (tIterator == mCharacterZone.end())
         {
-            return; // never sent a state update - nothing to clean up
+            return; // never entered the world - nothing to clean up
         }
 
-        tMapId = static_cast<services::world::MapId>(tIterator->second);
-        mPlayerMapAssignment.erase(tIterator);
+        tMapId = tIterator->second;
+        mCharacterZone.erase(tIterator);
 
-        auto tUsernameIterator = mPlayerUsernames.find(pUserId);
-        if (tUsernameIterator != mPlayerUsernames.end())
+        auto tNameIterator = mCharacterNames.find(pCharacterId);
+
+        if (tNameIterator != mCharacterNames.end())
         {
-            mUsernameToUserId.erase(tUsernameIterator->second);
-            mPlayerUsernames.erase(tUsernameIterator);
+            mNameToCharacterId.erase(tNameIterator->second);
+            mCharacterNames.erase(tNameIterator);
         }
     }
 
-    WorldRegistry& tRegistry = getRegistryForMap(tMapId);
-
-    if (auto tState = tRegistry.getState(pUserId))
+    // The zone persists the final position on its own thread as part of
+    // leaving - see Zone::leavePlayer.
+    if (Zone* tZone = getZone(*tMapId))
     {
-        mRepositoryManager.getAccountRepository().savePlayerState(
-            pUserId, static_cast<uint32_t>(tMapId), tState->x, tState->y, tState->z, tState->yaw);
-    }
-
-    std::vector<uint64_t> tWatchers = tRegistry.removePlayer(pUserId);
-
-    for (uint64_t tWatcherId : tWatchers)
-    {
-        sendPlayerLeft(tWatcherId, pUserId);
+        tZone->leavePlayer(pCharacterId);
     }
 }
 
-void WorldController::seedPlayerMap(uint64_t pUserId, services::world::MapId pMapId)
+void WorldController::transferCharacter(const CharacterSnapshot& pCharacter,
+                                        uint32_t pTargetMapId,
+                                        const PlayerState& pSpawnState)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-    mPlayerMapAssignment[pUserId] = pMapId;
-}
+    uint64_t pCharacterId = pCharacter.characterId;
 
-void WorldController::setPlayerUsername(uint64_t pUserId, const std::string& pUsername)
-{
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-    mPlayerUsernames[pUserId] = pUsername;
-    mUsernameToUserId[pUsername] = pUserId;
-}
+    Zone* tTargetZone = getZone(pTargetMapId);
 
-std::string WorldController::getPlayerUsername(uint64_t pUserId)
-{
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-
-    auto tIterator = mPlayerUsernames.find(pUserId);
-
-    if (tIterator != mPlayerUsernames.end())
+    if (!tTargetZone)
     {
-        return tIterator->second;
-    }
-
-    return "Player" + std::to_string(pUserId); // shouldn't normally happen
-}
-
-std::optional<uint64_t> WorldController::findOnlinePlayerIdByUsername(const std::string& pUsername)
-{
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-
-    auto tIterator = mUsernameToUserId.find(pUsername);
-
-    if (tIterator == mUsernameToUserId.end())
-    {
-        return std::nullopt;
-    }
-
-    return tIterator->second;
-}
-
-services::world::MapId WorldController::getOrAssignPlayerMap(uint64_t pUserId)
-{
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-
-    auto tIterator = mPlayerMapAssignment.find(pUserId);
-
-    if (tIterator != mPlayerMapAssignment.end())
-    {
-        return static_cast<services::world::MapId>(tIterator->second);
-    }
-
-    mPlayerMapAssignment[pUserId] = services::world::MAP_TOWN;
-    return services::world::MAP_TOWN;
-}
-
-WorldRegistry& WorldController::getRegistryForMap(services::world::MapId pMapId)
-{
-    return mRegistries.at(static_cast<uint32_t>(pMapId));
-}
-
-void WorldController::teleportPlayer(uint64_t pUserId, services::world::MapId pFromMapId, const PortalDefinition& pPortal)
-{
-    WorldRegistry& tFromRegistry = getRegistryForMap(pFromMapId);
-    std::vector<uint64_t> tOldWatchers = tFromRegistry.removePlayer(pUserId);
-
-    for (uint64_t tWatcherId : tOldWatchers)
-    {
-        sendPlayerLeft(tWatcherId, pUserId);
+        return;
     }
 
     {
         std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-        mPlayerMapAssignment[pUserId] = pPortal.targetMapId;
-    }
 
-    PlayerState tSpawnState;
-    tSpawnState.x = pPortal.targetX;
-    tSpawnState.y = pPortal.targetY;
-    tSpawnState.z = pPortal.targetZ;
-    tSpawnState.yaw = pPortal.targetYaw;
-
-    WorldRegistry& tToRegistry = getRegistryForMap(pPortal.targetMapId);
-    VisibilityChange tChange = tToRegistry.updatePlayer(pUserId, tSpawnState);
-
-    for (uint64_t tOtherId : tChange.entered)
-    {
-        sendPlayerJoined(tOtherId, pUserId, tSpawnState);
-
-        if (auto tOtherState = tToRegistry.getState(tOtherId))
+        // Gone (disconnected mid-transfer) - the source zone already dropped
+        // them, so there is nothing left to move.
+        if (mCharacterZone.find(pCharacterId) == mCharacterZone.end())
         {
-            sendPlayerJoined(pUserId, tOtherId, *tOtherState);
+            return;
         }
+
+        mCharacterZone[pCharacterId] = pTargetMapId;
     }
 
-    sendMapChanged(pUserId, pPortal.targetMapId, tSpawnState);
+    // Sent BEFORE the character is added to the destination zone. The client
+    // clears its whole remote-entity list on this message (none of the old
+    // map's entities belong in the new view), and TCP preserves order - so
+    // sending it after the first snapshot from the new zone would wipe out
+    // the arrivals it had just been told about.
+    sendMapChanged(pCharacterId, pTargetMapId, pSpawnState);
+
+    tTargetZone->enterPlayer(pCharacter, pSpawnState);
 }
 
-void WorldController::sendPlayerJoined(uint64_t pTargetUserId, uint64_t pPlayerId, const PlayerState& pState)
+void WorldController::sendToCharacter(uint64_t pCharacterId, Zone::Packet pPacket)
 {
-    auto tTargetSession = mNetworkManager.getSessionRegistry().get(pTargetUserId);
-
-    if (!tTargetSession)
+    // getByCharacter, not get(): the registry's primary index is keyed by
+    // account, and a zone only ever knows character ids.
+    if (auto tSession = mNetworkManager.getSessionRegistry().getByCharacter(pCharacterId))
     {
-        return;
+        tSession->send(std::move(pPacket));
     }
-
-    connection::Message tMessage;
-    auto* tJoined = tMessage.mutable_response()->mutable_player_joined();
-    tJoined->set_player_id(pPlayerId);
-    tJoined->set_username(getPlayerUsername(pPlayerId));
-    tJoined->mutable_position()->set_x(pState.x);
-    tJoined->mutable_position()->set_y(pState.y);
-    tJoined->mutable_position()->set_z(pState.z);
-    tJoined->set_yaw(pState.yaw);
-
-    tTargetSession->send(tMessage);
 }
 
-void WorldController::sendPlayerLeft(uint64_t pTargetUserId, uint64_t pPlayerId)
+void WorldController::sendMapChanged(uint64_t pCharacterId, uint32_t pMapId, const PlayerState& pState)
 {
-    auto tTargetSession = mNetworkManager.getSessionRegistry().get(pTargetUserId);
-
-    if (!tTargetSession)
-    {
-        return;
-    }
-
-    connection::Message tMessage;
-    tMessage.mutable_response()->mutable_player_left()->set_player_id(pPlayerId);
-
-    tTargetSession->send(tMessage);
-}
-
-void WorldController::sendMapChanged(uint64_t pTargetUserId, services::world::MapId pMapId, const PlayerState& pState)
-{
-    auto tTargetSession = mNetworkManager.getSessionRegistry().get(pTargetUserId);
-
-    if (!tTargetSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     auto* tChanged = tMessage.mutable_response()->mutable_map_changed();
     tChanged->set_map_id(pMapId);
@@ -289,5 +309,63 @@ void WorldController::sendMapChanged(uint64_t pTargetUserId, services::world::Ma
     tChanged->mutable_position()->set_z(pState.z);
     tChanged->set_yaw(pState.yaw);
 
-    tTargetSession->send(tMessage);
+    sendToCharacter(pCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+}
+
+std::string WorldController::getCharacterName(uint64_t pCharacterId)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mCharacterNames.find(pCharacterId);
+
+    if (tIterator != mCharacterNames.end())
+    {
+        return tIterator->second;
+    }
+
+    return "Player" + std::to_string(pCharacterId); // shouldn't normally happen
+}
+
+std::optional<uint64_t> WorldController::findOnlineCharacterIdByName(const std::string& pName)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mNameToCharacterId.find(pName);
+
+    if (tIterator == mNameToCharacterId.end())
+    {
+        return std::nullopt;
+    }
+
+    return tIterator->second;
+}
+
+void WorldController::withCharacter(uint64_t pCharacterId, std::function<bool(Character&)> pAction)
+{
+    auto tMapId = getCharacterZone(pCharacterId);
+
+    if (!tMapId)
+    {
+        return;
+    }
+
+    if (Zone* tZone = getZone(*tMapId))
+    {
+        tZone->withCharacter(pCharacterId, std::move(pAction));
+    }
+}
+
+void WorldController::sendNearby(uint64_t pOriginCharacterId, Zone::Packet pPacket)
+{
+    auto tMapId = getCharacterZone(pOriginCharacterId);
+
+    if (!tMapId)
+    {
+        return;
+    }
+
+    if (Zone* tZone = getZone(*tMapId))
+    {
+        tZone->sendNearby(pOriginCharacterId, std::move(pPacket));
+    }
 }

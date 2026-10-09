@@ -1,0 +1,76 @@
+<rml>
+<head>
+    <title>Inventory</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="inventory-screen">
+<div class="inventory-root" data-model="inventory">
+    <div class="inventory-window">
+        <div class="chat-titlebar" data-event-mousedown="drag_start">
+            <div class="chat-tab">Inventory</div>
+            <div class="chat-titlebar-buttons">
+                <div class="chat-icon-btn" data-event-click="close">X</div>
+            </div>
+        </div>
+
+        <div class="inv-body">
+            <div class="inv-doll">
+                <div class="inv-doll-slot" data-for="slot : equipment"
+                     data-class-is-filled="slot.is_filled"
+                     data-style-left="slot.left" data-style-top="slot.top"
+                     data-style-width="slot.width" data-style-height="slot.height"
+                     data-event-mousedown="equip_slot_pressed(slot.index)"
+                     data-event-mouseover="hover_equipped(slot.index)"
+                     data-event-mouseout="unhover">
+                    <div class="inv-piece" data-if="slot.is_filled" data-class-is-dragged="slot.is_dragged"
+                         data-style-left="slot.item_left" data-style-top="slot.item_top"
+                         data-style-width="slot.item_width" data-style-height="slot.item_height">
+                        <img data-if="slot.icon != ''" data-attr-src="slot.icon"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-bag">
+                <div class="inv-grid" data-style-width="grid_width_px" data-style-height="grid_height_px">
+                    <div class="inv-cell" data-for="cell : cells"
+                         data-style-left="cell.left" data-style-top="cell.top"></div>
+
+                    <div class="inv-piece" data-for="piece : pieces"
+                         data-class-is-dragged="piece.is_dragged"
+                         data-style-left="piece.left" data-style-top="piece.top"
+                         data-style-width="piece.width" data-style-height="piece.height"
+                         data-event-mousedown="piece_pressed(piece.slot)"
+                         data-event-mouseover="hover_piece(piece.slot)"
+                         data-event-mouseout="unhover">
+                        <img data-if="piece.icon != ''" data-attr-src="piece.icon"/>
+                        <div class="inv-piece-count" data-if="piece.has_count">{{ piece.count }}</div>
+                    </div>
+                </div>
+
+                <div class="inv-pages">
+                    <div class="inv-page-btn" data-for="page : pages"
+                         data-class-is-active="page.is_active"
+                         data-event-click="set_page(page.index)"
+                         data-event-mouseover="page_hovered(page.index)">{{ page.label }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inv-status" data-if="has_status">{{ status_text }}</div>
+    </div>
+
+    <div class="inv-tooltip" data-if="has_tooltip"
+         data-style-left="tooltip_left" data-style-top="tooltip_top">
+        <div class="inv-tooltip-name">{{ tooltip_name }}</div>
+        <div class="inv-tooltip-line" data-for="line : tooltip_lines">{{ line.text }}</div>
+        <div class="inv-tooltip-hint" data-if="tooltip_hint != ''">{{ tooltip_hint }}</div>
+    </div>
+
+    <div class="inv-drag-ghost" data-if="has_drag_ghost"
+         data-style-left="drag_ghost_left" data-style-top="drag_ghost_top"
+         data-style-width="drag_ghost_width" data-style-height="drag_ghost_height">
+        <img data-if="drag_ghost_icon != ''" data-attr-src="drag_ghost_icon"/>
+    </div>
+</div>
+</body>
+</rml>

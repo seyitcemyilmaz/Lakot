@@ -1,7 +1,11 @@
 #ifndef LAKOT_MESSAGEDISPATCHER_H
 #define LAKOT_MESSAGEDISPATCHER_H
 
+#include <cstdint>
+#include <functional>
 #include <iostream>
+#include <unordered_map>
+#include <syncstream>
 
 #include "NetworkSession.h"
 
@@ -59,7 +63,11 @@ public:
     }
 
 private:
-    std::unordered_map<int, Handler> mHandlers;
+    // uint32_t, matching generateKey()'s return type - a Response key has bit
+    // 31 set, so an int-keyed map stored it as a negative value via an
+    // implementation-defined conversion. Both sides converted identically so
+    // lookups still worked, but the key type now says what it actually is.
+    std::unordered_map<uint32_t, Handler> mHandlers;
     std::function<void(SessionPtr, int)> mUnknownPacketHandler;
 
     void handleUnknownPacket(SessionPtr pSession, uint32_t pKey)
@@ -72,7 +80,7 @@ private:
         }
         else
         {
-            std::cerr << "[Dispatcher] Unhandled Packet Key: " << pKey << " (ID: " << tOriginalId << ") from User: " << pSession->getUserId() << std::endl;
+            std::osyncstream(std::cerr) << "[Dispatcher] Unhandled Packet Key: " << pKey << " (ID: " << tOriginalId << ") from Account: " << pSession->getAccountId() << std::endl;
         }
     }
 };

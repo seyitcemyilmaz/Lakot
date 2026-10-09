@@ -35,12 +35,17 @@ public:
     // saved/server-authoritative facing (login, portal travel).
     void setYaw(double pYaw);
 
+    // Keeps the eye at or above this height, so orbiting low or standing
+    // below a hill never puts the camera inside the ground.
+    void setMinimumEyeHeight(float pHeight);
+
 private:
     glm::vec3 mTargetPosition;
 
     double mYaw;
     double mPitch;
     float mDistance;
+    float mMinimumEyeHeight;
 };
 
 }

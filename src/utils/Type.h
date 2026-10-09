@@ -4,28 +4,6 @@
 namespace lakot
 {
 
-enum class AssetType
-{
-    eUndefined,
-    eModel,
-    eNode,
-    eMesh,
-    eBone,
-    eMaterial,
-    eTexture
-};
-
-enum class EntityType
-{
-    eUndefined,
-    eModel,
-    eNode,
-    eMesh,
-    eBone,
-    eMaterial,
-    eTexture
-};
-
 enum class ButtonType
 {
     eUndefined,
@@ -38,7 +16,9 @@ enum class RenderableType
 {
     eUndefined,
     eBoxContainer,
-    eTerrain
+    eTerrain,
+    eModel,
+    eSkinnedModel
 };
 
 enum class CameraType

@@ -1,0 +1,46 @@
+<rml>
+<head>
+    <title>Login</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body data-model="login" class="screen-center">
+    <div class="card">
+        <div class="title">LAKOT ONLINE</div>
+
+        <div class="field-label">Username</div>
+        <input type="text" class="field" data-value="username" data-event-keydown="input_keydown"/>
+
+        <div class="field-label">Password</div>
+        <input type="password" class="field" data-value="password" data-event-keydown="input_keydown"/>
+
+        <div class="field-label" data-if="is_register_mode">Email</div>
+        <input type="text" class="field" data-value="email" data-if="is_register_mode" data-event-keydown="input_keydown"/>
+
+        <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
+
+        <div data-if="!is_register_mode" class="btn-primary" data-class-is-busy="is_busy" data-event-click="login">LOG IN</div>
+        <div data-if="is_register_mode" class="btn-primary" data-class-is-busy="is_busy" data-event-click="register">REGISTER</div>
+
+        <div data-if="!is_register_mode" class="link" data-event-click="toggle_mode">Don't have an account? Register</div>
+        <div data-if="is_register_mode" class="link" data-event-click="toggle_mode">Already have an account? Log in</div>
+
+        <!-- "&& !is_register_mode" isn't just UX (quick-login into an existing
+             seeded account is irrelevant while filling out a new one) - it's
+             load-bearing. This section staying visible/unchanged while the
+             Email field, REGISTER button, and "Log in" link all toggle
+             on/off together in the same data model update is a confirmed
+             RmlUi 6.1 layout bug: .card's width silently and permanently
+             corrupts to a tiny value (measured 48px against a real 400px
+             card in this project's RmlUi 6.1 test harness - stays wrong
+             across 10+ Context::Update() calls, not a transient one-frame
+             glitch). Making this section ALSO toggle out during that same
+             update avoids the bug entirely (verified in the same harness) -
+             removing "!is_register_mode" reintroduces it. -->
+        <div class="dev-login-section" data-if="is_dev_quick_login_enabled &amp;&amp; !is_register_mode">
+            <div class="dev-login-label">Dev quick login:</div>
+            <div class="btn-secondary" data-event-click="quick_login('lakot1', 'lakot1')">Log in as lakot1</div>
+            <div class="btn-secondary" data-event-click="quick_login('lakot2', 'lakot2')">Log in as lakot2</div>
+        </div>
+    </div>
+</body>
+</rml>

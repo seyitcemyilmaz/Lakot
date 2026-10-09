@@ -2,9 +2,11 @@
 #define LAKOT_NETWORKSESSION_H
 
 #include <iostream>
-#include <map>
 #include <deque>
 #include <atomic>
+#include <memory>
+#include <vector>
+#include <syncstream>
 
 #include <boost/asio.hpp>
 
@@ -20,14 +22,19 @@ public:
     using Ptr = std::shared_ptr<NetworkSession<MessageType>>;
     using MessageHandler = std::function<void(Ptr, const MessageType&)>;
     using ErrorHandler = std::function<void(Ptr, const boost::system::error_code&)>;
-    using ResponseCallback = std::function<void(const MessageType&)>;
-    using RequestIdSetter = std::function<void(MessageType&, uint32_t)>;
+
+    // An already-framed, already-serialized packet. Broadcasting the same
+    // message to N recipients used to serialize it N times (ByteSizeLong +
+    // SerializeToArray inside every send()); with makePacket() the work is
+    // done once and every recipient shares the buffer. At MMO scale this is
+    // the difference between one serialization per world tick and one per
+    // (player x nearby player) pair.
+    using Packet = std::shared_ptr<const std::vector<char>>;
 
     NetworkSession(boost::asio::ip::tcp::socket pSocket)
         : mSocket(std::move(pSocket))
         , mStrand(boost::asio::make_strand(mSocket.get_executor()))
         , mIsConnected(true)
-        , mNextRequestId(1)
     {
         boost::system::error_code tErrorCode;
         mSocket.set_option(boost::asio::ip::tcp::no_delay(true), tErrorCode);
@@ -35,7 +42,7 @@ public:
 
         if (tErrorCode)
         {
-            std::cout << tErrorCode << std::endl;
+            std::osyncstream(std::cout) << tErrorCode << std::endl;
         }
     }
 
@@ -57,6 +64,26 @@ public:
         });
     }
 
+    // Frames pMessage (4-byte big-endian length prefix + body) once, so the
+    // result can be handed to any number of sessions. Returns nullptr if
+    // serialization failed.
+    static Packet makePacket(const MessageType& pMessage)
+    {
+        size_t tBodySize = pMessage.ByteSizeLong();
+        uint32_t tHeader = htonl(static_cast<uint32_t>(tBodySize));
+
+        auto tPacket = std::make_shared<std::vector<char>>(sizeof(tHeader) + tBodySize);
+
+        std::memcpy(tPacket->data(), &tHeader, sizeof(tHeader));
+
+        if (!pMessage.SerializeToArray(tPacket->data() + sizeof(tHeader), static_cast<int>(tBodySize)))
+        {
+            return nullptr;
+        }
+
+        return tPacket;
+    }
+
     void send(const MessageType& pMessage)
     {
         if (!mIsConnected.load())
@@ -64,28 +91,46 @@ public:
             return;
         }
 
-        int tBodySize = static_cast<int>(pMessage.ByteSizeLong());
-        uint32_t tHeader = htonl(static_cast<uint32_t>(tBodySize));
+        send(makePacket(pMessage));
+    }
 
-        std::vector<char> tPacket(sizeof(tHeader) + tBodySize);
-
-        std::memcpy(tPacket.data(), &tHeader, sizeof(tHeader));
-
-        if (!pMessage.SerializeToArray(tPacket.data() + sizeof(tHeader), tBodySize))
+    void send(Packet pPacket)
+    {
+        if (!pPacket || !mIsConnected.load())
         {
             return;
         }
 
+        mPendingWrites.fetch_add(1);
+
         boost::asio::post(mStrand,
-        [self = this->shared_from_this(), packet = std::move(tPacket)]() mutable
+        [self = this->shared_from_this(), packet = std::move(pPacket)]() mutable
         {
             if (!self->mIsConnected.load())
             {
+                self->mPendingWrites.fetch_sub(1);
+                return;
+            }
+
+            // Backpressure. The write queue used to be unbounded: a client
+            // that stops reading (slow link, or deliberately) makes every
+            // subsequent broadcast pile up here forever, and with thousands
+            // of sessions that is an out-of-memory kill, not a slowdown.
+            // A healthy client never comes close to this; one that does is
+            // dropped rather than allowed to consume the server.
+            if (self->mWriteQueueBytes + packet->size() > kMaxWriteQueueBytes)
+            {
+                std::osyncstream(std::cerr) << "[Session] Yazma kuyrugu doldu, baglanti kapatiliyor. Account: "
+                          << self->mAccountId << std::endl;
+
+                self->mPendingWrites.fetch_sub(1);
+                self->onDisconnect(boost::asio::error::no_buffer_space);
                 return;
             }
 
             bool tWriteInProgress = !self->mWriteQueue.empty();
 
+            self->mWriteQueueBytes += packet->size();
             self->mWriteQueue.push_back(std::move(packet));
 
             if (!tWriteInProgress)
@@ -95,26 +140,9 @@ public:
         });
     }
 
-    void sendRequest(MessageType& pMessage, ResponseCallback pResponseCallback, uint64_t pRequestId = 0)
+    bool hasPendingWrites() const
     {
-        uint32_t tFinalId = pRequestId;
-
-        if (tFinalId == 0)
-        {
-            tFinalId = generateRequestId();
-
-            if (mRequestIdSetter)
-            {
-                mRequestIdSetter(pMessage, tFinalId);
-            }
-        }
-
-        {
-            std::lock_guard<std::mutex> tLock(mRequestMutex);
-            mPendingRequests[pRequestId] = std::move(pResponseCallback);
-        }
-
-        send(pMessage);
+        return mIsConnected.load() && mPendingWrites.load() > 0;
     }
 
     void setOnMessageFunction(MessageHandler pHandler)
@@ -127,11 +155,6 @@ public:
         mOnErrorFunction = pHandler;
     }
 
-    void setRequestIdSetter(RequestIdSetter pSetter)
-    {
-        mRequestIdSetter = pSetter;
-    }
-
     bool isConnected() const
     {
         return mIsConnected.load();
@@ -142,36 +165,61 @@ public:
         return mSocket;
     }
 
-    void setUserId(uint64_t pUserId)
+    // Two identities, set at two different points of the session's life, and
+    // both needed at once: the account is who authenticated (one live session
+    // per account, which is what the relogin kick is enforced on), the
+    // character is which of that account's characters is currently in the
+    // world (what other players see, whisper to, and share a zone with).
+    // 0 means "not yet" - authenticated-but-at-character-select is a real and
+    // normal state, and world traffic must not be accepted in it.
+    void setAccountId(uint64_t pAccountId)
     {
-        mUserId = pUserId;
+        mAccountId = pAccountId;
     }
 
-    uint64_t getUserId() const
+    uint64_t getAccountId() const
     {
-        return mUserId;
+        return mAccountId;
+    }
+
+    void setCharacterId(uint64_t pCharacterId)
+    {
+        mCharacterId = pCharacterId;
+    }
+
+    uint64_t getCharacterId() const
+    {
+        return mCharacterId;
     }
 
 private:
-    std::atomic<bool> mIsConnected;
-
+    // Declaration order is the initialization order, regardless of what the
+    // constructor's initializer list says - mStrand is built from
+    // mSocket.get_executor(), so mSocket must stay above it, and the list
+    // above is written to match this order exactly.
     boost::asio::ip::tcp::socket mSocket;
     boost::asio::strand<boost::asio::ip::tcp::socket::executor_type> mStrand;
 
+    std::atomic<bool> mIsConnected;
+
+    // Per-session ceiling on unsent, already-queued bytes - see send(Packet).
+    // Generous for normal play (a world snapshot is a few hundred bytes), so
+    // only a client that has genuinely stopped draining its socket hits it.
+    static constexpr size_t kMaxWriteQueueBytes = 1 * 1024 * 1024;
+
     uint32_t mIncomingHeader{0};
     std::vector<char> mIncomingBody;
-    std::deque<std::vector<char>> mWriteQueue;
+
+    std::deque<Packet> mWriteQueue;
+    size_t mWriteQueueBytes{0};
+
+    std::atomic<size_t> mPendingWrites{0};
 
     MessageHandler mOnMessageFunction;
     ErrorHandler mOnErrorFunction;
 
-    std::mutex mRequestMutex;
-    std::map<uint64_t, ResponseCallback> mPendingRequests;
-
-    std::atomic<uint32_t> mNextRequestId;
-    RequestIdSetter mRequestIdSetter;
-
-    uint64_t mUserId{0};
+    uint64_t mAccountId{0};
+    uint64_t mCharacterId{0};
 
     void readHeader()
     {
@@ -234,13 +282,16 @@ private:
         auto self = this->shared_from_this();
 
         boost::asio::async_write(mSocket,
-                                 boost::asio::buffer(mWriteQueue.front()),
+                                 boost::asio::buffer(*mWriteQueue.front()),
                                  boost::asio::bind_executor(mStrand,
         [self](boost::system::error_code pErrorCode, std::size_t)
         {
             if (!pErrorCode)
             {
+                self->mWriteQueueBytes -= self->mWriteQueue.front()->size();
                 self->mWriteQueue.pop_front();
+                self->mPendingWrites.fetch_sub(1);
+
                 if (!self->mWriteQueue.empty())
                 {
                     self->doWrite();
@@ -268,6 +319,8 @@ private:
             return;
         }
 
+        mPendingWrites.store(0);
+
         if (mSocket.is_open())
         {
             boost::system::error_code tIgnoredEc;
@@ -278,11 +331,6 @@ private:
         {
             mOnErrorFunction(this->shared_from_this(), pErrorCode);
         }
-    }
-
-    uint32_t generateRequestId()
-    {
-        return mNextRequestId++;
     }
 };
 

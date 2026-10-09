@@ -1,5 +1,8 @@
 #include "ThirdPersonCamera.h"
 
+#include <algorithm>
+#include <limits>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace lakot;
@@ -19,8 +22,9 @@ ThirdPersonCamera::ThirdPersonCamera()
     : Camera(CameraType::eThirdPerson)
     , mTargetPosition(0.0f, 2.0f, 10.0f)
     , mYaw(270.0)
-    , mPitch(-20.0)
+    , mPitch(25.0)
     , mDistance(8.0f)
+    , mMinimumEyeHeight(std::numeric_limits<float>::lowest())
 {
     update();
 }
@@ -56,6 +60,7 @@ void ThirdPersonCamera::update()
     mUpVector = glm::normalize(glm::cross(mRightVector, mFrontVector));
 
     mPosition = mTargetPosition - mFrontVector * mDistance;
+    mPosition.y = std::max(mPosition.y, mMinimumEyeHeight);
 
     mViewMatrix = glm::lookAt(mPosition, mTargetPosition, mUpVector);
 
@@ -104,6 +109,11 @@ void ThirdPersonCamera::moveTarget(const glm::vec3& pAmount)
 {
     mTargetPosition += pAmount;
     update();
+}
+
+void ThirdPersonCamera::setMinimumEyeHeight(float pHeight)
+{
+    mMinimumEyeHeight = pHeight;
 }
 
 void ThirdPersonCamera::setYaw(double pYaw)

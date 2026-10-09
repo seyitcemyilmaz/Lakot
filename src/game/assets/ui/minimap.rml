@@ -1,0 +1,28 @@
+<rml>
+<head>
+    <title>Minimap</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<!-- Always shown in the world. North is up; the map image slides under a
+     fixed centre, where the player's arrow sits. Click-through, so it never
+     gets in the way of the world. -->
+<body class="minimap-screen">
+    <div class="minimap" data-model="minimap">
+        <div class="minimap-view">
+            <img class="minimap-image" data-attr-src="map_source"
+                 data-style-width="map_size" data-style-height="map_size"
+                 data-style-left="map_left" data-style-top="map_top"/>
+
+            <div class="minimap-dot" data-for="player : players"
+                 data-style-left="player.left" data-style-top="player.top"></div>
+
+            <div class="map-arrow minimap-arrow" data-style-transform="arrow_transform">
+                <div class="map-arrow-nose"></div>
+                <div class="map-arrow-body"></div>
+            </div>
+        </div>
+
+        <div class="minimap-caption"><span class="minimap-name">{{ map_name }}</span> {{ coordinates }}</div>
+    </div>
+</body>
+</rml>

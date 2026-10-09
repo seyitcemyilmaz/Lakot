@@ -1,0 +1,66 @@
+<rml>
+<head>
+    <title>Chat</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="chat-window">
+    <!-- data-model lives on this wrapper, NOT on <body> - RmlUi 6.1 (the
+         version this project's vcpkg port installs) has a confirmed bug
+         where structural data views (data-for) fail to bind when their
+         data model is declared directly on the document's <body> element
+         (fixed upstream in RmlUi 6.2, see mikke89/RmlUi PR #790). Every
+         other binding here (data-if, data-class, {{ }}) works fine either
+         way - only the "line : history" loop below needs this wrapper.
+         Body's own "is-minimized" class (previously data-bound here) is now
+         set directly from C++ - see ChatRmlController::dirtyAll(). -->
+    <div data-model="__CHAT_MODEL__" class="chat-body">
+        <div data-if="!is_minimized" class="chat-titlebar" data-event-mousedown="drag_start">
+            <div data-if="is_target_confirmed" class="chat-tab" data-class-has-unread="has_unread">{{ target_username }}</div>
+
+            <!-- Shift+Enter opens a window like this one with no target yet
+                 (WorldScene::openBlankWhisperWindow) - type a username here
+                 instead of needing a right-click on a visible player first,
+                 then confirm (Enter, or "OK") to switch to the normal view
+                 above and unlock the message row below. -->
+            <div data-if="!is_target_confirmed" class="chat-tab-edit">
+                <span class="chat-name-label">To</span>
+                <input type="text" id="chat-name-input" class="chat-name-input" data-value="target_username" data-event-keydown="name_keydown"/>
+                <div class="chat-icon-btn chat-confirm-btn" data-event-click="confirm_target">OK</div>
+            </div>
+
+            <div class="chat-titlebar-buttons">
+                <div class="chat-icon-btn" data-event-click="minimize">_</div>
+                <div class="chat-icon-btn" data-event-click="close">X</div>
+            </div>
+        </div>
+
+        <div data-if="!is_minimized" class="chat-history" id="history">
+            <div data-for="line : history" class="chat-line">
+                <span class="msg-author" data-class-msg-local="line.is_local" data-class-msg-remote="!line.is_local">{{ line.author }}:</span>
+                <span data-class-msg-failed="line.is_failed">{{ line.text }}</span>
+            </div>
+        </div>
+
+        <!-- Gated on is_target_confirmed too - sending needs a name locked
+             in first (see ChatRmlController::doConfirmTarget). -->
+        <div data-if="!is_minimized &amp;&amp; is_target_confirmed" class="chat-input-row">
+            <input type="text" id="chat-message-input" class="chat-input" data-value="input_text" data-event-keydown="input_keydown"/>
+            <div class="chat-send-btn" data-event-click="send">Send</div>
+        </div>
+
+        <!-- A failed send only (ChatRmlController::onSendResult) - e.g. the
+             target username doesn't exist or isn't online. -->
+        <div data-if="!is_minimized &amp;&amp; has_status" class="chat-status">{{ status_text }}</div>
+
+        <!-- Minimized (or never-yet-opened, see ChatRmlController::appendIncoming) state -
+             a right-edge notification icon instead of a collapsed titlebar. Clicking it always
+             restores the full window, since it only ever exists while is_minimized is true. -->
+        <div data-if="is_minimized" class="mail-notification" data-event-click="minimize">
+            <div class="mail-icon" data-class-blinking="has_unread">
+                <div class="mail-icon-flap"></div>
+            </div>
+            <div class="mail-sender">{{ target_username }}</div>
+        </div>
+    </div>
+</body>
+</rml>

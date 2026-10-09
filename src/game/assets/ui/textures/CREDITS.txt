@@ -1,0 +1,4 @@
+chat-frame.png
+    Source: Kenney "Fantasy UI Borders" (panel-border-000.png)
+    https://kenney.nl/assets/fantasy-ui-borders
+    License: CC0 1.0 Universal (public domain) - credit appreciated, not required.

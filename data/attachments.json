@@ -1,0 +1,31 @@
+{
+  "weapon": {
+    "joint": "RightHand",
+    "length": 100.0,
+    "grip": 0.1099,
+    "rotation": [
+      2.1099,
+      177.5399,
+      106.47
+    ],
+    "offset": [
+      0.541,
+      6.526,
+      2.5009
+    ]
+  },
+  "helmet": {
+    "joint": "Head",
+    "widthScale": 1.7,
+    "rotation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "offset": [
+      0.0,
+      0.0299,
+      0.0
+    ]
+  }
+}

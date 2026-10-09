@@ -8,36 +8,151 @@ message Vector3 {
     float z = 3;
 }
 
-// Shared shape for both directions: the client sends its own movement
-// (player_id is ignored/omitted), the server broadcasts it back out with
-// player_id set to identify whose state this is.
+// Client -> server only. The player reports where it has moved to; the
+// server validates it (see WorldController's movement check) and folds the
+// result into the next tick's WorldSnapshot. player_id is not sent by the
+// client and is never trusted - the session already identifies the sender.
 message PlayerStateUpdate {
-    uint64 player_id = 1;
+    Vector3 position = 1;
+    float yaw = 2;
+}
+
+// One entity's current position inside a snapshot. Deliberately minimal:
+// this is the field that repeats for every visible entity, every tick.
+message AttackRequest {
+    float yaw = 1;
+    uint32 combo = 2;
+}
+
+enum EntityKind {
+    ENTITY_KIND_PLAYER = 0;
+    ENTITY_KIND_MONSTER = 1;
+    ENTITY_KIND_NPC = 2;
+    ENTITY_KIND_GROUND_ITEM = 3;
+}
+
+message EntityState {
+    uint64 entity_id = 1;
     Vector3 position = 2;
     float yaw = 3;
 }
 
-message PlayerJoined {
-    uint64 player_id = 1;
+message EquipmentVisual {
+    uint32 slot = 1;
+    uint32 template_id = 2;
+    uint32 upgrade_level = 3;
+}
+
+// An entity that has just come into view. Carries the identity data a plain
+// EntityState does not repeat on every subsequent tick.
+message EntitySpawn {
+    uint64 entity_id = 1;
     Vector3 position = 2;
     float yaw = 3;
-    string username = 4;
+    string name = 4;
+    repeated EquipmentVisual equipment = 5;
+    EntityKind kind = 6;
+    uint32 template_id = 7;
+    string model = 8;
+    uint32 health_percent = 9;
+    uint32 kingdom = 10;
+    bool is_dead = 11;
+    uint32 count = 12;
+    uint64 gold = 13;
+    uint32 level = 14;
 }
 
-message PlayerLeft {
-    uint64 player_id = 1;
+message PickupItemRequest {
+    uint64 entity_id = 1;
 }
 
-enum MapId {
-    MAP_TOWN = 0;
-    MAP_FOREST = 1;
+enum PickupResult {
+    PICKUP_RESULT_OK = 0;
+    PICKUP_RESULT_NOT_FOUND = 1;
+    PICKUP_RESULT_NOT_OWNER = 2;
+    PICKUP_RESULT_TOO_FAR = 3;
+    PICKUP_RESULT_INVENTORY_FULL = 4;
+    PICKUP_RESULT_DEAD = 5;
+}
+
+message PickupItemResponse {
+    PickupResult result = 1;
+}
+
+message Hit {
+    uint64 target_id = 1;
+    uint32 damage = 2;
+    bool killed = 3;
+}
+
+message CombatEvent {
+    uint64 attacker_id = 1;
+    uint32 combo = 2;
+    repeated Hit hits = 3;
+    uint64 target_id = 4;
+    string projectile = 5;
+}
+
+message EntityVitals {
+    uint64 entity_id = 1;
+    uint32 health_percent = 2;
+    bool is_dead = 3;
+}
+
+message SelfVitals {
+    int32 health = 1;
+    int32 max_health = 2;
+    uint32 level = 3;
+    uint64 experience = 4;
+    uint64 experience_for_next_level = 5;
+    float respawn_seconds = 6;
+    uint32 kingdom = 7;
+}
+
+// What an entity already in view now has equipped - the whole set, not a diff.
+message EntityAppearance {
+    uint64 entity_id = 1;
+    repeated EquipmentVisual equipment = 2;
+}
+
+// Everything that changed inside one player's area of interest during one
+// server tick, as a SINGLE message.
+//
+// This replaces the old per-event PlayerJoined / PlayerLeft /
+// player_state_broadcast pushes, which were emitted immediately from
+// whichever I/O thread happened to handle the incoming packet. That meant one
+// outbound message (and one full protobuf serialization) per moving player
+// per nearby observer: at a thousand players in range of each other it worked
+// out to millions of serializations and socket writes per second. Batching a
+// whole tick into one message per player makes the cost scale with the number
+// of players, not with the square of it.
+message WorldSnapshot {
+    uint32 tick = 1;
+
+    repeated EntitySpawn entered = 2;
+    repeated EntityState moved = 3;
+    repeated uint64 left = 4;
+
+    // Present only on a tick where the SERVER moved the receiver itself
+    // rather than the receiver's own input doing it - today that means a
+    // rejected movement (see the speed check in Aşama 3), where the client
+    // must snap back to the last position the server accepted.
+    optional EntityState self_correction = 5;
+
+    repeated EntityAppearance appearance = 6;
+
+    repeated CombatEvent combat = 7;
+    repeated EntityVitals vitals = 8;
+    optional SelfVitals self_vitals = 9;
 }
 
 // Server push only - tells a player their map and position changed (a
 // portal was used). The server is the sole source of truth for which map a
 // player is on; clients never report their own map id.
 message MapChanged {
-    MapId map_id = 1;
+    // Data-driven (data/maps/*/map.json): 1xx, 2xx, 3xx belong to kingdoms
+    // 1-3, 4xx are shared. Was an enum; uint32 is wire-compatible with it.
+    uint32 map_id = 1;
     Vector3 position = 2;
     float yaw = 3;
 }

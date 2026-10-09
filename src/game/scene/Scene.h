@@ -31,6 +31,12 @@ public:
 
     virtual bool handleEvent(SDL_Event* pEvent) = 0;
 
+    virtual void onSessionResumed() {}
+
+    virtual bool isCapturingMouse() const { return false; }
+
+    virtual bool onCloseRequested() { return false; }
+
 protected:
     Engine& mEngine;
 };

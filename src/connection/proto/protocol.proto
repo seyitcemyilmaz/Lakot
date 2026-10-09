@@ -8,6 +8,7 @@ import "services/auth.proto";
 import "services/chat.proto";
 import "services/shop.proto";
 import "services/world.proto";
+import "services/inventory.proto";
 
 message Request {
     common.RequestHeader header = 1;
@@ -16,6 +17,11 @@ message Request {
         // auth service
         services.auth.RegisterRequest register_request = 1000;
         services.auth.LoginRequest login_request = 1001;
+        services.auth.CharacterListRequest character_list_request = 1002;
+        services.auth.CharacterCreateRequest character_create_request = 1003;
+        services.auth.EnterWorldRequest enter_world_request = 1004;
+        services.auth.ResumeSessionRequest resume_session_request = 1005;
+        services.auth.LogoutRequest logout_request = 1006;
 
         // chat service
         services.chat.ChatMessageRequest chat_message_request = 2000;
@@ -26,29 +32,51 @@ message Request {
 
         // world service
         services.world.PlayerStateUpdate player_state_update = 4000;
+        services.world.AttackRequest attack_request = 4001;
+        services.world.PickupItemRequest pickup_item_request = 4002;
+
+        // inventory service
+        services.inventory.EquipItemRequest equip_item_request = 5000;
+        services.inventory.UnequipItemRequest unequip_item_request = 5001;
+        services.inventory.MoveItemRequest move_item_request = 5002;
     }
 }
 
 message Response {
     common.ResponseHeader header = 1;
 
+    // 4000 player_state_broadcast, 4001 player_joined, 4002 player_left -
+    // all three were folded into world_snapshot (4004). Reserved so the tags
+    // are never reused for something with a different meaning while older
+    // clients may still be out there.
+    reserved 4000, 4001, 4002;
+
     oneof payload {
         // auth service
         services.auth.RegisterResponse register_response = 1000;
         services.auth.LoginResponse login_response = 1001;
+        services.auth.CharacterListResponse character_list_response = 1002;
+        services.auth.CharacterCreateResponse character_create_response = 1003;
+        services.auth.EnterWorldResponse enter_world_response = 1004;
+        services.auth.ResumeSessionResponse resume_session_response = 1005;
 
         // chat service
         services.chat.ChatMessageResponse chat_message_response = 2000;
         services.chat.DirectMessageResponse direct_message_response = 2001;
         services.chat.DirectMessageReceived direct_message_received = 2002;
+        services.chat.ChatMessageReceived chat_message_received = 2003;
 
         // shop service
         services.shop.BuyItemResponse buy_item_response = 3000;
 
         // world service
-        services.world.PlayerStateUpdate player_state_broadcast = 4000;
-        services.world.PlayerJoined player_joined = 4001;
-        services.world.PlayerLeft player_left = 4002;
         services.world.MapChanged map_changed = 4003;
+        services.world.WorldSnapshot world_snapshot = 4004;
+        services.world.PickupItemResponse pickup_item_response = 4005;
+
+        // inventory service
+        services.inventory.InventoryActionResponse inventory_action_response = 5000;
+        services.inventory.InventoryUpdate inventory_update = 5001;
+        services.inventory.ItemTemplateList item_template_list = 5002;
     }
 }

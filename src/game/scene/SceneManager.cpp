@@ -22,6 +22,17 @@ void SceneManager::setNextScene(std::unique_ptr<Scene> pScene)
     mNextScene = std::move(pScene);
 }
 
+void SceneManager::shutdown()
+{
+    if (mCurrentScene)
+    {
+        mCurrentScene->exit();
+        mCurrentScene.reset();
+    }
+
+    mNextScene.reset();
+}
+
 void SceneManager::update(double pDeltaTime)
 {
     if (mNextScene)
@@ -51,6 +62,24 @@ bool SceneManager::handleEvent(SDL_Event* pEvent)
     }
 
     return false;
+}
+
+void SceneManager::onSessionResumed()
+{
+    if (mCurrentScene)
+    {
+        mCurrentScene->onSessionResumed();
+    }
+}
+
+bool SceneManager::onCloseRequested()
+{
+    return mCurrentScene && mCurrentScene->onCloseRequested();
+}
+
+bool SceneManager::isCapturingMouse() const
+{
+    return mCurrentScene && mCurrentScene->isCapturingMouse();
 }
 
 void SceneManager::applySceneChange()

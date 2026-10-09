@@ -1,0 +1,31 @@
+<rml>
+<head>
+    <title>World Chat</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="world-chat-window">
+    <!-- data-model on this wrapper, NOT on <body> - same RmlUi 6.1 data-for
+         bug as chat.rml (data-model directly on <body> breaks structural
+         data views; see chat.rml's own comment for the full explanation). -->
+    <div data-model="world_chat" class="chat-body" data-class-is-open="is_open">
+        <div class="chat-history" id="history">
+            <div data-for="line : history" class="chat-line" data-class-faded="line.is_faded">
+                <span class="msg-author" data-class-msg-local="line.is_local" data-class-msg-remote="!line.is_local">{{ line.author }}:</span>
+                <span data-class-msg-failed="line.is_failed"
+                      data-class-msg-global="line.is_global &amp;&amp; !line.is_failed"
+                      data-class-msg-nearby="!line.is_global &amp;&amp; !line.is_failed">{{ line.text }}</span>
+            </div>
+        </div>
+
+        <!-- Why the server refused the last send (the world-message cooldown,
+             usually). Same red .chat-status whisper windows already use. -->
+        <div class="chat-status" data-if="has_status">{{ status_text }}</div>
+
+        <div class="chat-input-row" data-if="is_open">
+            <div class="chat-scope-btn" data-class-scope-global="is_global_mode" data-event-click="toggle_scope">{{ scope_label }}</div>
+            <input type="text" id="chat-input" class="chat-input" data-value="input_text" data-event-keydown="input_keydown"/>
+            <div class="chat-send-btn" data-event-click="send">Send</div>
+        </div>
+    </div>
+</body>
+</rml>

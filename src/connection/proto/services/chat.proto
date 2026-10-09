@@ -9,10 +9,27 @@ enum ChatMessageErrorCode {
 
 message ChatMessageRequest {
     string text = 1;
+    // Already fully decided client-side (the world chat scope button, OR the
+    // player explicitly typing a leading "!" for one message regardless of
+    // the button - see WorldChatRmlController::doSend()) - the server just
+    // trusts this, no text-sniffing on its end at all.
+    bool is_global = 2;
 }
 
 message ChatMessageResponse {
     ChatMessageErrorCode error_code = 1;
+}
+
+// Pushed when a ChatMessageRequest is delivered - same role as
+// DirectMessageReceived below, just broadcast instead of sent to one named
+// recipient. Mirrors the request's own is_global: true means every player on
+// the server got this (regardless of map); false means only players within
+// the sender's interest range (WorldRegistry) did.
+message ChatMessageReceived {
+    uint64 from_player_id = 1;
+    string from_username = 2;
+    string text = 3;
+    bool is_global = 4;
 }
 
 enum DirectMessageErrorCode {

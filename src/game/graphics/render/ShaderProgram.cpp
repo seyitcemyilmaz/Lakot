@@ -126,6 +126,19 @@ void ShaderProgram::setInt(const std::string& pUniformName, int pValue)
     glUniform1i(tUniform->location, pValue);
 }
 
+void ShaderProgram::setFloat(const std::string& pUniformName, float pValue)
+{
+    ShaderUniform* tUniform = getUniform(pUniformName);
+
+    if (!tUniform)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
+        return;
+    }
+
+    glUniform1f(tUniform->location, pValue);
+}
+
 void ShaderProgram::setVec3(const std::string& pUniformName, const glm::vec3& pValue)
 {
     ShaderUniform* tUniform = getUniform(pUniformName);

@@ -1,0 +1,304 @@
+{
+  "style": "Stylized realistic MMORPG art, hand-painted PBR-friendly textures, clean readable silhouette, realistic human proportions, not chibi, not blocky, not voxel. Plain flat light-grey background, even soft studio lighting, no cast shadows, orthographic views, no perspective, no text, no labels, no watermark, nothing cropped. Leave a clear gap of empty background between the separate views.",
+  "preambles": {
+    "base": "Character turnaround sheet for a rigged 3D game model: front view, left side view and back view side by side, same scale and height in every view. A-pose: both arms stretched straight out and down at 45 degrees away from the torso, clear empty space between each arm and the body, hands not touching the body, palms facing down, legs shoulder-width apart, feet fully visible.",
+    "armor": "Use the attached character sheet as the exact reference for body, face, proportions and pose. Same character, same A-pose with arms held away from the body, same three views (front, left side, back) side by side, now wearing the armor described below. No helmet (head and hair visible), no weapon, hands empty. Armor:",
+    "helmet": "Single game asset: one helmet only, no head inside it, shown in front view and left side view next to each other. Designed to match the armor in the attached image. Helmet:",
+    "sword": "Single game asset: one sword only, vertical with the blade pointing up, shown in two views next to each other: flat view (blade face toward the camera) and edge view. Match the art style of the attached image. Sword:",
+    "monster": "Use the attached character sheet only as the reference for art style, body proportions, the A-pose (arms held away from the body) and the three-view layout (front, left side, back side by side). Draw a different person, not the same face. No weapon, hands empty. Character:"
+  },
+  "entries": [
+    {
+      "id": "body_base",
+      "kind": "body",
+      "preamble": "base",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [],
+      "description": "Subject: a young male Turkic warrior of Central Asian steppe heritage, athletic build, 7 heads tall, short dark hair tied in a small topknot, trimmed beard, calm determined face. Outfit (the base layer seen when no armor is worn): plain off-white linen undershirt with a wrap-over collar, simple brown trousers, soft leather ankle boots, cloth sash belt. No armor, no helmet, no weapon, no cape, no jewellery."
+    },
+    {
+      "id": "armor_l01",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Steppe Herder",
+      "description": "a knee-length felt kaftan in undyed wool with simple red stitching, leather belt with a bone buckle, felt leg wraps, soft boots."
+    },
+    {
+      "id": "armor_l10",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Hun Raider",
+      "description": "a hardened leather lamellar vest over a dark brown kaftan, leather shoulder flaps, wide leather belt with iron fittings, fur-trimmed boots."
+    },
+    {
+      "id": "armor_l20",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Gokturk Guard",
+      "description": "iron lamellar armor over a deep blue kaftan, lamellar shoulder guards, lamellar skirt panels to mid-thigh, bronze belt plaques with a wolf-head buckle, tall riding boots."
+    },
+    {
+      "id": "armor_l30",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Uyghur Cavalryman",
+      "description": "steel scale armor on the torso and upper arms over a crimson kaftan, layered scale tassets, embroidered collar, leather bracers with bronze studs."
+    },
+    {
+      "id": "armor_l40",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Karakhanid Alp",
+      "description": "a chain mail shirt under a steel lamellar breastplate, kaftan edges in turquoise and gold, brass rivets and engraved plates, articulated shoulder guards, steel greaves."
+    },
+    {
+      "id": "armor_l50",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Seljuk Emir",
+      "description": "polished steel plate-and-mail armor with a round engraved breast disc, eight-pointed star ornaments, indigo silk kaftan beneath, gold-trimmed belt, steel vambraces."
+    },
+    {
+      "id": "armor_l60",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Anatolian Bey",
+      "description": "an armored kaftan in deep red velvet with gold embroidery and steel plates riveted inside, steel shoulder plates, mail skirt, embroidered silk sash."
+    },
+    {
+      "id": "armor_l70",
+      "kind": "body",
+      "preamble": "armor",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "name": "Khagan's Guard",
+      "description": "legendary ornate armor: blackened steel lamellar with gold filigree, wolf-head pauldrons, crimson silk kaftan with gold geometric patterns, jewelled belt, small glowing blue gemstones."
+    },
+    {
+      "id": "helmet_l01",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l01"
+      ],
+      "description": "a pointed white felt cap (bork) with red trim."
+    },
+    {
+      "id": "helmet_l10",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l10"
+      ],
+      "description": "a hardened leather cap with an iron band and fur-lined ear flaps."
+    },
+    {
+      "id": "helmet_l20",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l20"
+      ],
+      "description": "a conical iron helmet (tolga) with a short spike and a mail aventail covering the neck."
+    },
+    {
+      "id": "helmet_l30",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l30"
+      ],
+      "description": "a steel helmet with a scale neck guard and a red horsehair plume."
+    },
+    {
+      "id": "helmet_l40",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l40"
+      ],
+      "description": "a steel dome helmet with an engraved brass rim, a nasal guard and a mail aventail."
+    },
+    {
+      "id": "helmet_l50",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l50"
+      ],
+      "description": "a fluted steel Seljuk helmet with a gold eight-pointed star engraving and hinged cheek guards."
+    },
+    {
+      "id": "helmet_l60",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l60"
+      ],
+      "description": "a tall steel turban helmet with gold-inlaid ornamental patterns (no readable letters) and a mail aventail."
+    },
+    {
+      "id": "helmet_l70",
+      "kind": "helmet",
+      "preamble": "helmet",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "armor_l70"
+      ],
+      "description": "a blackened steel helmet with a gold wolf crest, a tall spike and a jewelled front plate."
+    },
+    {
+      "id": "sword_l01",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a short plain iron sword with a simple cross-guard and a wooden grip wrapped in cord."
+    },
+    {
+      "id": "sword_l10",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a straight double-edged Hunnic sword with an iron ring pommel and a leather grip."
+    },
+    {
+      "id": "sword_l20",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a slightly curved Gokturk sabre with a bronze guard and a wolf-head pommel."
+    },
+    {
+      "id": "sword_l30",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a curved Uyghur sabre with an engraved blade and a red leather grip."
+    },
+    {
+      "id": "sword_l40",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a Karakhanid sabre with a turquoise-inlaid guard and a silver pommel cap."
+    },
+    {
+      "id": "sword_l50",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a Seljuk kilij with a widened, back-edged tip (yelman), gold eight-pointed star on the guard."
+    },
+    {
+      "id": "sword_l60",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "an Anatolian pala: short, broad, strongly curved blade with an ornate brass hilt."
+    },
+    {
+      "id": "sword_l70",
+      "kind": "sword",
+      "preamble": "sword",
+      "aspect": "4:3",
+      "views": 2,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a legendary kilij with a damascus-patterned blade, a gold filigree hilt and a glowing blue gem in the pommel."
+    },
+    {
+      "id": "bandit",
+      "kind": "body",
+      "preamble": "monster",
+      "aspect": "16:9",
+      "views": 3,
+      "refs": [
+        "body_base"
+      ],
+      "description": "a lean, menacing steppe bandit: scarred face half hidden by a dark cloth face veil, unkempt long black hair, ragged patched leather vest over a torn faded brown shirt, rope belt with pouches, patched wool trousers, worn wrapped boots, grey fur scrap on one shoulder."
+    }
+  ]
+}

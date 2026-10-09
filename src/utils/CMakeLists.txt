@@ -18,6 +18,12 @@ add_library(${PROJECT_NAME} STATIC
 
     BoundingBox.h BoundingBox.cpp
 
+    MapData.h MapData.cpp
+    MapCatalog.h MapCatalog.cpp
+    MonsterCatalog.h MonsterCatalog.cpp
+    Pathfinder.h Pathfinder.cpp
+    MovementRules.h
+
     FileManager.h FileManager.cpp
 
     Image.h
@@ -29,6 +35,11 @@ add_library(${PROJECT_NAME} STATIC
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC LAKOT_UTILS_LIBRARY)
+
+### Map data: PNG layers through stb_image, map.json through RapidJSON.
+find_package(RapidJSON CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE RapidJSON)
+target_include_directories(${PROJECT_NAME} PRIVATE ${LAKOT_EXTERNAL_PATH}/stb)
 
 ### add glm - start
 if (LAKOT_USE_PLATFORM_WINDOWS) # v1.0.1

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <thread>
+#include <syncstream>
 
 using namespace lakot;
 
@@ -18,14 +19,14 @@ DatabaseManager::DatabaseManager()
 
 void DatabaseManager::initialize(const DatabaseConfig& pConfig)
 {
-    std::cout << "[Database] Veritabani kontrol ediliyor..." << std::endl;
+    std::osyncstream(std::cout) << "[Database] Veritabani kontrol ediliyor..." << std::endl;
     ensureDatabaseExists(pConfig);
 
     unsigned int tPoolSize = pConfig.poolSize > 0
         ? pConfig.poolSize
         : std::clamp(std::thread::hardware_concurrency(), 2u, 8u);
 
-    std::cout << "[Database] Connection pool boyutu: " << tPoolSize << std::endl;
+    std::osyncstream(std::cout) << "[Database] Connection pool boyutu: " << tPoolSize << std::endl;
 
     for (unsigned int tIndex = 0; tIndex < tPoolSize; ++tIndex)
     {
@@ -49,12 +50,12 @@ void DatabaseManager::initialize(const DatabaseConfig& pConfig)
 
                 if (tWorkerPtr->connection->is_open())
                 {
-                    std::cout << "[Database] Worker #" << tIndex << " baglanti BASARILI: " << tWorkerPtr->connection->dbname() << std::endl;
+                    std::osyncstream(std::cout) << "[Database] Worker #" << tIndex << " baglanti BASARILI: " << tWorkerPtr->connection->dbname() << std::endl;
                 }
             }
             catch (const std::exception& tException)
             {
-                std::cerr << "[Database] Worker #" << tIndex << " Kritik Baslatma Hatasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[Database] Worker #" << tIndex << " Kritik Baslatma Hatasi: " << tException.what() << std::endl;
             }
         });
 
@@ -66,7 +67,7 @@ void DatabaseManager::executeAsync(DatabaseTask pTask)
 {
     if (mWorkers.empty())
     {
-        std::cerr << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
+        std::osyncstream(std::cerr) << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
         return;
     }
 
@@ -78,7 +79,7 @@ void DatabaseManager::executeAsync(DatabaseTask pTask, uint64_t pAffinityKey)
 {
     if (mWorkers.empty())
     {
-        std::cerr << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
+        std::osyncstream(std::cerr) << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
         return;
     }
 
@@ -100,12 +101,12 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask)
             }
             catch (const std::exception& tException)
             {
-                std::cerr << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: " << tException.what() << std::endl;
             }
         }
         else
         {
-            std::cerr << "[Database] Worker #" << pWorkerIndex << " Hata: Baglanti yok, sorgu calistirilamadi." << std::endl;
+            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Hata: Baglanti yok, sorgu calistirilamadi." << std::endl;
         }
     });
 }
@@ -122,9 +123,9 @@ void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)
 
         if (tRes.empty())
         {
-            std::cout << "[Database] Olusturuluyor: " << pConfig.name << std::endl;
+            std::osyncstream(std::cout) << "[Database] Olusturuluyor: " << pConfig.name << std::endl;
             tNtx.exec("CREATE DATABASE " + pConfig.name);
-            std::cout << "[Database] Olusturuldu." << std::endl;
+            std::osyncstream(std::cout) << "[Database] Olusturuldu." << std::endl;
         }
     }
     catch (const std::exception& tException)
@@ -132,16 +133,22 @@ void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)
         std::string tErr = tException.what();
         if (tErr.find("already exists") == std::string::npos)
         {
-            std::cerr << "[Database] CreateDB Uyarisi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Database] CreateDB Uyarisi: " << tException.what() << std::endl;
         }
     }
 }
 
 void DatabaseManager::stop()
 {
+    // Releasing the work guard (rather than calling context.stop()) lets each
+    // worker finish the tasks already queued on it and then return from run()
+    // on its own. context.stop() would abandon them - which silently dropped
+    // the position saves posted during shutdown, the very writes that most
+    // need to land. Nothing new can be posted at this point: the network
+    // layer is already stopped by the time Server's destructor gets here.
     for (auto& tWorker : mWorkers)
     {
-        tWorker->context.stop();
+        tWorker->workGuard.reset();
     }
 
     for (auto& tWorker : mWorkers)
@@ -151,6 +158,11 @@ void DatabaseManager::stop()
             tWorker->thread.join();
         }
     }
+
+    // stop() runs from both Server's destructor and DatabaseManager's own -
+    // clearing the pool makes the second call a no-op instead of re-joining
+    // already-joined threads.
+    mWorkers.clear();
 }
 
 bool DatabaseManager::isConnected() const

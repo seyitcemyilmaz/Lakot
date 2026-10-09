@@ -65,16 +65,22 @@ namespace
         return tResult;
     }
 
+    // Returns an EMPTY vector on failure rather than a zero-filled one - a
+    // silently all-zero "hash" would compare equal between two different
+    // failed derivations, so callers must be able to tell the difference.
     std::vector<unsigned char> derive(const std::string& pPassword, const std::vector<unsigned char>& pSalt, int pIterations)
     {
         std::vector<unsigned char> tHash(kHashBytes);
 
-        PKCS5_PBKDF2_HMAC(
-            pPassword.data(), static_cast<int>(pPassword.size()),
-            pSalt.data(), static_cast<int>(pSalt.size()),
-            pIterations,
-            EVP_sha256(),
-            kHashBytes, tHash.data());
+        if (PKCS5_PBKDF2_HMAC(
+                pPassword.data(), static_cast<int>(pPassword.size()),
+                pSalt.data(), static_cast<int>(pSalt.size()),
+                pIterations,
+                EVP_sha256(),
+                kHashBytes, tHash.data()) != 1)
+        {
+            return {};
+        }
 
         return tHash;
     }
@@ -100,9 +106,22 @@ namespace
 std::string PasswordHasher::hash(const std::string& pPassword)
 {
     std::vector<unsigned char> tSalt(kSaltBytes);
-    RAND_bytes(tSalt.data(), kSaltBytes);
+
+    // An unchecked RAND_bytes failure would leave the salt uninitialized (or
+    // all zeros) and still produce a plausible-looking hash string - every
+    // account created during such a failure would share a salt. Fail loudly
+    // instead; createAccount() turns the empty return into a register error.
+    if (RAND_bytes(tSalt.data(), kSaltBytes) != 1)
+    {
+        return {};
+    }
 
     std::vector<unsigned char> tHash = derive(pPassword, tSalt, kIterations);
+
+    if (tHash.empty())
+    {
+        return {};
+    }
 
     std::ostringstream tStream;
     tStream << kAlgorithmTag << '$' << kIterations << '$'
@@ -143,6 +162,11 @@ bool PasswordHasher::verify(const std::string& pPassword, const std::string& pSt
     }
 
     std::vector<unsigned char> tActualHash = derive(pPassword, tSalt, tIterations);
+
+    if (tActualHash.empty())
+    {
+        return false; // derivation failed - never treat that as a match
+    }
 
     return constantTimeEquals(tActualHash, tExpectedHash);
 }
