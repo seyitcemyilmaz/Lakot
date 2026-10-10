@@ -39,6 +39,8 @@ class Server:
         self.log_lines = []
 
     def start(self, timeout=40):
+        if not os.environ.get("LAKOT_DB_PASSWORD"):
+            raise RuntimeError("LAKOT_DB_PASSWORD is not set in the environment; the server requires it")
         run_dir = HERE / ".run"
         shutil.rmtree(run_dir, ignore_errors=True)
         shutil.copytree(self.bin_dir, run_dir)
