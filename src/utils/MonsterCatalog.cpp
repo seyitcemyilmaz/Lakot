@@ -124,7 +124,7 @@ bool MonsterCatalog::load(const std::string& pDataDirectory, std::string& pError
                 tDrop.maxCount = std::max(tDrop.minCount, static_cast<uint32_t>(std::max(1, getInt(tDropEntry, "max", 1))));
 
                 auto tGuaranteed = tDropEntry.FindMember("guaranteed");
-                tDrop.guaranteed = tGuaranteed != tDropEntry.MemberEnd() && tGuaranteed->value.IsBool() && tGuaranteed->value.GetBool();
+                tDrop.isGuaranteed = tGuaranteed != tDropEntry.MemberEnd() && tGuaranteed->value.IsBool() && tGuaranteed->value.GetBool();
 
                 if (tDrop.itemId != 0)
                 {

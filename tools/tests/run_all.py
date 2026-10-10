@@ -1,4 +1,4 @@
-import sys, time, math, traceback, threading
+import subprocess, sys, time, math, traceback, threading
 from lakotnet import *
 from mapnav import nav
 
@@ -634,6 +634,9 @@ def main():
             S["H"].A.close()
             S["H"].B.close()
         srv.stop()
+    g = subprocess.call([sys.executable, str(HERE / 't_monsters_g21.py')])
+    if g != 0:
+        RESULTS.append(('t_monsters_g21', False, 'see output above'))
     p = sum(1 for r in RESULTS if r[1])
     print(f"\n{p}/{len(RESULTS)} passed")
     if p != len(RESULTS):

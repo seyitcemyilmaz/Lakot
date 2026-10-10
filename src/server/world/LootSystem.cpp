@@ -76,7 +76,7 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
 
     for (const MonsterDrop& tDrop : tTemplate->drops)
     {
-        if (tDrop.guaranteed && mItemCatalog.find(tDrop.itemId))
+        if (tDrop.isGuaranteed && mItemCatalog.find(tDrop.itemId))
         {
             tSpawnDrop(tDrop);
         }
@@ -86,7 +86,7 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
     {
         for (const MonsterDrop& tDrop : tTemplate->drops)
         {
-            if (!tDrop.guaranteed && tUnit(mRandom) < tDrop.chance && mItemCatalog.find(tDrop.itemId))
+            if (!tDrop.isGuaranteed && tUnit(mRandom) < tDrop.chance && mItemCatalog.find(tDrop.itemId))
             {
                 tSpawnDrop(tDrop);
             }

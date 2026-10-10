@@ -15,7 +15,7 @@ struct MonsterDrop
     float chance = 0.0f;
     uint32_t minCount = 1;
     uint32_t maxCount = 1;
-    bool guaranteed = false;
+    bool isGuaranteed = false;
 };
 
 struct MonsterTemplate
