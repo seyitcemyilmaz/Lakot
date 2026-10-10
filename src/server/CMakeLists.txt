@@ -34,12 +34,20 @@ add_executable(${PROJECT_NAME}
     network/controller/WorldController.h network/controller/WorldController.cpp
     network/controller/ChatController.h network/controller/ChatController.cpp
     network/controller/InventoryController.h network/controller/InventoryController.cpp
+    network/controller/CommandController.h network/controller/CommandController.cpp
+
+    command/CommandContext.h command/CommandContext.cpp
+    command/CommandReply.h command/CommandReply.cpp
+    command/CommandTargetResolver.h command/CommandTargetResolver.cpp
+    command/WorldCommands.h command/WorldCommands.cpp
+    command/ModerationCommands.h command/ModerationCommands.cpp
 
     game/ItemTemplate.h
     game/ItemCatalog.h game/ItemCatalog.cpp
     game/CharacterStats.h
     game/Inventory.h game/Inventory.cpp
     game/Character.h game/Character.cpp
+    game/CharacterAccess.h
 
     script/ScriptEngine.h script/ScriptEngine.cpp
 
@@ -52,6 +60,7 @@ add_executable(${PROJECT_NAME}
 
     security/PasswordHasher.h security/PasswordHasher.cpp
     security/LoginAttemptLimiter.h security/LoginAttemptLimiter.cpp
+    security/TokenBucketLimiter.h security/TokenBucketLimiter.cpp
 
     database/DatabaseConfig.h
     database/DatabaseManager.h database/DatabaseManager.cpp
@@ -62,6 +71,7 @@ add_executable(${PROJECT_NAME}
     database/repository/AccountRepository.h database/repository/AccountRepository.cpp
     database/repository/CharacterRepository.h database/repository/CharacterRepository.cpp
     database/repository/ItemRepository.h database/repository/ItemRepository.cpp
+    database/repository/GmLogRepository.h database/repository/GmLogRepository.cpp
 
     database/repository/RepositoryManager.h database/repository/RepositoryManager.cpp
 )

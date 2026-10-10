@@ -140,31 +140,7 @@ void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<c
 
 void AuthController::handleLogoutRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
 {
-    uint64_t tAccountId = pSession->getAccountId();
-
-    if (tAccountId == 0)
-    {
-        return;
-    }
-
-    uint64_t tCharacterId = pSession->getCharacterId();
-
-    mNetworkManager.getSessionResumeManager().revoke(tAccountId);
-
-    auto& tRegistry = mNetworkManager.getSessionRegistry();
-    tRegistry.remove(tAccountId, pSession);
-
-    if (tCharacterId != 0)
-    {
-        tRegistry.unbindCharacter(tCharacterId, pSession);
-        mNetworkManager.releaseCharacter(tCharacterId);
-    }
-
-    // The connection stays open, unauthenticated, ready for the next login.
-    pSession->setCharacterId(0);
-    pSession->setAccountId(0);
-
-    std::osyncstream(std::cout) << "[Server] Cikis yapildi (hesap: " << tAccountId << ")" << std::endl;
+    mNetworkManager.endSession(pSession);
 }
 
 void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)

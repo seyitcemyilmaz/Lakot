@@ -113,6 +113,26 @@ void Character::setItems(std::vector<ItemInstance> pItems)
     refreshVitals();
 }
 
+void Character::setHealth(int32_t pHealth)
+{
+    mStats.health = std::clamp(pHealth, 0, getMaxHealth());
+    markDirty();
+}
+
+void Character::setMana(int32_t pMana)
+{
+    mStats.mana = std::clamp(pMana, 0, getMaxMana());
+    markDirty();
+}
+
+void Character::setLevel(uint32_t pLevel)
+{
+    mStats.level = std::max(1u, pLevel);
+    mStats.experience = 0;
+    refreshVitals();
+    markDirty();
+}
+
 uint32_t Character::giveItem(uint32_t pTemplateId, uint32_t pCount)
 {
     uint32_t tLeftOver = mInventory.addItem(pTemplateId, pCount);

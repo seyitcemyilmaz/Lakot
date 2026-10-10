@@ -53,6 +53,18 @@ public:
     // instead.
     using LocalMessageSentCallback = std::function<void(bool pIsGlobal, const std::string& pText)>;
 
+    using CommandSubmittedCallback = std::function<void(const std::string& pText)>;
+
+    enum class SystemLineType
+    {
+        eInfo,
+        eAnnounce,
+        eRoll,
+        eWarning,
+        eError,
+        eEcho
+    };
+
     explicit WorldChatRmlController(RmlUiLayer& pRmlUiLayer);
     ~WorldChatRmlController();
 
@@ -73,6 +85,9 @@ public:
     void clearHistory();
 
     void setLocalMessageSentCallback(LocalMessageSentCallback pCallback);
+    void setCommandSubmittedCallback(CommandSubmittedCallback pCallback);
+
+    void appendSystemLine(const std::string& pText, SystemLineType pType);
 
     // Wired to ChatController::ChatMessageResultCallback by WorldScene. On
     // failure the optimistically-appended line is marked failed (red) and
@@ -127,6 +142,12 @@ private:
         // line (the world-message cooldown, most often). Drives .msg-failed,
         // the same red whisper already uses for a rejected send.
         bool isFailed{false};
+
+        bool isSystem{false};
+        bool isAnnounce{false};
+        bool isRoll{false};
+        bool isError{false};
+        bool isEcho{false};
     };
 
     RmlUiLayer& mRmlUiLayer;
@@ -154,6 +175,7 @@ private:
     bool mHasPendingSend{false};
 
     LocalMessageSentCallback mLocalMessageSentCallback;
+    CommandSubmittedCallback mCommandSubmittedCallback;
 
     void onSendClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
 

@@ -55,3 +55,32 @@ message DirectMessageReceived {
     string from_username = 2;
     string text = 3;
 }
+
+enum CommandStatus {
+    COMMAND_OK = 0;
+    COMMAND_UNKNOWN = 1;
+    COMMAND_USAGE = 2;
+    COMMAND_FAILED = 3;
+    COMMAND_THROTTLED = 4;
+}
+
+message CommandRequest {
+    string text = 1;
+}
+
+message CommandResponse {
+    CommandStatus status = 1;
+    repeated string lines = 2;
+}
+
+enum SystemMessageKind {
+    SYSTEM_MESSAGE_INFO = 0;
+    SYSTEM_MESSAGE_ANNOUNCE = 1;
+    SYSTEM_MESSAGE_ROLL = 2;
+    SYSTEM_MESSAGE_WARNING = 3;
+}
+
+message SystemMessage {
+    SystemMessageKind kind = 1;
+    string text = 2;
+}

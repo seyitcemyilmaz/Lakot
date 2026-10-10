@@ -7,6 +7,7 @@
 #include "InventoryController.h"
 #include "../RequestLimits.h"
 #include "../../game/ItemCatalog.h"
+#include "../../game/CharacterAccess.h"
 
 using namespace lakot;
 
@@ -280,7 +281,12 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
             tState.z = tZ;
             tState.yaw = tYaw;
 
-            mWorldController.enterWorld(tSnapshot, tMapId, tState);
+            CharacterAccess tAccess;
+            tAccess.accountId = pSession->getAccountId();
+            tAccess.gmLevel = pRecord.gmLevel;
+            tAccess.mutedUntilEpoch = pRecord.mutedUntilEpoch;
+
+            mWorldController.enterWorld(tSnapshot, tMapId, tState, tAccess);
 
             std::osyncstream(std::cout) << "[Server] Dunyaya giris: " << pRecord.name
                       << " (ID: " << pRecord.characterId

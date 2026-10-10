@@ -9,6 +9,9 @@
 #include "network/controller/WorldController.h"
 #include "network/controller/ChatController.h"
 #include "network/controller/InventoryController.h"
+#include "network/controller/CommandController.h"
+#include "command/WorldCommands.h"
+#include "command/ModerationCommands.h"
 #include "database/repository/RepositoryManager.h"
 #include "game/ItemCatalog.h"
 #include "MonsterCatalog.h"
@@ -44,9 +47,14 @@ private:
 
     std::unique_ptr<WorldController> mWorldController;
     std::unique_ptr<InventoryController> mInventoryController;
+    std::unique_ptr<CommandController> mCommandController;
+    std::unique_ptr<WorldCommands> mWorldCommands;
+    std::unique_ptr<ModerationCommands> mModerationCommands;
     std::unique_ptr<ChatController> mChatController;
     std::unique_ptr<CharacterController> mCharacterController;
     std::unique_ptr<AuthController> mAuthController;
+
+    void grantConfiguredGmAccount();
 };
 
 }

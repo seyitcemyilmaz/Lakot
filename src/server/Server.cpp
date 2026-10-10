@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <future>
 #include <thread>
 #include <vector>
@@ -75,6 +76,7 @@ bool Server::initialize()
 
     mDatabaseManager.initialize(tDatabaseConfig);
     mRepositoryManager->initialize();
+    grantConfiguredGmAccount();
 
     // Blocking on purpose, and the one place in the server that does.
     //
@@ -147,13 +149,19 @@ bool Server::initialize()
 
     mWorldController = std::make_unique<WorldController>(mNetworkManager, tRepositories, mItemCatalog, mMapCatalog, mMonsterCatalog);
     mInventoryController = std::make_unique<InventoryController>(mNetworkManager, tRepositories, *mWorldController, mItemCatalog);
-    mChatController = std::make_unique<ChatController>(mNetworkManager, tRepositories, *mWorldController);
+    mCommandController = std::make_unique<CommandController>(mNetworkManager, tRepositories, *mWorldController);
+    mWorldCommands = std::make_unique<WorldCommands>(*mWorldController, mItemCatalog, mMonsterCatalog);
+    mModerationCommands = std::make_unique<ModerationCommands>(*mWorldController, mNetworkManager, tRepositories.getAccountRepository());
+    mChatController = std::make_unique<ChatController>(mNetworkManager, tRepositories, *mWorldController, *mCommandController);
     mCharacterController = std::make_unique<CharacterController>(mNetworkManager, tRepositories, *mWorldController,
                                                                  *mInventoryController, mItemCatalog, mMapCatalog);
     mAuthController = std::make_unique<AuthController>(mNetworkManager, tRepositories, *mWorldController);
 
     mWorldController->initialize();
     mInventoryController->initialize();
+    mCommandController->initialize();
+    mWorldCommands->registerCommands(*mCommandController);
+    mModerationCommands->registerCommands(*mCommandController);
     mChatController->initialize();
     mCharacterController->initialize();
     mAuthController->initialize();
@@ -161,6 +169,30 @@ bool Server::initialize()
     mNetworkManager.start();
 
     return true;
+}
+
+void Server::grantConfiguredGmAccount()
+{
+    const char* tAccountName = std::getenv("LAKOT_GM_ACCOUNT");
+
+    if (!tAccountName || !*tAccountName)
+    {
+        return;
+    }
+
+    std::string tName(tAccountName);
+
+    std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT tanimli, '" << tName
+                                << "' hesabi GM seviye 2 olarak ayarlaniyor." << std::endl;
+
+    mRepositoryManager->getAccountRepository().grantGmLevel(tName, 2,
+    [tName](bool pIsFound)
+    {
+        if (!pIsFound)
+        {
+            std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT hesabi bulunamadi: " << tName << std::endl;
+        }
+    });
 }
 
 void Server::run()

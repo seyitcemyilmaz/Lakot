@@ -41,6 +41,9 @@ public:
 
     void releaseCharacter(uint64_t pCharacterId);
 
+    void endSession(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
+    void endDetachedCharacter(uint64_t pAccountId, uint64_t pCharacterId);
+
 private:
     NetworkServer<connection::Message> mNetworkServer;
     MessageDispatcher<connection::Message> mDispatcher;

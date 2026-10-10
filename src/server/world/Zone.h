@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <random>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -137,7 +138,19 @@ public:
 
     void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback);
 
+    using ActionCallback = std::function<void(bool pIsSuccess, const std::string& pText)>;
+    using PositionCallback = std::function<void(bool pIsFound, uint32_t pMapId, float pX, float pZ)>;
+
+    void teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, ActionCallback pCallback);
+    void queryPosition(uint64_t pCharacterId, PositionCallback pCallback);
+    void killPlayer(uint64_t pCharacterId, ActionCallback pCallback);
+    void revivePlayer(uint64_t pCharacterId, ActionCallback pCallback);
+    void spawnMonstersNear(uint64_t pCharacterId, const MonsterTemplate& pTemplate, uint32_t pCount, ActionCallback pCallback);
+
 private:
+    static constexpr uint32_t kMaxTemporaryMonsters = 50;
+    static constexpr float kSpawnNearRadius = 4.0f;
+
     static bool isFinite(const PlayerState& pState);
 
     // Simulation step. Movement is client-reported today, so this mostly
@@ -208,6 +221,7 @@ private:
     CombatSystem mCombat;
     MonsterBrain mMonsterBrain;
     double mTime{0.0};
+    std::mt19937 mRandom{std::random_device{}()};
     uint64_t mNextEntityId{kWorldEntityIdBase};
     LootSystem mLoot;
     std::unordered_map<uint64_t, double> mLastPickupAt;
@@ -260,7 +274,10 @@ private:
     bool fillEntitySpawn(uint64_t pCharacterId, services::world::EntitySpawn* pOut) const;
 
     void spawnWorldEntities();
+    void spawnMonster(const MonsterTemplate& pTemplate, float pX, float pZ, uint32_t pMinLevel, uint32_t pMaxLevel, bool pIsTemporary);
     void respawnPlayer(uint64_t pCharacterId);
+    void placeCharacter(uint64_t pCharacterId, const PlayerState& pState);
+    void transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const PlayerState& pSpawnState);
     void fillSelfVitals(const Character& pCharacter, services::world::SelfVitals* pOut) const;
 
     // Only items with a model; their look is everything other players need to know.

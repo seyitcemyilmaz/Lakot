@@ -51,6 +51,9 @@ public:
         // findOwnedCharacter.
         uint32_t kingdom = 0;
 
+        uint32_t gmLevel = 0;
+        int64_t mutedUntilEpoch = 0;
+
         // Populated by findOwnedCharacter (entering the world needs them) but
         // left at defaults by listByAccount, which only feeds the selection
         // screen and has no use for them.

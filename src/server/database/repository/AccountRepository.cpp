@@ -71,6 +71,12 @@ void AccountRepository::initializeTable()
         // Chosen once, with the account's first character. NULL until then.
         tWork.exec("ALTER TABLE accounts ADD COLUMN IF NOT EXISTS kingdom SMALLINT CHECK (kingdom BETWEEN 1 AND 3);");
 
+        tWork.exec(R"(
+            ALTER TABLE accounts
+                ADD COLUMN IF NOT EXISTS gm_level SMALLINT NOT NULL DEFAULT 0 CHECK (gm_level BETWEEN 0 AND 2),
+                ADD COLUMN IF NOT EXISTS muted_until TIMESTAMPTZ;
+        )");
+
         tWork.commit();
 
         std::osyncstream(std::cout) << "[AccountRepo] Tablo hazir/kontrol edildi." << std::endl;
@@ -187,3 +193,97 @@ void AccountRepository::findByUsername(const std::string& pUsername, const std::
     }, std::hash<std::string>{}(pUsername));
 }
 
+void AccountRepository::grantGmLevel(const std::string& pUsername, uint32_t pLevel, GrantGmCallback pCallback)
+{
+    mDatabaseManager.executeAsync([pUsername, pLevel, pCallback](pqxx::connection& pConnection)
+    {
+        bool tIsFound = false;
+
+        try
+        {
+            pqxx::work tWork(pConnection);
+
+            auto tResult = tWork.exec("UPDATE accounts SET gm_level = $1 WHERE username = $2",
+                                      pqxx::params{static_cast<int>(pLevel), pUsername});
+
+            tIsFound = tResult.affected_rows() == 1;
+
+            tWork.commit();
+        }
+        catch (const std::exception& tException)
+        {
+            std::osyncstream(std::cerr) << "[AccountRepo] GM yetkisi hatasi: " << tException.what() << std::endl;
+        }
+
+        if (pCallback)
+        {
+            pCallback(tIsFound);
+        }
+    }, kSchemaAffinityKey);
+}
+
+void AccountRepository::muteByCharacterName(const std::string& pCharacterName, uint32_t pMinutes,
+                                            uint32_t pActorLevel, uint64_t pActorAccountId, MuteCallback pCallback)
+{
+    mDatabaseManager.executeAsync([pCharacterName, pMinutes, pActorLevel, pActorAccountId, pCallback](pqxx::connection& pConnection)
+    {
+        MuteOutcome tOutcome;
+
+        try
+        {
+            pqxx::work tWork(pConnection);
+
+            auto tLookup = tWork.exec(
+                "SELECT c.name, a.id, a.gm_level FROM characters c JOIN accounts a ON a.id = c.account_id "
+                "WHERE LOWER(c.name) = LOWER($1) FOR UPDATE OF a",
+                pqxx::params{pCharacterName});
+
+            if (!tLookup.empty())
+            {
+                uint64_t tAccountId = tLookup[0]["id"].as<uint64_t>();
+                uint32_t tTargetLevel = tLookup[0]["gm_level"].as<uint32_t>();
+                tOutcome.characterName = tLookup[0]["name"].as<std::string>();
+                tOutcome.accountId = tAccountId;
+
+                if (tAccountId != pActorAccountId && tTargetLevel >= pActorLevel)
+                {
+                    tOutcome.result = MuteResultType::eProtected;
+                }
+                else
+                {
+                    pqxx::result tUpdate;
+
+                    if (pMinutes == 0)
+                    {
+                        tUpdate = tWork.exec(
+                            "UPDATE accounts SET muted_until = NULL WHERE id = $1 "
+                            "RETURNING 0::bigint AS muted_epoch",
+                            pqxx::params{tAccountId});
+                    }
+                    else
+                    {
+                        tUpdate = tWork.exec(
+                            "UPDATE accounts SET muted_until = now() + make_interval(mins => $1) WHERE id = $2 "
+                            "RETURNING EXTRACT(EPOCH FROM muted_until)::bigint AS muted_epoch",
+                            pqxx::params{static_cast<int>(pMinutes), tAccountId});
+                    }
+
+                    tOutcome.mutedUntilEpoch = tUpdate[0]["muted_epoch"].as<int64_t>();
+                    tOutcome.result = MuteResultType::eApplied;
+                }
+            }
+
+            tWork.commit();
+        }
+        catch (const std::exception& tException)
+        {
+            std::osyncstream(std::cerr) << "[AccountRepo] Susturma hatasi: " << tException.what() << std::endl;
+            tOutcome = MuteOutcome();
+        }
+
+        if (pCallback)
+        {
+            pCallback(tOutcome);
+        }
+    });
+}

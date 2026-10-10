@@ -4,6 +4,7 @@
 #include <iostream>
 #include <deque>
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <vector>
 #include <syncstream>
@@ -62,6 +63,17 @@ public:
                 self->mSocket.close(tErrorCode);
             }
         });
+    }
+
+    void closeAfter(std::chrono::milliseconds pDelay)
+    {
+        auto tTimer = std::make_shared<boost::asio::steady_timer>(mStrand, pDelay);
+
+        tTimer->async_wait(boost::asio::bind_executor(mStrand,
+        [tSelf = this->shared_from_this(), tTimer](const boost::system::error_code&)
+        {
+            tSelf->close();
+        }));
     }
 
     // Frames pMessage (4-byte big-endian length prefix + body) once, so the

@@ -37,6 +37,11 @@ WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer)
         tLineHandle.RegisterMember("is_faded", &ChatLine::isFaded);
         tLineHandle.RegisterMember("is_global", &ChatLine::isGlobal);
         tLineHandle.RegisterMember("is_failed", &ChatLine::isFailed);
+        tLineHandle.RegisterMember("is_system", &ChatLine::isSystem);
+        tLineHandle.RegisterMember("is_announce", &ChatLine::isAnnounce);
+        tLineHandle.RegisterMember("is_roll", &ChatLine::isRoll);
+        tLineHandle.RegisterMember("is_error", &ChatLine::isError);
+        tLineHandle.RegisterMember("is_echo", &ChatLine::isEcho);
         tConstructor.RegisterArray<std::vector<ChatLine>>();
 
         sChatLineTypeRegistered = true;
@@ -92,6 +97,22 @@ void WorldChatRmlController::appendLine(const std::string& pAuthorUsername, cons
     scrollHistoryToBottom();
 }
 
+void WorldChatRmlController::appendSystemLine(const std::string& pText, SystemLineType pType)
+{
+    ChatLine tLine;
+    tLine.isLocal = false;
+    tLine.text = pText;
+    tLine.isSystem = true;
+    tLine.isAnnounce = pType == SystemLineType::eAnnounce;
+    tLine.isRoll = pType == SystemLineType::eRoll;
+    tLine.isError = pType == SystemLineType::eError || pType == SystemLineType::eWarning;
+    tLine.isEcho = pType == SystemLineType::eEcho;
+
+    mHistory.push_back(std::move(tLine));
+    mModelHandle.DirtyVariable("history");
+    scrollHistoryToBottom();
+}
+
 void WorldChatRmlController::clearHistory()
 {
     mHistory.clear();
@@ -101,6 +122,11 @@ void WorldChatRmlController::clearHistory()
 void WorldChatRmlController::setLocalMessageSentCallback(LocalMessageSentCallback pCallback)
 {
     mLocalMessageSentCallback = pCallback;
+}
+
+void WorldChatRmlController::setCommandSubmittedCallback(CommandSubmittedCallback pCallback)
+{
+    mCommandSubmittedCallback = pCallback;
 }
 
 void WorldChatRmlController::onSendClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
@@ -290,6 +316,23 @@ void WorldChatRmlController::doSend()
     }
 
     std::string tRawText(mInputText);
+
+    if (tRawText.front() == '/')
+    {
+        mHasStatusMessage = false;
+        mStatusText.clear();
+        mInputText.clear();
+
+        appendSystemLine(tRawText, SystemLineType::eEcho);
+
+        if (mCommandSubmittedCallback)
+        {
+            mCommandSubmittedCallback(tRawText);
+        }
+
+        dirtyAll();
+        return;
+    }
 
     // Two ways to send this one as global, combined with OR: the scope
     // button (mIsGlobalMode, a persistent default) or an explicit leading

@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <random>
 #include <string>
 
+#include "CommandController.h"
 #include "WorldController.h"
 #include "../RequestLimits.h"
 
@@ -61,15 +63,152 @@ bool ChatController::consumeGlobalCooldown(uint64_t pSenderId, int& pRemainingSe
     return true;
 }
 
-ChatController::ChatController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager, WorldController& pWorldController)
+ChatController::ChatController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager,
+                               WorldController& pWorldController, CommandController& pCommandController)
     : BaseController(pNetworkManager, pRepositoryManager)
     , mWorldController(pWorldController)
+    , mCommandController(pCommandController)
 {
 
 }
 
+std::string ChatController::getMuteNotice(uint64_t pCharacterId)
+{
+    auto tAccess = mWorldController.getCharacterAccess(pCharacterId);
+
+    if (!tAccess)
+    {
+        return {};
+    }
+
+    int64_t tRemainingSeconds = tAccess->getMuteRemainingSeconds();
+
+    if (tRemainingSeconds <= 0)
+    {
+        return {};
+    }
+
+    return "You are muted for " + std::to_string((tRemainingSeconds + 59) / 60) + " more minute(s).";
+}
+
+ChatController::WhisperResultType ChatController::deliverWhisper(uint64_t pSenderId, const std::string& pTargetName, const std::string& pText)
+{
+    if (!getMuteNotice(pSenderId).empty())
+    {
+        return WhisperResultType::eMuted;
+    }
+
+    if (!consumeChatBudget(pSenderId, kWhisperCost))
+    {
+        return WhisperResultType::eThrottled;
+    }
+
+    auto tTargetId = mWorldController.findOnlineCharacterIdByName(pTargetName);
+    auto tTargetSession = tTargetId ? mNetworkManager.getSessionRegistry().getByCharacter(*tTargetId) : nullptr;
+
+    if (!tTargetSession)
+    {
+        return WhisperResultType::eOffline;
+    }
+
+    connection::Message tPushMessage;
+    auto* tReceived = tPushMessage.mutable_response()->mutable_direct_message_received();
+    tReceived->set_from_player_id(pSenderId);
+    tReceived->set_from_username(mWorldController.getCharacterName(pSenderId));
+    tReceived->set_text(pText);
+
+    tTargetSession->send(tPushMessage);
+
+    return WhisperResultType::eDelivered;
+}
+
+void ChatController::executeWhisper(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply)
+{
+    std::string tTargetName(pContext.getArgument(0));
+    std::string tText = pContext.getRest(1);
+
+    if (tTargetName.size() > RequestLimits::kMaxUsernameLength)
+    {
+        pReply->fail("Player is not online.");
+        return;
+    }
+
+    switch (deliverWhisper(pContext.characterId, tTargetName, tText))
+    {
+        case WhisperResultType::eDelivered:
+            pReply->ok("To " + tTargetName + ": " + tText);
+            break;
+        case WhisperResultType::eThrottled:
+            pReply->send(services::chat::COMMAND_THROTTLED, {"You are sending messages too quickly."});
+            break;
+        case WhisperResultType::eMuted:
+            pReply->fail(getMuteNotice(pContext.characterId));
+            break;
+        case WhisperResultType::eOffline:
+            pReply->fail("Player is not online.");
+            break;
+    }
+}
+
+void ChatController::executeRoll(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply)
+{
+    int64_t tMaximum = 100;
+
+    if (pContext.getArgumentCount() >= 1)
+    {
+        auto tValue = pContext.getInteger(0, 2, 1000);
+
+        if (!tValue)
+        {
+            pReply->usage("Usage: /roll [2-1000]");
+            return;
+        }
+
+        tMaximum = *tValue;
+    }
+
+    std::string tMuteNotice = getMuteNotice(pContext.characterId);
+
+    if (!tMuteNotice.empty())
+    {
+        pReply->fail(tMuteNotice);
+        return;
+    }
+
+    thread_local std::mt19937_64 tRandom{std::random_device{}()};
+    int64_t tRoll = std::uniform_int_distribution<int64_t>(1, tMaximum)(tRandom);
+
+    connection::Message tMessage;
+    auto* tSystem = tMessage.mutable_response()->mutable_system_message();
+    tSystem->set_kind(services::chat::SYSTEM_MESSAGE_ROLL);
+    tSystem->set_text(pContext.characterName + " rolls " + std::to_string(tRoll) + " (1-" + std::to_string(tMaximum) + ").");
+
+    auto tPacket = NetworkSession<connection::Message>::makePacket(tMessage);
+
+    if (auto tSession = mNetworkManager.getSessionRegistry().getByCharacter(pContext.characterId))
+    {
+        tSession->send(tPacket);
+    }
+
+    mWorldController.sendNearby(pContext.characterId, tPacket);
+
+    pReply->send(services::chat::COMMAND_OK, {});
+}
+
 void ChatController::initialize()
 {
+    mCommandController.registerCommand({"w", {"whisper", "msg"}, 0, 2, CommandContext::kMaxArguments, "/w <player> <message>", "Whisper to a player.",
+        [this](const CommandContext& pContext, std::shared_ptr<CommandReply> pReply)
+        {
+            this->executeWhisper(pContext, std::move(pReply));
+        }});
+
+    mCommandController.registerCommand({"roll", {}, 0, 0, 1, "/roll [2-1000]", "Roll a random number, shown to nearby players.",
+        [this](const CommandContext& pContext, std::shared_ptr<CommandReply> pReply)
+        {
+            this->executeRoll(pContext, std::move(pReply));
+        }});
+
     mNetworkManager.getDispatcher().registerHandler(protocol::Request::kDirectMessageRequest, PacketType::Request,
         [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
         {
@@ -113,45 +252,32 @@ void ChatController::handleDirectMessageRequest(std::shared_ptr<NetworkSession<c
         return;
     }
 
-    if (!consumeChatBudget(tSenderId, kWhisperCost))
-    {
-        connection::Message tThrottledMessage;
-        auto* tThrottledHeader = tThrottledMessage.mutable_response()->mutable_header();
-        tThrottledHeader->set_reply_to(pMessage.request().header().id());
-        tThrottledHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
-        tThrottledHeader->mutable_status()->set_message("You are sending messages too quickly.");
-        tThrottledMessage.mutable_response()->mutable_direct_message_response()
-            ->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
-
-        pSession->send(tThrottledMessage);
-        return;
-    }
-
     connection::Message tAckMessage;
     auto* tAckHeader = tAckMessage.mutable_response()->mutable_header();
     tAckHeader->set_reply_to(pMessage.request().header().id());
     tAckHeader->mutable_status()->set_code(common::STATUS_OK);
     auto* tAck = tAckMessage.mutable_response()->mutable_direct_message_response();
 
-    auto tTargetId = mWorldController.findOnlineCharacterIdByName(tRequest.message_to());
-    auto tTargetSession = tTargetId ? mNetworkManager.getSessionRegistry().getByCharacter(*tTargetId) : nullptr;
-
-    if (!tTargetSession)
+    switch (deliverWhisper(tSenderId, tRequest.message_to(), tRequest.text()))
     {
-        tAck->set_error_code(services::chat::DIRECT_MESSAGE_DISCONNECTED);
-        pSession->send(tAckMessage);
-        return;
+        case WhisperResultType::eDelivered:
+            tAck->set_error_code(services::chat::DIRECT_MESSAGE_OK);
+            break;
+        case WhisperResultType::eOffline:
+            tAck->set_error_code(services::chat::DIRECT_MESSAGE_DISCONNECTED);
+            break;
+        case WhisperResultType::eThrottled:
+            tAckHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+            tAckHeader->mutable_status()->set_message("You are sending messages too quickly.");
+            tAck->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
+            break;
+        case WhisperResultType::eMuted:
+            tAckHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+            tAckHeader->mutable_status()->set_message(getMuteNotice(tSenderId));
+            tAck->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
+            break;
     }
 
-    connection::Message tPushMessage;
-    auto* tReceived = tPushMessage.mutable_response()->mutable_direct_message_received();
-    tReceived->set_from_player_id(tSenderId);
-    tReceived->set_from_username(mWorldController.getCharacterName(tSenderId));
-    tReceived->set_text(tRequest.text());
-
-    tTargetSession->send(tPushMessage);
-
-    tAck->set_error_code(services::chat::DIRECT_MESSAGE_OK);
     pSession->send(tAckMessage);
 }
 
@@ -176,7 +302,7 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
     // message is fanned out to an entire area of interest, and a global one to
     // every session on the server, so an unbounded or spammed message here is
     // an amplification vector rather than just an oversized packet.
-    if (!RequestLimits::isValidChatText(tRequest.text()))
+    if (!RequestLimits::isValidChatText(tRequest.text()) || tRequest.text().front() == '/')
     {
         connection::Message tInvalidMessage;
         auto* tInvalidHeader = tInvalidMessage.mutable_response()->mutable_header();
@@ -191,9 +317,9 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
 
     // Two different limits for two different costs: a flat cooldown for
     // server-wide messages, the shared conversational bucket for nearby ones.
-    std::string tThrottleMessage;
+    std::string tThrottleMessage = getMuteNotice(tSenderId);
 
-    if (tIsGlobal)
+    if (tThrottleMessage.empty() && tIsGlobal)
     {
         int tRemainingSeconds = 0;
 
@@ -203,7 +329,7 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
                              + std::to_string(tRemainingSeconds) + "s.";
         }
     }
-    else if (!consumeChatBudget(tSenderId, kNearbyMessageCost))
+    else if (tThrottleMessage.empty() && !consumeChatBudget(tSenderId, kNearbyMessageCost))
     {
         tThrottleMessage = "You are sending messages too quickly.";
     }

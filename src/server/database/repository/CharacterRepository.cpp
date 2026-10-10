@@ -272,7 +272,8 @@ void CharacterRepository::findOwnedCharacter(uint64_t pAccountId, uint64_t pChar
             // asking for a character that is not yours simply returns nothing.
             auto tResult = tNtx.exec(
                 std::string("SELECT c.id, c.name, c.map_id, c.pos_x, c.pos_y, c.pos_z, c.yaw, ") + kStatColumns +
-                ", COALESCE(a.kingdom, 0) AS kingdom"
+                ", COALESCE(a.kingdom, 0) AS kingdom, a.gm_level,"
+                " COALESCE(EXTRACT(EPOCH FROM a.muted_until), 0)::bigint AS muted_until"
                 " FROM characters c JOIN accounts a ON a.id = c.account_id"
                 " WHERE c.id = $1 AND c.account_id = $2",
                 pqxx::params{pCharacterId, pAccountId});
@@ -282,6 +283,8 @@ void CharacterRepository::findOwnedCharacter(uint64_t pAccountId, uint64_t pChar
                 tRecord = toRecord(tResult[0]);
                 readStats(tResult[0], tRecord.stats);
                 tRecord.kingdom = tResult[0]["kingdom"].as<uint32_t>();
+                tRecord.gmLevel = tResult[0]["gm_level"].as<uint32_t>();
+                tRecord.mutedUntilEpoch = tResult[0]["muted_until"].as<int64_t>();
                 tIsFound = true;
             }
         }

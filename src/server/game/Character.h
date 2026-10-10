@@ -79,6 +79,10 @@ public:
     void setStats(const CharacterStats& pStats);
     void setItems(std::vector<ItemInstance> pItems);
 
+    void setHealth(int32_t pHealth);
+    void setMana(int32_t pMana);
+    void setLevel(uint32_t pLevel);
+
     // Returns how many could not fit (0 on full success) - the caller has to
     // decide what to do about a full bag, this will not silently destroy the
     // remainder.

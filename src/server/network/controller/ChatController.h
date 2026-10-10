@@ -3,12 +3,17 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 
 #include <connection.pb.h>
 
 #include "BaseController.h"
+
+#include "../../command/CommandContext.h"
+#include "../../command/CommandReply.h"
 
 namespace lakot
 {
@@ -17,11 +22,13 @@ template <typename MessageType>
 class NetworkSession;
 
 class WorldController;
+class CommandController;
 
 class ChatController : public BaseController
 {
 public:
-    ChatController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager, WorldController& pWorldController);
+    ChatController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager,
+                   WorldController& pWorldController, CommandController& pCommandController);
 
     void initialize() override;
 
@@ -54,7 +61,16 @@ private:
         std::chrono::steady_clock::time_point lastGlobalAt{};
     };
 
+    enum class WhisperResultType
+    {
+        eDelivered,
+        eThrottled,
+        eMuted,
+        eOffline
+    };
+
     WorldController& mWorldController;
+    CommandController& mCommandController;
 
     // Dispatch runs on the network worker pool, so this is reached from
     // several threads at once.
@@ -70,6 +86,13 @@ private:
     // still to wait into pRemainingSeconds, so the player is told how long
     // rather than just "too fast".
     bool consumeGlobalCooldown(uint64_t pSenderId, int& pRemainingSeconds);
+
+    std::string getMuteNotice(uint64_t pCharacterId);
+
+    WhisperResultType deliverWhisper(uint64_t pSenderId, const std::string& pTargetName, const std::string& pText);
+
+    void executeWhisper(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply);
+    void executeRoll(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply);
 
     void handleDirectMessageRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleChatMessageRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);

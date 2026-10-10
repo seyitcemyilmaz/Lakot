@@ -114,9 +114,63 @@ std::optional<uint32_t> WorldController::getCharacterZone(uint64_t pCharacterId)
     return tIterator->second;
 }
 
+std::optional<CharacterAccess> WorldController::getCharacterAccess(uint64_t pCharacterId)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mCharacterAccess.find(pCharacterId);
+
+    if (tIterator == mCharacterAccess.end())
+    {
+        return std::nullopt;
+    }
+
+    return tIterator->second;
+}
+
+void WorldController::setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mCharacterAccess.find(pCharacterId);
+
+    if (tIterator != mCharacterAccess.end())
+    {
+        tIterator->second.mutedUntilEpoch = pEpochSeconds;
+    }
+}
+
+std::optional<uint64_t> WorldController::findOnlineCharacterIdByAccount(uint64_t pAccountId)
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    for (const auto& [tCharacterId, tAccess] : mCharacterAccess)
+    {
+        if (tAccess.accountId == pAccountId)
+        {
+            return tCharacterId;
+        }
+    }
+
+    return std::nullopt;
+}
+
+size_t WorldController::getOnlineCount()
+{
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    return mCharacterZone.size();
+}
+
+Zone* WorldController::findCharacterZone(uint64_t pCharacterId)
+{
+    auto tMapId = getCharacterZone(pCharacterId);
+    return tMapId ? getZone(*tMapId) : nullptr;
+}
+
 void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
                                  uint32_t pMapId,
-                                 const PlayerState& pState)
+                                 const PlayerState& pState,
+                                 const CharacterAccess& pAccess)
 {
     uint64_t pCharacterId = pCharacter.characterId;
     const std::string& pName = pCharacter.name;
@@ -137,6 +191,7 @@ void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
         mCharacterZone[pCharacterId] = pMapId;
         mCharacterNames[pCharacterId] = pName;
         mNameToCharacterId[pName] = pCharacterId;
+        mCharacterAccess[pCharacterId] = pAccess;
     }
 
     tZone->enterPlayer(pCharacter, pState);
@@ -235,6 +290,7 @@ void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
 
         tMapId = tIterator->second;
         mCharacterZone.erase(tIterator);
+        mCharacterAccess.erase(pCharacterId);
 
         auto tNameIterator = mCharacterNames.find(pCharacterId);
 

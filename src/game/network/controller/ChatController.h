@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <connection.pb.h>
 
@@ -41,6 +42,9 @@ public:
     // cooldown first showed up as a mystery.
     using ChatMessageResultCallback = std::function<void(bool pIsSuccess, const std::string& pMessage)>;
 
+    using CommandResultCallback = std::function<void(services::chat::CommandStatus pStatus, const std::vector<std::string>& pLines)>;
+    using SystemMessageCallback = std::function<void(services::chat::SystemMessageKind pKind, const std::string& pText)>;
+
     ChatController(NetworkManager* pNetworkManager);
 
     void initialize();
@@ -53,11 +57,14 @@ public:
     // the caller is responsible for surfacing that failure itself.
     uint64_t sendDirectMessage(const std::string& pToUsername, const std::string& pText);
     void sendChatMessage(const std::string& pText, bool pIsGlobal);
+    void sendCommand(const std::string& pText);
 
     void setDirectMessageReceivedCallback(DirectMessageReceivedCallback pCallback);
     void setDirectMessageResultCallback(DirectMessageResultCallback pCallback);
     void setChatMessageReceivedCallback(ChatMessageReceivedCallback pCallback);
     void setChatMessageResultCallback(ChatMessageResultCallback pCallback);
+    void setCommandResultCallback(CommandResultCallback pCallback);
+    void setSystemMessageCallback(SystemMessageCallback pCallback);
 
     // Drops every callback registered above. Callbacks capture the scene/UI
     // object that registered them (WorldScene), but this controller lives as
@@ -74,6 +81,8 @@ private:
     DirectMessageResultCallback mDirectMessageResultCallback;
     ChatMessageReceivedCallback mChatMessageReceivedCallback;
     ChatMessageResultCallback mChatMessageResultCallback;
+    CommandResultCallback mCommandResultCallback;
+    SystemMessageCallback mSystemMessageCallback;
 
     void handleDirectMessageReceived(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleDirectMessageResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
@@ -87,6 +96,8 @@ private:
     // DirectMessageResultCallback), so this just logs a real failure instead
     // of silently dropping it - same minimal treatment, not inventing new UI.
     void handleChatMessageResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleCommandResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleSystemMessage(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };
 
 }

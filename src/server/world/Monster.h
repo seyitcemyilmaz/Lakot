@@ -48,6 +48,7 @@ struct Monster
     double removeAt = 0.0;
     double respawnAt = 0.0;
     bool isInWorld = true;
+    bool isTemporary = false;
 };
 
 }

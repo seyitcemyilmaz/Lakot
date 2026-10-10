@@ -1053,6 +1053,28 @@ body
     color: #FF6666;
 }
 
+.msg-system
+{
+    color: #9999A8;
+}
+
+.msg-announce
+{
+    color: #D9A640;
+    font-weight: bold;
+}
+
+.msg-roll
+{
+    color: #8CD9A0;
+}
+
+.msg-echo
+{
+    color: #9999A8;
+    font-style: italic;
+}
+
 /* Restyle RmlUi's generated scrollbar elements to match the theme instead
    of leaving the library default look. */
 .chat-history scrollbarvertical

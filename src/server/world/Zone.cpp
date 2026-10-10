@@ -55,13 +55,8 @@ void Zone::spawnWorldEntities()
 
         for (uint32_t tIndex = 0; tIndex < tSpawn.count; ++tIndex)
         {
-            Monster tMonster;
-            tMonster.id = mNextEntityId++;
-            tMonster.monsterTemplate = tTemplate;
-            tMonster.spawnMinLevel = tSpawn.minLevel;
-            tMonster.spawnMaxLevel = tSpawn.maxLevel;
-            tMonster.spawnX = tSpawn.x;
-            tMonster.spawnZ = tSpawn.z;
+            float tSpawnX = tSpawn.x;
+            float tSpawnZ = tSpawn.z;
 
             for (int tAttempt = 0; tAttempt < 16; ++tAttempt)
             {
@@ -72,16 +67,30 @@ void Zone::spawnWorldEntities()
 
                 if (mMap.isWalkable(tX, tZ) && !mMap.isSafe(tX, tZ))
                 {
-                    tMonster.spawnX = tX;
-                    tMonster.spawnZ = tZ;
+                    tSpawnX = tX;
+                    tSpawnZ = tZ;
                     break;
                 }
             }
 
-            auto [tIterator, tInserted] = mMonsters.emplace(tMonster.id, tMonster);
-            mMonsterBrain.place(tIterator->second);
+            spawnMonster(*tTemplate, tSpawnX, tSpawnZ, tSpawn.minLevel, tSpawn.maxLevel, false);
         }
     }
+}
+
+void Zone::spawnMonster(const MonsterTemplate& pTemplate, float pX, float pZ, uint32_t pMinLevel, uint32_t pMaxLevel, bool pIsTemporary)
+{
+    Monster tMonster;
+    tMonster.id = mNextEntityId++;
+    tMonster.monsterTemplate = &pTemplate;
+    tMonster.spawnMinLevel = pMinLevel;
+    tMonster.spawnMaxLevel = pMaxLevel;
+    tMonster.spawnX = pX;
+    tMonster.spawnZ = pZ;
+    tMonster.isTemporary = pIsTemporary;
+
+    auto [tIterator, tInserted] = mMonsters.emplace(tMonster.id, tMonster);
+    mMonsterBrain.place(tIterator->second);
 }
 
 Zone::~Zone()
@@ -261,6 +270,7 @@ void Zone::withCharacter(uint64_t pCharacterId, std::function<bool(Character&)> 
 
         if (pAction(tIterator->second))
         {
+            mCombat.markVitalsChanged(pCharacterId);
             sendInventoryUpdate(tIterator->second);
 
             auto tVisualsAfter = getEquipmentVisuals(tIterator->second);
@@ -534,7 +544,12 @@ void Zone::respawnPlayer(uint64_t pCharacterId)
     tState.y = mMap.getHeightAt(tSpawn.x, tSpawn.z) + MovementRules::kBodyHalfHeight;
     tState.yaw = tSpawn.yaw;
 
-    mRegistry.setState(pCharacterId, tState);
+    placeCharacter(pCharacterId, tState);
+}
+
+void Zone::placeCharacter(uint64_t pCharacterId, const PlayerState& pState)
+{
+    mRegistry.setState(pCharacterId, pState);
     mPendingCorrections.insert(pCharacterId);
     mLastAcceptedAt[pCharacterId] = std::chrono::steady_clock::now();
 }
@@ -609,10 +624,9 @@ void Zone::applyPortals()
         return;
     }
 
-    // Collected first, because transferring mutates the registry.
     struct PendingTransfer
     {
-        CharacterSnapshot character;
+        uint64_t characterId;
         MapPortal portal;
     };
 
@@ -629,39 +643,17 @@ void Zone::applyPortals()
 
         if (auto tPortal = mMapCatalog.findPortalAt(mMap.getId(), tState->x, tState->z))
         {
-            auto tCharacterIterator = mCharacters.find(tCharacterId);
-
-            if (tCharacterIterator == mCharacters.end())
+            if (mCharacters.find(tCharacterId) == mCharacters.end())
             {
                 continue; // tracked spatially but with no character behind it
             }
 
-            const Character& tCharacter = tCharacterIterator->second;
-
-            // The whole character travels, not just an id - the destination
-            // zone reconstructs it from this and never touches the database.
-            CharacterSnapshot tSnapshot;
-            tSnapshot.characterId = tCharacterId;
-            tSnapshot.name = tCharacter.getName();
-            tSnapshot.kingdom = tCharacter.getKingdom();
-            tSnapshot.stats = tCharacter.getStats();
-            tSnapshot.items = tCharacter.getInventory().getItems();
-
-            auto tLastPotion = mLastPotionAt.find(tCharacterId);
-
-            if (tLastPotion != mLastPotionAt.end())
-            {
-                tSnapshot.potionCooldownRemaining = std::max(0.0, kPotionCooldownSeconds - (mTime - tLastPotion->second));
-            }
-
-            tPending.push_back({std::move(tSnapshot), *tPortal});
+            tPending.push_back({tCharacterId, *tPortal});
         }
     }
 
-    for (PendingTransfer& tTransfer : tPending)
+    for (const PendingTransfer& tTransfer : tPending)
     {
-        uint64_t tCharacterId = tTransfer.character.characterId;
-
         PlayerState tSpawnState;
         tSpawnState.x = tTransfer.portal.targetX;
         const MapData* tTargetMap = mMapCatalog.getMap(tTransfer.portal.targetMapId);
@@ -669,25 +661,243 @@ void Zone::applyPortals()
         tSpawnState.z = tTransfer.portal.targetZ;
         tSpawnState.yaw = tTransfer.portal.targetYaw;
 
-        // Dropped from this zone BEFORE being handed over, so the next
-        // snapshot here already reports them as gone to everyone who could
-        // see them, and the destination zone is the only one holding them.
-        persistCharacter(tCharacterId);
-
-        mRegistry.remove(tCharacterId);
-        mCharacters.erase(tCharacterId);
-        mCombat.forget(tCharacterId);
-        mLastPickupAt.erase(tCharacterId);
-        mLastPotionAt.erase(tCharacterId);
-
-        // A portal is a server-authored move, so any correction still queued
-        // for this character is stale - the destination zone's own entry
-        // becomes the new truth.
-        mLastAcceptedAt.erase(tCharacterId);
-        mPendingCorrections.erase(tCharacterId);
-
-        mTransfer(tTransfer.character, tTransfer.portal.targetMapId, tSpawnState);
+        transferOut(tTransfer.characterId, tTransfer.portal.targetMapId, tSpawnState);
     }
+}
+
+void Zone::transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const PlayerState& pSpawnState)
+{
+    auto tCharacterIterator = mCharacters.find(pCharacterId);
+
+    if (!mTransfer || tCharacterIterator == mCharacters.end())
+    {
+        return;
+    }
+
+    const Character& tCharacter = tCharacterIterator->second;
+
+    CharacterSnapshot tSnapshot;
+    tSnapshot.characterId = pCharacterId;
+    tSnapshot.name = tCharacter.getName();
+    tSnapshot.kingdom = tCharacter.getKingdom();
+    tSnapshot.stats = tCharacter.getStats();
+    tSnapshot.items = tCharacter.getInventory().getItems();
+
+    auto tLastPotion = mLastPotionAt.find(pCharacterId);
+
+    if (tLastPotion != mLastPotionAt.end())
+    {
+        tSnapshot.potionCooldownRemaining = std::max(0.0, kPotionCooldownSeconds - (mTime - tLastPotion->second));
+    }
+
+    persistCharacter(pCharacterId);
+
+    mRegistry.remove(pCharacterId);
+    mCharacters.erase(pCharacterId);
+    mCombat.forget(pCharacterId);
+    mLastPickupAt.erase(pCharacterId);
+    mLastPotionAt.erase(pCharacterId);
+    mLastAcceptedAt.erase(pCharacterId);
+    mPendingCorrections.erase(pCharacterId);
+
+    mTransfer(tSnapshot, pTargetMapId, pSpawnState);
+}
+
+void Zone::teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, pMapId, pX, pZ, pCallback = std::move(pCallback)]()
+    {
+        const PlayerState* tCurrent = mRegistry.getState(pCharacterId);
+        const MapData* tTargetMap = pMapId == mMap.getId() ? &mMap : mMapCatalog.getMap(pMapId);
+
+        if (mCharacters.find(pCharacterId) == mCharacters.end() || !tCurrent)
+        {
+            pCallback(false, "Player is not online.");
+            return;
+        }
+
+        if (!tTargetMap || !std::isfinite(pX) || !std::isfinite(pZ) || !tTargetMap->isWalkable(pX, pZ))
+        {
+            pCallback(false, "Destination is not walkable.");
+            return;
+        }
+
+        const Character& tCharacter = mCharacters.find(pCharacterId)->second;
+
+        if (pMapId != mMap.getId() && tCharacter.isDead())
+        {
+            pCallback(false, tCharacter.getName() + " is dead. Use /revive.");
+            return;
+        }
+
+        PlayerState tState;
+        tState.x = pX;
+        tState.z = pZ;
+        tState.y = tTargetMap->getHeightAt(pX, pZ) + MovementRules::kBodyHalfHeight;
+        tState.yaw = tCurrent->yaw;
+
+        if (pMapId == mMap.getId())
+        {
+            placeCharacter(pCharacterId, tState);
+        }
+        else
+        {
+            transferOut(pCharacterId, pMapId, tState);
+        }
+
+        pCallback(true, "Teleported.");
+    });
+}
+
+void Zone::queryPosition(uint64_t pCharacterId, PositionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    {
+        const PlayerState* tState = mCharacters.find(pCharacterId) != mCharacters.end() ? mRegistry.getState(pCharacterId) : nullptr;
+
+        if (!tState)
+        {
+            pCallback(false, 0, 0.0f, 0.0f);
+            return;
+        }
+
+        pCallback(true, mMap.getId(), tState->x, tState->z);
+    });
+}
+
+void Zone::killPlayer(uint64_t pCharacterId, ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+
+        if (tCharacter == mCharacters.end())
+        {
+            pCallback(false, "Player is not online.");
+            return;
+        }
+
+        const std::string tName = tCharacter->second.getName();
+
+        if (!mCombat.killPlayer(pCharacterId, mTime))
+        {
+            pCallback(false, tName + " is already dead.");
+            return;
+        }
+
+        pCallback(true, "Killed " + tName + ".");
+    });
+}
+
+void Zone::revivePlayer(uint64_t pCharacterId, ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+
+        if (tCharacter == mCharacters.end())
+        {
+            pCallback(false, "Player is not online.");
+            return;
+        }
+
+        const std::string tName = tCharacter->second.getName();
+
+        if (!mCombat.revivePlayer(pCharacterId))
+        {
+            pCallback(false, tName + " is not dead.");
+            return;
+        }
+
+        pCallback(true, "Revived " + tName + ".");
+    });
+}
+
+void Zone::spawnMonstersNear(uint64_t pCharacterId, const MonsterTemplate& pTemplate, uint32_t pCount, ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, &pTemplate, pCount, pCallback = std::move(pCallback)]()
+    {
+        const PlayerState* tState = mCharacters.find(pCharacterId) != mCharacters.end() ? mRegistry.getState(pCharacterId) : nullptr;
+
+        if (!tState)
+        {
+            pCallback(false, "Player is not online.");
+            return;
+        }
+
+        if (mMap.isSafe(tState->x, tState->z))
+        {
+            pCallback(false, "Cannot spawn monsters in a safe zone.");
+            return;
+        }
+
+        uint32_t tTemporary = static_cast<uint32_t>(std::count_if(mMonsters.begin(), mMonsters.end(),
+            [](const auto& pEntry)
+            {
+                return pEntry.second.isTemporary;
+            }));
+
+        if (tTemporary + pCount > kMaxTemporaryMonsters)
+        {
+            pCallback(false, "Too many spawned monsters on this map (limit " + std::to_string(kMaxTemporaryMonsters) + ").");
+            return;
+        }
+
+        const PlayerState tOrigin = *tState;
+        std::uniform_real_distribution<float> tUnit(0.0f, 1.0f);
+        uint32_t tSpawned = 0;
+
+        for (uint32_t tIndex = 0; tIndex < pCount; ++tIndex)
+        {
+            for (int tAttempt = 0; tAttempt < 16; ++tAttempt)
+            {
+                float tAngle = tUnit(mRandom) * 6.2831853f;
+                float tDistance = 1.5f + tUnit(mRandom) * (kSpawnNearRadius - 1.5f);
+                float tX = tOrigin.x + std::cos(tAngle) * tDistance;
+                float tZ = tOrigin.z + std::sin(tAngle) * tDistance;
+
+                if (mMap.isWalkable(tX, tZ) && !mMap.isSafe(tX, tZ))
+                {
+                    spawnMonster(pTemplate, tX, tZ, 0, 0, true);
+                    ++tSpawned;
+                    break;
+                }
+            }
+        }
+
+        if (tSpawned == 0)
+        {
+            pCallback(false, "No room to spawn here.");
+            return;
+        }
+
+        pCallback(true, "Spawned " + std::to_string(tSpawned) + " x " + pTemplate.name + ".");
+    });
 }
 
 bool Zone::fillEntityState(uint64_t pCharacterId, services::world::EntityState* pOut) const

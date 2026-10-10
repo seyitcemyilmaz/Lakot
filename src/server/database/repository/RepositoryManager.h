@@ -4,6 +4,7 @@
 #include "AccountRepository.h"
 #include "CharacterRepository.h"
 #include "ItemRepository.h"
+#include "GmLogRepository.h"
 
 namespace lakot
 {
@@ -21,11 +22,13 @@ public:
     AccountRepository& getAccountRepository() const;
     CharacterRepository& getCharacterRepository() const;
     ItemRepository& getItemRepository() const;
+    GmLogRepository& getGmLogRepository() const;
 
 private:
     std::unique_ptr<AccountRepository> mAccountRepository;
     std::unique_ptr<CharacterRepository> mCharacterRepository;
     std::unique_ptr<ItemRepository> mItemRepository;
+    std::unique_ptr<GmLogRepository> mGmLogRepository;
 };
 
 }

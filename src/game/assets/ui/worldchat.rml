@@ -10,10 +10,14 @@
     <div data-model="world_chat" class="chat-body" data-class-is-open="is_open">
         <div class="chat-history" id="history">
             <div data-for="line : history" class="chat-line" data-class-faded="line.is_faded">
-                <span class="msg-author" data-class-msg-local="line.is_local" data-class-msg-remote="!line.is_local">{{ line.author }}:</span>
-                <span data-class-msg-failed="line.is_failed"
-                      data-class-msg-global="line.is_global &amp;&amp; !line.is_failed"
-                      data-class-msg-nearby="!line.is_global &amp;&amp; !line.is_failed">{{ line.text }}</span>
+                <span class="msg-author" data-if="!line.is_system" data-class-msg-local="line.is_local" data-class-msg-remote="!line.is_local">{{ line.author }}:</span>
+                <span data-class-msg-failed="line.is_failed || line.is_error"
+                      data-class-msg-system="line.is_system &amp;&amp; !line.is_announce &amp;&amp; !line.is_roll &amp;&amp; !line.is_error &amp;&amp; !line.is_echo"
+                      data-class-msg-announce="line.is_announce"
+                      data-class-msg-roll="line.is_roll"
+                      data-class-msg-echo="line.is_echo"
+                      data-class-msg-global="line.is_global &amp;&amp; !line.is_failed &amp;&amp; !line.is_system"
+                      data-class-msg-nearby="!line.is_global &amp;&amp; !line.is_failed &amp;&amp; !line.is_system">{{ line.text }}</span>
             </div>
         </div>
 

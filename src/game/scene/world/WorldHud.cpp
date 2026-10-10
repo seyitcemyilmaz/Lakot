@@ -58,6 +58,12 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
         }
     });
 
+    mWorldChat.setCommandSubmittedCallback(
+    [this](const std::string& pText)
+    {
+        mNetworkManager.getChatController().sendCommand(pText);
+    });
+
     mInventory.setContents(pItems, pStats);
     mCharacterSheet.setStats(pStats);
     mStats = pStats;
@@ -90,6 +96,45 @@ void WorldHud::connectNetwork()
     [this](bool pIsSuccess, const std::string& pMessage)
     {
         mWorldChat.onSendResult(pIsSuccess, pMessage);
+    });
+
+    tChat.setCommandResultCallback(
+    [this](services::chat::CommandStatus pStatus, const std::vector<std::string>& pLines)
+    {
+        WorldChatRmlController::SystemLineType tType = pStatus == services::chat::COMMAND_OK
+            ? WorldChatRmlController::SystemLineType::eInfo
+            : WorldChatRmlController::SystemLineType::eError;
+
+        for (const std::string& tLine : pLines)
+        {
+            mWorldChat.appendSystemLine(tLine, tType);
+        }
+    });
+
+    tChat.setSystemMessageCallback(
+    [this](services::chat::SystemMessageKind pKind, const std::string& pText)
+    {
+        WorldChatRmlController::SystemLineType tType = WorldChatRmlController::SystemLineType::eInfo;
+
+        switch (pKind)
+        {
+        case services::chat::SYSTEM_MESSAGE_ANNOUNCE:
+            tType = WorldChatRmlController::SystemLineType::eAnnounce;
+            break;
+
+        case services::chat::SYSTEM_MESSAGE_ROLL:
+            tType = WorldChatRmlController::SystemLineType::eRoll;
+            break;
+
+        case services::chat::SYSTEM_MESSAGE_WARNING:
+            tType = WorldChatRmlController::SystemLineType::eWarning;
+            break;
+
+        default:
+            break;
+        }
+
+        mWorldChat.appendSystemLine(pText, tType);
     });
 
     InventoryController& tInventory = mNetworkManager.getInventoryController();

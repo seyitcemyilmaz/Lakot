@@ -26,6 +26,7 @@ message Request {
         // chat service
         services.chat.ChatMessageRequest chat_message_request = 2000;
         services.chat.DirectMessageRequest direct_message_request = 2001;
+        services.chat.CommandRequest command_request = 2002;
 
         // shop service
         services.shop.BuyItemRequest buy_item_request = 3000;
@@ -66,6 +67,8 @@ message Response {
         services.chat.DirectMessageResponse direct_message_response = 2001;
         services.chat.DirectMessageReceived direct_message_received = 2002;
         services.chat.ChatMessageReceived chat_message_received = 2003;
+        services.chat.CommandResponse command_response = 2004;
+        services.chat.SystemMessage system_message = 2005;
 
         // shop service
         services.shop.BuyItemResponse buy_item_response = 3000;

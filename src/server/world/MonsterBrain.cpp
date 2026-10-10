@@ -64,10 +64,25 @@ void MonsterBrain::rollStats(Monster& pMonster)
 
 void MonsterBrain::update(double pNow, float pDeltaSeconds)
 {
-    for (auto& [tId, tMonster] : mMonsters)
+    for (auto tIterator = mMonsters.begin(); tIterator != mMonsters.end();)
     {
+        auto& [tId, tMonster] = *tIterator;
+
         if (tMonster.state == MonsterStateType::eDead)
         {
+            if (tMonster.isTemporary)
+            {
+                if (pNow >= tMonster.removeAt)
+                {
+                    mRegistry.remove(tId);
+                    tIterator = mMonsters.erase(tIterator);
+                    continue;
+                }
+
+                ++tIterator;
+                continue;
+            }
+
             if (tMonster.isInWorld && pNow >= tMonster.removeAt)
             {
                 mRegistry.remove(tId);
@@ -79,10 +94,12 @@ void MonsterBrain::update(double pNow, float pDeltaSeconds)
                 place(tMonster);
             }
 
+            ++tIterator;
             continue;
         }
 
         think(tMonster, pNow, pDeltaSeconds);
+        ++tIterator;
     }
 
     spreadAggro();

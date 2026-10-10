@@ -1,5 +1,6 @@
 #include "NetworkManager.h"
 
+#include <iostream>
 #include <syncstream>
 
 using namespace lakot;
@@ -156,4 +157,39 @@ void NetworkManager::releaseCharacter(uint64_t pCharacterId)
     {
         mOnUserDisconnected(pCharacterId);
     }
+}
+
+void NetworkManager::endSession(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
+{
+    uint64_t tAccountId = pSession->getAccountId();
+
+    if (tAccountId == 0)
+    {
+        return;
+    }
+
+    uint64_t tCharacterId = pSession->getCharacterId();
+
+    mSessionResumeManager.revoke(tAccountId);
+
+    mSessionRegistry.remove(tAccountId, pSession);
+
+    if (tCharacterId != 0)
+    {
+        mSessionRegistry.unbindCharacter(tCharacterId, pSession);
+        releaseCharacter(tCharacterId);
+    }
+
+    pSession->setCharacterId(0);
+    pSession->setAccountId(0);
+
+    std::osyncstream(std::cout) << "[Server] Cikis yapildi (hesap: " << tAccountId << ")" << std::endl;
+}
+
+void NetworkManager::endDetachedCharacter(uint64_t pAccountId, uint64_t pCharacterId)
+{
+    mSessionResumeManager.revoke(pAccountId);
+    releaseCharacter(pCharacterId);
+
+    std::osyncstream(std::cout) << "[Server] Bekleyen oturum sonlandirildi (hesap: " << pAccountId << ")" << std::endl;
 }

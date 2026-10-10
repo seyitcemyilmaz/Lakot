@@ -12,6 +12,7 @@ RepositoryManager::RepositoryManager(DatabaseManager& pDatabaseManager)
     mAccountRepository = std::make_unique<AccountRepository>(pDatabaseManager);
     mCharacterRepository = std::make_unique<CharacterRepository>(pDatabaseManager);
     mItemRepository = std::make_unique<ItemRepository>(pDatabaseManager);
+    mGmLogRepository = std::make_unique<GmLogRepository>(pDatabaseManager);
 }
 
 void RepositoryManager::initialize()
@@ -25,6 +26,7 @@ void RepositoryManager::initialize()
 
     // Last: item_instances references characters, which references accounts.
     mItemRepository->initializeTable();
+    mGmLogRepository->initializeTable();
 }
 
 AccountRepository& RepositoryManager::getAccountRepository() const
@@ -40,4 +42,9 @@ ItemRepository& RepositoryManager::getItemRepository() const
 CharacterRepository& RepositoryManager::getCharacterRepository() const
 {
     return *mCharacterRepository;
+}
+
+GmLogRepository& RepositoryManager::getGmLogRepository() const
+{
+    return *mGmLogRepository;
 }

@@ -41,6 +41,20 @@ void ChatController::initialize()
             this->handleChatMessageResponse(pSession, pMessage);
         }
     );
+
+    mNetworkManager->getDispatcher().registerHandler(protocol::Response::kCommandResponse, PacketType::Response,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleCommandResponse(pSession, pMessage);
+        }
+    );
+
+    mNetworkManager->getDispatcher().registerHandler(protocol::Response::kSystemMessage, PacketType::Response,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleSystemMessage(pSession, pMessage);
+        }
+    );
 }
 
 uint64_t ChatController::sendDirectMessage(const std::string& pToUsername, const std::string& pText)
@@ -90,6 +104,23 @@ void ChatController::sendChatMessage(const std::string& pText, bool pIsGlobal)
     tSession->send(tMessage);
 }
 
+void ChatController::sendCommand(const std::string& pText)
+{
+    auto tSession = mNetworkManager->getClient().getSession();
+
+    if (!tSession)
+    {
+        return;
+    }
+
+    connection::Message tMessage;
+    auto* tRequest = tMessage.mutable_request();
+    tRequest->mutable_header()->set_id(mNetworkManager->nextRequestId());
+    tRequest->mutable_command_request()->set_text(pText);
+
+    tSession->send(tMessage);
+}
+
 void ChatController::setDirectMessageReceivedCallback(DirectMessageReceivedCallback pCallback)
 {
     mDirectMessageReceivedCallback = pCallback;
@@ -110,8 +141,20 @@ void ChatController::setChatMessageResultCallback(ChatMessageResultCallback pCal
     mChatMessageResultCallback = pCallback;
 }
 
+void ChatController::setCommandResultCallback(CommandResultCallback pCallback)
+{
+    mCommandResultCallback = pCallback;
+}
+
+void ChatController::setSystemMessageCallback(SystemMessageCallback pCallback)
+{
+    mSystemMessageCallback = pCallback;
+}
+
 void ChatController::clearCallbacks()
 {
+    mCommandResultCallback = nullptr;
+    mSystemMessageCallback = nullptr;
     mDirectMessageReceivedCallback = nullptr;
     mDirectMessageResultCallback = nullptr;
     mChatMessageReceivedCallback = nullptr;
@@ -198,4 +241,30 @@ void ChatController::handleChatMessageResponse(std::shared_ptr<NetworkSession<co
     {
         SDL_Log("ChatController: world chat message failed to send (%s)", tMessage.c_str());
     }
+}
+
+void ChatController::handleCommandResponse(std::shared_ptr<NetworkSession<connection::Message>>, const connection::Message& pMessage)
+{
+    if (!mCommandResultCallback)
+    {
+        return;
+    }
+
+    const auto& tResponse = pMessage.response().command_response();
+
+    std::vector<std::string> tLines(tResponse.lines().begin(), tResponse.lines().end());
+
+    mCommandResultCallback(tResponse.status(), tLines);
+}
+
+void ChatController::handleSystemMessage(std::shared_ptr<NetworkSession<connection::Message>>, const connection::Message& pMessage)
+{
+    if (!mSystemMessageCallback)
+    {
+        return;
+    }
+
+    const auto& tSystem = pMessage.response().system_message();
+
+    mSystemMessageCallback(tSystem.kind(), tSystem.text());
 }

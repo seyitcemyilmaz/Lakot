@@ -231,6 +231,36 @@ void CombatSystem::monsterAttack(Monster& pMonster, uint64_t pTargetId, double p
     mRecords.push_back(std::move(tRecord));
 }
 
+bool CombatSystem::killPlayer(uint64_t pCharacterId, double pNow)
+{
+    auto tCharacter = mCharacters.find(pCharacterId);
+
+    if (tCharacter == mCharacters.end() || tCharacter->second.isDead())
+    {
+        return false;
+    }
+
+    tCharacter->second.takeDamage(tCharacter->second.getStats().health);
+    mRespawnAt[pCharacterId] = pNow + kPlayerRespawnSeconds;
+    mChangedVitals.insert(pCharacterId);
+    return true;
+}
+
+bool CombatSystem::revivePlayer(uint64_t pCharacterId)
+{
+    auto tCharacter = mCharacters.find(pCharacterId);
+
+    if (tCharacter == mCharacters.end() || !tCharacter->second.isDead())
+    {
+        return false;
+    }
+
+    tCharacter->second.revive();
+    mRespawnAt.erase(pCharacterId);
+    mChangedVitals.insert(pCharacterId);
+    return true;
+}
+
 std::vector<uint64_t> CombatSystem::reviveDuePlayers(double pNow)
 {
     std::vector<uint64_t> tRevived;

@@ -69,6 +69,9 @@ public:
     bool playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pCombo, double pNow);
     void monsterAttack(Monster& pMonster, uint64_t pTargetId, double pNow);
 
+    bool killPlayer(uint64_t pCharacterId, double pNow);
+    bool revivePlayer(uint64_t pCharacterId);
+
     std::vector<uint64_t> reviveDuePlayers(double pNow);
     double getRespawnRemaining(uint64_t pCharacterId, double pNow) const;
     void forget(uint64_t pCharacterId);

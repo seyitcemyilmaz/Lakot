@@ -14,6 +14,7 @@
 #include "../../world/Zone.h"
 #include "../../world/WorldRegistry.h"
 #include "MapCatalog.h"
+#include "../../game/CharacterAccess.h"
 
 namespace lakot
 {
@@ -48,13 +49,20 @@ public:
     // whisper lookups.
     void enterWorld(const CharacterSnapshot& pCharacter,
                     uint32_t pMapId,
-                    const PlayerState& pState);
+                    const PlayerState& pState,
+                    const CharacterAccess& pAccess);
 
     // See Zone::resumePlayer.
     void resumeCharacter(uint64_t pCharacterId);
 
 
     std::string getCharacterName(uint64_t pCharacterId);
+
+    std::optional<CharacterAccess> getCharacterAccess(uint64_t pCharacterId);
+    void setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds);
+    std::optional<uint64_t> findOnlineCharacterIdByAccount(uint64_t pAccountId);
+    size_t getOnlineCount();
+    Zone* findCharacterZone(uint64_t pCharacterId);
 
     // Resolves a whisper's "message_to" name to an online character id -
     // nullopt if nobody by that name is currently logged in.
@@ -93,6 +101,7 @@ private:
     std::unordered_map<uint64_t, uint32_t> mCharacterZone;
     std::unordered_map<uint64_t, std::string> mCharacterNames;
     std::unordered_map<std::string, uint64_t> mNameToCharacterId;
+    std::unordered_map<uint64_t, CharacterAccess> mCharacterAccess;
 
     void handlePlayerStateUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
