@@ -1,6 +1,8 @@
 #ifndef LAKOT_NETWORKSERVER_H
 #define LAKOT_NETWORKSERVER_H
 
+#include <exception>
+#include <iostream>
 #include <vector>
 #include <thread>
 #include <memory>
@@ -64,7 +66,7 @@ public:
             mWorkerThreads.emplace_back(
             [this]()
             {
-                mContext.run();
+                runWorker();
             });
         }
     }
@@ -79,7 +81,7 @@ public:
             mWorkerThreads.emplace_back(
             [this]()
             {
-                mContext.run();
+                runWorker();
             });
         }
 
@@ -116,6 +118,26 @@ public:
     }
 
 private:
+    void runWorker()
+    {
+        while (true)
+        {
+            try
+            {
+                mContext.run();
+                return;
+            }
+            catch (const std::exception& tException)
+            {
+                std::osyncstream(std::cerr) << "[NetworkServer] Isleyici istisnasi: " << tException.what() << std::endl;
+            }
+            catch (...)
+            {
+                std::osyncstream(std::cerr) << "[NetworkServer] Isleyici bilinmeyen istisna" << std::endl;
+            }
+        }
+    }
+
     void doAccept()
     {
         mAcceptor.async_accept(
@@ -128,14 +150,25 @@ private:
 
             if (!pErrorCode)
             {
-                auto tSession = std::make_shared<NetworkSession<MessageType>>(std::move(pSocket));
-
-                if (mOnClientConnect)
+                try
                 {
-                    mOnClientConnect(tSession);
-                }
+                    auto tSession = std::make_shared<NetworkSession<MessageType>>(std::move(pSocket));
 
-                tSession->start();
+                    if (mOnClientConnect)
+                    {
+                        mOnClientConnect(tSession);
+                    }
+
+                    tSession->start();
+                }
+                catch (const std::exception& tException)
+                {
+                    std::osyncstream(std::cerr) << "[NetworkServer] Baglanti hatasi: " << tException.what() << std::endl;
+                }
+                catch (...)
+                {
+                    std::osyncstream(std::cerr) << "[NetworkServer] Baglanti bilinmeyen hata" << std::endl;
+                }
             }
 
             doAccept();

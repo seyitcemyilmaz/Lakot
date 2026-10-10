@@ -7,19 +7,6 @@
 
 using namespace lakot;
 
-std::string AuthController::getRemoteAddress(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
-{
-    boost::system::error_code tErrorCode;
-    auto tEndpoint = pSession->getSocket().remote_endpoint(tErrorCode);
-
-    if (tErrorCode)
-    {
-        return {};
-    }
-
-    return tEndpoint.address().to_string();
-}
-
 void AuthController::sendRejection(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                                    const connection::Message& pRequestMessage,
                                    common::StatusCode pStatusCode,
@@ -268,7 +255,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     std::string tUsername = tRequest.username();
     std::string tPassword = tRequest.password();
 
-    std::string tAddress = getRemoteAddress(pSession);
+    std::string tAddress = NetworkManager::getRemoteAddress(pSession);
 
     // Checked before the credentials are even looked at: a refused address
     // costs no database query and no password derivation, which is what makes

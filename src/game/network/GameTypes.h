@@ -102,6 +102,9 @@ struct ItemTemplate
     int32_t bonusMaxHealth = 0;
     int32_t bonusMaxMana = 0;
 
+    int32_t restoreHealth = 0;
+    int32_t restoreMana = 0;
+
     // Footprint in bag cells - how many columns and rows this item covers.
     uint32_t width = 1;
     uint32_t height = 1;
@@ -112,6 +115,13 @@ struct ItemTemplate
 
     std::string model;
     uint32_t tint = 0xFFFFFF;
+
+    bool isUsable() const
+    {
+        return type == kConsumableType && (restoreHealth > 0 || restoreMana > 0);
+    }
+
+    static constexpr uint32_t kConsumableType = 2;
 };
 
 // The bag's shape, as the server reports it. Held rather than hardcoded so

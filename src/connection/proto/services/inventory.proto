@@ -39,6 +39,9 @@ message ItemTemplate {
 
     string model = 14;
     fixed32 tint = 15;
+
+    int32 restore_health = 16;
+    int32 restore_mana = 17;
 }
 
 // Pushed once, when the player enters the world. Without it the client only
@@ -94,4 +97,22 @@ enum InventoryActionStatus {
 // client never has to guess the result of its own action.
 message InventoryActionResponse {
     InventoryActionStatus status = 1;
+}
+
+message UseItemRequest {
+    uint32 template_id = 1;
+}
+
+enum UseItemStatus {
+    USE_ITEM_STATUS_OK = 0;
+    USE_ITEM_STATUS_INVALID = 1;
+    USE_ITEM_STATUS_NOT_OWNED = 2;
+    USE_ITEM_STATUS_DEAD = 3;
+    USE_ITEM_STATUS_COOLDOWN = 4;
+    USE_ITEM_STATUS_FULL = 5;
+}
+
+message UseItemResponse {
+    UseItemStatus status = 1;
+    float cooldown_seconds = 2;
 }

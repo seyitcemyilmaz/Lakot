@@ -32,6 +32,13 @@ void InventoryController::initialize()
             this->handleActionResponse(pSession, pMessage);
         }
     );
+
+    mNetworkManager->getDispatcher().registerHandler(protocol::Response::kUseItemResponse, PacketType::Response,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleUseItemResponse(pSession, pMessage);
+        }
+    );
 }
 
 void InventoryController::sendEquipItem(uint32_t pBagSlot)
@@ -89,6 +96,22 @@ void InventoryController::sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot)
     tSession->send(tMessage);
 }
 
+void InventoryController::sendUseItem(uint32_t pTemplateId)
+{
+    auto tSession = mNetworkManager->getClient().getSession();
+
+    if (!tSession)
+    {
+        return;
+    }
+
+    connection::Message tMessage;
+    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
+    tMessage.mutable_request()->mutable_use_item_request()->set_template_id(pTemplateId);
+
+    tSession->send(tMessage);
+}
+
 void InventoryController::setInventoryUpdateCallback(InventoryUpdateCallback pCallback)
 {
     mInventoryUpdateCallback = pCallback;
@@ -99,10 +122,16 @@ void InventoryController::setActionResultCallback(ActionResultCallback pCallback
     mActionResultCallback = pCallback;
 }
 
+void InventoryController::setUseItemResultCallback(UseItemResultCallback pCallback)
+{
+    mUseItemResultCallback = pCallback;
+}
+
 void InventoryController::clearCallbacks()
 {
     mInventoryUpdateCallback = nullptr;
     mActionResultCallback = nullptr;
+    mUseItemResultCallback = nullptr;
 
     // mTemplates is deliberately NOT cleared: the catalog belongs to the
     // connection, not to whichever scene happens to be up, and is only resent
@@ -154,6 +183,8 @@ void InventoryController::handleItemTemplateList(std::shared_ptr<NetworkSession<
         tTemplate.bonusDefense = tIncoming.bonus_defense();
         tTemplate.bonusMaxHealth = tIncoming.bonus_max_health();
         tTemplate.bonusMaxMana = tIncoming.bonus_max_mana();
+        tTemplate.restoreHealth = tIncoming.restore_health();
+        tTemplate.restoreMana = tIncoming.restore_mana();
         tTemplate.width = tIncoming.width() > 0 ? tIncoming.width() : 1;
         tTemplate.height = tIncoming.height() > 0 ? tIncoming.height() : 1;
         tTemplate.icon = tIncoming.icon();
@@ -214,4 +245,16 @@ void InventoryController::handleActionResponse(std::shared_ptr<NetworkSession<co
                       == services::inventory::INVENTORY_ACTION_OK;
 
     mActionResultCallback(tIsSuccess);
+}
+
+void InventoryController::handleUseItemResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    if (!mUseItemResultCallback)
+    {
+        return;
+    }
+
+    const auto& tResponse = pMessage.response().use_item_response();
+
+    mUseItemResultCallback(tResponse.status(), tResponse.cooldown_seconds());
 }

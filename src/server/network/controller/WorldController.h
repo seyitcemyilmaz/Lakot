@@ -73,6 +73,8 @@ public:
     // change a character.
     void withCharacter(uint64_t pCharacterId, std::function<bool(Character&)> pAction);
 
+    void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, Zone::UseItemCallback pCallback);
+
 private:
     // Zones are constructed in initialize(), not the constructor, because
     // each needs the ItemCatalog and that is only filled once the database is

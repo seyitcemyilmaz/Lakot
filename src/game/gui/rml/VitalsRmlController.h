@@ -27,6 +27,7 @@ public:
     VitalsRmlController& operator=(const VitalsRmlController&) = delete;
 
     void setVitals(int32_t pHealth, int32_t pMaxHealth, uint32_t pLevel, uint64_t pExperience, uint64_t pExperienceForNextLevel);
+    void setMana(int32_t pMana, int32_t pMaxMana);
     void setDeath(bool pIsDead, float pRespawnSeconds);
     void setSafeZone(bool pIsSafe);
     void showNotice(const std::string& pText);
@@ -43,6 +44,7 @@ private:
     Rml::String mLevel{"1"};
     Rml::String mHealth;
     Rml::String mHealthPercent{"100%"};
+    Rml::String mManaPercent{"100%"};
     Rml::String mExperiencePercent{"0%"};
     Rml::String mRespawn;
     Rml::String mNotice;

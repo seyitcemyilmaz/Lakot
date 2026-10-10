@@ -11,16 +11,16 @@
          still a later pass. -->
     <div class="skillbar-bar">
         <div class="skillbar-panel">
-            <div class="skillbar-slot" id="skill-slot-1"><span class="skillbar-slot-label">1</span></div>
-            <div class="skillbar-slot" id="skill-slot-2"><span class="skillbar-slot-label">2</span></div>
-            <div class="skillbar-slot" id="skill-slot-3"><span class="skillbar-slot-label">3</span></div>
-            <div class="skillbar-slot" id="skill-slot-4"><span class="skillbar-slot-label">4</span></div>
-            <div class="skillbar-slot" id="skill-slot-5"><span class="skillbar-slot-label">5</span></div>
-            <div class="skillbar-slot" id="skill-slot-f1"><span class="skillbar-slot-label">F1</span></div>
-            <div class="skillbar-slot" id="skill-slot-f2"><span class="skillbar-slot-label">F2</span></div>
-            <div class="skillbar-slot" id="skill-slot-f3"><span class="skillbar-slot-label">F3</span></div>
-            <div class="skillbar-slot" id="skill-slot-f4"><span class="skillbar-slot-label">F4</span></div>
-            <div class="skillbar-slot" id="skill-slot-f5"><span class="skillbar-slot-label">F5</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-1"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">1</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-2"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">2</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-3"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">3</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-4"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">4</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-5"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">5</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-f1"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">F1</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-f2"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">F2</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-f3"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">F3</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-f4"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">F4</span></div>
+            <div class="skillbar-slot empty" id="skill-slot-f5"><img class="slot-icon"/><span class="slot-count"></span><div class="slot-cooldown"></div><span class="skillbar-slot-label">F5</span></div>
         </div>
     </div>
 </body>

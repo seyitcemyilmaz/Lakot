@@ -1211,6 +1211,7 @@ body
     border-width: 1px;
     border-color: #40404c;
     border-radius: 4dp;
+    overflow: hidden;
     transition: border-color 0.15s, background-color 0.15s;
 }
 
@@ -1235,8 +1236,61 @@ body
     background-color: #292933;
 }
 
+.skillbar-slot .slot-icon
+{
+    position: absolute;
+    top: 4dp;
+    left: 4dp;
+    width: 38dp;
+    height: 38dp;
+    display: block;
+}
+
+.skillbar-slot.empty .slot-icon
+{
+    display: none;
+}
+
+.skillbar-slot.depleted .slot-icon
+{
+    opacity: 0.35;
+}
+
+.skillbar-slot .slot-count
+{
+    position: absolute;
+    right: 4dp;
+    bottom: 2dp;
+    font-size: 13dp;
+    color: #EBEBF0;
+    text-shadow: 1px 1px #000000;
+}
+
+.skillbar-slot.depleted .slot-count
+{
+    color: #9999A8;
+}
+
+.skillbar-slot .slot-cooldown
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    background-color: rgba(18, 18, 24, 160);
+    border-radius: 4dp;
+    pointer-events: none;
+}
+
+.skillbar-slot.depleted
+{
+    background-color: #1A1A21;
+}
+
 .skillbar-slot-label
 {
+    z-index: 2;
     position: absolute;
     top: 2dp;
     left: 2dp;

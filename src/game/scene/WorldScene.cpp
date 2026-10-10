@@ -308,7 +308,7 @@ void WorldScene::enter()
     mAutoWalk = std::make_unique<AutoWalk>(*mEntities);
 
     mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getDisplaySettings(),
-                                      mEngine.getWindow(), mLocalUsername, mLocalStats, mLocalItems, *mItemIcons);
+                                      mEngine.getWindow(), mLocalUsername, mLocalStats, mLocalItems, *mItemIcons, mLocalCharacterId);
 
     mHud->setLocalItemsCallback(
     [this](const std::vector<OwnedItem>& pItems)

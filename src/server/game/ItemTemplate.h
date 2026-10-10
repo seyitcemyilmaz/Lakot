@@ -80,9 +80,17 @@ struct ItemTemplate
     int32_t bonusMaxHealth = 0;
     int32_t bonusMaxMana = 0;
 
+    int32_t restoreHealth = 0;
+    int32_t restoreMana = 0;
+
     bool isEquippable() const
     {
         return type == ItemType::eEquipment && equipSlot != EquipSlotType::eNone;
+    }
+
+    bool isUsable() const
+    {
+        return type == ItemType::eConsumable && (restoreHealth > 0 || restoreMana > 0);
     }
 
     bool isStackable() const

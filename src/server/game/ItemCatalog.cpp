@@ -12,6 +12,8 @@ using namespace lakot;
 
 namespace
 {
+    constexpr int32_t kMaxRestoreAmount = 100000;
+
     uint32_t getUint(const rapidjson::Value& pObject, const char* pName, uint32_t pDefault)
     {
         auto tMember = pObject.FindMember(pName);
@@ -70,6 +72,8 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
         tTemplate.bonusDefense = getInt(tEntry, "bonusDefense");
         tTemplate.bonusMaxHealth = getInt(tEntry, "bonusMaxHealth");
         tTemplate.bonusMaxMana = getInt(tEntry, "bonusMaxMana");
+        tTemplate.restoreHealth = getInt(tEntry, "restoreHealth");
+        tTemplate.restoreMana = getInt(tEntry, "restoreMana");
         tTemplate.width = getUint(tEntry, "width", 1);
         tTemplate.height = getUint(tEntry, "height", 1);
         tTemplate.icon = getString(tEntry, "icon");
@@ -79,6 +83,13 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
         if (tTemplate.templateId == 0 || tTemplate.name.empty())
         {
             pError = "items.json has an entry without an id or a name";
+            return false;
+        }
+
+        if (tTemplate.restoreHealth < 0 || tTemplate.restoreHealth > kMaxRestoreAmount
+            || tTemplate.restoreMana < 0 || tTemplate.restoreMana > kMaxRestoreAmount)
+        {
+            pError = "items.json has an entry with an out-of-range restore amount: " + tTemplate.name;
             return false;
         }
 

@@ -46,6 +46,12 @@ private:
     void handleEquipItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleUnequipItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleMoveItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleUseItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+
+    void sendUseItemResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                           uint64_t pReplyTo,
+                           services::inventory::UseItemStatus pStatus,
+                           float pCooldownSeconds);
 
     void sendActionResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                           uint64_t pReplyTo,

@@ -53,11 +53,13 @@ def main():
 
     items += [
         {"id": 4, "name": "Health Potion", "type": TYPE_CONSUMABLE, "equipSlot": 0, "maxStack": 20, "requiredLevel": 1,
-         "width": 1, "height": 1, "icon": "potion.tga", "model": "", "tint": 0xFFFFFF},
+         "width": 1, "height": 1, "icon": "potion.tga", "model": "", "tint": 0xFFFFFF, "restoreHealth": 50},
         {"id": 5, "name": "Iron Ore", "type": TYPE_MATERIAL, "equipSlot": 0, "maxStack": 50, "requiredLevel": 1,
          "width": 1, "height": 1, "icon": "ore.tga", "model": "", "tint": 0xFFFFFF},
         {"id": 6, "name": "Ancient Relic", "type": TYPE_QUEST, "equipSlot": 0, "maxStack": 1, "requiredLevel": 1,
          "width": 1, "height": 2, "icon": "relic.tga", "model": "", "tint": 0xFFFFFF},
+        {"id": 7, "name": "Mana Potion", "type": TYPE_CONSUMABLE, "equipSlot": 0, "maxStack": 20, "requiredLevel": 1,
+         "width": 1, "height": 1, "icon": "mana_potion.tga", "model": "", "tint": 0xFFFFFF, "restoreMana": 40},
     ]
 
     items.sort(key=lambda item: item["id"])

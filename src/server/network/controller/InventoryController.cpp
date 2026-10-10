@@ -40,6 +40,13 @@ void InventoryController::initialize()
             this->handleMoveItemRequest(pSession, pMessage);
         }
     );
+
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kUseItemRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleUseItemRequest(pSession, pMessage);
+        }
+    );
 }
 
 void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
@@ -74,6 +81,8 @@ void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession
         tOut->set_icon(tTemplate.icon);
         tOut->set_model(tTemplate.model);
         tOut->set_tint(tTemplate.tint);
+        tOut->set_restore_health(tTemplate.restoreHealth);
+        tOut->set_restore_mana(tTemplate.restoreMana);
     }
 
     pSession->send(tMessage);
@@ -182,5 +191,49 @@ void InventoryController::handleMoveItemRequest(std::shared_ptr<NetworkSession<c
         sendActionResult(pSession, tReplyTo, tIsSuccess);
 
         return tIsSuccess;
+    });
+}
+
+void InventoryController::sendUseItemResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                                            uint64_t pReplyTo,
+                                            services::inventory::UseItemStatus pStatus,
+                                            float pCooldownSeconds)
+{
+    connection::Message tResponse;
+
+    auto* tHeader = tResponse.mutable_response()->mutable_header();
+    tHeader->set_reply_to(pReplyTo);
+    tHeader->mutable_status()->set_code(pStatus == services::inventory::USE_ITEM_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+
+    auto* tBody = tResponse.mutable_response()->mutable_use_item_response();
+    tBody->set_status(pStatus);
+    tBody->set_cooldown_seconds(pCooldownSeconds);
+
+    pSession->send(tResponse);
+}
+
+void InventoryController::handleUseItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tReplyTo = pMessage.request().header().id();
+    uint64_t tCharacterId = pSession->getCharacterId();
+
+    if (tCharacterId == 0)
+    {
+        sendUseItemResult(pSession, tReplyTo, services::inventory::USE_ITEM_STATUS_INVALID, 0.0f);
+        return;
+    }
+
+    const ItemTemplate* tTemplate = mItemCatalog.find(pMessage.request().use_item_request().template_id());
+
+    if (!tTemplate || !tTemplate->isUsable())
+    {
+        sendUseItemResult(pSession, tReplyTo, services::inventory::USE_ITEM_STATUS_INVALID, 0.0f);
+        return;
+    }
+
+    mWorldController.useItem(tCharacterId, *tTemplate,
+    [pSession, tReplyTo, this](services::inventory::UseItemStatus pStatus, float pCooldownSeconds)
+    {
+        sendUseItemResult(pSession, tReplyTo, pStatus, pCooldownSeconds);
     });
 }

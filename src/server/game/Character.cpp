@@ -142,6 +142,38 @@ uint32_t Character::countItem(uint32_t pTemplateId) const
     return mInventory.countItem(pTemplateId);
 }
 
+ConsumeResultType Character::useConsumable(const ItemTemplate& pTemplate)
+{
+    if (!pTemplate.isUsable())
+    {
+        return ConsumeResultType::eNotUsable;
+    }
+
+    if (mInventory.countItem(pTemplate.templateId) == 0)
+    {
+        return ConsumeResultType::eNotOwned;
+    }
+
+    bool tHealsHealth = pTemplate.restoreHealth > 0 && mStats.health < getMaxHealth();
+    bool tHealsMana = pTemplate.restoreMana > 0 && mStats.mana < getMaxMana();
+
+    if (!tHealsHealth && !tHealsMana)
+    {
+        return ConsumeResultType::eFull;
+    }
+
+    if (takeItem(pTemplate.templateId, 1) != 1)
+    {
+        return ConsumeResultType::eNotOwned;
+    }
+
+    mStats.health = static_cast<int32_t>(std::min<int64_t>(int64_t{mStats.health} + pTemplate.restoreHealth, getMaxHealth()));
+    mStats.mana = static_cast<int32_t>(std::min<int64_t>(int64_t{mStats.mana} + pTemplate.restoreMana, getMaxMana()));
+    refreshVitals();
+    markDirty();
+    return ConsumeResultType::eConsumed;
+}
+
 bool Character::equipItem(uint32_t pBagSlot)
 {
     if (!mInventory.equip(pBagSlot, mStats.level))

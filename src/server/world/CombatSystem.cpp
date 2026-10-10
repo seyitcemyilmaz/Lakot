@@ -168,7 +168,7 @@ bool CombatSystem::playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pComb
     auto tAttacker = mCharacters.find(pAttackerId);
     const PlayerState* tState = mRegistry.getState(pAttackerId);
 
-    if (tAttacker == mCharacters.end() || !tState || tAttacker->second.isDead() || mMap.isSafe(tState->x, tState->z))
+    if (!std::isfinite(pYaw) || tAttacker == mCharacters.end() || !tState || tAttacker->second.isDead() || mMap.isSafe(tState->x, tState->z))
     {
         return false;
     }

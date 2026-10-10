@@ -29,12 +29,21 @@
           "max": 2
         },
         {
+          "itemId": 7,
+          "chance": 0.2,
+          "min": 1,
+          "max": 2
+        },
+        {
           "itemId": 5,
           "chance": 0.1,
           "min": 1,
           "max": 2
         }
-      ]
+      ],
+      "minLevel": 5,
+      "maxLevel": 10,
+      "assistRange": 20
     },
     {
       "id": 2,
@@ -63,8 +72,17 @@
           "chance": 0.15,
           "min": 1,
           "max": 1
+        },
+        {
+          "itemId": 7,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
         }
-      ]
+      ],
+      "minLevel": 1,
+      "maxLevel": 5,
+      "assistRange": 18
     },
     {
       "id": 3,
@@ -93,8 +111,16 @@
           "chance": 0.2,
           "min": 1,
           "max": 1
+        },
+        {
+          "itemId": 7,
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
         }
-      ]
+      ],
+      "minLevel": 3,
+      "maxLevel": 8
     },
     {
       "id": 4,
@@ -107,7 +133,7 @@
       "experience": 1400,
       "moveSpeed": 3.5,
       "aggroRange": 12,
-      "attackRange": 1.8,
+      "attackRange": 12.0,
       "attackInterval": 1.8,
       "leashRange": 35,
       "respawnSeconds": 40,
@@ -125,12 +151,22 @@
           "max": 2
         },
         {
+          "itemId": 7,
+          "chance": 0.25,
+          "min": 1,
+          "max": 2
+        },
+        {
           "itemId": 3002,
           "chance": 0.03,
           "min": 1,
           "max": 1
         }
-      ]
+      ],
+      "minLevel": 8,
+      "maxLevel": 12,
+      "projectile": "arrow",
+      "assistRange": 15
     },
     {
       "id": 5,
@@ -158,7 +194,14 @@
           "itemId": 4,
           "chance": 0.6,
           "min": 2,
-          "max": 4
+          "max": 4,
+          "guaranteed": true
+        },
+        {
+          "itemId": 7,
+          "chance": 0.5,
+          "min": 1,
+          "max": 2
         },
         {
           "itemId": 1003,
@@ -178,7 +221,11 @@
           "min": 1,
           "max": 1
         }
-      ]
+      ],
+      "minLevel": 12,
+      "maxLevel": 15,
+      "boss": true,
+      "lootRolls": 2
     },
     {
       "id": 6,
@@ -209,12 +256,20 @@
           "max": 2
         },
         {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
           "itemId": 6,
           "chance": 0.05,
           "min": 1,
           "max": 1
         }
-      ]
+      ],
+      "minLevel": 10,
+      "maxLevel": 14
     },
     {
       "id": 7,
@@ -242,7 +297,14 @@
           "itemId": 4,
           "chance": 1.0,
           "min": 3,
-          "max": 5
+          "max": 5,
+          "guaranteed": true
+        },
+        {
+          "itemId": 7,
+          "chance": 0.5,
+          "min": 1,
+          "max": 2
         },
         {
           "itemId": 1005,
@@ -260,7 +322,8 @@
           "itemId": 3003,
           "chance": 0.3,
           "min": 1,
-          "max": 1
+          "max": 1,
+          "guaranteed": true
         },
         {
           "itemId": 2003,
@@ -268,7 +331,11 @@
           "min": 1,
           "max": 1
         }
-      ]
+      ],
+      "minLevel": 15,
+      "maxLevel": 20,
+      "boss": true,
+      "lootRolls": 3
     }
   ]
 }

@@ -13,6 +13,14 @@ namespace lakot
 
 class ItemCatalog;
 
+enum class ConsumeResultType : uint32_t
+{
+    eConsumed = 0,
+    eNotUsable = 1,
+    eNotOwned = 2,
+    eFull = 3
+};
+
 // Everything needed to reconstruct a character somewhere else: loading one
 // from storage into a zone, and handing one from one zone to another through
 // a portal, are the same operation with the same payload.
@@ -27,6 +35,7 @@ struct CharacterSnapshot
     uint32_t kingdom = 0;
     CharacterStats stats;
     std::vector<ItemInstance> items;
+    double potionCooldownRemaining = 0.0;
 };
 
 // One player's character while it exists in the world: identity, stats and
@@ -76,6 +85,8 @@ public:
     uint32_t giveItem(uint32_t pTemplateId, uint32_t pCount);
     uint32_t takeItem(uint32_t pTemplateId, uint32_t pCount);
     uint32_t countItem(uint32_t pTemplateId) const;
+
+    ConsumeResultType useConsumable(const ItemTemplate& pTemplate);
 
     bool equipItem(uint32_t pBagSlot);
     bool unequipItem(EquipSlotType pSlot, std::optional<uint32_t> pBagSlot = std::nullopt);

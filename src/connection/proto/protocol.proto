@@ -39,6 +39,7 @@ message Request {
         services.inventory.EquipItemRequest equip_item_request = 5000;
         services.inventory.UnequipItemRequest unequip_item_request = 5001;
         services.inventory.MoveItemRequest move_item_request = 5002;
+        services.inventory.UseItemRequest use_item_request = 5003;
     }
 }
 
@@ -78,5 +79,6 @@ message Response {
         services.inventory.InventoryActionResponse inventory_action_response = 5000;
         services.inventory.InventoryUpdate inventory_update = 5001;
         services.inventory.ItemTemplateList item_template_list = 5002;
+        services.inventory.UseItemResponse use_item_response = 5003;
     }
 }

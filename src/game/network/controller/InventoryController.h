@@ -32,6 +32,7 @@ class InventoryController
 public:
     using InventoryUpdateCallback = std::function<void(const std::vector<OwnedItem>&, const CharacterStats&)>;
     using ActionResultCallback = std::function<void(bool pIsSuccess)>;
+    using UseItemResultCallback = std::function<void(services::inventory::UseItemStatus pStatus, float pCooldownSeconds)>;
 
     InventoryController(NetworkManager* pNetworkManager);
 
@@ -40,9 +41,11 @@ public:
     void sendEquipItem(uint32_t pBagSlot);
     void sendUnequipItem(EquipSlotType pEquipSlot, std::optional<uint32_t> pBagSlot = std::nullopt);
     void sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot);
+    void sendUseItem(uint32_t pTemplateId);
 
     void setInventoryUpdateCallback(InventoryUpdateCallback pCallback);
     void setActionResultCallback(ActionResultCallback pCallback);
+    void setUseItemResultCallback(UseItemResultCallback pCallback);
 
     // See AuthController::clearCallbacks - same dangling-`this` hazard, same
     // reason. Called from WorldScene::exit().
@@ -68,10 +71,12 @@ private:
 
     InventoryUpdateCallback mInventoryUpdateCallback;
     ActionResultCallback mActionResultCallback;
+    UseItemResultCallback mUseItemResultCallback;
 
     void handleItemTemplateList(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleInventoryUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleActionResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleUseItemResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };
 
 }

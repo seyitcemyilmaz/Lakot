@@ -146,6 +146,7 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
     boost::asio::post(mContext, [this, pCharacter = std::move(pCharacter), pState]() mutable
     {
         uint64_t tCharacterId = pCharacter.characterId;
+        double tPotionCooldownRemaining = pCharacter.potionCooldownRemaining;
 
         Character tLiveCharacter(tCharacterId, pCharacter.name, mItemCatalog);
         tLiveCharacter.setKingdom(pCharacter.kingdom);
@@ -186,6 +187,13 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
         // handed the full idle budget.
         mLastAcceptedAt[tCharacterId] = std::chrono::steady_clock::now();
         mPendingCorrections.erase(tCharacterId);
+
+        mLastPotionAt.erase(tCharacterId);
+
+        if (tPotionCooldownRemaining > 0.0)
+        {
+            mLastPotionAt[tCharacterId] = mTime + tPotionCooldownRemaining - kPotionCooldownSeconds;
+        }
     });
 }
 
@@ -204,6 +212,7 @@ void Zone::leavePlayer(uint64_t pCharacterId)
         mLastAcceptedAt.erase(pCharacterId);
         mPendingCorrections.erase(pCharacterId);
         mLastPickupAt.erase(pCharacterId);
+        mLastPotionAt.erase(pCharacterId);
     });
 }
 
@@ -310,10 +319,16 @@ void Zone::sendInventoryUpdate(const Character& pCharacter)
     mSend(pCharacter.getId(), NetworkSession<connection::Message>::makePacket(tMessage));
 }
 
-void Zone::submitState(uint64_t pCharacterId, const PlayerState& pState)
+bool Zone::isFinite(const PlayerState& pState)
 {
-    boost::asio::post(mContext, [this, pCharacterId, pState]()
+    return std::isfinite(pState.x) && std::isfinite(pState.y) && std::isfinite(pState.z) && std::isfinite(pState.yaw);
+}
+
+void Zone::submitState(uint64_t pCharacterId, const PlayerState& pRequestedState)
+{
+    boost::asio::post(mContext, [this, pCharacterId, tState = pRequestedState]() mutable
     {
+        constexpr float kTwoPi = 6.28318530717958647692f;
         const PlayerState* tAccepted = mRegistry.getState(pCharacterId);
 
         if (!tAccepted)
@@ -321,11 +336,13 @@ void Zone::submitState(uint64_t pCharacterId, const PlayerState& pState)
             return; // not on this map (left, or mid-transfer)
         }
 
-        if (mCombat.isDead(pCharacterId))
+        if (mCombat.isDead(pCharacterId) || !isFinite(tState))
         {
             mPendingCorrections.insert(pCharacterId);
             return;
         }
+
+        tState.yaw = std::remainder(tState.yaw, kTwoPi);
 
         auto tNow = std::chrono::steady_clock::now();
         auto tLastIterator = mLastAcceptedAt.find(pCharacterId);
@@ -340,14 +357,14 @@ void Zone::submitState(uint64_t pCharacterId, const PlayerState& pState)
 
         float tAllowed = kMaxSpeed * static_cast<float>(tElapsedSeconds) + kPositionTolerance;
 
-        float tDx = pState.x - tAccepted->x;
-        float tDz = pState.z - tAccepted->z;
+        float tDx = tState.x - tAccepted->x;
+        float tDz = tState.z - tAccepted->z;
 
         bool tIsTooFar = tDx * tDx + tDz * tDz > tAllowed * tAllowed;
-        bool tIsBlocked = !mMap.isMoveAllowed(tAccepted->x, tAccepted->z, pState.x, pState.z);
+        bool tIsBlocked = !mMap.isMoveAllowed(tAccepted->x, tAccepted->z, tState.x, tState.z);
 
-        float tExpectedY = mMap.getHeightAt(pState.x, pState.z) + MovementRules::kBodyHalfHeight;
-        bool tIsWrongHeight = !(std::abs(pState.y - tExpectedY) <= kHeightTolerance);
+        float tExpectedY = mMap.getHeightAt(tState.x, tState.z) + MovementRules::kBodyHalfHeight;
+        bool tIsWrongHeight = !(std::abs(tState.y - tExpectedY) <= kHeightTolerance);
 
         if (tIsTooFar || tIsBlocked || tIsWrongHeight)
         {
@@ -359,7 +376,7 @@ void Zone::submitState(uint64_t pCharacterId, const PlayerState& pState)
         }
 
         mLastAcceptedAt[pCharacterId] = tNow;
-        mRegistry.setState(pCharacterId, pState);
+        mRegistry.setState(pCharacterId, tState);
     });
 }
 
@@ -443,6 +460,66 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
         if (tResult == services::world::PICKUP_RESULT_OK)
         {
             sendInventoryUpdate(tCharacter->second);
+        }
+    });
+}
+
+void Zone::useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    boost::asio::post(mContext, [this, pCharacterId, &pTemplate, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+
+        if (tCharacter == mCharacters.end())
+        {
+            pCallback(services::inventory::USE_ITEM_STATUS_INVALID, 0.0f);
+            return;
+        }
+
+        if (tCharacter->second.isDead())
+        {
+            pCallback(services::inventory::USE_ITEM_STATUS_DEAD, 0.0f);
+            return;
+        }
+
+        auto tLastPotion = mLastPotionAt.find(pCharacterId);
+
+        if (tLastPotion != mLastPotionAt.end())
+        {
+            double tRemaining = kPotionCooldownSeconds - (mTime - tLastPotion->second);
+
+            if (tRemaining > 0.0)
+            {
+                pCallback(services::inventory::USE_ITEM_STATUS_COOLDOWN, static_cast<float>(tRemaining));
+                return;
+            }
+        }
+
+        switch (tCharacter->second.useConsumable(pTemplate))
+        {
+        case ConsumeResultType::eConsumed:
+            mLastPotionAt[pCharacterId] = mTime;
+            mCombat.markVitalsChanged(pCharacterId);
+            sendInventoryUpdate(tCharacter->second);
+            pCallback(services::inventory::USE_ITEM_STATUS_OK, static_cast<float>(kPotionCooldownSeconds));
+            break;
+
+        case ConsumeResultType::eFull:
+            pCallback(services::inventory::USE_ITEM_STATUS_FULL, 0.0f);
+            break;
+
+        case ConsumeResultType::eNotOwned:
+            pCallback(services::inventory::USE_ITEM_STATUS_NOT_OWNED, 0.0f);
+            break;
+
+        case ConsumeResultType::eNotUsable:
+            pCallback(services::inventory::USE_ITEM_STATUS_INVALID, 0.0f);
+            break;
         }
     });
 }
@@ -570,6 +647,13 @@ void Zone::applyPortals()
             tSnapshot.stats = tCharacter.getStats();
             tSnapshot.items = tCharacter.getInventory().getItems();
 
+            auto tLastPotion = mLastPotionAt.find(tCharacterId);
+
+            if (tLastPotion != mLastPotionAt.end())
+            {
+                tSnapshot.potionCooldownRemaining = std::max(0.0, kPotionCooldownSeconds - (mTime - tLastPotion->second));
+            }
+
             tPending.push_back({std::move(tSnapshot), *tPortal});
         }
     }
@@ -594,6 +678,7 @@ void Zone::applyPortals()
         mCharacters.erase(tCharacterId);
         mCombat.forget(tCharacterId);
         mLastPickupAt.erase(tCharacterId);
+        mLastPotionAt.erase(tCharacterId);
 
         // A portal is a server-authored move, so any correction still queued
         // for this character is stale - the destination zone's own entry

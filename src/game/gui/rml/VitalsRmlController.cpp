@@ -34,6 +34,7 @@ VitalsRmlController::VitalsRmlController(RmlUiLayer& pRmlUiLayer)
     tConstructor.Bind("level", &mLevel);
     tConstructor.Bind("health", &mHealth);
     tConstructor.Bind("health_percent", &mHealthPercent);
+    tConstructor.Bind("mana_percent", &mManaPercent);
     tConstructor.Bind("experience_percent", &mExperiencePercent);
     tConstructor.Bind("respawn", &mRespawn);
     tConstructor.Bind("notice", &mNotice);
@@ -75,6 +76,17 @@ void VitalsRmlController::setVitals(int32_t pHealth, int32_t pMaxHealth, uint32_
     mModel.DirtyVariable("health");
     mModel.DirtyVariable("health_percent");
     mModel.DirtyVariable("experience_percent");
+}
+
+void VitalsRmlController::setMana(int32_t pMana, int32_t pMaxMana)
+{
+    Rml::String tPercent = toPercent(pMana, pMaxMana);
+
+    if (tPercent != mManaPercent)
+    {
+        mManaPercent = tPercent;
+        mModel.DirtyVariable("mana_percent");
+    }
 }
 
 void VitalsRmlController::setDeath(bool pIsDead, float pRespawnSeconds)

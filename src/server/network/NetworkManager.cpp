@@ -9,6 +9,19 @@ NetworkManager::~NetworkManager()
     stop();
 }
 
+std::string NetworkManager::getRemoteAddress(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
+{
+    boost::system::error_code tErrorCode;
+    auto tEndpoint = pSession->getSocket().remote_endpoint(tErrorCode);
+
+    if (tErrorCode)
+    {
+        return {};
+    }
+
+    return tEndpoint.address().to_string();
+}
+
 NetworkManager::NetworkManager()
     : mNetworkServer(12345)
     , mDispatcher()
@@ -24,13 +37,13 @@ NetworkManager::NetworkManager()
     mDispatcher.setUnknownPacketHandler(
     [](std::shared_ptr<NetworkSession<connection::Message>> pSession, int pCaseId)
     {
-        std::osyncstream(std::cerr) << "[Security] Bilinmeyen Paket ID: " << pCaseId << " IP: " << pSession->getSocket().remote_endpoint() << std::endl;
+        std::osyncstream(std::cerr) << "[Security] Bilinmeyen Paket ID: " << pCaseId << " IP: " << getRemoteAddress(pSession) << std::endl;
     });
 
     mNetworkServer.setOnClientConnect(
     [this](std::shared_ptr<NetworkSession<connection::Message>> pSession)
     {
-        std::osyncstream(std::cout) << "[Network] Yeni Baglanti: " << pSession->getSocket().remote_endpoint() << std::endl;
+        std::osyncstream(std::cout) << "[Network] Yeni Baglanti: " << getRemoteAddress(pSession) << std::endl;
 
         pSession->setOnErrorFunction(
         [this](std::shared_ptr<NetworkSession<connection::Message>> pS, const boost::system::error_code& pEc)

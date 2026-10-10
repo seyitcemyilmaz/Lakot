@@ -236,11 +236,21 @@ private:
 
                 if (tBodySize > 10 * 1024 * 1024)
                 {
-                    self->close();
+                    self->onDisconnect(boost::asio::error::message_size);
                     return;
                 }
 
-                self->mIncomingBody.resize(tBodySize);
+                try
+                {
+                    self->mIncomingBody.resize(tBodySize);
+                }
+                catch (const std::exception& tException)
+                {
+                    std::osyncstream(std::cerr) << "[Session] Gelen paket icin bellek ayrilamadi:" << tException.what() << std::endl;
+                    self->onDisconnect(boost::asio::error::no_memory);
+                    return;
+                }
+
                 self->readBody();
             }
             else
@@ -263,9 +273,33 @@ private:
             {
                 MessageType tMessage;
 
-                if (tMessage.ParseFromArray(self->mIncomingBody.data(), (int)self->mIncomingBody.size()))
+                try
                 {
+                    if (!tMessage.ParseFromArray(self->mIncomingBody.data(), (int)self->mIncomingBody.size()))
+                    {
+                        std::osyncstream(std::cerr) << "[Session] Gecersiz paket govdesi, baglanti kapatiliyor" << std::endl;
+                        self->onDisconnect(boost::asio::error::invalid_argument);
+                        return;
+                    }
+
                     self->handleIncomingMessage(tMessage);
+                }
+                catch (const std::exception& tException)
+                {
+                    std::osyncstream(std::cerr) << "[Session] Isleyici istisnasi, baglanti kapatiliyor: " << tException.what() << std::endl;
+                    self->onDisconnect(boost::asio::error::operation_aborted);
+                    return;
+                }
+                catch (...)
+                {
+                    std::osyncstream(std::cerr) << "[Session] Isleyici bilinmeyen istisna, baglanti kapatiliyor" << std::endl;
+                    self->onDisconnect(boost::asio::error::operation_aborted);
+                    return;
+                }
+
+                if (!self->mIsConnected.load())
+                {
+                    return;
                 }
 
                 self->readHeader();

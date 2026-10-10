@@ -29,8 +29,6 @@ private:
 
     LoginAttemptLimiter mAttemptLimiter;
 
-    static std::string getRemoteAddress(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
-
     void sendRejection(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                        const connection::Message& pRequestMessage,
                        common::StatusCode pStatusCode,

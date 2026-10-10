@@ -355,6 +355,25 @@ void WorldController::withCharacter(uint64_t pCharacterId, std::function<bool(Ch
     }
 }
 
+void WorldController::useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, Zone::UseItemCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    auto tMapId = getCharacterZone(pCharacterId);
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (!tZone)
+    {
+        pCallback(services::inventory::USE_ITEM_STATUS_INVALID, 0.0f);
+        return;
+    }
+
+    tZone->useItem(pCharacterId, pTemplate, std::move(pCallback));
+}
+
 void WorldController::sendNearby(uint64_t pOriginCharacterId, Zone::Packet pPacket)
 {
     auto tMapId = getCharacterZone(pOriginCharacterId);

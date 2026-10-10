@@ -11,7 +11,8 @@
    "height": 1,
    "icon": "potion.tga",
    "model": "",
-   "tint": 16777215
+   "tint": 16777215,
+   "restoreHealth": 50
   },
   {
    "id": 5,
@@ -38,6 +39,20 @@
    "icon": "relic.tga",
    "model": "",
    "tint": 16777215
+  },
+  {
+   "id": 7,
+   "name": "Mana Potion",
+   "type": 2,
+   "equipSlot": 0,
+   "maxStack": 20,
+   "requiredLevel": 1,
+   "width": 1,
+   "height": 1,
+   "icon": "mana_potion.tga",
+   "model": "",
+   "tint": 16777215,
+   "restoreMana": 40
   },
   {
    "id": 1001,

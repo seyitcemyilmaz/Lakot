@@ -1,5 +1,7 @@
 #include "WorldHud.h"
 
+#include "../../item/ItemIconPath.h"
+#include "../../item/ItemIconRenderer.h"
 #include "../../network/NetworkManager.h"
 
 using namespace lakot;
@@ -11,10 +13,13 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    const std::string& pUsername,
                    const CharacterStats& pStats,
                    const std::vector<OwnedItem>& pItems,
-                   ItemIconRenderer& pItemIcons)
+                   ItemIconRenderer& pItemIcons,
+                   uint64_t pCharacterId)
     : mNetworkManager(pNetworkManager)
     , mDisplaySettings(pDisplaySettings)
     , mWindow(pWindow)
+    , mItemIcons(pItemIcons)
+    , mBindings(pCharacterId)
     , mMinimap(pRmlUiLayer)
     , mWorldMap(pRmlUiLayer)
     , mWorldChat(pRmlUiLayer)
@@ -57,8 +62,12 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     mCharacterSheet.setStats(pStats);
     mStats = pStats;
     mVitals.setVitals(pStats.health, pStats.maxHealth, pStats.level, pStats.experience, pStats.experienceForNextLevel);
+    mVitals.setMana(pStats.mana, pStats.maxMana);
+
+    updateBagCounts(pItems);
 
     connectNetwork();
+    refreshSkillBar();
 }
 
 void WorldHud::connectNetwork()
@@ -92,6 +101,10 @@ void WorldHud::connectNetwork()
         mCharacterSheet.setStats(pStats);
         mStats = pStats;
         mVitals.setVitals(pStats.health, pStats.maxHealth, pStats.level, pStats.experience, pStats.experienceForNextLevel);
+        mVitals.setMana(pStats.mana, pStats.maxMana);
+
+        updateBagCounts(pItems);
+        refreshSkillBar();
 
         if (mLocalItemsCallback)
         {
@@ -103,6 +116,30 @@ void WorldHud::connectNetwork()
     [this](bool pIsSuccess)
     {
         mInventory.onActionResult(pIsSuccess);
+    });
+
+    tInventory.setUseItemResultCallback(
+    [this](services::inventory::UseItemStatus pStatus, float pCooldownSeconds)
+    {
+        onUseItemResult(pStatus, pCooldownSeconds);
+    });
+
+    mInventory.setItemDroppedOutsideCallback(
+    [this](uint32_t pTemplateId, float pX, float pY)
+    {
+        onItemDroppedOutside(pTemplateId, pX, pY);
+    });
+
+    mSkillBar.setSlotActivatedCallback(
+    [this](SkillBarSlot pSlot)
+    {
+        activateSkillSlot(pSlot);
+    });
+
+    mSkillBar.setSlotDroppedCallback(
+    [this](SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo)
+    {
+        onSkillSlotDropped(pFrom, pTo);
     });
 
     mInventory.setEquipRequestCallback(
@@ -219,7 +256,7 @@ bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
     {
         if (!pEvent.repeat)
         {
-            mSkillBar.triggerFlash(tSlot);
+            activateSkillSlot(tSlot);
         }
 
         return true;
@@ -318,4 +355,123 @@ void WorldHud::refreshDisplayOptions()
     }
 
     mSystemMenu.setDisplayOptions(tLabels, tSelected);
+}
+
+void WorldHud::updateBagCounts(const std::vector<OwnedItem>& pItems)
+{
+    mBagCounts.clear();
+
+    for (const OwnedItem& tItem : pItems)
+    {
+        if (tItem.location == ItemLocationType::eInventory)
+        {
+            mBagCounts[tItem.templateId] += tItem.count;
+        }
+    }
+}
+
+void WorldHud::refreshSkillBar()
+{
+    for (size_t tIndex = 0; tIndex < SkillBarBindings::kSlotCount; ++tIndex)
+    {
+        refreshSkillSlot(tIndex);
+    }
+}
+
+void WorldHud::refreshSkillSlot(size_t pIndex)
+{
+    SkillBarSlot tSlot = static_cast<SkillBarSlot>(pIndex);
+    std::optional<uint32_t> tTemplateId = mBindings.getTemplateId(pIndex);
+
+    if (!tTemplateId)
+    {
+        mSkillBar.clearSlot(tSlot);
+        return;
+    }
+
+    const ItemTemplate* tTemplate = mNetworkManager.getInventoryController().findTemplate(*tTemplateId);
+    auto tCount = mBagCounts.find(*tTemplateId);
+
+    mSkillBar.setSlot(tSlot, ItemIconPath::resolve(mItemIcons, tTemplate), tCount == mBagCounts.end() ? 0 : tCount->second);
+}
+
+void WorldHud::activateSkillSlot(SkillBarSlot pSlot)
+{
+    mSkillBar.triggerFlash(pSlot);
+
+    std::optional<uint32_t> tTemplateId = mBindings.getTemplateId(static_cast<size_t>(pSlot));
+
+    if (!tTemplateId || mSkillBar.isCoolingDown(pSlot))
+    {
+        return;
+    }
+
+    mNetworkManager.getInventoryController().sendUseItem(*tTemplateId);
+}
+
+void WorldHud::bindSkillSlot(SkillBarSlot pSlot, uint32_t pTemplateId)
+{
+    mBindings.setTemplateId(static_cast<size_t>(pSlot), pTemplateId);
+    refreshSkillSlot(static_cast<size_t>(pSlot));
+}
+
+void WorldHud::onSkillSlotDropped(SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo)
+{
+    std::optional<uint32_t> tTemplateId = mBindings.getTemplateId(static_cast<size_t>(pFrom));
+
+    if (!tTemplateId)
+    {
+        return;
+    }
+
+    mBindings.clear(static_cast<size_t>(pFrom));
+    refreshSkillSlot(static_cast<size_t>(pFrom));
+
+    if (pTo)
+    {
+        bindSkillSlot(*pTo, *tTemplateId);
+    }
+}
+
+void WorldHud::onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY)
+{
+    if (std::optional<SkillBarSlot> tSlot = mSkillBar.getSlotAt(pX, pY))
+    {
+        bindSkillSlot(*tSlot, pTemplateId);
+    }
+}
+
+void WorldHud::onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds)
+{
+    switch (pStatus)
+    {
+        case services::inventory::USE_ITEM_STATUS_OK:
+        case services::inventory::USE_ITEM_STATUS_COOLDOWN:
+            for (size_t tIndex = 0; tIndex < SkillBarBindings::kSlotCount; ++tIndex)
+            {
+                std::optional<uint32_t> tTemplateId = mBindings.getTemplateId(tIndex);
+                const ItemTemplate* tTemplate = tTemplateId ? mNetworkManager.getInventoryController().findTemplate(*tTemplateId) : nullptr;
+
+                if (tTemplate && tTemplate->isUsable())
+                {
+                    mSkillBar.startCooldown(static_cast<SkillBarSlot>(tIndex), pCooldownSeconds);
+                }
+            }
+            break;
+
+        case services::inventory::USE_ITEM_STATUS_DEAD:
+            mVitals.showNotice("You cannot do that while dead.");
+            break;
+
+        case services::inventory::USE_ITEM_STATUS_FULL:
+            mVitals.showNotice("Nothing to restore.");
+            break;
+
+        case services::inventory::USE_ITEM_STATUS_NOT_OWNED:
+            mVitals.showNotice("You have none left.");
+            break;
+
+        default:
+            break;
+    }
 }

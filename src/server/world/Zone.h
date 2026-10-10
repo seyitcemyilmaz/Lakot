@@ -133,7 +133,13 @@ public:
 
     void pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo);
 
+    using UseItemCallback = std::function<void(services::inventory::UseItemStatus pStatus, float pCooldownSeconds)>;
+
+    void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback);
+
 private:
+    static bool isFinite(const PlayerState& pState);
+
     // Simulation step. Movement is client-reported today, so this mostly
     // paces portal checks and the snapshot cadence, but it is the loop any
     // server-side simulation slots into.
@@ -171,6 +177,7 @@ private:
     static constexpr double kMaxBudgetSeconds = 2.0;
 
     static constexpr double kPickupCooldownSeconds = 0.1;
+    static constexpr double kPotionCooldownSeconds = 1.0;
 
     const MapData& mMap;
     const MapCatalog& mMapCatalog;
@@ -204,6 +211,7 @@ private:
     uint64_t mNextEntityId{kWorldEntityIdBase};
     LootSystem mLoot;
     std::unordered_map<uint64_t, double> mLastPickupAt;
+    std::unordered_map<uint64_t, double> mLastPotionAt;
 
     // One Lua state per zone, created ON the zone thread (see start()) so the
     // state is only ever touched by the thread that owns it. This is the

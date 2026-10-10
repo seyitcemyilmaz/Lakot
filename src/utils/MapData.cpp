@@ -449,6 +449,11 @@ std::array<uint8_t, 3> MapData::getVertexColor(int pX, int pZ) const
 
 float MapData::getHeightAt(float pX, float pZ) const
 {
+    if (!std::isfinite(pX) || !std::isfinite(pZ))
+    {
+        return mWaterLevel;
+    }
+
     float tLast = static_cast<float>(mResolution - 1);
     float tGridX = std::clamp((pX + mWorldSize * 0.5f) / mGridSpacing, 0.0f, tLast);
     float tGridZ = std::clamp((pZ + mWorldSize * 0.5f) / mGridSpacing, 0.0f, tLast);
@@ -482,14 +487,23 @@ bool MapData::isInside(float pX, float pZ) const
 
 bool MapData::isBlocked(float pX, float pZ) const
 {
-    float tCellSize = mWorldSize / static_cast<float>(mBlockResolution);
-    int tCellX = static_cast<int>(std::floor((pX + mWorldSize * 0.5f) / tCellSize));
-    int tCellZ = static_cast<int>(std::floor((pZ + mWorldSize * 0.5f) / tCellSize));
-
-    if (tCellX < 0 || tCellZ < 0 || tCellX >= mBlockResolution || tCellZ >= mBlockResolution)
+    if (!std::isfinite(pX) || !std::isfinite(pZ))
     {
         return true;
     }
+
+    float tCellSize = mWorldSize / static_cast<float>(mBlockResolution);
+    float tRawX = std::floor((pX + mWorldSize * 0.5f) / tCellSize);
+    float tRawZ = std::floor((pZ + mWorldSize * 0.5f) / tCellSize);
+    float tLimit = static_cast<float>(mBlockResolution);
+
+    if (!(tRawX >= 0.0f && tRawZ >= 0.0f && tRawX < tLimit && tRawZ < tLimit))
+    {
+        return true;
+    }
+
+    int tCellX = static_cast<int>(tRawX);
+    int tCellZ = static_cast<int>(tRawZ);
 
     return mBlocked[static_cast<size_t>(tCellZ) * mBlockResolution + tCellX] != 0;
 }
@@ -513,6 +527,11 @@ bool MapData::isMoveAllowed(float pFromX, float pFromZ, float pToX, float pToZ) 
 
 bool MapData::isPathWalkable(float pFromX, float pFromZ, float pToX, float pToZ, float pSampleStep) const
 {
+    if (!isWalkable(pToX, pToZ) || !std::isfinite(pFromX) || !std::isfinite(pFromZ))
+    {
+        return false;
+    }
+
     float tDx = pToX - pFromX;
     float tDz = pToZ - pFromZ;
     int tSteps = std::max(1, static_cast<int>(std::ceil(std::sqrt(tDx * tDx + tDz * tDz) / pSampleStep)));
@@ -542,8 +561,13 @@ float MapData::getCellSize() const
 
 int MapData::getCellIndex(float pCoordinate) const
 {
-    int tCell = static_cast<int>(std::floor((pCoordinate + mWorldSize * 0.5f) / getCellSize()));
-    return std::clamp(tCell, 0, mBlockResolution - 1);
+    if (!std::isfinite(pCoordinate))
+    {
+        return 0;
+    }
+
+    float tCell = std::floor((pCoordinate + mWorldSize * 0.5f) / getCellSize());
+    return static_cast<int>(std::clamp(tCell, 0.0f, static_cast<float>(mBlockResolution - 1)));
 }
 
 float MapData::getCellCenterX(int pCellX) const

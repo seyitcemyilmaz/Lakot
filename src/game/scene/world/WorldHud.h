@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <SDL3/SDL.h>
@@ -23,6 +25,7 @@
 #include "../../gui/rml/WorldMapRmlController.h"
 #include "../../network/GameTypes.h"
 #include "../../settings/DisplaySettings.h"
+#include "../../settings/SkillBarBindings.h"
 
 namespace lakot
 {
@@ -45,7 +48,8 @@ public:
              const std::string& pUsername,
              const CharacterStats& pStats,
              const std::vector<OwnedItem>& pItems,
-             ItemIconRenderer& pItemIcons);
+             ItemIconRenderer& pItemIcons,
+             uint64_t pCharacterId);
 
     void setLogoutCallback(LogoutCallback pCallback);
 
@@ -77,6 +81,8 @@ private:
     NetworkManager& mNetworkManager;
     DisplaySettings& mDisplaySettings;
     SDL_Window* mWindow;
+    ItemIconRenderer& mItemIcons;
+    SkillBarBindings mBindings;
 
     // Declaration order is document load order, which is draw order.
     MinimapRmlController mMinimap;
@@ -92,6 +98,7 @@ private:
     std::vector<DisplayMode> mDisplayModes;
 
     CharacterStats mStats;
+    std::unordered_map<uint32_t, uint32_t> mBagCounts;
 
     LogoutCallback mLogoutCallback;
     LocalSayCallback mLocalSayCallback;
@@ -99,6 +106,15 @@ private:
 
     void connectNetwork();
     void refreshDisplayOptions();
+
+    void updateBagCounts(const std::vector<OwnedItem>& pItems);
+    void refreshSkillBar();
+    void refreshSkillSlot(size_t pIndex);
+    void activateSkillSlot(SkillBarSlot pSlot);
+    void bindSkillSlot(SkillBarSlot pSlot, uint32_t pTemplateId);
+    void onSkillSlotDropped(SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo);
+    void onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY);
+    void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
 };
 
 }

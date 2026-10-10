@@ -13,6 +13,7 @@
 
 #include "../../network/controller/InventoryController.h"
 
+#include "../../item/ItemIconPath.h"
 #include "../../item/ItemIconRenderer.h"
 
 using namespace lakot;
@@ -72,19 +73,9 @@ const char* InventoryRmlController::getSlotRoleName(EquipSlotType pSlot)
     }
 }
 
-Rml::String InventoryRmlController::toIconPath(const OwnedItem& pItem, const ItemTemplate* pTemplate) const
+Rml::String InventoryRmlController::toIconPath(const ItemTemplate* pTemplate) const
 {
-    if (!pTemplate)
-    {
-        return Rml::String();
-    }
-
-    if (!pTemplate->model.empty())
-    {
-        return Rml::String(mItemIcons.getIconSource({ pItem.templateId, 0 }));
-    }
-
-    return pTemplate->icon.empty() ? Rml::String() : Rml::String("textures/items/" + pTemplate->icon);
+    return Rml::String(ItemIconPath::resolve(mItemIcons, pTemplate));
 }
 
 InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, ItemIconRenderer& pItemIcons)
@@ -217,6 +208,11 @@ void InventoryRmlController::setMoveRequestCallback(MoveRequestCallback pCallbac
     mMoveRequestCallback = pCallback;
 }
 
+void InventoryRmlController::setItemDroppedOutsideCallback(ItemDroppedOutsideCallback pCallback)
+{
+    mItemDroppedOutsideCallback = pCallback;
+}
+
 void InventoryRmlController::setContents(const std::vector<OwnedItem>& pItems, const CharacterStats& /*pStats*/)
 {
     mOwnedItems = pItems;
@@ -298,7 +294,7 @@ void InventoryRmlController::rebuild()
                 uint32_t tColumns = std::min(getFootprintWidth(tTemplate), tPosition.columns);
                 uint32_t tRows = std::min(getFootprintHeight(tTemplate), tPosition.rows);
 
-                tRow.icon = toIconPath(tItem, tTemplate);
+                tRow.icon = toIconPath(tTemplate);
                 tRow.itemLeft = toDp((tPosition.columns - tColumns) * kCellSize / 2);
                 tRow.itemTop = toDp((tPosition.rows - tRows) * kCellSize / 2);
                 tRow.itemWidth = toDp(tColumns * kCellSize);
@@ -325,7 +321,7 @@ void InventoryRmlController::rebuild()
         tRow.top = toDp(tY * kCellSize);
         tRow.width = toDp(getFootprintWidth(tTemplate) * kCellSize);
         tRow.height = toDp(getFootprintHeight(tTemplate) * kCellSize);
-        tRow.icon = toIconPath(tItem, tTemplate);
+        tRow.icon = toIconPath(tTemplate);
         tRow.count = std::to_string(tItem.count);
         tRow.hasCount = (tItem.count > 1);
         tRow.isDragged = mIsDraggingItem && !mDraggedFromEquip && tItem.slot == mDraggedFromSlot;
@@ -586,7 +582,7 @@ void InventoryRmlController::startItemDrag(const OwnedItem& pItem, bool pIsFromE
     mIsDraggingItem = true;
     mDraggedFromEquip = pIsFromEquip;
     mDraggedFromSlot = pItem.slot;
-    mDragGhostIcon = toIconPath(pItem, tTemplate);
+    mDragGhostIcon = toIconPath(tTemplate);
     mDragGhostWidth = toDp(getFootprintWidth(tTemplate) * kCellSize);
     mDragGhostHeight = toDp(getFootprintHeight(tTemplate) * kCellSize);
     mHasDragGhost = true;
@@ -642,6 +638,25 @@ void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
                 request(RequestType::eMove);
                 mMoveRequestCallback(mDraggedFromSlot, tTargetSlot);
             }
+        }
+    }
+    else if (!mDraggedFromEquip && !isInside(".inventory-window", pMouseX, pMouseY) && mItemDroppedOutsideCallback)
+    {
+        for (const OwnedItem& tItem : mOwnedItems)
+        {
+            if (tItem.location != ItemLocationType::eInventory || tItem.slot != mDraggedFromSlot)
+            {
+                continue;
+            }
+
+            const ItemTemplate* tTemplate = mInventoryController.findTemplate(tItem.templateId);
+
+            if (tTemplate && tTemplate->isUsable())
+            {
+                mItemDroppedOutsideCallback(tItem.templateId, pMouseX, pMouseY);
+            }
+
+            break;
         }
     }
     else if (!mDraggedFromEquip && isInside(".inv-doll", pMouseX, pMouseY) && mEquipRequestCallback)

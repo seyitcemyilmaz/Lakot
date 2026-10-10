@@ -79,6 +79,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/VitalsRmlController.h gui/rml/VitalsRmlController.cpp
     item/ItemAppearance.h item/ItemAppearance.cpp
     item/ItemIconRenderer.h item/ItemIconRenderer.cpp
+    item/ItemIconPath.h item/ItemIconPath.cpp
+    settings/SkillBarBindings.h settings/SkillBarBindings.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
     scene/world/CameraBob.h scene/world/CameraBob.cpp

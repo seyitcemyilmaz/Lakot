@@ -11,6 +11,7 @@
                 <span class="vitals-value">{{ health }}</span>
             </div>
             <div class="char-bar vitals-bar"><div class="char-bar-fill char-bar-health" data-style-width="health_percent"></div></div>
+            <div class="char-bar vitals-bar"><div class="char-bar-fill char-bar-mana" data-style-width="mana_percent"></div></div>
             <div class="char-bar vitals-bar vitals-bar-thin"><div class="char-bar-fill char-bar-exp" data-style-width="experience_percent"></div></div>
         </div>
         <div class="vitals-safe-zone" data-if="is_safe">Safe Zone</div>
