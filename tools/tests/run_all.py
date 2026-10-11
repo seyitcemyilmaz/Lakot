@@ -646,6 +646,9 @@ def main():
     g = subprocess.call([sys.executable, str(HERE / 't_gm_commands_g27.py')])
     if g != 0:
         RESULTS.append(('t_gm_commands_g27', False, 'see output above'))
+    g = subprocess.call([sys.executable, str(HERE / 't_session_lifecycle_g33.py')])
+    if g != 0:
+        RESULTS.append(('t_session_lifecycle_g33', False, 'see output above'))
     p = sum(1 for r in RESULTS if r[1])
     print(f"\n{p}/{len(RESULTS)} passed")
     if p != len(RESULTS):

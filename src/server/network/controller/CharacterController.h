@@ -42,6 +42,11 @@ private:
     void handleCharacterCreateRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleEnterWorldRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 
+    static void sendEnterWorldFailure(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                                      uint64_t pReplyTo,
+                                      common::StatusCode pStatusCode,
+                                      services::auth::EnterWorldStatus pEnterStatus);
+
     void sendCharacterList(const std::shared_ptr<NetworkSession<connection::Message>>& pSession, uint64_t pReplyTo);
 };
 

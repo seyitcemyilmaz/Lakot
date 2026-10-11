@@ -27,14 +27,12 @@ NetworkManager::NetworkManager()
     : mNetworkServer(12345)
     , mDispatcher()
     , mSessionRegistry()
-    , mSessionResumeManager(mNetworkServer.getIOContext())
+    , mSessionResumeManager(mNetworkServer.getIOContext(),
+        [this](uint64_t pAccountId, uint64_t pGeneration)
+        {
+            onHoldExpired(pAccountId, pGeneration);
+        })
 {
-    mSessionResumeManager.setReleaseCallback(
-    [this](uint64_t pCharacterId)
-    {
-        releaseCharacter(pCharacterId);
-    });
-
     mDispatcher.setUnknownPacketHandler(
     [](std::shared_ptr<NetworkSession<connection::Message>> pSession, int pCaseId)
     {
@@ -47,45 +45,9 @@ NetworkManager::NetworkManager()
         std::osyncstream(std::cout) << "[Network] Yeni Baglanti: " << getRemoteAddress(pSession) << std::endl;
 
         pSession->setOnErrorFunction(
-        [this](std::shared_ptr<NetworkSession<connection::Message>> pS, const boost::system::error_code& pEc)
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pS, const boost::system::error_code&)
         {
-            uint64_t tAccountId = pS->getAccountId();
-
-            if (tAccountId == 0)
-            {
-                return; // never authenticated - nothing registered to clean up
-            }
-
-            // remove() returns false when this account already belongs to a
-            // NEWER session, i.e. this is the superseded connection
-            // AuthController deliberately closed on relogin. The account is
-            // still online, so nothing below may run: it would tear down the
-            // live session's world state and save a stale position over it.
-            if (!mSessionRegistry.remove(tAccountId, pS))
-            {
-                std::osyncstream(std::cout) << "[Network] Eski oturum kapandi (yeni oturum aktif): " << tAccountId << std::endl;
-                return;
-            }
-
-            // Unbound right away so nothing is routed to the dead socket;
-            // whether the character itself stays in the world for a while is
-            // up to the resume grace period.
-            uint64_t tCharacterId = pS->getCharacterId();
-
-            if (tCharacterId != 0)
-            {
-                mSessionRegistry.unbindCharacter(tCharacterId, pS);
-            }
-
-            if (mSessionResumeManager.hold(tAccountId))
-            {
-                std::osyncstream(std::cout) << "[Network] Baglanti koptu, oturum bekletiliyor (hesap): " << tAccountId << std::endl;
-                return;
-            }
-
-            std::osyncstream(std::cout) << "[Network] Kullanici Dustu (hesap): " << tAccountId << std::endl;
-
-            releaseCharacter(tCharacterId);
+            onSessionError(pS);
         });
 
         pSession->setOnMessageFunction(
@@ -141,11 +103,6 @@ SessionRegistry<NetworkSession<connection::Message>>& NetworkManager::getSession
     return mSessionRegistry;
 }
 
-SessionResumeManager& NetworkManager::getSessionResumeManager()
-{
-    return mSessionResumeManager;
-}
-
 void NetworkManager::setOnUserDisconnected(std::function<void(uint64_t)> pCallback)
 {
     mOnUserDisconnected = pCallback;
@@ -159,8 +116,17 @@ void NetworkManager::releaseCharacter(uint64_t pCharacterId)
     }
 }
 
-void NetworkManager::endSession(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
+void NetworkManager::detachSession(const SessionPtr& pSession)
 {
+    pSession->setWorldEntryTicket(0);
+    pSession->setCharacterId(0);
+    pSession->setAccountId(0);
+}
+
+void NetworkManager::onSessionError(const SessionPtr& pSession)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
     uint64_t tAccountId = pSession->getAccountId();
 
     if (tAccountId == 0)
@@ -170,7 +136,185 @@ void NetworkManager::endSession(const std::shared_ptr<NetworkSession<connection:
 
     uint64_t tCharacterId = pSession->getCharacterId();
 
-    mSessionResumeManager.revoke(tAccountId);
+    if (!mSessionRegistry.remove(tAccountId, pSession))
+    {
+        std::osyncstream(std::cout) << "[Network] Eski oturum kapandi (yeni oturum aktif): " << tAccountId << std::endl;
+        detachSession(pSession);
+        return;
+    }
+
+    if (tCharacterId != 0)
+    {
+        mSessionRegistry.unbindCharacter(tCharacterId, pSession);
+    }
+
+    detachSession(pSession);
+
+    if (mSessionResumeManager.hold(tAccountId))
+    {
+        std::osyncstream(std::cout) << "[Network] Baglanti koptu, oturum bekletiliyor (hesap): " << tAccountId << std::endl;
+        return;
+    }
+
+    std::osyncstream(std::cout) << "[Network] Kullanici Dustu (hesap): " << tAccountId << std::endl;
+
+    releaseCharacter(tCharacterId);
+}
+
+void NetworkManager::onHoldExpired(uint64_t pAccountId, uint64_t pGeneration)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    releaseCharacter(mSessionResumeManager.expireHold(pAccountId, pGeneration));
+}
+
+std::optional<std::string> NetworkManager::beginSession(const SessionPtr& pSession, uint64_t pAccountId)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (!pSession->isConnected() || pSession->getAccountId() != 0)
+    {
+        return std::nullopt;
+    }
+
+    pSession->setAccountId(pAccountId);
+
+    auto tOldSession = mSessionRegistry.addOrReplace(pAccountId, pSession);
+
+    if (tOldSession && tOldSession != pSession)
+    {
+        std::osyncstream(std::cout) << "[Server] Cakisan oturum. Eski baglanti kapatiliyor." << std::endl;
+
+        if (uint64_t tOldCharacterId = tOldSession->getCharacterId(); tOldCharacterId != 0)
+        {
+            mSessionRegistry.unbindCharacter(tOldCharacterId, tOldSession);
+        }
+
+        detachSession(tOldSession);
+        tOldSession->close();
+    }
+
+    SessionResumeManager::IssueResult tIssued = mSessionResumeManager.issueToken(pAccountId);
+
+    releaseCharacter(tIssued.releasedCharacterId);
+
+    return std::move(tIssued.token);
+}
+
+std::optional<SessionResumeManager::ResumeResult> NetworkManager::resumeSession(const SessionPtr& pSession, const std::string& pToken)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (!pSession->isConnected() || pSession->getAccountId() != 0 || pSession->getWorldEntryTicket() != 0)
+    {
+        return std::nullopt;
+    }
+
+    auto tResult = mSessionResumeManager.resume(pToken);
+
+    if (!tResult)
+    {
+        return std::nullopt;
+    }
+
+    pSession->setAccountId(tResult->accountId);
+
+    auto tOldSession = mSessionRegistry.addOrReplace(tResult->accountId, pSession);
+
+    if (tOldSession && tOldSession != pSession)
+    {
+        if (tResult->characterId != 0)
+        {
+            mSessionRegistry.unbindCharacter(tResult->characterId, tOldSession);
+        }
+
+        detachSession(tOldSession);
+        tOldSession->close();
+    }
+
+    if (tResult->characterId != 0)
+    {
+        pSession->setCharacterId(tResult->characterId);
+        mSessionRegistry.bindCharacter(tResult->characterId, pSession);
+    }
+
+    return tResult;
+}
+
+uint64_t NetworkManager::claimWorldEntry(const SessionPtr& pSession)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (!pSession->isConnected() || pSession->getAccountId() == 0
+        || pSession->getCharacterId() != 0 || pSession->getWorldEntryTicket() != 0)
+    {
+        return 0;
+    }
+
+    uint64_t tTicket = ++mNextWorldEntryTicket;
+
+    pSession->setWorldEntryTicket(tTicket);
+
+    return tTicket;
+}
+
+bool NetworkManager::attachCharacter(const SessionPtr& pSession, uint64_t pAccountId, uint64_t pTicket, uint64_t pCharacterId,
+                                     const std::function<void()>& pOnAttached)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (pTicket == 0
+        || !pSession->isConnected()
+        || pSession->getAccountId() != pAccountId
+        || pSession->getWorldEntryTicket() != pTicket
+        || pSession->getCharacterId() != 0
+        || mSessionRegistry.get(pAccountId) != pSession)
+    {
+        return false;
+    }
+
+    pSession->setWorldEntryTicket(0);
+    pSession->setCharacterId(pCharacterId);
+
+    mSessionRegistry.bindCharacter(pCharacterId, pSession);
+    mSessionResumeManager.setCharacter(pAccountId, pCharacterId);
+
+    if (pOnAttached)
+    {
+        pOnAttached();
+    }
+
+    return true;
+}
+
+bool NetworkManager::abandonWorldEntry(const SessionPtr& pSession, uint64_t pTicket)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (pTicket == 0 || pSession->getWorldEntryTicket() != pTicket)
+    {
+        return false;
+    }
+
+    pSession->setWorldEntryTicket(0);
+
+    return true;
+}
+
+void NetworkManager::endSession(const SessionPtr& pSession)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    uint64_t tAccountId = pSession->getAccountId();
+
+    if (tAccountId == 0)
+    {
+        return;
+    }
+
+    uint64_t tCharacterId = pSession->getCharacterId();
+
+    uint64_t tHeldCharacterId = mSessionResumeManager.revoke(tAccountId);
 
     mSessionRegistry.remove(tAccountId, pSession);
 
@@ -180,16 +324,32 @@ void NetworkManager::endSession(const std::shared_ptr<NetworkSession<connection:
         releaseCharacter(tCharacterId);
     }
 
-    pSession->setCharacterId(0);
-    pSession->setAccountId(0);
+    if (tHeldCharacterId != 0 && tHeldCharacterId != tCharacterId)
+    {
+        releaseCharacter(tHeldCharacterId);
+    }
+
+    detachSession(pSession);
 
     std::osyncstream(std::cout) << "[Server] Cikis yapildi (hesap: " << tAccountId << ")" << std::endl;
 }
 
 void NetworkManager::endDetachedCharacter(uint64_t pAccountId, uint64_t pCharacterId)
 {
-    mSessionResumeManager.revoke(pAccountId);
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (mSessionRegistry.get(pAccountId))
+    {
+        return;
+    }
+
+    uint64_t tHeldCharacterId = mSessionResumeManager.revoke(pAccountId);
     releaseCharacter(pCharacterId);
+
+    if (tHeldCharacterId != 0 && tHeldCharacterId != pCharacterId)
+    {
+        releaseCharacter(tHeldCharacterId);
+    }
 
     std::osyncstream(std::cout) << "[Server] Bekleyen oturum sonlandirildi (hesap: " << pAccountId << ")" << std::endl;
 }

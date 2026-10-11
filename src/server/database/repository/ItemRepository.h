@@ -17,7 +17,7 @@ class ItemRepository : public BaseRepository
 {
 public:
     using SyncCallback = std::function<void(bool pIsSuccess, uint64_t pRemovedInstances)>;
-    using ItemLoadCallback = std::function<void(std::vector<ItemInstance>)>;
+    using ItemLoadCallback = std::function<void(bool pIsSuccess, std::vector<ItemInstance> pItems)>;
 
     virtual ~ItemRepository();
     explicit ItemRepository(DatabaseManager& pDatabaseManager);

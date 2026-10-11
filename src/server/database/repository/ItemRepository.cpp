@@ -125,6 +125,7 @@ void ItemRepository::loadCharacterItems(uint64_t pCharacterId, ItemLoadCallback 
 {
     mDatabaseManager.executeAsync([pCharacterId, pCallback](pqxx::connection& pConnection)
     {
+        bool tIsSuccess = false;
         std::vector<ItemInstance> tItems;
 
         try
@@ -147,6 +148,8 @@ void ItemRepository::loadCharacterItems(uint64_t pCharacterId, ItemLoadCallback 
 
                 tItems.push_back(tItem);
             }
+
+            tIsSuccess = true;
         }
         catch (const std::exception& tException)
         {
@@ -155,7 +158,7 @@ void ItemRepository::loadCharacterItems(uint64_t pCharacterId, ItemLoadCallback 
 
         if (pCallback)
         {
-            pCallback(std::move(tItems));
+            pCallback(tIsSuccess, std::move(tItems));
         }
     }, pCharacterId);
 }

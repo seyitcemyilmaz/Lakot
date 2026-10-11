@@ -79,13 +79,7 @@ void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<c
     tResponse.mutable_response()->mutable_header()->set_reply_to(pMessage.request().header().id());
     auto* tResume = tResponse.mutable_response()->mutable_resume_session_response();
 
-    // Only a fresh connection may take a session over.
-    std::optional<SessionResumeManager::ResumeResult> tResult;
-
-    if (pSession->getAccountId() == 0)
-    {
-        tResult = mNetworkManager.getSessionResumeManager().resume(pMessage.request().resume_session_request().token());
-    }
+    auto tResult = mNetworkManager.resumeSession(pSession, pMessage.request().resume_session_request().token());
 
     if (!tResult)
     {
@@ -93,31 +87,6 @@ void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<c
         tResume->set_status(services::auth::RESUME_SESSION_FAILED);
         pSession->send(tResponse);
         return;
-    }
-
-    auto& tRegistry = mNetworkManager.getSessionRegistry();
-
-    pSession->setAccountId(tResult->accountId);
-
-    // The old connection may not have been noticed as dead yet (half-open
-    // TCP). Replacing it here makes its eventual error a no-op, the same way
-    // a relogin does.
-    auto tOldSession = tRegistry.addOrReplace(tResult->accountId, pSession);
-
-    if (tOldSession && tOldSession != pSession)
-    {
-        if (tResult->characterId != 0)
-        {
-            tRegistry.unbindCharacter(tResult->characterId, tOldSession);
-        }
-
-        tOldSession->close();
-    }
-
-    if (tResult->characterId != 0)
-    {
-        pSession->setCharacterId(tResult->characterId);
-        tRegistry.bindCharacter(tResult->characterId, pSession);
     }
 
     tResponse.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_OK);
@@ -231,6 +200,12 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     std::string tUsername = tRequest.username();
     std::string tPassword = tRequest.password();
 
+    if (pSession->getAccountId() != 0)
+    {
+        sendRejection(pSession, pMessage, common::STATUS_INVALID_REQUEST, "Already logged in.", true);
+        return;
+    }
+
     std::string tAddress = NetworkManager::getRemoteAddress(pSession);
 
     // Checked before the credentials are even looked at: a refused address
@@ -289,46 +264,24 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
         // being locked out.
         mAttemptLimiter.clear(tAddress);
 
-        auto& tRegistry = mNetworkManager.getSessionRegistry();
-        auto& tResumeManager = mNetworkManager.getSessionResumeManager();
+        auto tToken = mNetworkManager.beginSession(pSession, pAccountId);
 
-        // Logging in to a different account on an already authenticated
-        // connection - drop the previous account's registration first.
-        uint64_t tPreviousAccountId = pSession->getAccountId();
-
-        if (tPreviousAccountId != 0 && tPreviousAccountId != pAccountId)
+        if (!tToken)
         {
-            tRegistry.remove(tPreviousAccountId, pSession);
-            tResumeManager.revoke(tPreviousAccountId);
-        }
-
-        pSession->setAccountId(pAccountId);
-
-        auto tOldSession = tRegistry.addOrReplace(pAccountId, pSession);
-
-        if (tOldSession && tOldSession != pSession)
-        {
-            std::osyncstream(std::cout) << "[Server] Cakisan oturum. Eski baglanti kapatiliyor." << std::endl;
-
-            if (uint64_t tOldCharacterId = tOldSession->getCharacterId(); tOldCharacterId != 0)
+            if (pSession->isConnected())
             {
-                tRegistry.unbindCharacter(tOldCharacterId, tOldSession);
+                sendRejection(pSession, pMessage, common::STATUS_INVALID_REQUEST, "Already logged in.", true);
             }
 
-            tOldSession->close();
+            return;
         }
-
-        // Also releases whatever character the account's previous session
-        // still had in the world - attached, or held after a dropped
-        // connection.
-        std::string tToken = tResumeManager.issueToken(pAccountId);
 
         // Nothing enters the world here any more. Logging in authenticates an
         // account; which character exists in the world - and therefore where
         // anyone stands - is decided by the EnterWorld step that follows the
         // selection screen.
         tHeader->mutable_status()->set_code(common::STATUS_OK);
-        tResponse.mutable_response()->mutable_login_response()->set_token(tToken);
+        tResponse.mutable_response()->mutable_login_response()->set_token(*tToken);
 
         pSession->send(tResponse);
     });

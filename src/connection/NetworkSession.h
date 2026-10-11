@@ -133,7 +133,7 @@ public:
             if (self->mWriteQueueBytes + packet->size() > kMaxWriteQueueBytes)
             {
                 std::osyncstream(std::cerr) << "[Session] Yazma kuyrugu doldu, baglanti kapatiliyor. Account: "
-                          << self->mAccountId << std::endl;
+                          << self->mAccountId.load() << std::endl;
 
                 self->mPendingWrites.fetch_sub(1);
                 self->onDisconnect(boost::asio::error::no_buffer_space);
@@ -186,22 +186,32 @@ public:
     // normal state, and world traffic must not be accepted in it.
     void setAccountId(uint64_t pAccountId)
     {
-        mAccountId = pAccountId;
+        mAccountId.store(pAccountId);
     }
 
     uint64_t getAccountId() const
     {
-        return mAccountId;
+        return mAccountId.load();
     }
 
     void setCharacterId(uint64_t pCharacterId)
     {
-        mCharacterId = pCharacterId;
+        mCharacterId.store(pCharacterId);
     }
 
     uint64_t getCharacterId() const
     {
-        return mCharacterId;
+        return mCharacterId.load();
+    }
+
+    void setWorldEntryTicket(uint64_t pTicket)
+    {
+        mWorldEntryTicket.store(pTicket);
+    }
+
+    uint64_t getWorldEntryTicket() const
+    {
+        return mWorldEntryTicket.load();
     }
 
 private:
@@ -230,8 +240,9 @@ private:
     MessageHandler mOnMessageFunction;
     ErrorHandler mOnErrorFunction;
 
-    uint64_t mAccountId{0};
-    uint64_t mCharacterId{0};
+    std::atomic<uint64_t> mAccountId{0};
+    std::atomic<uint64_t> mCharacterId{0};
+    std::atomic<uint64_t> mWorldEntryTicket{0};
 
     void readHeader()
     {

@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 
 #include <connection.pb.h>
@@ -20,6 +22,8 @@ namespace lakot
 class NetworkManager
 {
 public:
+    using SessionPtr = std::shared_ptr<NetworkSession<connection::Message>>;
+
     virtual ~NetworkManager();
     NetworkManager();
 
@@ -32,16 +36,24 @@ public:
     NetworkServer<connection::Message>& getNetworkServer();
     MessageDispatcher<connection::Message>& getDispatcher();
     SessionRegistry<NetworkSession<connection::Message>>& getSessionRegistry();
-    SessionResumeManager& getSessionResumeManager();
 
     // Single-subscriber hook: removes a character from the world. Invoked
     // when a dropped session's resume grace period runs out, on logout, and
     // when a relogin replaces a session that still had a character.
     void setOnUserDisconnected(std::function<void(uint64_t)> pCallback);
 
-    void releaseCharacter(uint64_t pCharacterId);
+    // Lock order: mLifecycleMutex, then SessionRegistry / SessionResumeManager / WorldController meta mutex. Never taken by zone threads.
+    std::optional<std::string> beginSession(const SessionPtr& pSession, uint64_t pAccountId);
+    std::optional<SessionResumeManager::ResumeResult> resumeSession(const SessionPtr& pSession, const std::string& pToken);
 
-    void endSession(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
+    uint64_t claimWorldEntry(const SessionPtr& pSession);
+
+    bool attachCharacter(const SessionPtr& pSession, uint64_t pAccountId, uint64_t pTicket, uint64_t pCharacterId,
+                         const std::function<void()>& pOnAttached);
+
+    bool abandonWorldEntry(const SessionPtr& pSession, uint64_t pTicket);
+
+    void endSession(const SessionPtr& pSession);
     void endDetachedCharacter(uint64_t pAccountId, uint64_t pCharacterId);
 
 private:
@@ -51,6 +63,15 @@ private:
     SessionResumeManager mSessionResumeManager;
 
     std::function<void(uint64_t)> mOnUserDisconnected;
+
+    std::mutex mLifecycleMutex;
+    uint64_t mNextWorldEntryTicket{0};
+
+    void onSessionError(const SessionPtr& pSession);
+    void onHoldExpired(uint64_t pAccountId, uint64_t pGeneration);
+
+    void releaseCharacter(uint64_t pCharacterId);
+    static void detachSession(const SessionPtr& pSession);
 };
 
 }

@@ -23,13 +23,16 @@ namespace lakot
 // (the character stays in the world), and a new connection presenting the
 // token takes the session over. If nobody does, the character is released
 // exactly as an immediate disconnect would have released it.
-//
-// Thread safe - called from the network worker pool and from its own timers.
 class SessionResumeManager
 {
 public:
-    // Removes a character from the world. Never called with the lock held.
-    using ReleaseCallback = std::function<void(uint64_t pCharacterId)>;
+    using ExpiryCallback = std::function<void(uint64_t pAccountId, uint64_t pGeneration)>;
+
+    struct IssueResult
+    {
+        std::string token;
+        uint64_t releasedCharacterId = 0;
+    };
 
     struct ResumeResult
     {
@@ -40,19 +43,15 @@ public:
 
     static constexpr std::chrono::seconds kHoldDuration{45};
 
-    explicit SessionResumeManager(boost::asio::io_context& pContext);
+    SessionResumeManager(boost::asio::io_context& pContext, ExpiryCallback pExpiryCallback);
 
-    void setReleaseCallback(ReleaseCallback pCallback);
-
-    // A fresh login. Replaces any previous token of the account and releases
-    // the character that entry still had in the world, held or not.
-    std::string issueToken(uint64_t pAccountId);
+    IssueResult issueToken(uint64_t pAccountId);
 
     void setCharacter(uint64_t pAccountId, uint64_t pCharacterId);
 
-    // Intentional logout: forgets the account without releasing anything -
-    // the caller releases the character itself, immediately.
-    void revoke(uint64_t pAccountId);
+    uint64_t revoke(uint64_t pAccountId);
+
+    uint64_t expireHold(uint64_t pAccountId, uint64_t pGeneration);
 
     // The account's session dropped. True if it is now held and will be
     // released later; false if there is nothing to hold (the caller releases
@@ -75,7 +74,7 @@ private:
 
     boost::asio::io_context& mContext;
 
-    ReleaseCallback mReleaseCallback;
+    ExpiryCallback mExpiryCallback;
 
     std::mutex mMutex;
     std::unordered_map<uint64_t, Entry> mEntries;           // accountId -> entry
@@ -83,10 +82,6 @@ private:
 
     // Removes the entry; returns the character it still had, 0 if none.
     uint64_t eraseLocked(uint64_t pAccountId);
-
-    void onHoldExpired(uint64_t pAccountId, uint64_t pGeneration);
-
-    void release(uint64_t pCharacterId);
 
     static std::string generateToken();
 };

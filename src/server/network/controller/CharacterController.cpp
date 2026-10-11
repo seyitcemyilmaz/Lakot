@@ -172,38 +172,40 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
     uint64_t tCharacterId = pMessage.request().enter_world_request().character_id();
     uint64_t tReplyTo = pMessage.request().header().id();
 
-    if (pSession->getCharacterId() != 0)
-    {
-        connection::Message tResponse;
-        auto* tHeader = tResponse.mutable_response()->mutable_header();
-        tHeader->set_reply_to(tReplyTo);
-        tHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
-        tResponse.mutable_response()->mutable_enter_world_response()
-            ->set_status(services::auth::ENTER_WORLD_ERROR);
+    uint64_t tTicket = mNetworkManager.claimWorldEntry(pSession);
 
-        pSession->send(tResponse);
+    if (tTicket == 0)
+    {
+        sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_INVALID_REQUEST, services::auth::ENTER_WORLD_ERROR);
         return;
     }
 
     mRepositoryManager.getCharacterRepository().findOwnedCharacter(tAccountId, tCharacterId,
-    [this, pSession, tReplyTo](bool pIsFound, const CharacterRepository::CharacterRecord& pRecord)
+    [this, pSession, tReplyTo, tAccountId, tTicket](bool pIsFound, const CharacterRepository::CharacterRecord& pRecord)
     {
         if (!pIsFound)
         {
-            connection::Message tResponse;
-            auto* tHeader = tResponse.mutable_response()->mutable_header();
-            tHeader->set_reply_to(tReplyTo);
-            tHeader->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
-            tResponse.mutable_response()->mutable_enter_world_response()
-                ->set_status(services::auth::ENTER_WORLD_NOT_FOUND);
+            if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+            {
+                sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_UNAUTHORIZED, services::auth::ENTER_WORLD_NOT_FOUND);
+            }
 
-            pSession->send(tResponse);
             return;
         }
 
         mRepositoryManager.getItemRepository().loadCharacterItems(pRecord.characterId,
-        [this, pSession, tReplyTo, pRecord](std::vector<ItemInstance> pItems)
+        [this, pSession, tReplyTo, tAccountId, tTicket, pRecord](bool pIsLoaded, std::vector<ItemInstance> pItems)
         {
+            if (!pIsLoaded)
+            {
+                if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+                {
+                    sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_ERROR, services::auth::ENTER_WORLD_ERROR);
+                }
+
+                return;
+            }
+
             uint32_t tMapId = pRecord.mapId;
             float tX = pRecord.x;
             float tY = pRecord.y;
@@ -267,14 +269,6 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
                 tItemOut->set_slot(tItem.slot);
             }
 
-            pSession->setCharacterId(pRecord.characterId);
-            mNetworkManager.getSessionRegistry().bindCharacter(pRecord.characterId, pSession);
-            mNetworkManager.getSessionResumeManager().setCharacter(pSession->getAccountId(), pRecord.characterId);
-
-            mInventoryController.sendItemTemplates(pSession);
-
-            pSession->send(tResponse);
-
             PlayerState tState;
             tState.x = tX;
             tState.y = tY;
@@ -282,11 +276,25 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
             tState.yaw = tYaw;
 
             CharacterAccess tAccess;
-            tAccess.accountId = pSession->getAccountId();
+            tAccess.accountId = tAccountId;
             tAccess.gmLevel = pRecord.gmLevel;
             tAccess.mutedUntilEpoch = pRecord.mutedUntilEpoch;
 
-            mWorldController.enterWorld(tSnapshot, tMapId, tState, tAccess);
+            bool tIsAttached = mNetworkManager.attachCharacter(pSession, tAccountId, tTicket, pRecord.characterId,
+            [&]()
+            {
+                mInventoryController.sendItemTemplates(pSession);
+
+                pSession->send(tResponse);
+
+                mWorldController.enterWorld(tSnapshot, tMapId, tState, tAccess);
+            });
+
+            if (!tIsAttached)
+            {
+                std::osyncstream(std::cout) << "[Server] Dunyaya giris iptal (oturum degisti): " << pRecord.name << std::endl;
+                return;
+            }
 
             std::osyncstream(std::cout) << "[Server] Dunyaya giris: " << pRecord.name
                       << " (ID: " << pRecord.characterId
@@ -294,6 +302,21 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
                       << ", " << tSnapshot.items.size() << " esya)" << std::endl;
         });
     });
+}
+
+void CharacterController::sendEnterWorldFailure(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                                                uint64_t pReplyTo,
+                                                common::StatusCode pStatusCode,
+                                                services::auth::EnterWorldStatus pEnterStatus)
+{
+    connection::Message tResponse;
+
+    auto* tHeader = tResponse.mutable_response()->mutable_header();
+    tHeader->set_reply_to(pReplyTo);
+    tHeader->mutable_status()->set_code(pStatusCode);
+    tResponse.mutable_response()->mutable_enter_world_response()->set_status(pEnterStatus);
+
+    pSession->send(tResponse);
 }
 
 void CharacterController::fillStats(const Character& pCharacter, services::game::CharacterStats* pOut)

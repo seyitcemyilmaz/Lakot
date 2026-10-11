@@ -4,35 +4,27 @@
 
 using namespace lakot;
 
-SessionResumeManager::SessionResumeManager(boost::asio::io_context& pContext)
+SessionResumeManager::SessionResumeManager(boost::asio::io_context& pContext, ExpiryCallback pExpiryCallback)
     : mContext(pContext)
+    , mExpiryCallback(std::move(pExpiryCallback))
 {
 
 }
 
-void SessionResumeManager::setReleaseCallback(ReleaseCallback pCallback)
+SessionResumeManager::IssueResult SessionResumeManager::issueToken(uint64_t pAccountId)
 {
-    mReleaseCallback = std::move(pCallback);
-}
+    IssueResult tResult;
+    tResult.token = generateToken();
 
-std::string SessionResumeManager::issueToken(uint64_t pAccountId)
-{
-    uint64_t tReleasedCharacterId = 0;
-    std::string tToken = generateToken();
+    std::lock_guard<std::mutex> tLock(mMutex);
 
-    {
-        std::lock_guard<std::mutex> tLock(mMutex);
+    tResult.releasedCharacterId = eraseLocked(pAccountId);
 
-        tReleasedCharacterId = eraseLocked(pAccountId);
+    Entry& tEntry = mEntries[pAccountId];
+    tEntry.token = tResult.token;
+    mTokens[tResult.token] = pAccountId;
 
-        Entry& tEntry = mEntries[pAccountId];
-        tEntry.token = tToken;
-        mTokens[tToken] = pAccountId;
-    }
-
-    release(tReleasedCharacterId);
-
-    return tToken;
+    return tResult;
 }
 
 void SessionResumeManager::setCharacter(uint64_t pAccountId, uint64_t pCharacterId)
@@ -47,10 +39,10 @@ void SessionResumeManager::setCharacter(uint64_t pAccountId, uint64_t pCharacter
     }
 }
 
-void SessionResumeManager::revoke(uint64_t pAccountId)
+uint64_t SessionResumeManager::revoke(uint64_t pAccountId)
 {
     std::lock_guard<std::mutex> tLock(mMutex);
-    eraseLocked(pAccountId);
+    return eraseLocked(pAccountId);
 }
 
 bool SessionResumeManager::hold(uint64_t pAccountId)
@@ -75,9 +67,9 @@ bool SessionResumeManager::hold(uint64_t pAccountId)
     tEntry.timer->async_wait(
     [this, pAccountId, tGeneration](const boost::system::error_code& pErrorCode)
     {
-        if (!pErrorCode)
+        if (!pErrorCode && mExpiryCallback)
         {
-            onHoldExpired(pAccountId, tGeneration);
+            mExpiryCallback(pAccountId, tGeneration);
         }
     });
 
@@ -142,33 +134,19 @@ uint64_t SessionResumeManager::eraseLocked(uint64_t pAccountId)
     return tCharacterId;
 }
 
-void SessionResumeManager::onHoldExpired(uint64_t pAccountId, uint64_t pGeneration)
+uint64_t SessionResumeManager::expireHold(uint64_t pAccountId, uint64_t pGeneration)
 {
-    uint64_t tCharacterId = 0;
+    std::lock_guard<std::mutex> tLock(mMutex);
 
+    auto tIterator = mEntries.find(pAccountId);
+
+    if (tIterator == mEntries.end() || !tIterator->second.isHeld
+        || tIterator->second.holdGeneration != pGeneration)
     {
-        std::lock_guard<std::mutex> tLock(mMutex);
-
-        auto tIterator = mEntries.find(pAccountId);
-
-        if (tIterator == mEntries.end() || !tIterator->second.isHeld
-            || tIterator->second.holdGeneration != pGeneration)
-        {
-            return; // resumed, re-issued or revoked in the meantime
-        }
-
-        tCharacterId = eraseLocked(pAccountId);
+        return 0;
     }
 
-    release(tCharacterId);
-}
-
-void SessionResumeManager::release(uint64_t pCharacterId)
-{
-    if (pCharacterId != 0 && mReleaseCallback)
-    {
-        mReleaseCallback(pCharacterId);
-    }
+    return eraseLocked(pAccountId);
 }
 
 std::string SessionResumeManager::generateToken()
