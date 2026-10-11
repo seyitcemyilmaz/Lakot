@@ -69,6 +69,11 @@ void ZoneTickStats::recordQueueWait(Clock::duration pWait)
     mQueueWait.add(pWait);
 }
 
+void ZoneTickStats::recordLagReset()
+{
+    ++mLagResets;
+}
+
 void ZoneTickStats::endTick(size_t pPlayerCount)
 {
     Clock::duration tDuration = Clock::now() - mTickStart;
@@ -96,11 +101,11 @@ void ZoneTickStats::report(size_t pPlayerCount) const
 {
     static constexpr const char* kSectionNames[] = { "portal", "monster", "combat", "deltas", "send" };
 
-    std::string tLine = std::format("[ZoneStats] map={} players={} ticks={} period avg={:.1f} max={:.1f} ms, tick avg={:.2f} max={:.2f} ms, overruns={}",
+    std::string tLine = std::format("[ZoneStats] map={} players={} ticks={} period avg={:.1f} max={:.1f} ms, tick avg={:.2f} max={:.2f} ms, overruns={} lagResets={}",
         mMapId, pPlayerCount, mTicks,
         mPeriod.count ? toMilliseconds(mPeriod.sum) / mPeriod.count : 0.0, toMilliseconds(mPeriod.max),
         mTickDuration.count ? toMilliseconds(mTickDuration.sum) / mTickDuration.count : 0.0, toMilliseconds(mTickDuration.max),
-        mOverruns);
+        mOverruns, mLagResets);
 
     for (size_t tIndex = 0; tIndex < mSections.size(); ++tIndex)
     {
@@ -120,6 +125,7 @@ void ZoneTickStats::reset()
 {
     mTicks = 0;
     mOverruns = 0;
+    mLagResets = 0;
     mPeriod = DurationStat{};
     mTickDuration = DurationStat{};
     mSections = {};

@@ -159,6 +159,8 @@ private:
     // server-side simulation slots into.
     static constexpr int kTickIntervalMs = 50;                 // 20 Hz
 
+    static constexpr int kMaxLagTicks = 4;
+
     // Snapshots go out every other tick (10 Hz). Halves outbound traffic
     // versus one per tick, and matches the interval the client interpolates
     // remote players over.
@@ -237,6 +239,7 @@ private:
     std::unique_ptr<ScriptEngine> mScriptEngine;
 
     uint32_t mTickCounter{0};
+    std::chrono::steady_clock::time_point mNextTickAt{};
 
     // When each character's last ACCEPTED position was recorded. A rejected
     // update deliberately does not advance this, so the movement budget keeps

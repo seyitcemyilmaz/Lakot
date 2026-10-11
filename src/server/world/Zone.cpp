@@ -120,6 +120,7 @@ void Zone::start(SendFunction pSend, TransferFunction pTransfer, PersistFunction
         mScriptEngine = std::make_unique<ScriptEngine>();
         mScriptEngine->loadDirectory(pScriptDirectory);
 
+        mNextTickAt = std::chrono::steady_clock::now();
         scheduleTick();
         mContext.run();
     });
@@ -414,7 +415,17 @@ void Zone::sendNearby(uint64_t pOriginCharacterId, Packet pPacket)
 
 void Zone::scheduleTick()
 {
-    mTickTimer.expires_after(std::chrono::milliseconds(kTickIntervalMs));
+    constexpr auto tInterval = std::chrono::milliseconds(kTickIntervalMs);
+
+    mNextTickAt += tInterval;
+
+    if (std::chrono::steady_clock::now() - mNextTickAt > tInterval * kMaxLagTicks)
+    {
+        mNextTickAt = std::chrono::steady_clock::now();
+        mStats.recordLagReset();
+    }
+
+    mTickTimer.expires_at(mNextTickAt);
     mTickTimer.async_wait([this](boost::system::error_code pErrorCode)
     {
         if (pErrorCode)

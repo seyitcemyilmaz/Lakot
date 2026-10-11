@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
 
     Server.h Server.cpp
+    TimerResolution.h TimerResolution.cpp
 
     network/NetworkManager.h network/NetworkManager.cpp
     network/SessionResumeManager.h network/SessionResumeManager.cpp
@@ -83,6 +84,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenSSL::Crypto
     ${LUA_LIBRARIES}
 )
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE winmm)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${LUA_INCLUDE_DIR}

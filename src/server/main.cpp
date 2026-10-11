@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "TimerResolution.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -37,6 +38,7 @@ int main()
     SetConsoleCtrlHandler(onConsoleCtrlEvent, TRUE);
 #endif
 
+    lakot::TimerResolution tTimerResolution;
     lakot::Server tServer;
 
     if (tServer.initialize())

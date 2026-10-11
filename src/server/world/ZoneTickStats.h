@@ -34,6 +34,7 @@ public:
     void endSection(SectionType pSection);
     void recordPacket(size_t pBytes);
     void recordQueueWait(Clock::duration pWait);
+    void recordLagReset();
     void endTick(size_t pPlayerCount);
 
 private:
@@ -63,6 +64,7 @@ private:
 
     uint32_t mTicks = 0;
     uint32_t mOverruns = 0;
+    uint32_t mLagResets = 0;
     DurationStat mPeriod;
     DurationStat mTickDuration;
     std::array<DurationStat, static_cast<size_t>(SectionType::eCount)> mSections;
