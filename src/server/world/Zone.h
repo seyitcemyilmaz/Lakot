@@ -25,6 +25,7 @@
 #include "Monster.h"
 #include "Npc.h"
 #include "MonsterCatalog.h"
+#include "ZoneTickStats.h"
 
 #include "../game/Character.h"
 #include "../script/ScriptEngine.h"
@@ -200,6 +201,8 @@ private:
     const ItemCatalog& mItemCatalog;
     const MonsterCatalog& mMonsterCatalog;
 
+    ZoneTickStats mStats;
+
     boost::asio::io_context mContext;
     boost::asio::executor_work_guard<boost::asio::io_context::executor_type> mWorkGuard;
     boost::asio::steady_timer mTickTimer;
@@ -252,6 +255,22 @@ private:
     SendFunction mSend;
     TransferFunction mTransfer;
     PersistFunction mPersist;
+
+    template <typename Handler>
+    void postTimed(Handler&& pHandler)
+    {
+        if (!mStats.isQueueWaitSampled())
+        {
+            boost::asio::post(mContext, std::forward<Handler>(pHandler));
+            return;
+        }
+
+        boost::asio::post(mContext, [this, tPostedAt = ZoneTickStats::Clock::now(), pHandler = std::forward<Handler>(pHandler)]() mutable
+        {
+            mStats.recordQueueWait(ZoneTickStats::Clock::now() - tPostedAt);
+            pHandler();
+        });
+    }
 
     void scheduleTick();
     void tick();

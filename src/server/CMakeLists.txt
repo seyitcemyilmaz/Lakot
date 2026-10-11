@@ -52,6 +52,7 @@ add_executable(${PROJECT_NAME}
     script/ScriptEngine.h script/ScriptEngine.cpp
 
     world/Zone.h world/Zone.cpp
+    world/ZoneTickStats.h world/ZoneTickStats.cpp
     world/WorldRegistry.h world/WorldRegistry.cpp
     world/CombatSystem.h world/CombatSystem.cpp
     world/MonsterBrain.h world/MonsterBrain.cpp

@@ -16,6 +16,7 @@ Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog
     , mMapCatalog(pMapCatalog)
     , mItemCatalog(pItemCatalog)
     , mMonsterCatalog(pMonsterCatalog)
+    , mStats(pMap.getId(), std::chrono::milliseconds(kTickIntervalMs))
     , mWorkGuard(boost::asio::make_work_guard(mContext))
     , mTickTimer(mContext)
     , mCombat(pMap, mRegistry, mCharacters, mMonsters)
@@ -133,7 +134,7 @@ void Zone::stop()
 
     // Queued last, so it runs after every already-posted enter/leave/state
     // update and therefore sees final positions.
-    boost::asio::post(mContext, [this]()
+    postTimed([this]()
     {
         mTickTimer.cancel();
         persistAll(true);
@@ -152,7 +153,7 @@ uint32_t Zone::getMapId() const
 
 void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
 {
-    boost::asio::post(mContext, [this, pCharacter = std::move(pCharacter), pState]() mutable
+    postTimed([this, pCharacter = std::move(pCharacter), pState]() mutable
     {
         uint64_t tCharacterId = pCharacter.characterId;
         double tPotionCooldownRemaining = pCharacter.potionCooldownRemaining;
@@ -208,7 +209,7 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
 
 void Zone::leavePlayer(uint64_t pCharacterId)
 {
-    boost::asio::post(mContext, [this, pCharacterId]()
+    postTimed([this, pCharacterId]()
     {
         // Unconditionally, not only when dirty - this is the last chance to
         // write this character before it leaves memory.
@@ -227,7 +228,7 @@ void Zone::leavePlayer(uint64_t pCharacterId)
 
 void Zone::resumePlayer(uint64_t pCharacterId)
 {
-    boost::asio::post(mContext, [this, pCharacterId]()
+    postTimed([this, pCharacterId]()
     {
         auto tIterator = mCharacters.find(pCharacterId);
 
@@ -257,7 +258,7 @@ void Zone::withCharacter(uint64_t pCharacterId, std::function<bool(Character&)> 
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, pAction = std::move(pAction)]()
+    postTimed([this, pCharacterId, pAction = std::move(pAction)]()
     {
         auto tIterator = mCharacters.find(pCharacterId);
 
@@ -336,7 +337,7 @@ bool Zone::isFinite(const PlayerState& pState)
 
 void Zone::submitState(uint64_t pCharacterId, const PlayerState& pRequestedState)
 {
-    boost::asio::post(mContext, [this, pCharacterId, tState = pRequestedState]() mutable
+    postTimed([this, pCharacterId, tState = pRequestedState]() mutable
     {
         constexpr float kTwoPi = 6.28318530717958647692f;
         const PlayerState* tAccepted = mRegistry.getState(pCharacterId);
@@ -397,7 +398,7 @@ void Zone::sendNearby(uint64_t pOriginCharacterId, Packet pPacket)
         return;
     }
 
-    boost::asio::post(mContext, [this, pOriginCharacterId, pPacket = std::move(pPacket)]()
+    postTimed([this, pOriginCharacterId, pPacket = std::move(pPacket)]()
     {
         if (!mSend)
         {
@@ -428,7 +429,7 @@ void Zone::scheduleTick()
 
 void Zone::attack(uint64_t pCharacterId, float pYaw, uint32_t pCombo)
 {
-    boost::asio::post(mContext, [this, pCharacterId, pYaw, pCombo]()
+    postTimed([this, pCharacterId, pYaw, pCombo]()
     {
         mCombat.playerAttack(pCharacterId, pYaw, pCombo, mTime);
     });
@@ -436,7 +437,7 @@ void Zone::attack(uint64_t pCharacterId, float pYaw, uint32_t pCombo)
 
 void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
 {
-    boost::asio::post(mContext, [this, pCharacterId, pEntityId, pReplyTo]()
+    postTimed([this, pCharacterId, pEntityId, pReplyTo]()
     {
         auto [tLastPickup, tIsFirst] = mLastPickupAt.try_emplace(pCharacterId, mTime);
 
@@ -481,7 +482,7 @@ void Zone::useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItem
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, &pTemplate, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, &pTemplate, pCallback = std::move(pCallback)]()
     {
         auto tCharacter = mCharacters.find(pCharacterId);
 
@@ -568,12 +569,19 @@ void Zone::fillSelfVitals(const Character& pCharacter, services::world::SelfVita
 
 void Zone::tick()
 {
+    mStats.beginTick();
     mTickCounter++;
     mTime += kTickSeconds;
 
+    mStats.beginSection();
     applyPortals();
+    mStats.endSection(ZoneTickStats::SectionType::ePortal);
 
+    mStats.beginSection();
     mMonsterBrain.update(mTime, static_cast<float>(kTickSeconds));
+    mStats.endSection(ZoneTickStats::SectionType::eMonster);
+
+    mStats.beginSection();
 
     for (uint64_t tRevivedId : mCombat.reviveDuePlayers(mTime))
     {
@@ -601,6 +609,7 @@ void Zone::tick()
     }
 
     mLoot.update(mTime);
+    mStats.endSection(ZoneTickStats::SectionType::eCombatLoot);
 
     if (mTickCounter % kSnapshotEveryNTicks == 0)
     {
@@ -615,6 +624,8 @@ void Zone::tick()
         // minute forever.
         persistAll(false);
     }
+
+    mStats.endTick(mCharacters.size());
 }
 
 void Zone::applyPortals()
@@ -710,7 +721,7 @@ void Zone::teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, 
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, pMapId, pX, pZ, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, pMapId, pX, pZ, pCallback = std::move(pCallback)]()
     {
         const PlayerState* tCurrent = mRegistry.getState(pCharacterId);
         const MapData* tTargetMap = pMapId == mMap.getId() ? &mMap : mMapCatalog.getMap(pMapId);
@@ -761,7 +772,7 @@ void Zone::queryPosition(uint64_t pCharacterId, PositionCallback pCallback)
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, pCallback = std::move(pCallback)]()
     {
         const PlayerState* tState = mCharacters.find(pCharacterId) != mCharacters.end() ? mRegistry.getState(pCharacterId) : nullptr;
 
@@ -782,7 +793,7 @@ void Zone::killPlayer(uint64_t pCharacterId, ActionCallback pCallback)
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, pCallback = std::move(pCallback)]()
     {
         auto tCharacter = mCharacters.find(pCharacterId);
 
@@ -811,7 +822,7 @@ void Zone::revivePlayer(uint64_t pCharacterId, ActionCallback pCallback)
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, pCallback = std::move(pCallback)]()
     {
         auto tCharacter = mCharacters.find(pCharacterId);
 
@@ -840,7 +851,7 @@ void Zone::spawnMonstersNear(uint64_t pCharacterId, const MonsterTemplate& pTemp
         return;
     }
 
-    boost::asio::post(mContext, [this, pCharacterId, &pTemplate, pCount, pCallback = std::move(pCallback)]()
+    postTimed([this, pCharacterId, &pTemplate, pCount, pCallback = std::move(pCallback)]()
     {
         const PlayerState* tState = mCharacters.find(pCharacterId) != mCharacters.end() ? mRegistry.getState(pCharacterId) : nullptr;
 
@@ -1006,7 +1017,11 @@ void Zone::sendSnapshots()
         return;
     }
 
+    mStats.beginSection();
     auto tDeltas = mRegistry.computeDeltas();
+    mStats.endSection(ZoneTickStats::SectionType::eDeltas);
+
+    mStats.beginSection();
 
     // A player whose movement was rejected still needs a message even when
     // nothing in their view changed - the correction IS the payload. Default-
@@ -1172,11 +1187,19 @@ void Zone::sendSnapshots()
             }
         }
 
-        mSend(tCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+        Packet tPacket = NetworkSession<connection::Message>::makePacket(tMessage);
+
+        if (tPacket)
+        {
+            mStats.recordPacket(tPacket->size());
+        }
+
+        mSend(tCharacterId, std::move(tPacket));
     }
 
     mPendingCorrections.clear();
     mAppearanceChanged.clear();
+    mStats.endSection(ZoneTickStats::SectionType::eBuildSend);
 }
 
 void Zone::persistCharacter(uint64_t pCharacterId)
