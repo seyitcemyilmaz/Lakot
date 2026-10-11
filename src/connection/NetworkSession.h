@@ -214,6 +214,16 @@ public:
         return mWorldEntryTicket.load();
     }
 
+    void setLoginPending(bool pIsPending)
+    {
+        mIsLoginPending.store(pIsPending);
+    }
+
+    bool isLoginPending() const
+    {
+        return mIsLoginPending.load();
+    }
+
 private:
     // Declaration order is the initialization order, regardless of what the
     // constructor's initializer list says - mStrand is built from
@@ -243,6 +253,7 @@ private:
     std::atomic<uint64_t> mAccountId{0};
     std::atomic<uint64_t> mCharacterId{0};
     std::atomic<uint64_t> mWorldEntryTicket{0};
+    std::atomic<bool> mIsLoginPending{false};
 
     void readHeader()
     {

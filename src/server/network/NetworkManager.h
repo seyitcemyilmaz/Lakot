@@ -43,6 +43,8 @@ public:
     void setOnUserDisconnected(std::function<void(uint64_t)> pCallback);
 
     // Lock order: mLifecycleMutex, then SessionRegistry / SessionResumeManager / WorldController meta mutex. Never taken by zone threads.
+    bool claimLogin(const SessionPtr& pSession);
+    void abandonLogin(const SessionPtr& pSession);
     std::optional<std::string> beginSession(const SessionPtr& pSession, uint64_t pAccountId);
     std::optional<SessionResumeManager::ResumeResult> resumeSession(const SessionPtr& pSession, const std::string& pToken);
 

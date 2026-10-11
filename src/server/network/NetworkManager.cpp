@@ -118,6 +118,7 @@ void NetworkManager::releaseCharacter(uint64_t pCharacterId)
 
 void NetworkManager::detachSession(const SessionPtr& pSession)
 {
+    pSession->setLoginPending(false);
     pSession->setWorldEntryTicket(0);
     pSession->setCharacterId(0);
     pSession->setAccountId(0);
@@ -168,9 +169,35 @@ void NetworkManager::onHoldExpired(uint64_t pAccountId, uint64_t pGeneration)
     releaseCharacter(mSessionResumeManager.expireHold(pAccountId, pGeneration));
 }
 
+bool NetworkManager::claimLogin(const SessionPtr& pSession)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    if (!pSession->isConnected()
+        || pSession->getAccountId() != 0
+        || pSession->getCharacterId() != 0
+        || pSession->isLoginPending())
+    {
+        return false;
+    }
+
+    pSession->setLoginPending(true);
+
+    return true;
+}
+
+void NetworkManager::abandonLogin(const SessionPtr& pSession)
+{
+    std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    pSession->setLoginPending(false);
+}
+
 std::optional<std::string> NetworkManager::beginSession(const SessionPtr& pSession, uint64_t pAccountId)
 {
     std::lock_guard<std::mutex> tLock(mLifecycleMutex);
+
+    pSession->setLoginPending(false);
 
     if (!pSession->isConnected() || pSession->getAccountId() != 0)
     {
@@ -205,7 +232,7 @@ std::optional<SessionResumeManager::ResumeResult> NetworkManager::resumeSession(
 {
     std::lock_guard<std::mutex> tLock(mLifecycleMutex);
 
-    if (!pSession->isConnected() || pSession->getAccountId() != 0 || pSession->getWorldEntryTicket() != 0)
+    if (!pSession->isConnected() || pSession->getAccountId() != 0 || pSession->getWorldEntryTicket() != 0 || pSession->isLoginPending())
     {
         return std::nullopt;
     }

@@ -148,9 +148,17 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
         return;
     }
 
-    mRepositoryManager.getAccountRepository().createAccount(tUsername, tPassword, tEmail,
-    [pSession, pMessage, tUsername](AccountRepository::RegisterErrorType pErrorType, const std::string& pResult)
+    if (!mNetworkManager.claimLogin(pSession))
     {
+        sendRejection(pSession, pMessage, common::STATUS_INVALID_REQUEST, "Already logged in.", false);
+        return;
+    }
+
+    mRepositoryManager.getAccountRepository().createAccount(tUsername, tPassword, tEmail,
+    [this, pSession, pMessage, tUsername](AccountRepository::RegisterErrorType pErrorType, const std::string& pResult)
+    {
+        mNetworkManager.abandonLogin(pSession);
+
         connection::Message tResponse;
 
         auto* tHeader = tResponse.mutable_response()->mutable_header();
@@ -206,6 +214,12 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
         return;
     }
 
+    if (!mNetworkManager.claimLogin(pSession))
+    {
+        sendRejection(pSession, pMessage, common::STATUS_INVALID_REQUEST, "Already logged in.", true);
+        return;
+    }
+
     std::string tAddress = NetworkManager::getRemoteAddress(pSession);
 
     // Checked before the credentials are even looked at: a refused address
@@ -213,6 +227,8 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     // this a brute-force defence rather than just a message.
     if (!mAttemptLimiter.isAllowed(tAddress))
     {
+        mNetworkManager.abandonLogin(pSession);
+
         std::osyncstream(std::cout) << "[Server] Cok fazla basarisiz giris denemesi: " << tAddress << std::endl;
 
         sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
@@ -226,6 +242,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
         // Counted as a failed attempt too - otherwise malformed requests are
         // a free way to probe without ever tripping the limit.
         mAttemptLimiter.recordFailure(tAddress);
+        mNetworkManager.abandonLogin(pSession);
 
         sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
                       "Invalid username or password.", true);
@@ -245,6 +262,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
             std::osyncstream(std::cout) << "[Server] Giris basarisiz: " << tUsername << std::endl;
 
             mAttemptLimiter.recordFailure(tAddress);
+            mNetworkManager.abandonLogin(pSession);
 
             tHeader->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
             tHeader->mutable_status()->set_message("Invalid username or password.");
