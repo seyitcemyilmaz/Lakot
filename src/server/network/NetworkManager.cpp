@@ -23,8 +23,8 @@ std::string NetworkManager::getRemoteAddress(const std::shared_ptr<NetworkSessio
     return tEndpoint.address().to_string();
 }
 
-NetworkManager::NetworkManager()
-    : mNetworkServer(12345)
+NetworkManager::NetworkManager(uint16_t pPort)
+    : mNetworkServer(pPort)
     , mDispatcher()
     , mSessionRegistry()
     , mSessionResumeManager(mNetworkServer.getIOContext(),

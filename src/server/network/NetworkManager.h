@@ -25,7 +25,7 @@ public:
     using SessionPtr = std::shared_ptr<NetworkSession<connection::Message>>;
 
     virtual ~NetworkManager();
-    NetworkManager();
+    explicit NetworkManager(uint16_t pPort);
 
     void start();
     void stop();

@@ -15,7 +15,7 @@ BIN_DEFAULT = BIN_DEBUG
 def resolve_bin(pValue=None, pDefault=BIN_DEFAULT):
     tValue = pValue or os.environ.get("LAKOT_BIN") or os.environ.get("LAKOT_BIN_DIR") or pDefault
     return {"debug": BIN_DEBUG, "release": BIN_RELEASE}.get(tValue.lower(), tValue)
-PORT = 12345
+PORT = int(os.environ.get("LAKOT_TEST_PORT") or 12346)
 
 
 def generate_bindings():
@@ -46,6 +46,7 @@ class Server:
         shutil.copytree(self.bin_dir, run_dir)
         self.run_dir = str(run_dir)
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir,
+                                     env={**os.environ, "LAKOT_SERVER_PORT": str(PORT)},
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      text=True, errors="replace")
         threading.Thread(target=self._pump, daemon=True).start()

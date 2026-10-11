@@ -26,6 +26,7 @@ class G33Server(Server):
         self.run_dir = str(RUN)
         self.log_lines = []
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir,
+                                     env={**os.environ, "LAKOT_SERVER_PORT": str(PORT)},
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      text=True, errors="replace")
         threading.Thread(target=self._pump, daemon=True).start()

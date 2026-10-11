@@ -1,9 +1,11 @@
 #include "Server.h"
 
+#include <charconv>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <future>
+#include <string_view>
 #include <thread>
 #include <vector>
 #include <syncstream>
@@ -21,6 +23,29 @@ namespace
     void onShutdownSignal(int)
     {
         gShutdownRequested = 1;
+    }
+
+    constexpr uint16_t kDefaultServerPort = 12345;
+
+    std::optional<uint16_t> readServerPort()
+    {
+        const char* tValue = std::getenv("LAKOT_SERVER_PORT");
+
+        if (!tValue || !*tValue)
+        {
+            return kDefaultServerPort;
+        }
+
+        const std::string_view tText(tValue);
+        unsigned int tPort = 0;
+        const auto [tEnd, tError] = std::from_chars(tText.data(), tText.data() + tText.size(), tPort);
+
+        if (tError != std::errc{} || tEnd != tText.data() + tText.size() || tPort < 1 || tPort > 65535)
+        {
+            return std::nullopt;
+        }
+
+        return static_cast<uint16_t>(tPort);
     }
 
     // Blocks until Ctrl+C / SIGTERM. Used when there is no interactive
@@ -57,7 +82,8 @@ Server::~Server()
 
 Server::Server()
     : mDatabaseManager()
-    , mNetworkManager()
+    , mServerPort(readServerPort())
+    , mNetworkManager(mServerPort.value_or(kDefaultServerPort))
 {
     mRepositoryManager = std::make_unique<RepositoryManager>(mDatabaseManager);
 }
@@ -65,6 +91,12 @@ Server::Server()
 bool Server::initialize()
 {
     std::osyncstream(std::cout) << "--- Lakot Game Server Baslatiliyor ---" << std::endl;
+
+    if (!mServerPort)
+    {
+        std::osyncstream(std::cerr) << "[Server] LAKOT_SERVER_PORT gecersiz (1-65535 arasi sayi olmali)." << std::endl;
+        return false;
+    }
 
     DatabaseConfig tDatabaseConfig;
 

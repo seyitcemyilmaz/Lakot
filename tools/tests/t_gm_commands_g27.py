@@ -47,6 +47,7 @@ class G27Server(Server):
         json.dump(tMeta, open(tPath, "w", encoding="utf-8"))
         tEnv = dict(os.environ)
         tEnv["LAKOT_GM_ACCOUNT"] = GM_ACCOUNT
+        tEnv["LAKOT_SERVER_PORT"] = str(PORT)
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir, env=tEnv,
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      text=True, errors="replace")

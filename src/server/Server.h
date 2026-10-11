@@ -1,6 +1,9 @@
 #ifndef LAKOT_SERVER_H
 #define LAKOT_SERVER_H
 
+#include <cstdint>
+#include <optional>
+
 #include "network/NetworkManager.h"
 #include "database/DatabaseManager.h"
 
@@ -31,6 +34,7 @@ public:
 
 private:
     DatabaseManager mDatabaseManager;
+    std::optional<uint16_t> mServerPort;
     NetworkManager mNetworkManager;
 
     std::unique_ptr<RepositoryManager> mRepositoryManager;
