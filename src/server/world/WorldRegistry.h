@@ -16,6 +16,8 @@ struct PlayerState
     float y = 0.0f;
     float z = 0.0f;
     float yaw = 0.0f;
+
+    bool operator==(const PlayerState&) const = default;
 };
 
 // What changed inside one player's area of interest since the previous tick.
@@ -107,7 +109,15 @@ private:
     static constexpr float kCellSize = kInterestRadius;
 
     std::unordered_map<uint64_t, PlayerEntry> mPlayers;
-    std::unordered_map<uint64_t, std::unordered_set<uint64_t>> mVisibility;
+    struct NearbyEntry
+    {
+        uint64_t id = 0;
+        bool isDirty = false;
+    };
+
+    std::unordered_map<uint64_t, std::vector<uint64_t>> mVisibility;
+    std::vector<NearbyEntry> mNearbyScratch;
+    std::vector<uint64_t> mNearbyIdsScratch;
 
     // Broad phase: cell key -> the characters standing in that cell. Empty
     // cells are erased rather than kept, so this stays proportional to how
@@ -125,7 +135,7 @@ private:
     // number of players on the map. That is the difference between O(N) and
     // O(neighbours) per player per tick, i.e. between O(N^2) and O(N) for a
     // whole tick.
-    void queryNearby(uint64_t pCharacterId, const PlayerState& pState, std::unordered_set<uint64_t>& pResult) const;
+    void queryNearby(uint64_t pCharacterId, const PlayerState& pState, std::vector<NearbyEntry>& pResult) const;
 };
 
 }

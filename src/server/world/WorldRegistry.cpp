@@ -1,5 +1,6 @@
 #include "WorldRegistry.h"
 
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -113,8 +114,11 @@ void WorldRegistry::setState(uint64_t pCharacterId, const PlayerState& pState)
         tIterator->second.cellKey = tNewCellKey;
     }
 
-    tIterator->second.state = pState;
-    tIterator->second.isDirty = true;
+    if (!(tIterator->second.state == pState))
+    {
+        tIterator->second.state = pState;
+        tIterator->second.isDirty = true;
+    }
 }
 
 void WorldRegistry::resetView(uint64_t pCharacterId)
@@ -219,7 +223,7 @@ void WorldRegistry::queryRadius(float pX, float pZ, float pRadius, std::vector<u
     }
 }
 
-void WorldRegistry::queryNearby(uint64_t pCharacterId, const PlayerState& pState, std::unordered_set<uint64_t>& pResult) const
+void WorldRegistry::queryNearby(uint64_t pCharacterId, const PlayerState& pState, std::vector<NearbyEntry>& pResult) const
 {
     pResult.clear();
 
@@ -265,7 +269,7 @@ void WorldRegistry::queryNearby(uint64_t pCharacterId, const PlayerState& pState
                 // circle, so this is what actually defines the radius.
                 if (tDx * tDx + tDy * tDy + tDz * tDz <= kInterestRadiusSq)
                 {
-                    pResult.insert(tOtherId);
+                    pResult.push_back({tOtherId, tOtherIterator->second.isDirty});
                 }
             }
         }
@@ -276,8 +280,6 @@ std::unordered_map<uint64_t, VisibilityDelta> WorldRegistry::computeDeltas()
 {
     std::unordered_map<uint64_t, VisibilityDelta> tResult;
 
-    std::unordered_set<uint64_t> tNewNearby;
-
     for (const auto& [tCharacterId, tEntry] : mPlayers)
     {
         if (!tEntry.isViewer)
@@ -285,41 +287,49 @@ std::unordered_map<uint64_t, VisibilityDelta> WorldRegistry::computeDeltas()
             continue;
         }
 
-        queryNearby(tCharacterId, tEntry.state, tNewNearby);
+        queryNearby(tCharacterId, tEntry.state, mNearbyScratch);
 
-        std::unordered_set<uint64_t>& tOldNearby = mVisibility[tCharacterId];
+        std::sort(mNearbyScratch.begin(), mNearbyScratch.end(),
+                  [](const NearbyEntry& pLeft, const NearbyEntry& pRight) { return pLeft.id < pRight.id; });
+
+        std::vector<uint64_t>& tOldNearby = mVisibility[tCharacterId];
+
+        mNearbyIdsScratch.clear();
+        mNearbyIdsScratch.reserve(mNearbyScratch.size());
 
         VisibilityDelta tDelta;
 
-        for (uint64_t tOtherId : tNewNearby)
+        size_t tOldIndex = 0;
+        size_t tNewIndex = 0;
+
+        while (tOldIndex < tOldNearby.size() || tNewIndex < mNearbyScratch.size())
         {
-            if (tOldNearby.find(tOtherId) == tOldNearby.end())
+            if (tNewIndex == mNearbyScratch.size()
+                || (tOldIndex < tOldNearby.size() && tOldNearby[tOldIndex] < mNearbyScratch[tNewIndex].id))
             {
-                tDelta.entered.push_back(tOtherId);
+                tDelta.left.push_back(tOldNearby[tOldIndex++]);
+            }
+            else if (tOldIndex == tOldNearby.size() || mNearbyScratch[tNewIndex].id < tOldNearby[tOldIndex])
+            {
+                const NearbyEntry& tNew = mNearbyScratch[tNewIndex++];
+                tDelta.entered.push_back(tNew.id);
+                mNearbyIdsScratch.push_back(tNew.id);
             }
             else
             {
-                // Already visible last tick - only worth resending if it
-                // actually moved. This is what keeps a crowd of idle players
-                // from costing anything.
-                auto tOtherIterator = mPlayers.find(tOtherId);
+                const NearbyEntry& tNew = mNearbyScratch[tNewIndex++];
+                ++tOldIndex;
 
-                if (tOtherIterator != mPlayers.end() && tOtherIterator->second.isDirty)
+                if (tNew.isDirty)
                 {
-                    tDelta.moved.push_back(tOtherId);
+                    tDelta.moved.push_back(tNew.id);
                 }
+
+                mNearbyIdsScratch.push_back(tNew.id);
             }
         }
 
-        for (uint64_t tOtherId : tOldNearby)
-        {
-            if (tNewNearby.find(tOtherId) == tNewNearby.end())
-            {
-                tDelta.left.push_back(tOtherId);
-            }
-        }
-
-        tOldNearby = tNewNearby;
+        tOldNearby.swap(mNearbyIdsScratch);
 
         if (!tDelta.isEmpty())
         {
