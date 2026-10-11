@@ -68,6 +68,10 @@ class Bot(Client):
         self.dropped = False
         self.cid = 0
         self.pos = (0.0, 0.0, 0.0)
+        self.vis_p = set()
+        self.vis_m = set()
+        self.last_tick = None
+        self.gaps = []
         super().__init__()
 
     def _read(self):
@@ -144,11 +148,23 @@ class Bot(Client):
         if self.measuring:
             if self.last_snap is not None:
                 self.iv.append(tr - self.last_snap)
+                if tr - self.last_snap >= 0.5 and self.last_tick is not None:
+                    self.gaps.append((tr - self.last_snap, (s.tick - self.last_tick) & 0xFFFFFFFF,
+                                      len(self.vis_p), len(self.vis_m), self.dead))
             self.sizes.append(size)
             self.bytes_rx += size
             self.snap_total += 1
         self.last_snap = tr
+        self.last_tick = s.tick
         self.snap_n += 1
+        for e in s.entered:
+            if e.kind == KIND_PLAYER:
+                self.vis_p.add(e.entity_id)
+            elif e.kind == KIND_MONSTER:
+                self.vis_m.add(e.entity_id)
+        for i in s.left:
+            self.vis_p.discard(i)
+            self.vis_m.discard(i)
         tracked = self.tracked
         for e in s.entered:
             k = e.kind
@@ -431,6 +447,7 @@ def run_worker(wid, cfg, idxs, q, ev_enter, ev_go, ev_stop):
     out = {"bots": len(bots), "dropped": sum(b.dropped for b in bots)}
     out["iv"] = np.array([x for b in bots for x in b.iv], dtype=np.float32)
     out["maxgap"] = np.array([max(b.iv) if b.iv else 0.0 for b in bots], dtype=np.float32)
+    out["gaps"] = [g for b in bots for g in b.gaps]
     out["sizes"] = np.array([x for b in bots for x in b.sizes], dtype=np.int32)
     out["bytes_rx"] = sum(b.bytes_rx for b in bots)
     out["snaps"] = sum(b.snap_total for b in bots)
@@ -637,6 +654,21 @@ def run_scenario(layout, n, args, out_dir):
                               "rx_mbit_s_total": 8 * sm("bytes_rx") / args.duration / 1e6,
                               "rate_hz_per_bot": sm("snaps") / max(1, active) / args.duration}
         result["client_drive_lag_ms"] = summarize(lag, 0)
+        gl = [g for w in finals for g in finals[w]["gaps"]]
+        def gdesc(g):
+            return {"gap_ms": round(1000 * g[0]), "tick_delta": g[1], "tick_delta_x50_ms": g[1] * 50,
+                    "players_visible": g[2], "monsters_visible": g[3], "dead": bool(g[4])}
+        empty = [g for g in gl if g[2] + g[3] == 0 and not g[4]]
+        seen = [g for g in gl if g[2] + g[3] > 0 or g[4]]
+        result["snapshot_gaps"] = {
+            "count_ge_0_5s": len(gl),
+            "largest": gdesc(max(gl, key=lambda g: g[0])) if gl else None,
+            "empty_view": {"count": len(empty), "count_ge_1s": sum(g[0] >= 1 for g in empty),
+                           "largest": gdesc(max(empty, key=lambda g: g[0])) if empty else None},
+            "non_empty_view": {"count": len(seen), "count_ge_1s": sum(g[0] >= 1 for g in seen),
+                               "largest": gdesc(max(seen, key=lambda g: g[0])) if seen else None,
+                               "list_ge_1s": [gdesc(g) for g in sorted(seen, key=lambda g: -g[0]) if g[0] >= 1][:20]},
+        }
         req = {}
         tot_sent = tot_err = 0
         for k in KINDS:
@@ -712,6 +744,11 @@ def print_summary(r):
     print(f"snapshot interval ms p50 {iv['p50']:.0f} p95 {iv['p95']:.0f} p99 {iv['p99']:.0f} max {iv['max']:.0f} | "
           f"size mean {sn['size_bytes_mean']:.0f} p95 {sn['size_bytes_p95']:.0f} max {sn['size_bytes_max']} B | "
           f"{sn['rate_hz_per_bot']:.1f} Hz/bot, rx {sn['rx_mbit_s_total']:.0f} Mbit/s")
+    sg = r.get("snapshot_gaps")
+    if sg:
+        print(f"gaps>=0.5s {sg['count_ge_0_5s']} largest {sg['largest']}")
+        print(f"  empty-view gaps {sg['empty_view']['count']} (>=1s {sg['empty_view']['count_ge_1s']}) largest {sg['empty_view']['largest']}")
+        print(f"  non-empty-view gaps {sg['non_empty_view']['count']} (>=1s {sg['non_empty_view']['count_ge_1s']}) largest {sg['non_empty_view']['largest']}")
     print(f"{'request':26}{'p50':>8}{'p95':>8}{'p99':>8}{'max':>9}{'sent':>8}{'ok':>8}{'thr':>6}{'err':>6}{'tmo':>6}")
     for k in ("login", "enter", "register", "create"):
         d = r["setup"].get(k)
