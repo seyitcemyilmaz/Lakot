@@ -1099,40 +1099,31 @@ void Zone::sendSnapshots()
     // One message per player who has something to hear about - and one
     // serialization each, rather than one per (player x visible player) pair
     // the way the old immediate-push path worked.
+    mSnapshotEncoder.beginRound();
+
     for (auto& [tCharacterId, tDelta] : tDeltas)
     {
-        connection::Message tMessage;
-        auto* tSnapshot = tMessage.mutable_response()->mutable_world_snapshot();
-        tSnapshot->set_tick(mTickCounter);
+        mSnapshotEncoder.beginMessage(mTickCounter);
 
         for (uint64_t tOtherId : tDelta.entered)
         {
-            if (!fillEntitySpawn(tOtherId, tSnapshot->add_entered()))
-            {
-                tSnapshot->mutable_entered()->RemoveLast();
-            }
+            mSnapshotEncoder.addEntered(tOtherId, [&](services::world::EntitySpawn& pOut) { return fillEntitySpawn(tOtherId, &pOut); });
         }
 
         for (uint64_t tOtherId : tDelta.moved)
         {
-            if (!fillEntityState(tOtherId, tSnapshot->add_moved()))
-            {
-                tSnapshot->mutable_moved()->RemoveLast();
-            }
+            mSnapshotEncoder.addMoved(tOtherId, [&](services::world::EntityState& pOut) { return fillEntityState(tOtherId, &pOut); });
         }
 
-        for (uint64_t tOtherId : tDelta.left)
-        {
-            tSnapshot->add_left(tOtherId);
-        }
+        mSnapshotEncoder.addLeft(tDelta.left);
 
-        // Where the server believes this player actually is, after refusing a
-        // move it considered impossible. The client snaps to it.
         if (mPendingCorrections.count(tCharacterId) != 0)
         {
-            if (!fillEntityState(tCharacterId, tSnapshot->mutable_self_correction()))
+            services::world::EntityState tCorrection;
+
+            if (fillEntityState(tCharacterId, &tCorrection))
             {
-                tSnapshot->clear_self_correction();
+                mSnapshotEncoder.setSelfCorrection(tCorrection);
             }
         }
 
@@ -1142,19 +1133,22 @@ void Zone::sendSnapshots()
         {
             for (uint64_t tOtherId : tAppearance->second)
             {
-                // Just spawned in this snapshot: the spawn already carries the new look.
                 if (std::find(tDelta.entered.begin(), tDelta.entered.end(), tOtherId) != tDelta.entered.end())
                 {
                     continue;
                 }
 
-                auto* tAppearanceOut = tSnapshot->add_appearance();
-                tAppearanceOut->set_entity_id(tOtherId);
-
-                for (auto& tVisual : getEquipmentVisuals(mCharacters.at(tOtherId)))
+                mSnapshotEncoder.addAppearance(tOtherId, [&](services::world::EntityAppearance& pOut)
                 {
-                    *tAppearanceOut->add_equipment() = std::move(tVisual);
-                }
+                    pOut.set_entity_id(tOtherId);
+
+                    for (auto& tVisual : getEquipmentVisuals(mCharacters.at(tOtherId)))
+                    {
+                        *pOut.add_equipment() = std::move(tVisual);
+                    }
+
+                    return true;
+                });
             }
         }
 
@@ -1162,20 +1156,24 @@ void Zone::sendSnapshots()
         {
             for (size_t tIndex : tIndices->second)
             {
-                const CombatRecord& tRecord = tRecords[tIndex];
-                auto* tEventOut = tSnapshot->add_combat();
-                tEventOut->set_attacker_id(tRecord.attackerId);
-                tEventOut->set_combo(tRecord.combo);
-                tEventOut->set_target_id(tRecord.targetId);
-                tEventOut->set_projectile(tRecord.projectile);
-
-                for (const CombatHit& tHit : tRecord.hits)
+                mSnapshotEncoder.addCombat(tIndex, [&](services::world::CombatEvent& pOut)
                 {
-                    auto* tHitOut = tEventOut->add_hits();
-                    tHitOut->set_target_id(tHit.targetId);
-                    tHitOut->set_damage(tHit.damage);
-                    tHitOut->set_killed(tHit.killed);
-                }
+                    const CombatRecord& tRecord = tRecords[tIndex];
+                    pOut.set_attacker_id(tRecord.attackerId);
+                    pOut.set_combo(tRecord.combo);
+                    pOut.set_target_id(tRecord.targetId);
+                    pOut.set_projectile(tRecord.projectile);
+
+                    for (const CombatHit& tHit : tRecord.hits)
+                    {
+                        auto* tHitOut = pOut.add_hits();
+                        tHitOut->set_target_id(tHit.targetId);
+                        tHitOut->set_damage(tHit.damage);
+                        tHitOut->set_killed(tHit.killed);
+                    }
+
+                    return true;
+                });
             }
         }
 
@@ -1183,10 +1181,13 @@ void Zone::sendSnapshots()
         {
             for (uint64_t tEntityId : tIds->second)
             {
-                auto* tVitalsOut = tSnapshot->add_vitals();
-                tVitalsOut->set_entity_id(tEntityId);
-                tVitalsOut->set_health_percent(mCombat.getHealthPercent(tEntityId));
-                tVitalsOut->set_is_dead(mCombat.isDead(tEntityId));
+                mSnapshotEncoder.addVitals(tEntityId, [&](services::world::EntityVitals& pOut)
+                {
+                    pOut.set_entity_id(tEntityId);
+                    pOut.set_health_percent(mCombat.getHealthPercent(tEntityId));
+                    pOut.set_is_dead(mCombat.isDead(tEntityId));
+                    return true;
+                });
             }
         }
 
@@ -1194,11 +1195,13 @@ void Zone::sendSnapshots()
         {
             if (auto tSelf = mCharacters.find(tCharacterId); tSelf != mCharacters.end())
             {
-                fillSelfVitals(tSelf->second, tSnapshot->mutable_self_vitals());
+                services::world::SelfVitals tSelfVitals;
+                fillSelfVitals(tSelf->second, &tSelfVitals);
+                mSnapshotEncoder.setSelfVitals(tSelfVitals);
             }
         }
 
-        Packet tPacket = NetworkSession<connection::Message>::makePacket(tMessage);
+        Packet tPacket = mSnapshotEncoder.finishMessage();
 
         if (tPacket)
         {

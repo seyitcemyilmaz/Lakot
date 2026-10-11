@@ -26,6 +26,7 @@
 #include "Npc.h"
 #include "MonsterCatalog.h"
 #include "ZoneTickStats.h"
+#include "SnapshotEncoder.h"
 
 #include "../game/Character.h"
 #include "../script/ScriptEngine.h"
@@ -204,6 +205,7 @@ private:
     const MonsterCatalog& mMonsterCatalog;
 
     ZoneTickStats mStats;
+    SnapshotEncoder mSnapshotEncoder;
 
     boost::asio::io_context mContext;
     boost::asio::executor_work_guard<boost::asio::io_context::executor_type> mWorkGuard;

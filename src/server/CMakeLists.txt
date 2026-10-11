@@ -54,6 +54,9 @@ add_executable(${PROJECT_NAME}
 
     world/Zone.h world/Zone.cpp
     world/ZoneTickStats.h world/ZoneTickStats.cpp
+    world/SnapshotEncoder.h world/SnapshotEncoder.cpp
+    world/SnapshotChunkCache.hpp
+    world/WireWriter.h
     world/WorldRegistry.h world/WorldRegistry.cpp
     world/CombatSystem.h world/CombatSystem.cpp
     world/MonsterBrain.h world/MonsterBrain.cpp
