@@ -49,7 +49,7 @@ void ModerationCommands::sendSystemMessage(uint64_t pCharacterId, services::chat
 
 void ModerationCommands::executeKick(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, true);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {

@@ -53,12 +53,15 @@ private:
     static constexpr double kBucketTokensPerSecond = 2.0;
     static constexpr double kGmBucketCapacity = 20.0;
     static constexpr double kGmBucketTokensPerSecond = 5.0;
+    static constexpr double kDeniedLogBucketCapacity = 1.0;
+    static constexpr double kDeniedLogTokensPerSecond = 1.0 / 60.0;
     static constexpr size_t kMaxAuditArgumentLength = 256;
 
     WorldController& mWorldController;
 
     TokenBucketLimiter mLimiter{kBucketCapacity, kBucketTokensPerSecond};
     TokenBucketLimiter mGmLimiter{kGmBucketCapacity, kGmBucketTokensPerSecond};
+    TokenBucketLimiter mDeniedLogLimiter{kDeniedLogBucketCapacity, kDeniedLogTokensPerSecond};
 
     std::vector<CommandSpec> mCommands;
     std::unordered_map<std::string, size_t> mIndex;

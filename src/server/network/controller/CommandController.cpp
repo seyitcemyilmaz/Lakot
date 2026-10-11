@@ -121,6 +121,19 @@ void CommandController::handleCommandRequest(std::shared_ptr<NetworkSession<conn
         {
             std::osyncstream(std::cout) << "[Security] Yetkisiz komut denemesi: karakter " << tCharacterId
                                         << " hesap " << tAccess->accountId << " /" << tContext.name << std::endl;
+
+            if (mDeniedLogLimiter.tryConsume(tCharacterId))
+            {
+                GmLogRepository::Entry tDenied;
+                tDenied.accountId = tAccess->accountId;
+                tDenied.characterId = tCharacterId;
+                tDenied.characterName = mWorldController.getCharacterName(tCharacterId);
+                tDenied.gmLevel = tAccess->gmLevel;
+                tDenied.command = tSpec->name;
+                tDenied.arguments = tContext.argumentText.substr(0, kMaxAuditArgumentLength);
+                tDenied.result = "denied";
+                mRepositoryManager.getGmLogRepository().record(std::move(tDenied));
+            }
         }
 
         tReply->send(services::chat::COMMAND_UNKNOWN, {kUnknownCommandText});

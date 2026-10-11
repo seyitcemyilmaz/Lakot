@@ -11,7 +11,7 @@ CommandTargetResolver::CommandTargetResolver(WorldController& pWorldController)
 }
 
 std::optional<CommandTarget> CommandTargetResolver::resolve(const CommandContext& pContext, size_t pArgumentIndex,
-                                                            CommandReply& pReply, bool pRequireLowerLevel) const
+                                                            CommandReply& pReply) const
 {
     CommandTarget tTarget;
 
@@ -39,7 +39,7 @@ std::optional<CommandTarget> CommandTargetResolver::resolve(const CommandContext
     tTarget.characterId = *tCharacterId;
     tTarget.gmLevel = tAccess->gmLevel;
 
-    if (pRequireLowerLevel && tTarget.characterId != pContext.characterId && tTarget.gmLevel >= pContext.gmLevel)
+    if (tTarget.characterId != pContext.characterId && tTarget.gmLevel >= pContext.gmLevel)
     {
         pReply.fail("You cannot target a player of your level or higher.");
         return std::nullopt;

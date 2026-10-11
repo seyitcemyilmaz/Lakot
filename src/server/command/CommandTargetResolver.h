@@ -26,7 +26,7 @@ public:
     explicit CommandTargetResolver(WorldController& pWorldController);
 
     std::optional<CommandTarget> resolve(const CommandContext& pContext, size_t pArgumentIndex,
-                                         CommandReply& pReply, bool pRequireLowerLevel) const;
+                                         CommandReply& pReply) const;
 
 private:
     WorldController& mWorldController;

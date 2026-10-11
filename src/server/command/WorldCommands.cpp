@@ -94,7 +94,7 @@ void WorldCommands::executeTeleport(const CommandContext& pContext, std::shared_
 
 void WorldCommands::executeTeleportToPlayer(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {
@@ -130,7 +130,7 @@ void WorldCommands::executeTeleportToPlayer(const CommandContext& pContext, std:
 
 void WorldCommands::executeSummon(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, true);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {
@@ -183,7 +183,7 @@ void WorldCommands::executeItem(const CommandContext& pContext, std::shared_ptr<
         return;
     }
 
-    auto tTarget = mResolver.resolve(pContext, 2, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 2, *pReply);
 
     if (!tTarget)
     {
@@ -225,7 +225,7 @@ void WorldCommands::executeGold(const CommandContext& pContext, std::shared_ptr<
         return;
     }
 
-    auto tTarget = mResolver.resolve(pContext, 1, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 1, *pReply);
 
     if (!tTarget)
     {
@@ -252,7 +252,7 @@ void WorldCommands::executeLevel(const CommandContext& pContext, std::shared_ptr
         return;
     }
 
-    auto tTarget = mResolver.resolve(pContext, 1, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 1, *pReply);
 
     if (!tTarget)
     {
@@ -271,7 +271,7 @@ void WorldCommands::executeLevel(const CommandContext& pContext, std::shared_ptr
 
 void WorldCommands::executeHeal(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {
@@ -305,7 +305,7 @@ void WorldCommands::executeSetHealth(const CommandContext& pContext, std::shared
         return;
     }
 
-    auto tTarget = mResolver.resolve(pContext, 1, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 1, *pReply);
 
     if (!tTarget)
     {
@@ -344,7 +344,7 @@ void WorldCommands::executeSetMana(const CommandContext& pContext, std::shared_p
         return;
     }
 
-    auto tTarget = mResolver.resolve(pContext, 1, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 1, *pReply);
 
     if (!tTarget)
     {
@@ -375,7 +375,7 @@ void WorldCommands::executeSetMana(const CommandContext& pContext, std::shared_p
 
 void WorldCommands::executeKill(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, true);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {
@@ -395,7 +395,7 @@ void WorldCommands::executeKill(const CommandContext& pContext, std::shared_ptr<
 
 void WorldCommands::executeRevive(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tTarget = mResolver.resolve(pContext, 0, *pReply, false);
+    auto tTarget = mResolver.resolve(pContext, 0, *pReply);
 
     if (!tTarget)
     {

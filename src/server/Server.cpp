@@ -180,19 +180,71 @@ void Server::grantConfiguredGmAccount()
         return;
     }
 
-    std::string tName(tAccountName);
+    std::string tList(tAccountName);
+    std::size_t tPos = 0;
 
-    std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT tanimli, '" << tName
-                                << "' hesabi GM seviye 2 olarak ayarlaniyor." << std::endl;
-
-    mRepositoryManager->getAccountRepository().grantGmLevel(tName, 2,
-    [tName](bool pIsFound)
+    while (tPos <= tList.size())
     {
-        if (!pIsFound)
+        std::size_t tEnd = tList.find(',', tPos);
+
+        if (tEnd == std::string::npos)
         {
-            std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT hesabi bulunamadi: " << tName << std::endl;
+            tEnd = tList.size();
         }
-    });
+
+        std::string tEntry = tList.substr(tPos, tEnd - tPos);
+        tPos = tEnd + 1;
+
+        const auto tFirst = tEntry.find_first_not_of(" 	");
+
+        if (tFirst == std::string::npos)
+        {
+            continue;
+        }
+
+        tEntry = tEntry.substr(tFirst, tEntry.find_last_not_of(" 	") - tFirst + 1);
+
+        std::string tName = tEntry;
+        int tLevel = 2;
+        const auto tColon = tEntry.find(':');
+
+        if (tColon != std::string::npos)
+        {
+            tName = tEntry.substr(0, tColon);
+            const std::string tLevelText = tEntry.substr(tColon + 1);
+
+            if (tLevelText == "1")
+            {
+                tLevel = 1;
+            }
+            else if (tLevelText == "2")
+            {
+                tLevel = 2;
+            }
+            else
+            {
+                std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT gecersiz seviye, girdi atlandi: " << tEntry << std::endl;
+                continue;
+            }
+        }
+
+        if (tName.empty())
+        {
+            continue;
+        }
+
+        std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT tanimli, '" << tName
+                                    << "' hesabi GM seviye " << tLevel << " olarak ayarlaniyor." << std::endl;
+
+        mRepositoryManager->getAccountRepository().grantGmLevel(tName, tLevel,
+        [tName](bool pIsFound)
+        {
+            if (!pIsFound)
+            {
+                std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT hesabi bulunamadi: " << tName << std::endl;
+            }
+        });
+    }
 }
 
 void Server::run()
