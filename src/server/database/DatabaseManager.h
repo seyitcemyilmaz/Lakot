@@ -17,6 +17,7 @@ class DatabaseManager
 {
 public:
     using DatabaseTask = std::function<void(pqxx::connection&)>;
+    using DroppedHandler = std::function<void()>;
 
     virtual ~DatabaseManager();
     DatabaseManager();
@@ -33,6 +34,8 @@ public:
     // always execute in submission order relative to each other, while
     // different keys still run in parallel across the rest of the pool.
     void executeAsync(DatabaseTask pTask, uint64_t pAffinityKey);
+
+    void executeAsync(DatabaseTask pTask, uint64_t pAffinityKey, DroppedHandler pOnDropped);
 
     bool isConnected() const;
 
@@ -54,7 +57,7 @@ private:
     std::vector<std::unique_ptr<Worker>> mWorkers;
     std::atomic<uint64_t> mRoundRobinCounter{0};
 
-    void postToWorker(size_t pWorkerIndex, DatabaseTask pTask);
+    void postToWorker(size_t pWorkerIndex, DatabaseTask pTask, DroppedHandler pOnDropped);
     void ensureDatabaseExists(const DatabaseConfig& pConfig);
 };
 

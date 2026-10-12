@@ -72,26 +72,37 @@ void DatabaseManager::executeAsync(DatabaseTask pTask)
     }
 
     size_t tIndex = mRoundRobinCounter.fetch_add(1, std::memory_order_relaxed) % mWorkers.size();
-    postToWorker(tIndex, std::move(pTask));
+    postToWorker(tIndex, std::move(pTask), nullptr);
 }
 
 void DatabaseManager::executeAsync(DatabaseTask pTask, uint64_t pAffinityKey)
 {
+    executeAsync(std::move(pTask), pAffinityKey, nullptr);
+}
+
+void DatabaseManager::executeAsync(DatabaseTask pTask, uint64_t pAffinityKey, DroppedHandler pOnDropped)
+{
     if (mWorkers.empty())
     {
         std::osyncstream(std::cerr) << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
+
+        if (pOnDropped)
+        {
+            pOnDropped();
+        }
+
         return;
     }
 
     size_t tIndex = static_cast<size_t>(pAffinityKey % mWorkers.size());
-    postToWorker(tIndex, std::move(pTask));
+    postToWorker(tIndex, std::move(pTask), std::move(pOnDropped));
 }
 
-void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask)
+void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, DroppedHandler pOnDropped)
 {
     Worker* tWorker = mWorkers[pWorkerIndex].get();
 
-    boost::asio::post(tWorker->context, [tWorker, pWorkerIndex, pTask]()
+    boost::asio::post(tWorker->context, [tWorker, pWorkerIndex, pTask, pOnDropped]()
     {
         if (tWorker->connection && tWorker->connection->is_open())
         {
@@ -107,6 +118,11 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask)
         else
         {
             std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Hata: Baglanti yok, sorgu calistirilamadi." << std::endl;
+
+            if (pOnDropped)
+            {
+                pOnDropped();
+            }
         }
     });
 }

@@ -1,5 +1,7 @@
 #include "AttemptTable.h"
 
+#include <vector>
+
 using namespace lakot;
 
 AttemptTable::AttemptTable(int pMaxFailures, std::chrono::seconds pWindow)
@@ -15,7 +17,14 @@ bool AttemptTable::hasRoom(const std::string& pKey, std::chrono::steady_clock::t
 
     if (tIterator == mRecords.end())
     {
-        return true;
+        if (mRecords.size() < kMaxRecords)
+        {
+            return true;
+        }
+
+        sweep(pNow, kFullSweepBuckets);
+
+        return mRecords.size() < kMaxRecords;
     }
 
     expire(tIterator->second, pNow);
@@ -65,6 +74,11 @@ void AttemptTable::release(const std::string& pKey)
 
 void AttemptTable::addFailure(const std::string& pKey, std::chrono::steady_clock::time_point pNow)
 {
+    if (mRecords.size() >= kMaxRecords && mRecords.find(pKey) == mRecords.end())
+    {
+        return;
+    }
+
     AttemptRecord& tRecord = mRecords[pKey];
 
     expire(tRecord, pNow);
@@ -94,20 +108,38 @@ void AttemptTable::reset(const std::string& pKey)
     }
 }
 
-void AttemptTable::sweep(std::chrono::steady_clock::time_point pNow)
+void AttemptTable::sweep(std::chrono::steady_clock::time_point pNow, size_t pBucketBudget)
 {
-    for (auto tIterator = mRecords.begin(); tIterator != mRecords.end();)
-    {
-        expire(tIterator->second, pNow);
+    size_t tBucketCount = mRecords.bucket_count();
 
-        if (isIdle(tIterator->second))
+    if (tBucketCount == 0)
+    {
+        return;
+    }
+
+    size_t tBuckets = pBucketBudget < tBucketCount ? pBucketBudget : tBucketCount;
+    std::vector<std::string> tExpired;
+
+    for (size_t tIndex = 0; tIndex < tBuckets; ++tIndex)
+    {
+        size_t tBucket = (mSweepCursor + tIndex) % tBucketCount;
+
+        for (auto tIterator = mRecords.begin(tBucket); tIterator != mRecords.end(tBucket); ++tIterator)
         {
-            tIterator = mRecords.erase(tIterator);
+            expire(tIterator->second, pNow);
+
+            if (isIdle(tIterator->second))
+            {
+                tExpired.push_back(tIterator->first);
+            }
         }
-        else
-        {
-            ++tIterator;
-        }
+    }
+
+    mSweepCursor = (mSweepCursor + tBuckets) % tBucketCount;
+
+    for (const std::string& tKey : tExpired)
+    {
+        mRecords.erase(tKey);
     }
 }
 

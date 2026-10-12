@@ -1,11 +1,30 @@
 #include "AuthController.h"
 
+#include <cstdlib>
+#include <functional>
 #include <syncstream>
 
 #include "WorldController.h"
 #include "../RequestLimits.h"
 
 using namespace lakot;
+
+namespace
+{
+    double readRegistersPerMinute(double pDefault)
+    {
+        const char* tValue = std::getenv("LAKOT_REGISTER_PER_MINUTE");
+
+        if (tValue == nullptr)
+        {
+            return pDefault;
+        }
+
+        double tParsed = std::atof(tValue);
+
+        return tParsed > 0.0 ? tParsed : pDefault;
+    }
+}
 
 void AuthController::sendRejection(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                                    const connection::Message& pRequestMessage,
@@ -29,7 +48,7 @@ void AuthController::sendRejection(const std::shared_ptr<NetworkSession<connecti
     }
     else
     {
-        tResponse.mutable_response()->mutable_register_response();
+        tResponse.mutable_response()->mutable_register_response()->set_register_status(services::auth::REGISTER_STATUS_SYSTEM_ERROR);
     }
 
     pSession->send(tResponse);
@@ -38,6 +57,7 @@ void AuthController::sendRejection(const std::shared_ptr<NetworkSession<connecti
 AuthController::AuthController(NetworkManager& pNetworkManager, RepositoryManager& pRepositoryManager, WorldController& pWorldController)
     : BaseController(pNetworkManager, pRepositoryManager)
     , mWorldController(pWorldController)
+    , mRegisterLimiter(readRegistersPerMinute(kDefaultRegistersPerMinute), readRegistersPerMinute(kDefaultRegistersPerMinute) / 60.0)
 {
 
 }
@@ -154,6 +174,18 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
         return;
     }
 
+    std::string tAddress = NetworkManager::getRemoteAddress(pSession);
+
+    if (!mRegisterLimiter.tryConsume(std::hash<std::string>{}(tAddress)))
+    {
+        mNetworkManager.abandonLogin(pSession);
+
+        std::osyncstream(std::cout) << "[Server] Cok fazla kayit denemesi: " << tAddress << std::endl;
+
+        sendRejection(pSession, pMessage, common::STATUS_ERROR, "Too many registration attempts. Try again later.", false);
+        return;
+    }
+
     mRepositoryManager.getAccountRepository().createAccount(tUsername, tPassword, tEmail,
     [this, pSession, pMessage, tUsername](AccountRepository::RegisterErrorType pErrorType, const std::string& pResult)
     {
@@ -245,14 +277,26 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     }
 
     mRepositoryManager.getAccountRepository().findByUsername(tUsername, tPassword,
-    [this, pSession, pMessage, tUsername, tAddress](bool pIsSuccess, uint64_t pAccountId)
+    [this, pSession, pMessage, tUsername, tAddress](AccountRepository::LoginResultType pResult, uint64_t pAccountId)
     {
         connection::Message tResponse;
 
         auto* tHeader = tResponse.mutable_response()->mutable_header();
         tHeader->set_reply_to(pMessage.request().header().id());
 
-        if (!pIsSuccess)
+        if (pResult == AccountRepository::LoginResultType::eDatabaseError)
+        {
+            std::osyncstream(std::cerr) << "[Server] Giris veritabani hatasi: " << tUsername << std::endl;
+
+            mAttemptLimiter.release(tAddress, tUsername);
+            mNetworkManager.abandonLogin(pSession);
+
+            sendRejection(pSession, pMessage, common::STATUS_ERROR,
+                          "Service temporarily unavailable. Try again later.", true);
+            return;
+        }
+
+        if (pResult != AccountRepository::LoginResultType::eSuccess)
         {
             std::osyncstream(std::cout) << "[Server] Giris basarisiz: " << tUsername << std::endl;
 

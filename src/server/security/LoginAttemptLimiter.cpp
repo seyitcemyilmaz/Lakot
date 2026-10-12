@@ -10,7 +10,7 @@ bool LoginAttemptLimiter::tryAcquire(const std::string& pAddress, const std::str
 
     std::lock_guard<std::mutex> tLock(mMutex);
 
-    sweepIfDue(tNow);
+    sweepStep(tNow);
 
     if (tHasAddress && (!mAddressTable.hasRoom(pAddress, tNow) || !mPairTable.hasRoom(tPairKey, tNow)))
     {
@@ -67,6 +67,21 @@ void LoginAttemptLimiter::recordSuccess(const std::string& pAddress, const std::
     mUsernameTable.release(pUsername);
 }
 
+void LoginAttemptLimiter::release(const std::string& pAddress, const std::string& pUsername)
+{
+    std::string tPairKey = makePairKey(pAddress, pUsername);
+
+    std::lock_guard<std::mutex> tLock(mMutex);
+
+    if (!pAddress.empty())
+    {
+        mAddressTable.release(pAddress);
+        mPairTable.release(tPairKey);
+    }
+
+    mUsernameTable.release(pUsername);
+}
+
 void LoginAttemptLimiter::recordMalformed(const std::string& pAddress)
 {
     if (pAddress.empty())
@@ -78,7 +93,7 @@ void LoginAttemptLimiter::recordMalformed(const std::string& pAddress)
 
     std::lock_guard<std::mutex> tLock(mMutex);
 
-    sweepIfDue(tNow);
+    sweepStep(tNow);
     mAddressTable.addFailure(pAddress, tNow);
 }
 
@@ -87,15 +102,9 @@ std::string LoginAttemptLimiter::makePairKey(const std::string& pAddress, const 
     return pAddress + '|' + pUsername;
 }
 
-void LoginAttemptLimiter::sweepIfDue(std::chrono::steady_clock::time_point pNow)
+void LoginAttemptLimiter::sweepStep(std::chrono::steady_clock::time_point pNow)
 {
-    if (pNow - mLastSweep < kSweepInterval)
-    {
-        return;
-    }
-
-    mLastSweep = pNow;
-    mAddressTable.sweep(pNow);
-    mPairTable.sweep(pNow);
-    mUsernameTable.sweep(pNow);
+    mAddressTable.sweep(pNow, kSweepBucketsPerCall);
+    mPairTable.sweep(pNow, kSweepBucketsPerCall);
+    mUsernameTable.sweep(pNow, kSweepBucketsPerCall);
 }

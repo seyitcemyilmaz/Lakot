@@ -26,6 +26,10 @@ namespace
                               return std::tolower(pA) == std::tolower(pB);
                           });
     }
+
+    const std::string kUnknownUserHash =
+        "pbkdf2_sha256$100000$00112233445566778899aabbccddeeff$"
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 }
 
 AccountRepository::~AccountRepository()
@@ -147,25 +151,24 @@ void AccountRepository::createAccount(const std::string& pUsername,
         {
             pCallback(RegisterErrorType::eSystemError, tException.what());
         }
-    }, std::hash<std::string>{}(pUsername));
+    }, std::hash<std::string>{}(pUsername),
+    [pCallback]()
+    {
+        pCallback(RegisterErrorType::eDatabaseError, "");
+    });
 }
 
 void AccountRepository::findByUsername(const std::string& pUsername, const std::string& pPassword, LoginCallback pCallback)
 {
-    // Same affinity key as createAccount, so a user's own operations always
-    // land on the same worker as more per-account mutations get added later.
     mDatabaseManager.executeAsync([pUsername, pPassword, pCallback](pqxx::connection& pConnection)
     {
-        bool tSuccess = false;
+        LoginResultType tOutcome = LoginResultType::eInvalidCredentials;
         uint64_t tAccountId = 0;
 
         try
         {
             pqxx::nontransaction tNtx(pConnection);
 
-            // Parameterized like every other query in this class - the old
-            // esc()-and-concatenate form was safe but was the only place the
-            // escaping correctness depended on remembering to call esc().
             auto tResult = tNtx.exec(
                 "SELECT id, password FROM accounts WHERE username = $1",
                 pqxx::params{pUsername});
@@ -177,20 +180,32 @@ void AccountRepository::findByUsername(const std::string& pUsername, const std::
                 if (PasswordHasher::verify(pPassword, tDatabasePassword))
                 {
                     tAccountId = tResult[0]["id"].as<uint64_t>();
-                    tSuccess = true;
+                    tOutcome = LoginResultType::eSuccess;
                 }
+            }
+            else
+            {
+                PasswordHasher::verify(pPassword, kUnknownUserHash);
             }
         }
         catch (const std::exception& tException)
         {
             std::osyncstream(std::cerr) << "[AccountRepo] Login Hatasi: " << tException.what() << std::endl;
+            tOutcome = LoginResultType::eDatabaseError;
         }
 
         if (pCallback)
         {
-            pCallback(tSuccess, tAccountId);
+            pCallback(tOutcome, tAccountId);
         }
-    }, std::hash<std::string>{}(pUsername));
+    }, std::hash<std::string>{}(pUsername),
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback(LoginResultType::eDatabaseError, 0);
+        }
+    });
 }
 
 void AccountRepository::grantGmLevel(const std::string& pUsername, uint32_t pLevel, GrantGmCallback pCallback)

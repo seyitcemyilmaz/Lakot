@@ -18,6 +18,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from lakotnet import *
 HERE = pathlib.Path(__file__).resolve().parent
+os.environ.setdefault("LAKOT_REGISTER_PER_MINUTE", "100000")
 
 KIND_PLAYER, KIND_MONSTER, KIND_NPC, KIND_ITEM = 0, 1, 2, 3
 POTION = 4

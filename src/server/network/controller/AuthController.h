@@ -8,6 +8,7 @@
 #include "BaseController.h"
 
 #include "../../security/LoginAttemptLimiter.h"
+#include "../../security/TokenBucketLimiter.h"
 
 namespace lakot
 {
@@ -27,7 +28,10 @@ public:
 private:
     WorldController& mWorldController;
 
+    static constexpr double kDefaultRegistersPerMinute = 30.0;
+
     LoginAttemptLimiter mAttemptLimiter;
+    TokenBucketLimiter mRegisterLimiter;
 
     void sendRejection(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                        const connection::Message& pRequestMessage,
