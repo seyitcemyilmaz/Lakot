@@ -135,7 +135,7 @@ message WorldSnapshot {
 
     // Present only on a tick where the SERVER moved the receiver itself
     // rather than the receiver's own input doing it - today that means a
-    // rejected movement (see the speed check in Aşama 3), where the client
+    // rejected movement (see the server-side speed check), where the client
     // must snap back to the last position the server accepted.
     optional EntityState self_correction = 5;
 

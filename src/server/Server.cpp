@@ -100,6 +100,12 @@ bool Server::initialize()
 
     DatabaseConfig tDatabaseConfig;
 
+    if (!tDatabaseConfig.isPortValid())
+    {
+        std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PORT gecersiz (1-65535 arasi sayi olmali)." << std::endl;
+        return false;
+    }
+
     if (tDatabaseConfig.password.empty())
     {
         std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PASSWORD ortam degiskeni tanimli degil." << std::endl;
