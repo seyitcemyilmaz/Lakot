@@ -97,6 +97,12 @@ void ModerationCommands::executeMute(const CommandContext& pContext, std::shared
     mAccountRepository.muteByCharacterName(tName, static_cast<uint32_t>(*tMinutes), pContext.gmLevel, pContext.accountId,
     [this, pReply, tName, tDuration = *tMinutes](const AccountRepository::MuteOutcome& pOutcome)
     {
+        if (pOutcome.result == AccountRepository::MuteResultType::eDatabaseError)
+        {
+            pReply->fail("Database error, try again.");
+            return;
+        }
+
         if (pOutcome.result == AccountRepository::MuteResultType::eNotFound)
         {
             pReply->fail("Player not found.");

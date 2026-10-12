@@ -1,5 +1,6 @@
 #include "WorldController.h"
 
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <syncstream>
@@ -207,9 +208,10 @@ void WorldController::handleAttackRequest(std::shared_ptr<NetworkSession<connect
     auto tMapId = tCharacterId != 0 ? getCharacterZone(tCharacterId) : std::nullopt;
     Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
 
-    if (tZone)
+    const auto& tRequest = pMessage.request().attack_request();
+
+    if (tZone && std::isfinite(tRequest.yaw()))
     {
-        const auto& tRequest = pMessage.request().attack_request();
         tZone->attack(tCharacterId, tRequest.yaw(), tRequest.combo());
     }
 }

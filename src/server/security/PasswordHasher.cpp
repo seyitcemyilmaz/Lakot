@@ -1,5 +1,6 @@
 #include "PasswordHasher.h"
 
+#include <charconv>
 #include <cstdlib>
 #include <sstream>
 #include <vector>
@@ -14,6 +15,7 @@ namespace
     constexpr int kSaltBytes = 16;
     constexpr int kHashBytes = 32;
     constexpr int kIterations = 100000;
+    constexpr int kMaxIterations = 10000000;
     const char* kAlgorithmTag = "pbkdf2_sha256";
 
     std::string toHex(const unsigned char* pData, size_t pLength)
@@ -149,7 +151,16 @@ bool PasswordHasher::verify(const std::string& pPassword, const std::string& pSt
         return false;
     }
 
-    int tIterations = std::atoi(pStoredHash.substr(tFirstDollar + 1, tSecondDollar - tFirstDollar - 1).c_str());
+    int tIterations = 0;
+    const char* tIterationsBegin = pStoredHash.data() + tFirstDollar + 1;
+    const char* tIterationsEnd = pStoredHash.data() + tSecondDollar;
+    auto [tParsedEnd, tParseError] = std::from_chars(tIterationsBegin, tIterationsEnd, tIterations);
+
+    if (tParseError != std::errc{} || tParsedEnd != tIterationsEnd || tIterations > kMaxIterations)
+    {
+        return false;
+    }
+
     std::string tSaltHex = pStoredHash.substr(tSecondDollar + 1, tThirdDollar - tSecondDollar - 1);
     std::string tHashHex = pStoredHash.substr(tThirdDollar + 1);
 

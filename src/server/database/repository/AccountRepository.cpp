@@ -98,59 +98,65 @@ void AccountRepository::createAccount(const std::string& pUsername,
     mDatabaseManager.executeAsync(
     [this, pUsername, pPassword, pEmail, pCallback](pqxx::connection& pConnection)
     {
-        try
+        auto [tError, tMessage] = [&]() -> std::pair<RegisterErrorType, std::string>
         {
-            pqxx::work tWork(pConnection);
-
-            // Both sides lowered on both columns. The previous form lowered
-            // the INPUT for email but the STORED value for username, so the
-            // two columns disagreed about what "already taken" means -
-            // registering "BOB" while "bob" existed passed the check and then
-            // failed on the UNIQUE index.
-            std::string tCheckQuery = "SELECT username, email FROM accounts WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($2)";
-            pqxx::result tCheckResult = tWork.exec(tCheckQuery, pqxx::params{pEmail, pUsername});
-
-            for (auto const& tRow : tCheckResult)
+            try
             {
-                if (equalsIgnoreCase(tRow["email"].as<std::string>(), pEmail))
+                pqxx::work tWork(pConnection);
+
+                // Both sides lowered on both columns. The previous form lowered
+                // the INPUT for email but the STORED value for username, so the
+                // two columns disagreed about what "already taken" means -
+                // registering "BOB" while "bob" existed passed the check and then
+                // failed on the UNIQUE index.
+                std::string tCheckQuery = "SELECT username, email FROM accounts WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($2)";
+                pqxx::result tCheckResult = tWork.exec(tCheckQuery, pqxx::params{pEmail, pUsername});
+
+                for (auto const& tRow : tCheckResult)
                 {
-                    pCallback(RegisterErrorType::eEmailInUse, "");
-                    return;
+                    if (equalsIgnoreCase(tRow["email"].as<std::string>(), pEmail))
+                    {
+                        return {RegisterErrorType::eEmailInUse, ""};
+                    }
+
+                    if (equalsIgnoreCase(tRow["username"].as<std::string>(), pUsername))
+                    {
+                        return {RegisterErrorType::eUsernameInUse, ""};
+                    }
                 }
 
-                if (equalsIgnoreCase(tRow["username"].as<std::string>(), pUsername))
+                std::string tHashedPassword = PasswordHasher::hash(pPassword);
+
+                if (tHashedPassword.empty())
                 {
-                    pCallback(RegisterErrorType::eUsernameInUse, "");
-                    return;
+                    // OpenSSL failed (see PasswordHasher::hash) - storing an
+                    // empty hash would create an account nobody can ever log in
+                    // to, so refuse the registration instead.
+                    return {RegisterErrorType::eSystemError, "Password hashing failed."};
                 }
+
+                std::string tInsertQuery = "INSERT INTO accounts (username, password, email) VALUES ($1, $2, $3)";
+                tWork.exec(tInsertQuery, pqxx::params{pUsername, tHashedPassword, pEmail});
+
+                tWork.commit();
+
+                return {RegisterErrorType::eNoError, "Registration is completed successfully."};
             }
-
-            std::string tHashedPassword = PasswordHasher::hash(pPassword);
-
-            if (tHashedPassword.empty())
+            catch (const pqxx::unique_violation&)
             {
-                // OpenSSL failed (see PasswordHasher::hash) - storing an
-                // empty hash would create an account nobody can ever log in
-                // to, so refuse the registration instead.
-                pCallback(RegisterErrorType::eSystemError, "Password hashing failed.");
-                return;
+                return {RegisterErrorType::eEmailInUse, ""};
             }
+            catch (const pqxx::sql_error& tException)
+            {
+                return {RegisterErrorType::eDatabaseError, tException.what()};
+            }
+            catch (const std::exception& tException)
+            {
+                return {RegisterErrorType::eSystemError, tException.what()};
+            }
+        }();
 
-            std::string tInsertQuery = "INSERT INTO accounts (username, password, email) VALUES ($1, $2, $3)";
-            tWork.exec(tInsertQuery, pqxx::params{pUsername, tHashedPassword, pEmail});
-
-            tWork.commit();
-
-            pCallback(RegisterErrorType::eNoError, "Registration is completed successfully.");
-        }
-        catch (const pqxx::sql_error& tException)
-        {
-            pCallback(RegisterErrorType::eDatabaseError, tException.what());
-        }
-        catch (const std::exception& tException)
-        {
-            pCallback(RegisterErrorType::eSystemError, tException.what());
-        }
+        pCallback(tError, tMessage);
     }, std::hash<std::string>{}(pUsername),
     [pCallback]()
     {
@@ -234,7 +240,14 @@ void AccountRepository::grantGmLevel(const std::string& pUsername, uint32_t pLev
         {
             pCallback(tIsFound);
         }
-    }, kSchemaAffinityKey);
+    }, kSchemaAffinityKey,
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback(false);
+        }
+    });
 }
 
 void AccountRepository::muteByCharacterName(const std::string& pCharacterName, uint32_t pMinutes,
@@ -294,10 +307,20 @@ void AccountRepository::muteByCharacterName(const std::string& pCharacterName, u
         {
             std::osyncstream(std::cerr) << "[AccountRepo] Susturma hatasi: " << tException.what() << std::endl;
             tOutcome = MuteOutcome();
+            tOutcome.result = MuteResultType::eDatabaseError;
         }
 
         if (pCallback)
         {
+            pCallback(tOutcome);
+        }
+    }, std::hash<std::string>{}(pCharacterName),
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            MuteOutcome tOutcome;
+            tOutcome.result = MuteResultType::eDatabaseError;
             pCallback(tOutcome);
         }
     });

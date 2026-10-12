@@ -72,6 +72,7 @@ public:
     bool killPlayer(uint64_t pCharacterId, double pNow);
     bool revivePlayer(uint64_t pCharacterId);
 
+    void scheduleRespawnIfDead(uint64_t pCharacterId, double pNow);
     std::vector<uint64_t> reviveDuePlayers(double pNow);
     double getRespawnRemaining(uint64_t pCharacterId, double pNow) const;
     void forget(uint64_t pCharacterId);

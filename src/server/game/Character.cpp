@@ -91,17 +91,6 @@ void Character::revive()
 void Character::setStats(const CharacterStats& pStats)
 {
     mStats = pStats;
-
-    // A character stored before vitals existed (or any row where they were
-    // never written) comes back at zero. There is no death system yet, so
-    // zero health cannot legitimately mean "died" - it means "never
-    // initialized", and starting such a character at full is the only sane
-    // reading. Revisit when death and respawning are real.
-    if (mStats.health <= 0 && mStats.mana <= 0)
-    {
-        StatFormula::initializeVitals(mStats);
-    }
-
     refreshVitals();
 }
 

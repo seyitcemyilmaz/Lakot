@@ -6,6 +6,7 @@
 #include <cmath>
 #include <random>
 #include <iostream>
+#include <syncstream>
 #include <utility>
 #include <vector>
 
@@ -122,7 +123,23 @@ void Zone::start(SendFunction pSend, TransferFunction pTransfer, PersistFunction
 
         mNextTickAt = std::chrono::steady_clock::now();
         scheduleTick();
-        mContext.run();
+
+        while (true)
+        {
+            try
+            {
+                mContext.run();
+                return;
+            }
+            catch (const std::exception& tException)
+            {
+                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Isleyici istisnasi: " << tException.what() << std::endl;
+            }
+            catch (...)
+            {
+                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Isleyici bilinmeyen istisna" << std::endl;
+            }
+        }
     });
 }
 
@@ -175,6 +192,7 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
 
         mRegistry.add(tCharacterId, std::move(pCharacter.name), pState);
         mCombat.markVitalsChanged(tCharacterId);
+        mCombat.scheduleRespawnIfDead(tCharacterId, mTime);
 
         // Fired after the character is fully in place, so a script can rely on
         // everything about it being readable - and before the first snapshot,
@@ -438,7 +456,15 @@ void Zone::scheduleTick()
             return; // cancelled by stop()
         }
 
-        tick();
+        try
+        {
+            tick();
+        }
+        catch (const std::exception& tException)
+        {
+            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Tick istisnasi: " << tException.what() << std::endl;
+        }
+
         scheduleTick();
     });
 }
@@ -889,7 +915,7 @@ void Zone::spawnMonstersNear(uint64_t pCharacterId, const MonsterTemplate& pTemp
                 return pEntry.second.isTemporary;
             }));
 
-        if (tTemporary + pCount > kMaxTemporaryMonsters)
+        if (uint64_t{tTemporary} + pCount > kMaxTemporaryMonsters)
         {
             pCallback(false, "Too many spawned monsters on this map (limit " + std::to_string(kMaxTemporaryMonsters) + ").");
             return;

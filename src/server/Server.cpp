@@ -1,5 +1,6 @@
 #include "Server.h"
 
+#include <atomic>
 #include <charconv>
 #include <chrono>
 #include <csignal>
@@ -14,18 +15,18 @@ using namespace lakot;
 
 namespace
 {
-    // Set from a signal handler, so it must be the async-signal-safe type and
-    // nothing else may happen in there - the handler only flips this and the
-    // condition variable below is notified from the polling wait in
-    // waitForShutdownSignal().
-    volatile std::sig_atomic_t gShutdownRequested = 0;
+    std::atomic<bool> gShutdownRequested{false};
+    std::atomic<bool> gStatusRequested{false};
+
+    static_assert(std::atomic<bool>::is_always_lock_free);
 
     void onShutdownSignal(int)
     {
-        gShutdownRequested = 1;
+        gShutdownRequested = true;
     }
 
     constexpr uint16_t kDefaultServerPort = 12345;
+    constexpr std::chrono::seconds kStartupQueryTimeout{60};
 
     std::optional<uint16_t> readServerPort()
     {
@@ -50,16 +51,6 @@ namespace
 
     // Blocks until Ctrl+C / SIGTERM. Used when there is no interactive
     // console to read commands from.
-    void waitForShutdownSignal()
-    {
-        std::signal(SIGINT, onShutdownSignal);
-        std::signal(SIGTERM, onShutdownSignal);
-
-        while (gShutdownRequested == 0)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        }
-    }
 }
 
 Server::~Server()
@@ -133,19 +124,26 @@ bool Server::initialize()
     }
 
     {
-        std::promise<std::pair<bool, uint64_t>> tPromise;
-        std::future<std::pair<bool, uint64_t>> tFuture = tPromise.get_future();
+        auto tPromise = std::make_shared<std::promise<std::pair<bool, uint64_t>>>();
+        std::future<std::pair<bool, uint64_t>> tFuture = tPromise->get_future();
 
         mRepositoryManager->getItemRepository().syncTemplates(mItemCatalog.getAll(),
-        [&tPromise](bool pIsSuccess, uint64_t pRemovedInstances)
+        [tPromise](bool pIsSuccess, uint64_t pRemovedInstances)
         {
-            tPromise.set_value({ pIsSuccess, pRemovedInstances });
+            tPromise->set_value({ pIsSuccess, pRemovedInstances });
         });
+
+        if (tFuture.wait_for(kStartupQueryTimeout) != std::future_status::ready)
+        {
+            std::osyncstream(std::cerr) << "[Server] Esya sablonlari zaman asimi: veritabani yanit vermiyor." << std::endl;
+            return false;
+        }
 
         auto [tIsSynced, tRemoved] = tFuture.get();
 
         if (!tIsSynced)
         {
+            std::osyncstream(std::cerr) << "[Server] Esya sablonlari veritabanina yazilamadi." << std::endl;
             return false;
         }
 
@@ -285,35 +283,52 @@ void Server::grantConfiguredGmAccount()
     }
 }
 
+void Server::requestShutdown()
+{
+    gShutdownRequested = true;
+}
+
 void Server::run()
 {
-    std::string tCommand;
+    std::signal(SIGINT, onShutdownSignal);
+    std::signal(SIGTERM, onShutdownSignal);
 
-    while (std::cin >> tCommand)
+    std::thread([]()
     {
-        if (tCommand == "exit")
+        std::string tCommand;
+
+        while (std::cin >> tCommand)
         {
-            return;
+            if (tCommand == "exit")
+            {
+                gShutdownRequested = true;
+                return;
+            }
+            else if (tCommand == "status")
+            {
+                gStatusRequested = true;
+            }
+            else
+            {
+                std::osyncstream(std::cout) << "[Error] Bilinmeyen komut." << std::endl;
+            }
         }
-        else if (tCommand == "status")
+
+        if (!gShutdownRequested)
+        {
+            std::osyncstream(std::cout) << "[Server] Konsol girdisi yok - kapatma sinyali bekleniyor (Ctrl+C)." << std::endl;
+        }
+    }).detach();
+
+    while (!gShutdownRequested)
+    {
+        if (gStatusRequested.exchange(false))
         {
             std::osyncstream(std::cout) << "[Status] " << mNetworkManager.getSessionRegistry().size() << std::endl;
         }
-        else
-        {
-            std::osyncstream(std::cout) << "[Error] Bilinmeyen komut." << std::endl;
-        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
-    // Falling out of the loop means stdin ended rather than "exit" being
-    // typed - which is the normal state for a server started as a service,
-    // from a scheduler, or with its input redirected. Previously that shut
-    // the whole server down within milliseconds of finishing startup, so it
-    // could only ever run attached to a live console. Now it keeps serving
-    // and waits to be told to stop.
-    std::osyncstream(std::cout) << "[Server] Konsol girdisi yok - kapatma sinyali bekleniyor (Ctrl+C)." << std::endl;
-
-    waitForShutdownSignal();
-
-    std::osyncstream(std::cout) << "[Server] Kapatma sinyali alindi." << std::endl;
+    std::osyncstream(std::cout) << "[Server] Kapatma istegi alindi." << std::endl;
 }

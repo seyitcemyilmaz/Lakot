@@ -1,33 +1,29 @@
 #include "Server.h"
 #include "TimerResolution.h"
 
+#include <exception>
+#include <iostream>
+
 #if defined(_WIN32)
 #include <windows.h>
 #include <cstdlib>
 
 namespace
 {
-    // Without this, closing the console window only sends CTRL_CLOSE_EVENT;
-    // Windows gives the process a grace period to react, and defers the
-    // decision to terminate entirely to an attached debugger (exactly what
-    // happens when this is launched via Qt Creator's Run/Debug) - so the
-    // process keeps running until Stop is pressed in the IDE. Exit
-    // immediately instead of relying on that default behavior.
+    constexpr DWORD kCloseGraceMilliseconds = 4500;
+
     BOOL WINAPI onConsoleCtrlEvent(DWORD pCtrlType)
     {
-        switch (pCtrlType)
+        lakot::Server::requestShutdown();
+
+        if (pCtrlType == CTRL_C_EVENT || pCtrlType == CTRL_BREAK_EVENT)
         {
-            case CTRL_CLOSE_EVENT:
-            case CTRL_C_EVENT:
-            case CTRL_BREAK_EVENT:
-            case CTRL_LOGOFF_EVENT:
-            case CTRL_SHUTDOWN_EVENT:
-            {
-                std::_Exit(0);
-            }
+            return TRUE;
         }
 
-        return FALSE;
+        // Windows ends the process once this returns, so wait for main to finish saving.
+        Sleep(kCloseGraceMilliseconds);
+        std::_Exit(0);
     }
 }
 #endif
@@ -39,11 +35,22 @@ int main()
 #endif
 
     lakot::TimerResolution tTimerResolution;
-    lakot::Server tServer;
 
-    if (tServer.initialize())
+    try
     {
+        lakot::Server tServer;
+
+        if (!tServer.initialize())
+        {
+            return 1;
+        }
+
         tServer.run();
+    }
+    catch (const std::exception& tException)
+    {
+        std::cerr << "[Server] Kritik hata: " << tException.what() << std::endl;
+        return 1;
     }
 
     return 0;

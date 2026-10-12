@@ -13,13 +13,14 @@ TokenBucketLimiter::TokenBucketLimiter(double pCapacity, double pTokensPerSecond
 
 bool TokenBucketLimiter::tryConsume(uint64_t pKey, double pCost)
 {
-    auto tNow = std::chrono::steady_clock::now();
-
     std::lock_guard<std::mutex> tLock(mMutex);
 
-    if (mBuckets.size() >= kPruneThreshold)
+    auto tNow = std::chrono::steady_clock::now();
+
+    if (mBuckets.size() >= kPruneThreshold && tNow >= mNextPruneAt)
     {
         pruneIdle(tNow);
+        mNextPruneAt = tNow + kPruneInterval;
     }
 
     auto [tIterator, tIsNew] = mBuckets.try_emplace(pKey);

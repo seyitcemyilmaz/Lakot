@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include <syncstream>
 
@@ -11,14 +12,28 @@ using namespace lakot;
 
 namespace
 {
+    constexpr int64_t kMaxScriptTemplateId = 0xFFFFFFFFll;
+    constexpr int64_t kMaxScriptItemCount = 10000;
+    constexpr int64_t kMaxScriptExperience = 1000000000ll;
+    constexpr int64_t kMaxScriptGold = 1000000000ll;
 
-constexpr int kInstructionBudget = 5000000;
+    template <typename T>
+    T toScriptAmount(int64_t pValue, int64_t pMax)
+    {
+        if (pValue < 0 || pValue > pMax)
+        {
+            throw std::out_of_range("script amount out of range");
+        }
 
-void onInstructionBudgetExceeded(lua_State* pState, lua_Debug*)
-{
-    luaL_error(pState, "script exceeded the instruction budget of %d", kInstructionBudget);
-}
+        return static_cast<T>(pValue);
+    }
 
+    constexpr int kInstructionBudget = 5000000;
+
+    void onInstructionBudgetExceeded(lua_State* pState, lua_Debug*)
+    {
+        luaL_error(pState, "script exceeded the instruction budget of %d", kInstructionBudget);
+    }
 }
 
 Character& ScriptCharacter::require() const
@@ -95,24 +110,31 @@ void ScriptEngine::bindApi()
 
         // Returns how many could NOT be given, so a script handing out a
         // reward can react to a full bag instead of silently destroying it.
-        "give_item", [](ScriptCharacter& pSelf, uint32_t pTemplateId, uint32_t pCount)
+        "give_item", [](ScriptCharacter& pSelf, int64_t pTemplateId, int64_t pCount)
         {
-            return pSelf.require().giveItem(pTemplateId, pCount);
+            return pSelf.require().giveItem(toScriptAmount<uint32_t>(pTemplateId, kMaxScriptTemplateId),
+                                            toScriptAmount<uint32_t>(pCount, kMaxScriptItemCount));
         },
-        "take_item", [](ScriptCharacter& pSelf, uint32_t pTemplateId, uint32_t pCount)
+        "take_item", [](ScriptCharacter& pSelf, int64_t pTemplateId, int64_t pCount)
         {
-            return pSelf.require().takeItem(pTemplateId, pCount);
+            return pSelf.require().takeItem(toScriptAmount<uint32_t>(pTemplateId, kMaxScriptTemplateId),
+                                            toScriptAmount<uint32_t>(pCount, kMaxScriptItemCount));
         },
-        "count_item", [](const ScriptCharacter& pSelf, uint32_t pTemplateId)
+        "count_item", [](const ScriptCharacter& pSelf, int64_t pTemplateId)
         {
-            return pSelf.require().countItem(pTemplateId);
+            return pSelf.require().countItem(toScriptAmount<uint32_t>(pTemplateId, kMaxScriptTemplateId));
         },
-        "add_experience", [](ScriptCharacter& pSelf, uint64_t pAmount)
+        "add_experience", [](ScriptCharacter& pSelf, int64_t pAmount)
         {
-            return pSelf.require().addExperience(pAmount);
+            return pSelf.require().addExperience(toScriptAmount<uint64_t>(pAmount, kMaxScriptExperience));
         },
         "add_gold", [](ScriptCharacter& pSelf, int64_t pAmount)
         {
+            if (pAmount < -kMaxScriptGold || pAmount > kMaxScriptGold)
+            {
+                throw std::out_of_range("gold amount out of range");
+            }
+
             pSelf.require().addGold(pAmount);
         }
     );

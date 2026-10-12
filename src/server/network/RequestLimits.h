@@ -2,6 +2,7 @@
 #define LAKOT_SERVER_REQUESTLIMITS_H
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 namespace lakot
@@ -43,12 +44,54 @@ namespace RequestLimits
     // UI verbatim.
     inline bool hasOnlyPrintableCharacters(const std::string& pValue)
     {
-        for (unsigned char tCharacter : pValue)
+        size_t tIndex = 0;
+
+        while (tIndex < pValue.size())
         {
-            if (tCharacter < 0x20 || tCharacter == 0x7F)
+            unsigned char tLead = static_cast<unsigned char>(pValue[tIndex]);
+
+            if (tLead < 0x80)
+            {
+                if (tLead < 0x20 || tLead == 0x7F)
+                {
+                    return false;
+                }
+
+                ++tIndex;
+                continue;
+            }
+
+            size_t tLength = tLead >= 0xF0 && tLead <= 0xF4 ? 4 : tLead >= 0xE0 ? 3 : tLead >= 0xC2 && tLead <= 0xDF ? 2 : 0;
+
+            if (tLength == 0 || tLead > 0xF4 || tIndex + tLength > pValue.size())
             {
                 return false;
             }
+
+            uint32_t tCodePoint = tLead & (0xFF >> (tLength + 1));
+
+            for (size_t tOffset = 1; tOffset < tLength; ++tOffset)
+            {
+                unsigned char tNext = static_cast<unsigned char>(pValue[tIndex + tOffset]);
+
+                if ((tNext & 0xC0) != 0x80)
+                {
+                    return false;
+                }
+
+                tCodePoint = (tCodePoint << 6) | (tNext & 0x3F);
+            }
+
+            bool tIsOverlong = (tLength == 3 && tCodePoint < 0x800) || (tLength == 4 && tCodePoint < 0x10000);
+            bool tIsSurrogate = tCodePoint >= 0xD800 && tCodePoint <= 0xDFFF;
+            bool tIsC1Control = tCodePoint >= 0x80 && tCodePoint <= 0x9F;
+
+            if (tIsOverlong || tIsSurrogate || tIsC1Control || tCodePoint > 0x10FFFF)
+            {
+                return false;
+            }
+
+            tIndex += tLength;
         }
 
         return true;

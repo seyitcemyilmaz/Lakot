@@ -37,7 +37,8 @@ public:
     {
         eApplied,
         eNotFound,
-        eProtected
+        eProtected,
+        eDatabaseError
     };
 
     struct MuteOutcome

@@ -227,6 +227,7 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
             default:
             {
                 tHeader->mutable_status()->set_code(common::STATUS_UNHANDLED_STATE);
+                tResponse.mutable_response()->mutable_register_response()->set_register_status(services::auth::REGISTER_STATUS_SYSTEM_ERROR);
             }
         }
 

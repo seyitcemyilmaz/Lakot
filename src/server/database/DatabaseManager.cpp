@@ -116,6 +116,10 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
             {
                 std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: " << tException.what() << std::endl;
             }
+            catch (...)
+            {
+                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: bilinmeyen istisna" << std::endl;
+            }
         }
         else
         {
@@ -169,7 +173,7 @@ void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)
         if (tRes.empty())
         {
             std::osyncstream(std::cout) << "[Database] Olusturuluyor: " << pConfig.name << std::endl;
-            tNtx.exec("CREATE DATABASE " + pConfig.name);
+            tNtx.exec("CREATE DATABASE " + tNtx.quote_name(pConfig.name));
             std::osyncstream(std::cout) << "[Database] Olusturuldu." << std::endl;
         }
     }

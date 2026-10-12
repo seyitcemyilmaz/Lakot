@@ -82,8 +82,8 @@ namespace StatFormula
     // since the stored current value has no idea the ceiling moved.
     inline void clampVitals(CharacterStats& pStats, int32_t pMaxHealth, int32_t pMaxMana)
     {
-        pStats.health = std::clamp(pStats.health, 0, pMaxHealth);
-        pStats.mana = std::clamp(pStats.mana, 0, pMaxMana);
+        pStats.health = std::clamp(pStats.health, 0, std::max(0, pMaxHealth));
+        pStats.mana = std::clamp(pStats.mana, 0, std::max(0, pMaxMana));
     }
 }
 

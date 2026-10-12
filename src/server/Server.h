@@ -32,6 +32,8 @@ public:
 
     void run();
 
+    static void requestShutdown();
+
 private:
     DatabaseManager mDatabaseManager;
     std::optional<uint16_t> mServerPort;

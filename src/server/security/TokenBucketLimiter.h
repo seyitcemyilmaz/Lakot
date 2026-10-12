@@ -18,6 +18,7 @@ public:
 
 private:
     static constexpr size_t kPruneThreshold = 4096;
+    static constexpr std::chrono::seconds kPruneInterval{1};
 
     struct Bucket
     {
@@ -30,6 +31,7 @@ private:
 
     std::mutex mMutex;
     std::unordered_map<uint64_t, Bucket> mBuckets;
+    std::chrono::steady_clock::time_point mNextPruneAt{};
 
     void pruneIdle(std::chrono::steady_clock::time_point pNow);
 };

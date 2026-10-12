@@ -152,7 +152,14 @@ void CharacterRepository::listByAccount(uint64_t pAccountId, ListCallback pCallb
         {
             pCallback(std::move(tCharacters), tKingdom);
         }
-    }, pAccountId);
+    }, pAccountId,
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback({}, 0);
+        }
+    });
 }
 
 void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string& pName, uint32_t pRequestedKingdom,
@@ -165,97 +172,108 @@ void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string
     {
         CharacterRecord tRecord;
 
-        try
+        CreateResult tResult = [&]()
         {
-            pqxx::work tWork(pConnection);
-
-            // Locked so the kingdom is decided exactly once even if two first
-            // characters race.
-            auto tAccountResult = tWork.exec("SELECT COALESCE(kingdom, 0) AS kingdom FROM accounts WHERE id = $1 FOR UPDATE",
-                                             pqxx::params{pAccountId});
-
-            if (tAccountResult.empty())
+            try
             {
-                pCallback(CreateResult::eDatabaseError, tRecord);
-                return;
-            }
+                pqxx::work tWork(pConnection);
 
-            uint32_t tKingdom = tAccountResult[0]["kingdom"].as<uint32_t>();
+                // Locked so the kingdom is decided exactly once even if two first
+                // characters race.
+                auto tAccountResult = tWork.exec("SELECT COALESCE(kingdom, 0) AS kingdom FROM accounts WHERE id = $1 FOR UPDATE",
+                                                 pqxx::params{pAccountId});
 
-            if (tKingdom == 0)
-            {
-                if (!MapCatalog::isValidKingdom(pRequestedKingdom))
+                if (tAccountResult.empty())
                 {
-                    pCallback(CreateResult::eInvalidKingdom, tRecord);
-                    return;
+                    return CreateResult::eDatabaseError;
                 }
 
-                tKingdom = pRequestedKingdom;
+                uint32_t tKingdom = tAccountResult[0]["kingdom"].as<uint32_t>();
 
-                // Commits together with the character below, or not at all.
-                tWork.exec("UPDATE accounts SET kingdom = $1 WHERE id = $2",
-                           pqxx::params{static_cast<int>(tKingdom), pAccountId});
+                if (tKingdom == 0)
+                {
+                    if (!MapCatalog::isValidKingdom(pRequestedKingdom))
+                    {
+                        return CreateResult::eInvalidKingdom;
+                    }
+
+                    tKingdom = pRequestedKingdom;
+
+                    // Commits together with the character below, or not at all.
+                    tWork.exec("UPDATE accounts SET kingdom = $1 WHERE id = $2",
+                               pqxx::params{static_cast<int>(tKingdom), pAccountId});
+                }
+
+                auto tCountResult = tWork.exec("SELECT COUNT(*) AS c FROM characters WHERE account_id = $1",
+                                               pqxx::params{pAccountId});
+
+                if (tCountResult[0]["c"].as<uint32_t>() >= kMaxCharactersPerAccount)
+                {
+                    return CreateResult::eNoFreeSlot;
+                }
+
+                auto tNameResult = tWork.exec("SELECT 1 FROM characters WHERE LOWER(name) = LOWER($1)",
+                                              pqxx::params{pName});
+
+                if (!tNameResult.empty())
+                {
+                    return CreateResult::eNameInUse;
+                }
+
+                // Vitals are computed here rather than left to the column
+                // defaults: the defaults cannot know the formula, and a character
+                // that starts at 0 health would be indistinguishable from a
+                // corrupt row.
+                CharacterStats tNewStats;
+                StatFormula::initializeVitals(tNewStats);
+
+                // Explicit for the same reason: the start is a property of the
+                // kingdom's map data, which the column defaults cannot know.
+                const MapData* tStartMap = pMapCatalog.getStartMap(tKingdom);
+
+                if (!tStartMap)
+                {
+                    return CreateResult::eDatabaseError;
+                }
+
+                const MapSpawn& tSpawn = tStartMap->getSpawn();
+                float tSpawnY = tStartMap->getHeightAt(tSpawn.x, tSpawn.z) + MovementRules::kBodyHalfHeight;
+
+                auto tInsertResult = tWork.exec(
+                    "INSERT INTO characters (account_id, name, health, mana, map_id, pos_x, pos_y, pos_z, yaw) "
+                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) "
+                    "RETURNING " + std::string(kPositionColumns) + ", " + kStatColumns,
+                    pqxx::params{pAccountId, pName, tNewStats.health, tNewStats.mana,
+                                 static_cast<int64_t>(tStartMap->getId()), tSpawn.x, tSpawnY, tSpawn.z, tSpawn.yaw});
+
+                tRecord = toRecord(tInsertResult[0]);
+                readStats(tInsertResult[0], tRecord.stats);
+                tRecord.kingdom = tKingdom;
+
+                tWork.commit();
+
+                return CreateResult::eCreated;
             }
-
-            auto tCountResult = tWork.exec("SELECT COUNT(*) AS c FROM characters WHERE account_id = $1",
-                                           pqxx::params{pAccountId});
-
-            if (tCountResult[0]["c"].as<uint32_t>() >= kMaxCharactersPerAccount)
+            catch (const pqxx::unique_violation&)
             {
-                pCallback(CreateResult::eNoFreeSlot, tRecord);
-                return;
+                // The LOWER(name) unique index caught a name that slipped past
+                // the check above (two accounts creating the same name at the
+                // same instant, on different workers).
+                return CreateResult::eNameInUse;
             }
-
-            auto tNameResult = tWork.exec("SELECT 1 FROM characters WHERE LOWER(name) = LOWER($1)",
-                                          pqxx::params{pName});
-
-            if (!tNameResult.empty())
+            catch (const std::exception& tException)
             {
-                pCallback(CreateResult::eNameInUse, tRecord);
-                return;
+                std::osyncstream(std::cerr) << "[CharacterRepo] Olusturma hatasi: " << tException.what() << std::endl;
+                return CreateResult::eDatabaseError;
             }
+        }();
 
-            // Vitals are computed here rather than left to the column
-            // defaults: the defaults cannot know the formula, and a character
-            // that starts at 0 health would be indistinguishable from a
-            // corrupt row.
-            CharacterStats tNewStats;
-            StatFormula::initializeVitals(tNewStats);
-
-            // Explicit for the same reason: the start is a property of the
-            // kingdom's map data, which the column defaults cannot know.
-            const MapData* tStartMap = pMapCatalog.getStartMap(tKingdom);
-            const MapSpawn& tSpawn = tStartMap->getSpawn();
-            float tSpawnY = tStartMap->getHeightAt(tSpawn.x, tSpawn.z) + MovementRules::kBodyHalfHeight;
-
-            auto tInsertResult = tWork.exec(
-                "INSERT INTO characters (account_id, name, health, mana, map_id, pos_x, pos_y, pos_z, yaw) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) "
-                "RETURNING " + std::string(kPositionColumns) + ", " + kStatColumns,
-                pqxx::params{pAccountId, pName, tNewStats.health, tNewStats.mana,
-                             static_cast<int64_t>(tStartMap->getId()), tSpawn.x, tSpawnY, tSpawn.z, tSpawn.yaw});
-
-            tRecord = toRecord(tInsertResult[0]);
-            readStats(tInsertResult[0], tRecord.stats);
-            tRecord.kingdom = tKingdom;
-
-            tWork.commit();
-
-            pCallback(CreateResult::eCreated, tRecord);
-        }
-        catch (const pqxx::unique_violation&)
-        {
-            // The LOWER(name) unique index caught a name that slipped past
-            // the check above (two accounts creating the same name at the
-            // same instant, on different workers).
-            pCallback(CreateResult::eNameInUse, tRecord);
-        }
-        catch (const std::exception& tException)
-        {
-            std::osyncstream(std::cerr) << "[CharacterRepo] Olusturma hatasi: " << tException.what() << std::endl;
-            pCallback(CreateResult::eDatabaseError, tRecord);
-        }
-    }, pAccountId);
+        pCallback(tResult, tRecord);
+    }, pAccountId,
+    [pCallback]()
+    {
+        pCallback(CreateResult::eDatabaseError, CharacterRecord{});
+    });
 }
 
 void CharacterRepository::loadOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, LoadCallback pCallback)

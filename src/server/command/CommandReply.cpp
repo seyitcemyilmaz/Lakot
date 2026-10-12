@@ -13,7 +13,13 @@ CommandReply::~CommandReply()
 {
     if (!mIsSent.load())
     {
-        send(services::chat::COMMAND_FAILED, {"Target is no longer online."});
+        try
+        {
+            send(services::chat::COMMAND_FAILED, {"Target is no longer online."});
+        }
+        catch (...)
+        {
+        }
     }
 }
 

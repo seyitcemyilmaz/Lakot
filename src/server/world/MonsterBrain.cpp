@@ -266,6 +266,15 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
     {
         if (tFromSpawn <= kArriveDistance || !moveTowards(pMonster, tState, pMonster.spawnX, pMonster.spawnZ, tStep))
         {
+            if (tFromSpawn > kArriveDistance)
+            {
+                PlayerState tHome = tState;
+                tHome.x = pMonster.spawnX;
+                tHome.z = pMonster.spawnZ;
+                tHome.y = mMap.getHeightAt(tHome.x, tHome.z) + MovementRules::kBodyHalfHeight;
+                mRegistry.setState(pMonster.id, tHome);
+            }
+
             pMonster.state = MonsterStateType::eIdle;
 
             if (pMonster.health != pMonster.stats.maxHealth)

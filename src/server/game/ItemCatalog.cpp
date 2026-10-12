@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <unordered_set>
 #include <utility>
 
 #include <rapidjson/document.h>
@@ -13,6 +15,7 @@ using namespace lakot;
 namespace
 {
     constexpr int32_t kMaxRestoreAmount = 100000;
+    constexpr uint32_t kMaxItemCells = 8;
 
     uint32_t getUint(const rapidjson::Value& pObject, const char* pName, uint32_t pDefault)
     {
@@ -58,9 +61,16 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
     }
 
     std::vector<ItemTemplate> tTemplates;
+    std::unordered_set<uint32_t> tSeenIds;
 
     for (const auto& tEntry : tDocument["items"].GetArray())
     {
+        if (!tEntry.IsObject())
+        {
+            pError = "items.json has an entry that is not an object";
+            return false;
+        }
+
         ItemTemplate tTemplate;
         tTemplate.templateId = getUint(tEntry, "id", 0);
         tTemplate.name = getString(tEntry, "name");
@@ -90,6 +100,31 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
             || tTemplate.restoreMana < 0 || tTemplate.restoreMana > kMaxRestoreAmount)
         {
             pError = "items.json has an entry with an out-of-range restore amount: " + tTemplate.name;
+            return false;
+        }
+
+        if (tTemplate.type > ItemType::eQuest || tTemplate.equipSlot >= EquipSlotType::eCount)
+        {
+            pError = "items.json has an entry with an unknown type or equip slot: " + tTemplate.name;
+            return false;
+        }
+
+        if (tTemplate.type == ItemType::eEquipment && tTemplate.maxStack != 1)
+        {
+            pError = "items.json has equipment that stacks: " + tTemplate.name;
+            return false;
+        }
+
+        if (tTemplate.maxStack == 0 || tTemplate.width == 0 || tTemplate.height == 0
+            || tTemplate.width > kMaxItemCells || tTemplate.height > kMaxItemCells)
+        {
+            pError = "items.json has an entry with a zero stack or an invalid size: " + tTemplate.name;
+            return false;
+        }
+
+        if (!tSeenIds.insert(tTemplate.templateId).second)
+        {
+            pError = "items.json has a duplicate id: " + std::to_string(tTemplate.templateId);
             return false;
         }
 

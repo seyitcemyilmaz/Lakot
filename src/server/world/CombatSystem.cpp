@@ -261,6 +261,16 @@ bool CombatSystem::revivePlayer(uint64_t pCharacterId)
     return true;
 }
 
+void CombatSystem::scheduleRespawnIfDead(uint64_t pCharacterId, double pNow)
+{
+    auto tCharacter = mCharacters.find(pCharacterId);
+
+    if (tCharacter != mCharacters.end() && tCharacter->second.isDead())
+    {
+        mRespawnAt.try_emplace(pCharacterId, pNow + kPlayerRespawnSeconds);
+    }
+}
+
 std::vector<uint64_t> CombatSystem::reviveDuePlayers(double pNow)
 {
     std::vector<uint64_t> tRevived;
