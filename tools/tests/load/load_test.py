@@ -718,6 +718,12 @@ def run_scenario(layout, n, args, out_dir):
             if p.is_alive():
                 p.terminate()
         srv.stop()
+        try:
+            time.sleep(0.5)
+            with open(out_dir / f"{datetime.date.today().isoformat()}-{name}.server.log", "w", encoding="utf-8") as lf:
+                lf.write("\n".join(srv.log_lines) + "\n")
+        except Exception as e:
+            print("server log save failed:", e)
         if not args.keep_db:
             try:
                 psql("DELETE FROM accounts WHERE username LIKE 'ldv%';\n", check=False)
