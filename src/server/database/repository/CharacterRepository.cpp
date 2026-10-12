@@ -4,6 +4,7 @@
 #include <iostream>
 #include <syncstream>
 
+#include "ItemRepository.h"
 #include "../../network/RequestLimits.h"
 
 using namespace lakot;
@@ -257,20 +258,19 @@ void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string
     }, pAccountId);
 }
 
-void CharacterRepository::findOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, FindCallback pCallback)
+void CharacterRepository::loadOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, LoadCallback pCallback)
 {
     mDatabaseManager.executeAsync([pAccountId, pCharacterId, pCallback](pqxx::connection& pConnection)
     {
-        bool tIsFound = false;
+        LoadResult tOutcome = LoadResult::eDatabaseError;
         CharacterRecord tRecord;
+        std::vector<ItemInstance> tItems;
 
         try
         {
-            pqxx::nontransaction tNtx(pConnection);
+            pqxx::read_transaction tTransaction(pConnection);
 
-            // account_id is part of the WHERE clause, not checked afterwards:
-            // asking for a character that is not yours simply returns nothing.
-            auto tResult = tNtx.exec(
+            auto tResult = tTransaction.exec(
                 std::string("SELECT c.id, c.name, c.map_id, c.pos_x, c.pos_y, c.pos_z, c.yaw, ") + kStatColumns +
                 ", COALESCE(a.kingdom, 0) AS kingdom, a.gm_level,"
                 " COALESCE(EXTRACT(EPOCH FROM a.muted_until), 0)::bigint AS muted_until"
@@ -278,33 +278,48 @@ void CharacterRepository::findOwnedCharacter(uint64_t pAccountId, uint64_t pChar
                 " WHERE c.id = $1 AND c.account_id = $2",
                 pqxx::params{pCharacterId, pAccountId});
 
-            if (!tResult.empty())
+            if (tResult.empty())
+            {
+                tOutcome = LoadResult::eNotFound;
+            }
+            else
             {
                 tRecord = toRecord(tResult[0]);
                 readStats(tResult[0], tRecord.stats);
                 tRecord.kingdom = tResult[0]["kingdom"].as<uint32_t>();
                 tRecord.gmLevel = tResult[0]["gm_level"].as<uint32_t>();
                 tRecord.mutedUntilEpoch = tResult[0]["muted_until"].as<int64_t>();
-                tIsFound = true;
+
+                tItems = ItemRepository::readItems(tTransaction, pCharacterId);
+
+                tOutcome = LoadResult::eLoaded;
             }
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter bulma hatasi: " << tException.what() << std::endl;
+            tOutcome = LoadResult::eDatabaseError;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter yukleme hatasi: " << tException.what() << std::endl;
         }
 
         if (pCallback)
         {
-            pCallback(tIsFound, tRecord);
+            pCallback(tOutcome, tRecord, std::move(tItems));
         }
-    }, pAccountId);
+    }, pCharacterId,
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback(LoadResult::eDatabaseError, CharacterRecord{}, {});
+        }
+    });
 }
 
-void CharacterRepository::saveCharacterState(uint64_t pCharacterId, uint32_t pMapId,
-                                             float pX, float pY, float pZ, float pYaw,
-                                             const CharacterStats& pStats)
+void CharacterRepository::saveCharacter(CharacterSave pSave)
 {
-    mDatabaseManager.executeAsync([pCharacterId, pMapId, pX, pY, pZ, pYaw, pStats](pqxx::connection& pConnection)
+    uint64_t tCharacterId = pSave.characterId;
+
+    mDatabaseManager.executeAsync([pSave = std::move(pSave)](pqxx::connection& pConnection)
     {
         try
         {
@@ -315,11 +330,13 @@ void CharacterRepository::saveCharacterState(uint64_t pCharacterId, uint32_t pMa
                 "level=$6, experience=$7, health=$8, mana=$9, "
                 "strength=$10, dexterity=$11, intelligence=$12, vitality=$13, gold=$14 "
                 "WHERE id=$15",
-                pqxx::params{pMapId, pX, pY, pZ, pYaw,
-                             pStats.level, pStats.experience, pStats.health, pStats.mana,
-                             pStats.strength, pStats.dexterity, pStats.intelligence,
-                             pStats.vitality, pStats.gold,
-                             pCharacterId});
+                pqxx::params{pSave.mapId, pSave.x, pSave.y, pSave.z, pSave.yaw,
+                             pSave.stats.level, pSave.stats.experience, pSave.stats.health, pSave.stats.mana,
+                             pSave.stats.strength, pSave.stats.dexterity, pSave.stats.intelligence,
+                             pSave.stats.vitality, pSave.stats.gold,
+                             pSave.characterId});
+
+            ItemRepository::writeItems(tWork, pSave.characterId, pSave.items);
 
             tWork.commit();
         }
@@ -327,5 +344,5 @@ void CharacterRepository::saveCharacterState(uint64_t pCharacterId, uint32_t pMa
         {
             std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi hatasi: " << tException.what() << std::endl;
         }
-    }, pCharacterId);
+    }, tCharacterId);
 }

@@ -66,19 +66,23 @@ void WorldController::initialize()
             {
                 this->sendToCharacter(pCharacterId, std::move(pPacket));
             },
-            [this](const CharacterSnapshot& pCharacter, uint32_t pTargetMapId, const PlayerState& pSpawnState)
+            [this](uint32_t pSourceMapId, const CharacterSnapshot& pCharacter, uint32_t pTargetMapId, const PlayerState& pSpawnState)
             {
-                this->transferCharacter(pCharacter, pTargetMapId, pSpawnState);
+                this->transferCharacter(pSourceMapId, pCharacter, pTargetMapId, pSpawnState);
             },
             [this](const Zone::PersistData& pData)
             {
-                mRepositoryManager.getCharacterRepository().saveCharacterState(
-                    pData.characterId, pData.mapId,
-                    pData.position.x, pData.position.y, pData.position.z, pData.position.yaw,
-                    pData.stats);
+                CharacterRepository::CharacterSave tSave;
+                tSave.characterId = pData.characterId;
+                tSave.mapId = pData.mapId;
+                tSave.x = pData.position.x;
+                tSave.y = pData.position.y;
+                tSave.z = pData.position.z;
+                tSave.yaw = pData.position.yaw;
+                tSave.stats = pData.stats;
+                tSave.items = pData.items;
 
-                mRepositoryManager.getItemRepository().saveCharacterItems(
-                    pData.characterId, pData.items);
+                mRepositoryManager.getCharacterRepository().saveCharacter(std::move(tSave));
             },
             // Resolved against the executable, not the source tree - the same
             // reasoning as the game client's asset path.
@@ -192,9 +196,9 @@ void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
         mCharacterNames[pCharacterId] = pName;
         mNameToCharacterId[pName] = pCharacterId;
         mCharacterAccess[pCharacterId] = pAccess;
-    }
 
-    tZone->enterPlayer(pCharacter, pState);
+        tZone->enterPlayer(pCharacter, pState);
+    }
 }
 
 void WorldController::handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
@@ -276,7 +280,7 @@ void WorldController::resumeCharacter(uint64_t pCharacterId)
 
 void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
 {
-    std::optional<uint32_t> tMapId;
+    Zone* tZone = nullptr;
 
     {
         std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
@@ -288,7 +292,7 @@ void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
             return; // never entered the world - nothing to clean up
         }
 
-        tMapId = tIterator->second;
+        tZone = getZone(tIterator->second);
         mCharacterZone.erase(tIterator);
         mCharacterAccess.erase(pCharacterId);
 
@@ -299,17 +303,62 @@ void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
             mNameToCharacterId.erase(tNameIterator->second);
             mCharacterNames.erase(tNameIterator);
         }
-    }
 
-    // The zone persists the final position on its own thread as part of
-    // leaving - see Zone::leavePlayer.
-    if (Zone* tZone = getZone(*tMapId))
-    {
-        tZone->leavePlayer(pCharacterId);
+        if (tZone)
+        {
+            mReleaseWaiters.try_emplace(pCharacterId);
+
+            tZone->leavePlayer(pCharacterId, [this, pCharacterId]()
+            {
+                this->onCharacterReleased(pCharacterId);
+            });
+        }
     }
 }
 
-void WorldController::transferCharacter(const CharacterSnapshot& pCharacter,
+void WorldController::onCharacterReleased(uint64_t pCharacterId)
+{
+    std::vector<std::function<void()>> tWaiters;
+
+    {
+        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+        auto tIterator = mReleaseWaiters.find(pCharacterId);
+
+        if (tIterator == mReleaseWaiters.end())
+        {
+            return;
+        }
+
+        tWaiters = std::move(tIterator->second);
+        mReleaseWaiters.erase(tIterator);
+    }
+
+    for (auto& tWaiter : tWaiters)
+    {
+        tWaiter();
+    }
+}
+
+void WorldController::runAfterRelease(uint64_t pCharacterId, std::function<void()> pAction)
+{
+    {
+        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+        auto tIterator = mReleaseWaiters.find(pCharacterId);
+
+        if (tIterator != mReleaseWaiters.end())
+        {
+            tIterator->second.push_back(std::move(pAction));
+            return;
+        }
+    }
+
+    pAction();
+}
+
+void WorldController::transferCharacter(uint32_t pSourceMapId,
+                                        const CharacterSnapshot& pCharacter,
                                         uint32_t pTargetMapId,
                                         const PlayerState& pSpawnState)
 {
@@ -322,18 +371,17 @@ void WorldController::transferCharacter(const CharacterSnapshot& pCharacter,
         return;
     }
 
+    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+
+    auto tIterator = mCharacterZone.find(pCharacterId);
+
+    if (tIterator == mCharacterZone.end() || tIterator->second != pSourceMapId)
     {
-        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
-
-        // Gone (disconnected mid-transfer) - the source zone already dropped
-        // them, so there is nothing left to move.
-        if (mCharacterZone.find(pCharacterId) == mCharacterZone.end())
-        {
-            return;
-        }
-
-        mCharacterZone[pCharacterId] = pTargetMapId;
+        std::osyncstream(std::cout) << "[World] Gecis dusuruldu (karakter artik kaynak haritada degil): " << pCharacterId << std::endl;
+        return;
     }
+
+    tIterator->second = pTargetMapId;
 
     // Sent BEFORE the character is added to the destination zone. The client
     // clears its whole remote-entity list on this message (none of the old

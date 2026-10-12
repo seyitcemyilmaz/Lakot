@@ -64,7 +64,8 @@ public:
     // takes their whole character with them, which is why this carries a
     // CharacterSnapshot rather than just an id: the destination zone has to
     // reconstruct the character without going back to the database.
-    using TransferFunction = std::function<void(const CharacterSnapshot& pCharacter,
+    using TransferFunction = std::function<void(uint32_t pSourceMapId,
+                                                const CharacterSnapshot& pCharacter,
                                                 uint32_t pTargetMapId,
                                                 const PlayerState& pSpawnState)>;
 
@@ -80,6 +81,8 @@ public:
         CharacterStats stats;
         std::vector<ItemInstance> items;
     };
+
+    using ReleasedCallback = std::function<void()>;
 
     // Writes a character through to storage - on leaving the zone, and on the
     // periodic autosave.
@@ -105,7 +108,7 @@ public:
     // or write zone state on the caller's thread. ----
 
     void enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState);
-    void leavePlayer(uint64_t pCharacterId);
+    void leavePlayer(uint64_t pCharacterId, ReleasedCallback pOnReleased);
 
     // A client took its session back after a dropped connection. Resends
     // everything it would otherwise only have heard about incrementally: the

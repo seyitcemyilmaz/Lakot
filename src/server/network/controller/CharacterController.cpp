@@ -180,27 +180,23 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
         return;
     }
 
-    mRepositoryManager.getCharacterRepository().findOwnedCharacter(tAccountId, tCharacterId,
-    [this, pSession, tReplyTo, tAccountId, tTicket](bool pIsFound, const CharacterRepository::CharacterRecord& pRecord)
+    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket]()
     {
-        if (!pIsFound)
+        mRepositoryManager.getCharacterRepository().loadOwnedCharacter(tAccountId, tCharacterId,
+        [this, pSession, tReplyTo, tAccountId, tTicket](CharacterRepository::LoadResult pResult, const CharacterRepository::CharacterRecord& pRecord, std::vector<ItemInstance> pItems)
         {
-            if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
-            {
-                sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_UNAUTHORIZED, services::auth::ENTER_WORLD_NOT_FOUND);
-            }
-
-            return;
-        }
-
-        mRepositoryManager.getItemRepository().loadCharacterItems(pRecord.characterId,
-        [this, pSession, tReplyTo, tAccountId, tTicket, pRecord](bool pIsLoaded, std::vector<ItemInstance> pItems)
-        {
-            if (!pIsLoaded)
+            if (pResult != CharacterRepository::LoadResult::eLoaded)
             {
                 if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
                 {
-                    sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_ERROR, services::auth::ENTER_WORLD_ERROR);
+                    if (pResult == CharacterRepository::LoadResult::eNotFound)
+                    {
+                        sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_UNAUTHORIZED, services::auth::ENTER_WORLD_NOT_FOUND);
+                    }
+                    else
+                    {
+                        sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_ERROR, services::auth::ENTER_WORLD_ERROR);
+                    }
                 }
 
                 return;

@@ -208,9 +208,9 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
     });
 }
 
-void Zone::leavePlayer(uint64_t pCharacterId)
+void Zone::leavePlayer(uint64_t pCharacterId, ReleasedCallback pOnReleased)
 {
-    postTimed([this, pCharacterId]()
+    postTimed([this, pCharacterId, pOnReleased = std::move(pOnReleased)]()
     {
         // Unconditionally, not only when dirty - this is the last chance to
         // write this character before it leaves memory.
@@ -224,6 +224,11 @@ void Zone::leavePlayer(uint64_t pCharacterId)
         mPendingCorrections.erase(pCharacterId);
         mLastPickupAt.erase(pCharacterId);
         mLastPotionAt.erase(pCharacterId);
+
+        if (pOnReleased)
+        {
+            pOnReleased();
+        }
     });
 }
 
@@ -722,7 +727,7 @@ void Zone::transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const Playe
     mLastAcceptedAt.erase(pCharacterId);
     mPendingCorrections.erase(pCharacterId);
 
-    mTransfer(tSnapshot, pTargetMapId, pSpawnState);
+    mTransfer(mMap.getId(), tSnapshot, pTargetMapId, pSpawnState);
 }
 
 void Zone::teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, ActionCallback pCallback)

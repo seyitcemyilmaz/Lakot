@@ -17,7 +17,6 @@ class ItemRepository : public BaseRepository
 {
 public:
     using SyncCallback = std::function<void(bool pIsSuccess, uint64_t pRemovedInstances)>;
-    using ItemLoadCallback = std::function<void(bool pIsSuccess, std::vector<ItemInstance> pItems)>;
 
     virtual ~ItemRepository();
     explicit ItemRepository(DatabaseManager& pDatabaseManager);
@@ -31,9 +30,9 @@ public:
     // Writes data/items.json's templates through and drops item instances whose template no longer exists.
     void syncTemplates(std::vector<ItemTemplate> pTemplates, SyncCallback pCallback);
 
-    void loadCharacterItems(uint64_t pCharacterId, ItemLoadCallback pCallback);
+    static std::vector<ItemInstance> readItems(pqxx::transaction_base& pTransaction, uint64_t pCharacterId);
 
-    // Replaces the character's whole item set in one transaction.
+    // Replaces the character's whole item set inside the caller's transaction.
     //
     // Deliberately delete-then-insert rather than a per-row diff: an
     // inventory is small, it is always loaded and saved as a whole by the one
@@ -43,7 +42,7 @@ public:
     // it today, but anything that later needs a durable per-item identity
     // (trade logs, mail attachments, item history) has to replace this with a
     // real diff first.
-    void saveCharacterItems(uint64_t pCharacterId, std::vector<ItemInstance> pItems);
+    static void writeItems(pqxx::work& pWork, uint64_t pCharacterId, const std::vector<ItemInstance>& pItems);
 };
 
 }

@@ -19,6 +19,8 @@ DatabaseManager::DatabaseManager()
 
 void DatabaseManager::initialize(const DatabaseConfig& pConfig)
 {
+    mConfig = pConfig;
+
     std::osyncstream(std::cout) << "[Database] Veritabani kontrol ediliyor..." << std::endl;
     ensureDatabaseExists(pConfig);
 
@@ -102,9 +104,9 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
 {
     Worker* tWorker = mWorkers[pWorkerIndex].get();
 
-    boost::asio::post(tWorker->context, [tWorker, pWorkerIndex, pTask, pOnDropped]()
+    boost::asio::post(tWorker->context, [this, tWorker, pWorkerIndex, pTask, pOnDropped]()
     {
-        if (tWorker->connection && tWorker->connection->is_open())
+        if (ensureConnection(*tWorker, pWorkerIndex))
         {
             try
             {
@@ -125,6 +127,33 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
             }
         }
     });
+}
+
+bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
+{
+    if (pWorker.connection && pWorker.connection->is_open())
+    {
+        return true;
+    }
+
+    std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " baglanti yok, yeniden baglaniliyor." << std::endl;
+
+    try
+    {
+        pWorker.connection = std::make_unique<pqxx::connection>(mConfig.toString());
+
+        if (pWorker.connection->is_open())
+        {
+            std::osyncstream(std::cout) << "[Database] Worker #" << pWorkerIndex << " yeniden baglandi." << std::endl;
+            return true;
+        }
+    }
+    catch (const std::exception& tException)
+    {
+        std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " yeniden baglanma hatasi: " << tException.what() << std::endl;
+    }
+
+    return false;
 }
 
 void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)

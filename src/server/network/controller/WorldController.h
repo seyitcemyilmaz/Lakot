@@ -1,6 +1,7 @@
 #ifndef LAKOT_SERVER_WORLDCONTROLLER_H
 #define LAKOT_SERVER_WORLDCONTROLLER_H
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -52,6 +53,9 @@ public:
                     const PlayerState& pState,
                     const CharacterAccess& pAccess);
 
+    // May run on a zone thread: pAction must only post work and never block.
+    void runAfterRelease(uint64_t pCharacterId, std::function<void()> pAction);
+
     // See Zone::resumePlayer.
     void resumeCharacter(uint64_t pCharacterId);
 
@@ -102,18 +106,21 @@ private:
     std::unordered_map<uint64_t, std::string> mCharacterNames;
     std::unordered_map<std::string, uint64_t> mNameToCharacterId;
     std::unordered_map<uint64_t, CharacterAccess> mCharacterAccess;
+    std::unordered_map<uint64_t, std::vector<std::function<void()>>> mReleaseWaiters;
 
     void handlePlayerStateUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handlePickupItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handlePlayerDisconnect(uint64_t pCharacterId);
+    void onCharacterReleased(uint64_t pCharacterId);
 
     Zone* getZone(uint32_t pMapId);
     std::optional<uint32_t> getCharacterZone(uint64_t pCharacterId);
 
     // The Zone::TransferFunction implementation - moves a character between
     // two zones and tells their client about the new map.
-    void transferCharacter(const CharacterSnapshot& pCharacter,
+    void transferCharacter(uint32_t pSourceMapId,
+                           const CharacterSnapshot& pCharacter,
                            uint32_t pTargetMapId,
                            const PlayerState& pSpawnState);
 

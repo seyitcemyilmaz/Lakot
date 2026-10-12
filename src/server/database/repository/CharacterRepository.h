@@ -11,6 +11,7 @@
 #include "MapCatalog.h"
 
 #include "../../game/CharacterStats.h"
+#include "../../game/Inventory.h"
 
 namespace lakot
 {
@@ -48,13 +49,13 @@ public:
         float yaw = 0.0f;
 
         // The owning account's kingdom, 0 if none yet. Filled by
-        // findOwnedCharacter.
+        // loadOwnedCharacter.
         uint32_t kingdom = 0;
 
         uint32_t gmLevel = 0;
         int64_t mutedUntilEpoch = 0;
 
-        // Populated by findOwnedCharacter (entering the world needs them) but
+        // Populated by loadOwnedCharacter (entering the world needs them) but
         // left at defaults by listByAccount, which only feeds the selection
         // screen and has no use for them.
         CharacterStats stats;
@@ -63,7 +64,26 @@ public:
     // pAccountKingdom is 0 while the account has not chosen one yet.
     using ListCallback = std::function<void(std::vector<CharacterRecord>, uint32_t pAccountKingdom)>;
     using CreateCallback = std::function<void(CreateResult, const CharacterRecord&)>;
-    using FindCallback = std::function<void(bool pIsFound, const CharacterRecord&)>;
+    enum class LoadResult
+    {
+        eLoaded,
+        eNotFound,
+        eDatabaseError
+    };
+
+    struct CharacterSave
+    {
+        uint64_t characterId = 0;
+        uint32_t mapId = 0;
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float yaw = 0.0f;
+        CharacterStats stats;
+        std::vector<ItemInstance> items;
+    };
+
+    using LoadCallback = std::function<void(LoadResult, const CharacterRecord&, std::vector<ItemInstance>)>;
 
     virtual ~CharacterRepository();
     explicit CharacterRepository(DatabaseManager& pDatabaseManager);
@@ -82,14 +102,9 @@ public:
     // Looks the character up AND checks it belongs to pAccountId - the two
     // are one query on purpose, so no caller can accidentally load a
     // character without proving ownership of it.
-    void findOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, FindCallback pCallback);
+    void loadOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, LoadCallback pCallback);
 
-    // Position and stats go in one UPDATE because they are always saved
-    // together (the zone persists a whole character at once) - splitting them
-    // would double the write traffic of the autosave for no benefit.
-    void saveCharacterState(uint64_t pCharacterId, uint32_t pMapId,
-                            float pX, float pY, float pZ, float pYaw,
-                            const CharacterStats& pStats);
+    void saveCharacter(CharacterSave pSave);
 };
 
 }

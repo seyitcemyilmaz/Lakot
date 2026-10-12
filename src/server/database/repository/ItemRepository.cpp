@@ -121,77 +121,62 @@ void ItemRepository::syncTemplates(std::vector<ItemTemplate> pTemplates, SyncCal
     }, kSchemaAffinityKey);
 }
 
-void ItemRepository::loadCharacterItems(uint64_t pCharacterId, ItemLoadCallback pCallback)
+std::vector<ItemInstance> ItemRepository::readItems(pqxx::transaction_base& pTransaction, uint64_t pCharacterId)
 {
-    mDatabaseManager.executeAsync([pCharacterId, pCallback](pqxx::connection& pConnection)
+    std::vector<ItemInstance> tItems;
+
+    auto tResult = pTransaction.exec(
+        "SELECT id, template_id, count, location, slot FROM item_instances "
+        "WHERE character_id = $1",
+        pqxx::params{pCharacterId});
+
+    tItems.reserve(tResult.size());
+
+    for (const auto& tRow : tResult)
     {
-        bool tIsSuccess = false;
-        std::vector<ItemInstance> tItems;
+        ItemInstance tItem;
+        tItem.itemId = tRow["id"].as<uint64_t>();
+        tItem.templateId = tRow["template_id"].as<uint32_t>();
+        tItem.count = tRow["count"].as<uint32_t>();
+        tItem.location = static_cast<ItemLocationType>(tRow["location"].as<uint32_t>());
+        tItem.slot = tRow["slot"].as<uint32_t>();
 
-        try
-        {
-            pqxx::nontransaction tNtx(pConnection);
+        tItems.push_back(tItem);
+    }
 
-            auto tResult = tNtx.exec(
-                "SELECT id, template_id, count, location, slot FROM item_instances "
-                "WHERE character_id = $1",
-                pqxx::params{pCharacterId});
-
-            for (const auto& tRow : tResult)
-            {
-                ItemInstance tItem;
-                tItem.itemId = tRow["id"].as<uint64_t>();
-                tItem.templateId = tRow["template_id"].as<uint32_t>();
-                tItem.count = tRow["count"].as<uint32_t>();
-                tItem.location = static_cast<ItemLocationType>(tRow["location"].as<uint32_t>());
-                tItem.slot = tRow["slot"].as<uint32_t>();
-
-                tItems.push_back(tItem);
-            }
-
-            tIsSuccess = true;
-        }
-        catch (const std::exception& tException)
-        {
-            std::osyncstream(std::cerr) << "[ItemRepo] Esya yukleme hatasi: " << tException.what() << std::endl;
-        }
-
-        if (pCallback)
-        {
-            pCallback(tIsSuccess, std::move(tItems));
-        }
-    }, pCharacterId);
+    return tItems;
 }
 
-void ItemRepository::saveCharacterItems(uint64_t pCharacterId, std::vector<ItemInstance> pItems)
+void ItemRepository::writeItems(pqxx::work& pWork, uint64_t pCharacterId, const std::vector<ItemInstance>& pItems)
 {
-    // Same affinity key as loadCharacterItems, so one character's loads and
-    // saves always run in submission order on a single connection and cannot
-    // interleave with each other.
-    mDatabaseManager.executeAsync([pCharacterId, pItems = std::move(pItems)](pqxx::connection& pConnection)
+    pWork.exec("DELETE FROM item_instances WHERE character_id = $1", pqxx::params{pCharacterId});
+
+    if (pItems.empty())
     {
-        try
-        {
-            pqxx::work tWork(pConnection);
+        return;
+    }
 
-            tWork.exec("DELETE FROM item_instances WHERE character_id = $1", pqxx::params{pCharacterId});
+    std::vector<int32_t> tTemplateIds;
+    std::vector<int32_t> tCounts;
+    std::vector<int32_t> tLocations;
+    std::vector<int32_t> tSlots;
 
-            for (const ItemInstance& tItem : pItems)
-            {
-                tWork.exec(
-                    "INSERT INTO item_instances (character_id, template_id, count, location, slot) "
-                    "VALUES ($1, $2, $3, $4, $5)",
-                    pqxx::params{pCharacterId, tItem.templateId, tItem.count,
-                                 static_cast<uint32_t>(tItem.location), tItem.slot});
-            }
+    tTemplateIds.reserve(pItems.size());
+    tCounts.reserve(pItems.size());
+    tLocations.reserve(pItems.size());
+    tSlots.reserve(pItems.size());
 
-            // The delete and every insert commit together, so a crash midway
-            // cannot leave a character with half an inventory.
-            tWork.commit();
-        }
-        catch (const std::exception& tException)
-        {
-            std::osyncstream(std::cerr) << "[ItemRepo] Esya kaydi hatasi: " << tException.what() << std::endl;
-        }
-    }, pCharacterId);
+    for (const ItemInstance& tItem : pItems)
+    {
+        tTemplateIds.push_back(static_cast<int32_t>(tItem.templateId));
+        tCounts.push_back(static_cast<int32_t>(tItem.count));
+        tLocations.push_back(static_cast<int32_t>(tItem.location));
+        tSlots.push_back(static_cast<int32_t>(tItem.slot));
+    }
+
+    pWork.exec(
+        "INSERT INTO item_instances (character_id, template_id, count, location, slot) "
+        "SELECT $1, t.template_id, t.count, t.location, t.slot "
+        "FROM unnest($2::int[], $3::int[], $4::int[], $5::int[]) AS t(template_id, count, location, slot)",
+        pqxx::params{pCharacterId, tTemplateIds, tCounts, tLocations, tSlots});
 }

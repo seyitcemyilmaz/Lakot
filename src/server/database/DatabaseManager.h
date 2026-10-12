@@ -54,10 +54,12 @@ private:
         }
     };
 
+    DatabaseConfig mConfig;
     std::vector<std::unique_ptr<Worker>> mWorkers;
     std::atomic<uint64_t> mRoundRobinCounter{0};
 
     void postToWorker(size_t pWorkerIndex, DatabaseTask pTask, DroppedHandler pOnDropped);
+    bool ensureConnection(Worker& pWorker, size_t pWorkerIndex);
     void ensureDatabaseExists(const DatabaseConfig& pConfig);
 };
 
