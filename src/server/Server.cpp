@@ -181,20 +181,44 @@ bool Server::initialize()
         }
     }
 
+    std::string tClassError;
+
+    if (!mClassCatalog.load("data", tClassError))
+    {
+        std::osyncstream(std::cerr) << "[Server] Sinif verisi yuklenemedi: " << tClassError << std::endl;
+        return false;
+    }
+
+    std::osyncstream(std::cout) << "[Server] Sinif verisi yuklendi: " << mClassCatalog.getAll().size() << " sinif." << std::endl;
+
+    for (const ItemTemplate& tItem : mItemCatalog.getAll())
+    {
+        for (uint32_t tClassId : tItem.allowedClasses)
+        {
+            if (!mClassCatalog.find(tClassId))
+            {
+                std::osyncstream(std::cerr) << "[Server] Esya " << tItem.templateId << " bilinmeyen sinifa kisitli: " << tClassId << std::endl;
+                return false;
+            }
+        }
+    }
+
     RepositoryManager& tRepositories = *mRepositoryManager;
 
-    mWorldController = std::make_unique<WorldController>(mNetworkManager, tRepositories, mItemCatalog, mMapCatalog, mMonsterCatalog);
+    mWorldController = std::make_unique<WorldController>(mNetworkManager, tRepositories, mItemCatalog, mClassCatalog, mMapCatalog, mMonsterCatalog);
     mInventoryController = std::make_unique<InventoryController>(mNetworkManager, tRepositories, *mWorldController, mItemCatalog);
+    mProgressionController = std::make_unique<ProgressionController>(mNetworkManager, tRepositories, *mWorldController);
     mCommandController = std::make_unique<CommandController>(mNetworkManager, tRepositories, *mWorldController);
     mWorldCommands = std::make_unique<WorldCommands>(*mWorldController, mItemCatalog, mMonsterCatalog);
     mModerationCommands = std::make_unique<ModerationCommands>(*mWorldController, mNetworkManager, tRepositories.getAccountRepository());
     mChatController = std::make_unique<ChatController>(mNetworkManager, tRepositories, *mWorldController, *mCommandController);
     mCharacterController = std::make_unique<CharacterController>(mNetworkManager, tRepositories, *mWorldController,
-                                                                 *mInventoryController, mItemCatalog, mMapCatalog);
+                                                                 *mInventoryController, mItemCatalog, mClassCatalog, mMapCatalog);
     mAuthController = std::make_unique<AuthController>(mNetworkManager, tRepositories, *mWorldController);
 
     mWorldController->initialize();
     mInventoryController->initialize();
+    mProgressionController->initialize();
     mCommandController->initialize();
     mWorldCommands->registerCommands(*mCommandController);
     mModerationCommands->registerCommands(*mCommandController);

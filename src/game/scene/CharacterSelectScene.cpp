@@ -27,7 +27,7 @@ void CharacterSelectScene::enter()
     tGui.clearPanels();
     PanelLoader::load(tGui, PanelContext::Login);
 
-    mController = std::make_unique<CharacterSelectRmlController>(mEngine.getRmlUiLayer(), mEngine.getMapCatalog());
+    mController = std::make_unique<CharacterSelectRmlController>(mEngine.getRmlUiLayer(), mEngine.getMapCatalog(), mEngine.getClassCatalog());
 
     AuthController& tAuthController = mEngine.getNetworkManager().getAuthController();
 
@@ -72,9 +72,9 @@ void CharacterSelectScene::enter()
     });
 
     mController->setCreateRequestCallback(
-    [this](const std::string& pName, uint32_t pKingdom)
+    [this](const std::string& pName, uint32_t pKingdom, uint32_t pClassId)
     {
-        mEngine.getNetworkManager().getAuthController().sendCharacterCreate(pName, pKingdom);
+        mEngine.getNetworkManager().getAuthController().sendCharacterCreate(pName, pKingdom, pClassId);
     });
 
     mController->setLogoutCallback(

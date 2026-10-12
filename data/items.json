@@ -69,7 +69,11 @@
    "bonusAttack": 4,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1002,
@@ -86,7 +90,11 @@
    "bonusAttack": 10,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1003,
@@ -103,7 +111,11 @@
    "bonusAttack": 16,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1004,
@@ -120,7 +132,11 @@
    "bonusAttack": 22,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1005,
@@ -137,7 +153,11 @@
    "bonusAttack": 28,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1006,
@@ -154,7 +174,11 @@
    "bonusAttack": 34,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1007,
@@ -171,7 +195,11 @@
    "bonusAttack": 40,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1008,
@@ -188,7 +216,11 @@
    "bonusAttack": 46,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1009,
@@ -205,7 +237,11 @@
    "bonusAttack": 52,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1010,
@@ -222,7 +258,11 @@
    "bonusAttack": 58,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1011,
@@ -239,7 +279,11 @@
    "bonusAttack": 64,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1012,
@@ -256,7 +300,11 @@
    "bonusAttack": 70,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1013,
@@ -273,7 +321,11 @@
    "bonusAttack": 76,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1014,
@@ -290,7 +342,11 @@
    "bonusAttack": 82,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1015,
@@ -307,7 +363,11 @@
    "bonusAttack": 88,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 1016,
@@ -324,7 +384,11 @@
    "bonusAttack": 94,
    "bonusDefense": 0,
    "bonusMaxHealth": 0,
-   "bonusMaxMana": 0
+   "bonusMaxMana": 0,
+   "classes": [
+    1,
+    3
+   ]
   },
   {
    "id": 2001,

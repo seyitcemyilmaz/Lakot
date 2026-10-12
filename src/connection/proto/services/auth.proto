@@ -50,6 +50,8 @@ message CharacterSummary {
     uint64 character_id = 1;
     string name = 2;
     uint32 map_id = 3;
+    uint32 class_id = 4;
+    uint32 level = 5;
 }
 
 message CharacterListRequest {}
@@ -73,6 +75,7 @@ enum CharacterCreateStatus {
     CHARACTER_CREATE_NO_FREE_SLOT = 3;
     CHARACTER_CREATE_DATABASE_ERROR = 4;
     CHARACTER_CREATE_INVALID_KINGDOM = 5;
+    CHARACTER_CREATE_INVALID_CLASS = 6;
 }
 
 message CharacterCreateRequest {
@@ -80,6 +83,8 @@ message CharacterCreateRequest {
 
     // Only read for the account's first character; ignored afterwards.
     uint32 kingdom = 2;
+
+    uint32 class_id = 3;
 }
 
 message CharacterCreateResponse {

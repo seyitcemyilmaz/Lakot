@@ -12,10 +12,12 @@ using namespace lakot;
 WorldController::WorldController(NetworkManager& pNetworkManager,
                                  RepositoryManager& pRepositoryManager,
                                  const ItemCatalog& pItemCatalog,
+                                 const ClassCatalog& pClassCatalog,
                                  const MapCatalog& pMapCatalog,
                                  const MonsterCatalog& pMonsterCatalog)
     : BaseController(pNetworkManager, pRepositoryManager)
     , mItemCatalog(pItemCatalog)
+    , mClassCatalog(pClassCatalog)
     , mMapCatalog(pMapCatalog)
     , mMonsterCatalog(pMonsterCatalog)
 {
@@ -30,7 +32,7 @@ void WorldController::initialize()
     // needs no lock.
     for (uint32_t tMapId : mMapCatalog.getMapIds())
     {
-        mZones.emplace(tMapId, std::make_unique<Zone>(*mMapCatalog.getMap(tMapId), mMapCatalog, mItemCatalog, mMonsterCatalog));
+        mZones.emplace(tMapId, std::make_unique<Zone>(*mMapCatalog.getMap(tMapId), mMapCatalog, mItemCatalog, mClassCatalog, mMonsterCatalog));
     }
 
     mNetworkManager.getDispatcher().registerHandler(protocol::Request::kPlayerStateUpdate, PacketType::Request,

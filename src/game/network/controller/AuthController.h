@@ -31,6 +31,8 @@ public:
         uint64_t characterId = 0;
         std::string name;
         uint32_t mapId = 0;
+        uint32_t classId = 0;
+        uint32_t level = 1;
     };
 
     // Everything WorldScene needs to start: which character this session is
@@ -66,7 +68,7 @@ public:
 
     void requestCharacterList();
     // pKingdom only matters for the account's first character.
-    void sendCharacterCreate(const std::string& pName, uint32_t pKingdom);
+    void sendCharacterCreate(const std::string& pName, uint32_t pKingdom, uint32_t pClassId);
     void sendEnterWorld(uint64_t pCharacterId);
 
     // Session resume token from the last login (rotated on every resume).

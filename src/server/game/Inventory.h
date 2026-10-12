@@ -96,7 +96,7 @@ public:
     // swapping out whatever was there. Fails if the cell holds no item, the
     // item is not equippable, the character is too low level, or - now that
     // items have a footprint - the swapped-out item has nowhere to land.
-    bool equip(uint32_t pBagSlot, uint32_t pCharacterLevel);
+    bool equip(uint32_t pBagSlot, uint32_t pCharacterLevel, uint32_t pClassId);
     bool unequip(EquipSlotType pSlot, std::optional<uint32_t> pBagSlot = std::nullopt);
 
     bool moveItem(uint32_t pFromSlot, uint32_t pToSlot);

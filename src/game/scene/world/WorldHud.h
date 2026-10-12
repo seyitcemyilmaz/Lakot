@@ -47,6 +47,7 @@ public:
              SDL_Window* pWindow,
              const std::string& pUsername,
              const CharacterStats& pStats,
+             const ClassCatalog& pClassCatalog,
              const std::vector<OwnedItem>& pItems,
              ItemIconRenderer& pItemIcons,
              uint64_t pCharacterId);
@@ -115,6 +116,7 @@ private:
     void onSkillSlotDropped(SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo);
     void onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY);
     void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
+    void onAllocateStatResult(services::progression::AllocateStatStatus pStatus);
 };
 
 }

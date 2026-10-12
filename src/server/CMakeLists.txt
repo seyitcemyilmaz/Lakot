@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
     network/controller/WorldController.h network/controller/WorldController.cpp
     network/controller/ChatController.h network/controller/ChatController.cpp
     network/controller/InventoryController.h network/controller/InventoryController.cpp
+    network/controller/ProgressionController.h network/controller/ProgressionController.cpp
     network/controller/CommandController.h network/controller/CommandController.cpp
 
     command/CommandContext.h command/CommandContext.cpp
@@ -62,6 +63,7 @@ add_executable(${PROJECT_NAME}
     world/MonsterBrain.h world/MonsterBrain.cpp
     world/LootSystem.h world/LootSystem.cpp
     world/Monster.h world/Npc.h
+    world/StatsMessage.h
 
     security/PasswordHasher.h security/PasswordHasher.cpp
     security/LoginAttemptLimiter.h security/LoginAttemptLimiter.cpp

@@ -1,16 +1,19 @@
 #include "Character.h"
 
 #include <algorithm>
+#include <limits>
 #include <utility>
 
 #include "ItemCatalog.h"
+#include "ClassCatalog.h"
 
 using namespace lakot;
 
-Character::Character(uint64_t pCharacterId, std::string pName, const ItemCatalog& pCatalog)
+Character::Character(uint64_t pCharacterId, std::string pName, const ItemCatalog& pCatalog, const ClassCatalog& pClassCatalog)
     : mCharacterId(pCharacterId)
     , mName(std::move(pName))
     , mInventory(pCatalog)
+    , mClassCatalog(pClassCatalog)
 {
 
 }
@@ -116,7 +119,15 @@ void Character::setMana(int32_t pMana)
 
 void Character::setLevel(uint32_t pLevel)
 {
-    mStats.level = std::max(1u, pLevel);
+    uint32_t tNewLevel = std::max(1u, pLevel);
+
+    if (tNewLevel > mStats.level)
+    {
+        uint64_t tPoints = uint64_t{tNewLevel - mStats.level} * mClassCatalog.getStatPointsPerLevel();
+        mStats.statPoints = static_cast<uint32_t>(std::min<uint64_t>(uint64_t{mStats.statPoints} + tPoints, std::numeric_limits<int32_t>::max()));
+    }
+
+    mStats.level = tNewLevel;
     mStats.experience = 0;
     refreshVitals();
     markDirty();
@@ -185,7 +196,7 @@ ConsumeResultType Character::useConsumable(const ItemTemplate& pTemplate)
 
 bool Character::equipItem(uint32_t pBagSlot)
 {
-    if (!mInventory.equip(pBagSlot, mStats.level))
+    if (!mInventory.equip(pBagSlot, mStats.level, mStats.classId))
     {
         return false;
     }
@@ -248,6 +259,9 @@ uint32_t Character::addExperience(uint64_t pAmount)
 
     if (tLevelsGained > 0)
     {
+        uint64_t tEarned = uint64_t{tLevelsGained} * mClassCatalog.getStatPointsPerLevel();
+        mStats.statPoints = static_cast<uint32_t>(std::min<uint64_t>(uint64_t{mStats.statPoints} + tEarned, std::numeric_limits<int32_t>::max()));
+
         // Levelling raises the maximums; a level-up heals to full, which is
         // the near-universal convention and avoids the awkward state where
         // gaining a level leaves you proportionally more wounded.
@@ -258,6 +272,77 @@ uint32_t Character::addExperience(uint64_t pAmount)
     markDirty();
 
     return tLevelsGained;
+}
+
+int32_t* Character::findStat(StatType pStat)
+{
+    switch (pStat)
+    {
+        case StatType::eStrength: return &mStats.strength;
+        case StatType::eDexterity: return &mStats.dexterity;
+        case StatType::eIntelligence: return &mStats.intelligence;
+        case StatType::eVitality: return &mStats.vitality;
+    }
+
+    return nullptr;
+}
+
+AllocateStatResultType Character::allocateStat(StatType pStat, uint32_t pAmount)
+{
+    int32_t* tValue = findStat(pStat);
+
+    if (pAmount == 0 || !tValue)
+    {
+        return AllocateStatResultType::eInvalid;
+    }
+
+    if (pAmount > mStats.statPoints)
+    {
+        return AllocateStatResultType::eNoPoints;
+    }
+
+    uint32_t tCap = mClassCatalog.getStatCap();
+    uint32_t tCurrent = static_cast<uint32_t>(std::max(0, *tValue));
+
+    if (tCurrent >= tCap || pAmount > tCap - tCurrent)
+    {
+        return AllocateStatResultType::eAtCap;
+    }
+
+    *tValue = static_cast<int32_t>(tCurrent + pAmount);
+    mStats.statPoints -= pAmount;
+    refreshVitals();
+    markDirty();
+    return AllocateStatResultType::eAllocated;
+}
+
+ChoosePathResultType Character::choosePath(uint32_t pPathId)
+{
+    if (pPathId == 0)
+    {
+        return ChoosePathResultType::eInvalid;
+    }
+
+    if (mStats.pathId != 0)
+    {
+        return ChoosePathResultType::eAlreadyChosen;
+    }
+
+    if (mStats.level < mClassCatalog.getPathUnlockLevel())
+    {
+        return ChoosePathResultType::eLevelTooLow;
+    }
+
+    const ClassDefinition* tClass = mClassCatalog.find(mStats.classId);
+
+    if (!tClass || !tClass->findPath(pPathId))
+    {
+        return ChoosePathResultType::eInvalid;
+    }
+
+    mStats.pathId = pPathId;
+    markDirty();
+    return ChoosePathResultType::eChosen;
 }
 
 void Character::addGold(int64_t pAmount)

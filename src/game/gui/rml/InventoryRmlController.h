@@ -12,6 +12,8 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "ClassCatalog.h"
+
 #include "../../network/GameTypes.h"
 
 namespace lakot
@@ -30,7 +32,7 @@ public:
     using MoveRequestCallback = std::function<void(uint32_t pFromSlot, uint32_t pToSlot)>;
     using ItemDroppedOutsideCallback = std::function<void(uint32_t pTemplateId, float pX, float pY)>;
 
-    InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, ItemIconRenderer& pItemIcons);
+    InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons);
     ~InventoryRmlController();
 
     InventoryRmlController(const InventoryRmlController&) = delete;
@@ -126,6 +128,7 @@ private:
 
     RmlUiLayer& mRmlUiLayer;
     const InventoryController& mInventoryController;
+    const ClassCatalog& mClassCatalog;
     ItemIconRenderer& mItemIcons;
 
     Rml::ElementDocument* mDocument{nullptr};

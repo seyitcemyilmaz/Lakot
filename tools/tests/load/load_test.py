@@ -253,6 +253,7 @@ def setup_bot(idx, delay, st):
         def mk(q):
             q.character_create_request.name = rand_name("c")
             q.character_create_request.kingdom = 1
+            q.character_create_request.class_id = 1
         r, dt = timed(c, mk)
         assert r is not None and r.character_create_response.status == 0, f"{r}"
         c.cid = r.character_create_response.character.character_id

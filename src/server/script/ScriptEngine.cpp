@@ -95,6 +95,10 @@ void ScriptEngine::bindApi()
         {
             return pSelf.require().getStats().gold;
         }),
+        "class_id", sol::property([](const ScriptCharacter& pSelf)
+        {
+            return pSelf.require().getStats().classId;
+        }),
         "health", sol::property([](const ScriptCharacter& pSelf)
         {
             return pSelf.require().getStats().health;

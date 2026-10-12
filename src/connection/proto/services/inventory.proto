@@ -42,6 +42,9 @@ message ItemTemplate {
 
     int32 restore_health = 16;
     int32 restore_mana = 17;
+
+    // Empty means every class may use it.
+    repeated uint32 allowed_classes = 18;
 }
 
 // Pushed once, when the player enters the world. Without it the client only

@@ -19,7 +19,7 @@
         </div>
 
         <div class="char-sheet-name">{{ name }}</div>
-        <div class="char-sheet-sub">Level {{ level }}</div>
+        <div class="char-sheet-sub">Level {{ level }} · {{ class_name }}<span data-if="path_name != ''"> · {{ path_name }}</span></div>
 
         <!-- Bars rather than bare numbers: a fraction is what the player
              actually reads mid-fight, and the width is data-driven. -->
@@ -34,11 +34,13 @@
 
         <div class="char-sheet-section">Attributes</div>
 
+        <div class="char-points" data-class-has-points="has_stat_points">Unspent points: <span class="char-points-value">{{ stat_points }}</span></div>
+
         <div class="char-sheet-rows">
-            <div class="char-sheet-row"><span class="char-sheet-key">Strength</span><span class="char-sheet-val">{{ strength }}</span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Dexterity</span><span class="char-sheet-val">{{ dexterity }}</span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Intelligence</span><span class="char-sheet-val">{{ intelligence }}</span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Vitality</span><span class="char-sheet-val">{{ vitality }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Strength</span><span class="char-sheet-end"><span class="char-sheet-val">{{ strength }}</span><span class="stat-plus" data-class-is-active="can_raise_strength" data-event-click="raise_stat(1)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Dexterity</span><span class="char-sheet-end"><span class="char-sheet-val">{{ dexterity }}</span><span class="stat-plus" data-class-is-active="can_raise_dexterity" data-event-click="raise_stat(2)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Intelligence</span><span class="char-sheet-end"><span class="char-sheet-val">{{ intelligence }}</span><span class="stat-plus" data-class-is-active="can_raise_intelligence" data-event-click="raise_stat(3)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">Vitality</span><span class="char-sheet-end"><span class="char-sheet-val">{{ vitality }}</span><span class="stat-plus" data-class-is-active="can_raise_vitality" data-event-click="raise_stat(4)">+</span></span></div>
         </div>
 
         <div class="char-sheet-section">Combat</div>

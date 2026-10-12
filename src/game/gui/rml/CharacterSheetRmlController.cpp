@@ -23,8 +23,9 @@ Rml::String CharacterSheetRmlController::toPercent(int64_t pValue, int64_t pMaxi
     return Rml::String(std::to_string(tPercent) + "%");
 }
 
-CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const std::string& pCharacterName)
+CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const ClassCatalog& pClassCatalog, const std::string& pCharacterName)
     : mRmlUiLayer(pRmlUiLayer)
+    , mClassCatalog(pClassCatalog)
     , mName(pCharacterName)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
@@ -44,6 +45,14 @@ CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer
 
     tConstructor.Bind("name", &mName);
     tConstructor.Bind("level", &mLevel);
+    tConstructor.Bind("class_name", &mClassName);
+    tConstructor.Bind("path_name", &mPathName);
+    tConstructor.Bind("stat_points", &mStatPoints);
+    tConstructor.Bind("has_stat_points", &mHasStatPoints);
+    tConstructor.Bind("can_raise_strength", &mCanRaiseStrength);
+    tConstructor.Bind("can_raise_dexterity", &mCanRaiseDexterity);
+    tConstructor.Bind("can_raise_intelligence", &mCanRaiseIntelligence);
+    tConstructor.Bind("can_raise_vitality", &mCanRaiseVitality);
 
     tConstructor.Bind("health", &mHealth);
     tConstructor.Bind("mana", &mMana);
@@ -63,6 +72,7 @@ CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer
     tConstructor.Bind("gold", &mGold);
 
     tConstructor.BindEventCallback("close", &CharacterSheetRmlController::onCloseClicked, this);
+    tConstructor.BindEventCallback("raise_stat", &CharacterSheetRmlController::onRaiseStatClicked, this);
 
     mModelHandle = tConstructor.GetModelHandle();
 
@@ -90,6 +100,22 @@ void CharacterSheetRmlController::setStats(const CharacterStats& pStats)
 {
     mLevel = std::to_string(pStats.level);
 
+    const ClassDefinition* tClass = mClassCatalog.find(pStats.classId);
+    const ClassPath* tPath = tClass ? tClass->findPath(pStats.pathId) : nullptr;
+
+    mClassName = tClass ? tClass->name : std::string();
+    mPathName = tPath ? tPath->name : std::string();
+    mStatPoints = std::to_string(pStats.statPoints);
+
+    uint32_t tCap = mClassCatalog.getStatCap();
+    bool tHasPoints = pStats.statPoints > 0;
+
+    mHasStatPoints = tHasPoints;
+    mCanRaiseStrength = tHasPoints && pStats.strength < static_cast<int32_t>(tCap);
+    mCanRaiseDexterity = tHasPoints && pStats.dexterity < static_cast<int32_t>(tCap);
+    mCanRaiseIntelligence = tHasPoints && pStats.intelligence < static_cast<int32_t>(tCap);
+    mCanRaiseVitality = tHasPoints && pStats.vitality < static_cast<int32_t>(tCap);
+
     mHealth = std::to_string(pStats.health) + " / " + std::to_string(pStats.maxHealth);
     mMana = std::to_string(pStats.mana) + " / " + std::to_string(pStats.maxMana);
     mExperience = std::to_string(pStats.experience) + " / " + std::to_string(pStats.experienceForNextLevel);
@@ -109,6 +135,28 @@ void CharacterSheetRmlController::setStats(const CharacterStats& pStats)
     mGold = std::to_string(pStats.gold);
 
     dirtyAll();
+}
+
+void CharacterSheetRmlController::setAllocateStatCallback(AllocateStatCallback pCallback)
+{
+    mAllocateStatCallback = std::move(pCallback);
+}
+
+void CharacterSheetRmlController::onRaiseStatClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
+{
+    if (pArguments.empty() || !mAllocateStatCallback)
+    {
+        return;
+    }
+
+    int tStat = pArguments[0].Get<int>(0);
+
+    if (!services::progression::StatType_IsValid(tStat) || tStat == services::progression::STAT_TYPE_UNSPECIFIED)
+    {
+        return;
+    }
+
+    mAllocateStatCallback(static_cast<services::progression::StatType>(tStat), 1);
 }
 
 void CharacterSheetRmlController::onCloseClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)

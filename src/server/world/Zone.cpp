@@ -1,6 +1,7 @@
 #include "Zone.h"
 
 #include "../game/ItemCatalog.h"
+#include "StatsMessage.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,10 +13,11 @@
 
 using namespace lakot;
 
-Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog& pItemCatalog, const MonsterCatalog& pMonsterCatalog)
+Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog& pItemCatalog, const ClassCatalog& pClassCatalog, const MonsterCatalog& pMonsterCatalog)
     : mMap(pMap)
     , mMapCatalog(pMapCatalog)
     , mItemCatalog(pItemCatalog)
+    , mClassCatalog(pClassCatalog)
     , mMonsterCatalog(pMonsterCatalog)
     , mStats(pMap.getId(), std::chrono::milliseconds(kTickIntervalMs))
     , mWorkGuard(boost::asio::make_work_guard(mContext))
@@ -176,7 +178,7 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
         uint64_t tCharacterId = pCharacter.characterId;
         double tPotionCooldownRemaining = pCharacter.potionCooldownRemaining;
 
-        Character tLiveCharacter(tCharacterId, pCharacter.name, mItemCatalog);
+        Character tLiveCharacter(tCharacterId, pCharacter.name, mItemCatalog, mClassCatalog);
         tLiveCharacter.setKingdom(pCharacter.kingdom);
         tLiveCharacter.setStats(pCharacter.stats);
         tLiveCharacter.setItems(std::move(pCharacter.items));
@@ -333,23 +335,7 @@ void Zone::sendInventoryUpdate(const Character& pCharacter)
         tItemOut->set_slot(tItem.slot);
     }
 
-    const CharacterStats& tStats = pCharacter.getStats();
-    auto* tStatsOut = tUpdate->mutable_stats();
-
-    tStatsOut->set_level(tStats.level);
-    tStatsOut->set_experience(tStats.experience);
-    tStatsOut->set_experience_for_next_level(StatFormula::getExperienceForNextLevel(tStats.level));
-    tStatsOut->set_health(tStats.health);
-    tStatsOut->set_max_health(pCharacter.getMaxHealth());
-    tStatsOut->set_mana(tStats.mana);
-    tStatsOut->set_max_mana(pCharacter.getMaxMana());
-    tStatsOut->set_strength(tStats.strength);
-    tStatsOut->set_dexterity(tStats.dexterity);
-    tStatsOut->set_intelligence(tStats.intelligence);
-    tStatsOut->set_vitality(tStats.vitality);
-    tStatsOut->set_attack(pCharacter.getAttack());
-    tStatsOut->set_defense(pCharacter.getDefense());
-    tStatsOut->set_gold(tStats.gold);
+    StatsMessage::fill(pCharacter, tUpdate->mutable_stats());
 
     mSend(pCharacter.getId(), NetworkSession<connection::Message>::makePacket(tMessage));
 }

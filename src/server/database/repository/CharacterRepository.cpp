@@ -15,7 +15,7 @@ namespace
     // new column cannot be added to one query and forgotten in another.
     constexpr const char* kPositionColumns = "id, name, map_id, pos_x, pos_y, pos_z, yaw";
     constexpr const char* kStatColumns =
-        "level, experience, health, mana, strength, dexterity, intelligence, vitality, gold";
+        "level, experience, health, mana, strength, dexterity, intelligence, vitality, gold, class_id, path_id, stat_points";
 
     lakot::CharacterRepository::CharacterRecord toRecord(const pqxx::row& pRow)
     {
@@ -41,6 +41,9 @@ namespace
         pStats.intelligence = pRow["intelligence"].as<int32_t>();
         pStats.vitality = pRow["vitality"].as<int32_t>();
         pStats.gold = pRow["gold"].as<uint64_t>();
+        pStats.classId = pRow["class_id"].as<uint32_t>();
+        pStats.pathId = pRow["path_id"].as<uint32_t>();
+        pStats.statPoints = pRow["stat_points"].as<uint32_t>();
     }
 }
 
@@ -103,6 +106,22 @@ void CharacterRepository::initializeTable()
                 ADD COLUMN IF NOT EXISTS gold BIGINT NOT NULL DEFAULT 0;
         )");
 
+        // Class 1 and 4 points per level are literal: this runs before the class catalog is loaded.
+        tWork.exec(R"(
+            ALTER TABLE characters
+                ADD COLUMN IF NOT EXISTS class_id SMALLINT,
+                ADD COLUMN IF NOT EXISTS path_id SMALLINT NOT NULL DEFAULT 0,
+                ADD COLUMN IF NOT EXISTS stat_points INTEGER;
+        )");
+        tWork.exec("UPDATE characters SET class_id = 1 WHERE class_id IS NULL;");
+        tWork.exec("UPDATE characters SET stat_points = (level - 1) * 4 WHERE stat_points IS NULL;");
+        tWork.exec(R"(
+            ALTER TABLE characters
+                ALTER COLUMN class_id SET NOT NULL,
+                ALTER COLUMN stat_points SET NOT NULL,
+                ALTER COLUMN stat_points SET DEFAULT 0;
+        )");
+
         // Accounts that already had characters before kingdoms existed.
         tWork.exec(
             "UPDATE accounts SET kingdom = 1 "
@@ -134,13 +153,16 @@ void CharacterRepository::listByAccount(uint64_t pAccountId, ListCallback pCallb
             }
 
             auto tResult = tNtx.exec(
-                "SELECT id, name, map_id, pos_x, pos_y, pos_z, yaw FROM characters "
+                "SELECT id, name, map_id, pos_x, pos_y, pos_z, yaw, class_id, level FROM characters "
                 "WHERE account_id = $1 ORDER BY created_at ASC",
                 pqxx::params{pAccountId});
 
             for (const auto& tRow : tResult)
             {
-                tCharacters.push_back(toRecord(tRow));
+                CharacterRecord tRecord = toRecord(tRow);
+                tRecord.stats.classId = tRow["class_id"].as<uint32_t>();
+                tRecord.stats.level = tRow["level"].as<uint32_t>();
+                tCharacters.push_back(std::move(tRecord));
             }
         }
         catch (const std::exception& tException)
@@ -163,12 +185,12 @@ void CharacterRepository::listByAccount(uint64_t pAccountId, ListCallback pCallb
 }
 
 void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string& pName, uint32_t pRequestedKingdom,
-                                          const MapCatalog& pMapCatalog, CreateCallback pCallback)
+                                          const CharacterStats& pStartStats, const MapCatalog& pMapCatalog, CreateCallback pCallback)
 {
     // Same worker for the same account, so a client firing two create
     // requests at once cannot pass the slot check twice before either insert
     // lands - they serialize on one connection instead of racing.
-    mDatabaseManager.executeAsync([pAccountId, pName, pRequestedKingdom, &pMapCatalog, pCallback](pqxx::connection& pConnection)
+    mDatabaseManager.executeAsync([pAccountId, pName, pRequestedKingdom, pStartStats, &pMapCatalog, pCallback](pqxx::connection& pConnection)
     {
         CharacterRecord tRecord;
 
@@ -224,7 +246,7 @@ void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string
                 // defaults: the defaults cannot know the formula, and a character
                 // that starts at 0 health would be indistinguishable from a
                 // corrupt row.
-                CharacterStats tNewStats;
+                CharacterStats tNewStats = pStartStats;
                 StatFormula::initializeVitals(tNewStats);
 
                 // Explicit for the same reason: the start is a property of the
@@ -240,11 +262,14 @@ void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string
                 float tSpawnY = tStartMap->getHeightAt(tSpawn.x, tSpawn.z) + MovementRules::kBodyHalfHeight;
 
                 auto tInsertResult = tWork.exec(
-                    "INSERT INTO characters (account_id, name, health, mana, map_id, pos_x, pos_y, pos_z, yaw) "
-                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) "
+                    "INSERT INTO characters (account_id, name, health, mana, map_id, pos_x, pos_y, pos_z, yaw, "
+                    "class_id, strength, dexterity, intelligence, vitality) "
+                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) "
                     "RETURNING " + std::string(kPositionColumns) + ", " + kStatColumns,
                     pqxx::params{pAccountId, pName, tNewStats.health, tNewStats.mana,
-                                 static_cast<int64_t>(tStartMap->getId()), tSpawn.x, tSpawnY, tSpawn.z, tSpawn.yaw});
+                                 static_cast<int64_t>(tStartMap->getId()), tSpawn.x, tSpawnY, tSpawn.z, tSpawn.yaw,
+                                 tNewStats.classId, tNewStats.strength, tNewStats.dexterity,
+                                 tNewStats.intelligence, tNewStats.vitality});
 
                 tRecord = toRecord(tInsertResult[0]);
                 readStats(tInsertResult[0], tRecord.stats);
@@ -346,12 +371,14 @@ void CharacterRepository::saveCharacter(CharacterSave pSave)
             tWork.exec(
                 "UPDATE characters SET map_id=$1, pos_x=$2, pos_y=$3, pos_z=$4, yaw=$5, "
                 "level=$6, experience=$7, health=$8, mana=$9, "
-                "strength=$10, dexterity=$11, intelligence=$12, vitality=$13, gold=$14 "
-                "WHERE id=$15",
+                "strength=$10, dexterity=$11, intelligence=$12, vitality=$13, gold=$14, "
+                "path_id=$15, stat_points=$16 "
+                "WHERE id=$17",
                 pqxx::params{pSave.mapId, pSave.x, pSave.y, pSave.z, pSave.yaw,
                              pSave.stats.level, pSave.stats.experience, pSave.stats.health, pSave.stats.mana,
                              pSave.stats.strength, pSave.stats.dexterity, pSave.stats.intelligence,
                              pSave.stats.vitality, pSave.stats.gold,
+                             pSave.stats.pathId, pSave.stats.statPoints,
                              pSave.characterId});
 
             ItemRepository::writeItems(tWork, pSave.characterId, pSave.items);

@@ -12,6 +12,7 @@
 local WOODEN_SWORD  = 1001
 local LEATHER_ARMOR = 2001
 local HEALTH_POTION = 4
+local SWORD_CLASSES = { [1] = true, [3] = true }
 
 -- Registered, not declared as a global function of a well-known name: several
 -- content files need to be able to react to the same event, and a global
@@ -34,8 +35,11 @@ lakot.on("enter_world", function(character)
     -- give_item returns how many did NOT fit. A brand new character has an
     -- empty bag so this cannot fail here, but checking it is the habit worth
     -- keeping: a quest reward handed to a full bag would otherwise vanish.
-    local left_over =
-        character:give_item(WOODEN_SWORD, 1) +
+    local left_over = 0
+    if SWORD_CLASSES[character.class_id] then
+        left_over = left_over + character:give_item(WOODEN_SWORD, 1)
+    end
+    left_over = left_over +
         character:give_item(LEATHER_ARMOR, 1) +
         character:give_item(HEALTH_POTION, 5)
 

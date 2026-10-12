@@ -261,7 +261,7 @@ uint32_t Inventory::countItem(uint32_t pTemplateId) const
     return tTotal;
 }
 
-bool Inventory::equip(uint32_t pBagSlot, uint32_t pCharacterLevel)
+bool Inventory::equip(uint32_t pBagSlot, uint32_t pCharacterLevel, uint32_t pClassId)
 {
     auto tIndex = findIndexAt(ItemLocationType::eInventory, pBagSlot);
 
@@ -272,7 +272,8 @@ bool Inventory::equip(uint32_t pBagSlot, uint32_t pCharacterLevel)
 
     const ItemTemplate* tTemplate = mCatalog.find(mItems[*tIndex].templateId);
 
-    if (!tTemplate || !tTemplate->isEquippable() || pCharacterLevel < tTemplate->requiredLevel)
+    if (!tTemplate || !tTemplate->isEquippable() || pCharacterLevel < tTemplate->requiredLevel
+        || !tTemplate->isAllowedForClass(pClassId))
     {
         return false;
     }

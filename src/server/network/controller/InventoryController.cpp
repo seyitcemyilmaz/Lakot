@@ -83,6 +83,11 @@ void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession
         tOut->set_tint(tTemplate.tint);
         tOut->set_restore_health(tTemplate.restoreHealth);
         tOut->set_restore_mana(tTemplate.restoreMana);
+
+        for (uint32_t tClassId : tTemplate.allowedClasses)
+        {
+            tOut->add_allowed_classes(tClassId);
+        }
     }
 
     pSession->send(tMessage);

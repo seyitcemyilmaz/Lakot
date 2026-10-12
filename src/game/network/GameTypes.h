@@ -1,8 +1,10 @@
 #ifndef LAKOT_GAMETYPES_H
 #define LAKOT_GAMETYPES_H
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace lakot
 {
@@ -38,6 +40,10 @@ struct CharacterStats
     int32_t defense = 0;
 
     uint64_t gold = 0;
+
+    uint32_t classId = 0;
+    uint32_t pathId = 0;
+    uint32_t statPoints = 0;
 };
 
 // Mirrors the server's ItemLocationType and services.game.ItemLocation.
@@ -115,6 +121,13 @@ struct ItemTemplate
 
     std::string model;
     uint32_t tint = 0xFFFFFF;
+
+    std::vector<uint32_t> allowedClasses;
+
+    bool isAllowedForClass(uint32_t pClassId) const
+    {
+        return allowedClasses.empty() || std::find(allowedClasses.begin(), allowedClasses.end(), pClassId) != allowedClasses.end();
+    }
 
     bool isUsable() const
     {

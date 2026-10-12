@@ -8,6 +8,8 @@
 #include "../RequestLimits.h"
 #include "../../game/ItemCatalog.h"
 #include "../../game/CharacterAccess.h"
+#include "../../world/StatsMessage.h"
+#include "ClassCatalog.h"
 
 using namespace lakot;
 
@@ -16,11 +18,13 @@ CharacterController::CharacterController(NetworkManager& pNetworkManager,
                                          WorldController& pWorldController,
                                          InventoryController& pInventoryController,
                                          const ItemCatalog& pItemCatalog,
+                                         const ClassCatalog& pClassCatalog,
                                          const MapCatalog& pMapCatalog)
     : BaseController(pNetworkManager, pRepositoryManager)
     , mWorldController(pWorldController)
     , mInventoryController(pInventoryController)
     , mItemCatalog(pItemCatalog)
+    , mClassCatalog(pClassCatalog)
     , mMapCatalog(pMapCatalog)
 {
 
@@ -73,6 +77,8 @@ void CharacterController::sendCharacterList(const std::shared_ptr<NetworkSession
             tSummary->set_character_id(tCharacter.characterId);
             tSummary->set_name(tCharacter.name);
             tSummary->set_map_id(tCharacter.mapId);
+            tSummary->set_class_id(tCharacter.stats.classId);
+            tSummary->set_level(tCharacter.stats.level);
         }
 
         pSession->send(tResponse);
@@ -100,6 +106,7 @@ void CharacterController::handleCharacterCreateRequest(std::shared_ptr<NetworkSe
 
     const std::string& tName = pMessage.request().character_create_request().name();
     uint32_t tKingdom = pMessage.request().character_create_request().kingdom();
+    uint32_t tClassId = pMessage.request().character_create_request().class_id();
     uint64_t tReplyTo = pMessage.request().header().id();
 
     auto tSendResult = [pSession, tReplyTo](services::auth::CharacterCreateStatus pStatus,
@@ -120,6 +127,8 @@ void CharacterController::handleCharacterCreateRequest(std::shared_ptr<NetworkSe
             tSummary->set_character_id(pRecord->characterId);
             tSummary->set_name(pRecord->name);
             tSummary->set_map_id(pRecord->mapId);
+            tSummary->set_class_id(pRecord->stats.classId);
+            tSummary->set_level(pRecord->stats.level);
         }
 
         pSession->send(tResponse);
@@ -133,7 +142,22 @@ void CharacterController::handleCharacterCreateRequest(std::shared_ptr<NetworkSe
         return;
     }
 
-    mRepositoryManager.getCharacterRepository().createCharacter(tAccountId, tName, tKingdom, mMapCatalog,
+    const ClassDefinition* tClass = mClassCatalog.find(tClassId);
+
+    if (!tClass)
+    {
+        tSendResult(services::auth::CHARACTER_CREATE_INVALID_CLASS, nullptr);
+        return;
+    }
+
+    CharacterStats tStartStats;
+    tStartStats.classId = tClass->id;
+    tStartStats.strength = static_cast<int32_t>(tClass->startStrength);
+    tStartStats.dexterity = static_cast<int32_t>(tClass->startDexterity);
+    tStartStats.intelligence = static_cast<int32_t>(tClass->startIntelligence);
+    tStartStats.vitality = static_cast<int32_t>(tClass->startVitality);
+
+    mRepositoryManager.getCharacterRepository().createCharacter(tAccountId, tName, tKingdom, tStartStats, mMapCatalog,
     [tSendResult](CharacterRepository::CreateResult pResult, const CharacterRepository::CharacterRecord& pRecord)
     {
         switch (pResult)
@@ -202,6 +226,18 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
                 return;
             }
 
+            if (!mClassCatalog.find(pRecord.stats.classId))
+            {
+                std::osyncstream(std::cerr) << "[Server] " << pRecord.name << " bilinmeyen sinifta: " << pRecord.stats.classId << std::endl;
+
+                if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+                {
+                    sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_ERROR, services::auth::ENTER_WORLD_ERROR);
+                }
+
+                return;
+            }
+
             uint32_t tMapId = pRecord.mapId;
             float tX = pRecord.x;
             float tY = pRecord.y;
@@ -232,7 +268,7 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
             tSnapshot.stats = pRecord.stats;
             tSnapshot.items = std::move(pItems);
 
-            Character tCharacter(tSnapshot.characterId, tSnapshot.name, mItemCatalog);
+            Character tCharacter(tSnapshot.characterId, tSnapshot.name, mItemCatalog, mClassCatalog);
             tCharacter.setStats(tSnapshot.stats);
             tCharacter.setItems(tSnapshot.items);
 
@@ -254,7 +290,7 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
             tEnter->set_pos_z(tZ);
             tEnter->set_yaw(tYaw);
 
-            fillStats(tCharacter, tEnter->mutable_stats());
+            StatsMessage::fill(tCharacter, tEnter->mutable_stats());
 
             for (const ItemInstance& tItem : tSnapshot.items)
             {
@@ -313,28 +349,4 @@ void CharacterController::sendEnterWorldFailure(const std::shared_ptr<NetworkSes
     tResponse.mutable_response()->mutable_enter_world_response()->set_status(pEnterStatus);
 
     pSession->send(tResponse);
-}
-
-void CharacterController::fillStats(const Character& pCharacter, services::game::CharacterStats* pOut)
-{
-    const CharacterStats& tStats = pCharacter.getStats();
-
-    pOut->set_level(tStats.level);
-    pOut->set_experience(tStats.experience);
-    pOut->set_experience_for_next_level(StatFormula::getExperienceForNextLevel(tStats.level));
-
-    pOut->set_health(tStats.health);
-    pOut->set_max_health(pCharacter.getMaxHealth());
-    pOut->set_mana(tStats.mana);
-    pOut->set_max_mana(pCharacter.getMaxMana());
-
-    pOut->set_strength(tStats.strength);
-    pOut->set_dexterity(tStats.dexterity);
-    pOut->set_intelligence(tStats.intelligence);
-    pOut->set_vitality(tStats.vitality);
-
-    pOut->set_attack(pCharacter.getAttack());
-    pOut->set_defense(pCharacter.getDefense());
-
-    pOut->set_gold(tStats.gold);
 }

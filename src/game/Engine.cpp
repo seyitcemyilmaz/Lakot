@@ -34,6 +34,12 @@ bool Engine::initialize()
         return false;
     }
 
+    if (!mClassCatalog.load(std::string(SDL_GetBasePath()) + "data", tMapError))
+    {
+        SDL_Log("Class data could not be loaded: %s", tMapError.c_str());
+        return false;
+    }
+
     mDisplaySettings.load(mWindow);
     mDisplaySettings.apply(mWindow);
 
@@ -198,6 +204,11 @@ const MapCatalog& Engine::getMapCatalog() const
 const MonsterCatalog& Engine::getMonsterCatalog() const
 {
     return mMonsterCatalog;
+}
+
+const ClassCatalog& Engine::getClassCatalog() const
+{
+    return mClassCatalog;
 }
 
 void Engine::setClearColor(const glm::vec3& pColor)

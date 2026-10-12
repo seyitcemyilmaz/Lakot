@@ -29,6 +29,34 @@ namespace
         return tMember != pObject.MemberEnd() && tMember->value.IsInt() ? tMember->value.GetInt() : 0;
     }
 
+    bool readClasses(const rapidjson::Value& pEntry, std::vector<uint32_t>& pClasses)
+    {
+        auto tMember = pEntry.FindMember("classes");
+
+        if (tMember == pEntry.MemberEnd())
+        {
+            return true;
+        }
+
+        if (!tMember->value.IsArray())
+        {
+            return false;
+        }
+
+        for (const auto& tClass : tMember->value.GetArray())
+        {
+            if (!tClass.IsUint() || tClass.GetUint() == 0
+                || std::find(pClasses.begin(), pClasses.end(), tClass.GetUint()) != pClasses.end())
+            {
+                return false;
+            }
+
+            pClasses.push_back(tClass.GetUint());
+        }
+
+        return true;
+    }
+
     std::string getString(const rapidjson::Value& pObject, const char* pName)
     {
         auto tMember = pObject.FindMember(pName);
@@ -89,6 +117,12 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
         tTemplate.icon = getString(tEntry, "icon");
         tTemplate.model = getString(tEntry, "model");
         tTemplate.tint = getUint(tEntry, "tint", 0xFFFFFF);
+
+        if (!readClasses(tEntry, tTemplate.allowedClasses))
+        {
+            pError = "items.json has an entry with an invalid classes list: " + tTemplate.name;
+            return false;
+        }
 
         if (tTemplate.templateId == 0 || tTemplate.name.empty())
         {

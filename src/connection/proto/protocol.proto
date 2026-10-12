@@ -9,6 +9,7 @@ import "services/chat.proto";
 import "services/shop.proto";
 import "services/world.proto";
 import "services/inventory.proto";
+import "services/progression.proto";
 
 message Request {
     common.RequestHeader header = 1;
@@ -41,6 +42,10 @@ message Request {
         services.inventory.UnequipItemRequest unequip_item_request = 5001;
         services.inventory.MoveItemRequest move_item_request = 5002;
         services.inventory.UseItemRequest use_item_request = 5003;
+
+        // progression service
+        services.progression.AllocateStatRequest allocate_stat_request = 6000;
+        services.progression.ChoosePathRequest choose_path_request = 6001;
     }
 }
 
@@ -83,5 +88,9 @@ message Response {
         services.inventory.InventoryUpdate inventory_update = 5001;
         services.inventory.ItemTemplateList item_template_list = 5002;
         services.inventory.UseItemResponse use_item_response = 5003;
+
+        // progression service
+        services.progression.AllocateStatResponse allocate_stat_response = 6000;
+        services.progression.ChoosePathResponse choose_path_response = 6001;
     }
 }

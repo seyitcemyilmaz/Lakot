@@ -1,6 +1,7 @@
 #include "AuthController.h"
 
 #include "../NetworkManager.h"
+#include "../StatsMessage.h"
 
 using namespace lakot;
 
@@ -102,12 +103,13 @@ void AuthController::requestCharacterList()
     });
 }
 
-void AuthController::sendCharacterCreate(const std::string& pName, uint32_t pKingdom)
+void AuthController::sendCharacterCreate(const std::string& pName, uint32_t pKingdom, uint32_t pClassId)
 {
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request()->mutable_character_create_request();
     tRequest->set_name(pName);
     tRequest->set_kingdom(pKingdom);
+    tRequest->set_class_id(pClassId);
 
     sendOrReport(tMessage, [this]()
     {
@@ -265,7 +267,7 @@ void AuthController::handleCharacterListResponse(std::shared_ptr<NetworkSession<
 
     for (const auto& tCharacter : tResponse.characters())
     {
-        tCharacters.push_back({ tCharacter.character_id(), tCharacter.name(), tCharacter.map_id() });
+        tCharacters.push_back({ tCharacter.character_id(), tCharacter.name(), tCharacter.map_id(), tCharacter.class_id(), tCharacter.level() });
     }
 
     mCharacterListCallback(tCharacters, tResponse.max_slots(), tResponse.kingdom());
@@ -283,7 +285,7 @@ void AuthController::handleCharacterCreateResponse(std::shared_ptr<NetworkSessio
     if (tResponse.status() == services::auth::CHARACTER_CREATE_OK)
     {
         const auto& tCharacter = tResponse.character();
-        mCharacterCreateCallback(true, "", { tCharacter.character_id(), tCharacter.name(), tCharacter.map_id() });
+        mCharacterCreateCallback(true, "", { tCharacter.character_id(), tCharacter.name(), tCharacter.map_id(), tCharacter.class_id(), tCharacter.level() });
         return;
     }
 
@@ -302,6 +304,9 @@ void AuthController::handleCharacterCreateResponse(std::shared_ptr<NetworkSessio
             break;
         case services::auth::CHARACTER_CREATE_INVALID_KINGDOM:
             tMessage = "Choose a kingdom for your first character.";
+            break;
+        case services::auth::CHARACTER_CREATE_INVALID_CLASS:
+            tMessage = "Choose a class for your character.";
             break;
         default:
             tMessage = "Could not create character.";
@@ -335,21 +340,7 @@ void AuthController::handleEnterWorldResponse(std::shared_ptr<NetworkSession<con
     tResult.z = tResponse.pos_z();
     tResult.yaw = tResponse.yaw();
 
-    const auto& tStats = tResponse.stats();
-    tResult.stats.level = tStats.level();
-    tResult.stats.experience = tStats.experience();
-    tResult.stats.experienceForNextLevel = tStats.experience_for_next_level();
-    tResult.stats.health = tStats.health();
-    tResult.stats.maxHealth = tStats.max_health();
-    tResult.stats.mana = tStats.mana();
-    tResult.stats.maxMana = tStats.max_mana();
-    tResult.stats.strength = tStats.strength();
-    tResult.stats.dexterity = tStats.dexterity();
-    tResult.stats.intelligence = tStats.intelligence();
-    tResult.stats.vitality = tStats.vitality();
-    tResult.stats.attack = tStats.attack();
-    tResult.stats.defense = tStats.defense();
-    tResult.stats.gold = tStats.gold();
+    tResult.stats = StatsMessage::read(tResponse.stats());
 
     tResult.items.reserve(tResponse.items_size());
 

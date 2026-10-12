@@ -35,6 +35,7 @@ namespace lakot
 {
 
 class ItemCatalog;
+class ClassCatalog;
 
 // One map's simulation, running on its own thread at a fixed tick.
 //
@@ -89,7 +90,7 @@ public:
     using PersistFunction = std::function<void(const PersistData&)>;
 
     // pMap and pMapCatalog are immutable after startup, like pItemCatalog.
-    Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog& pItemCatalog, const MonsterCatalog& pMonsterCatalog);
+    Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog& pItemCatalog, const ClassCatalog& pClassCatalog, const MonsterCatalog& pMonsterCatalog);
     ~Zone();
 
     Zone(const Zone&) = delete;
@@ -205,6 +206,7 @@ private:
     // Immutable for the life of the process (see ItemCatalog), so holding a
     // bare reference across threads is safe.
     const ItemCatalog& mItemCatalog;
+    const ClassCatalog& mClassCatalog;
     const MonsterCatalog& mMonsterCatalog;
 
     ZoneTickStats mStats;

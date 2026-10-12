@@ -11,6 +11,7 @@ namespace lakot
 {
 
 class ItemCatalog;
+class ClassCatalog;
 class MapCatalog;
 class InventoryController;
 class WorldController;
@@ -26,6 +27,7 @@ public:
                         WorldController& pWorldController,
                         InventoryController& pInventoryController,
                         const ItemCatalog& pItemCatalog,
+                        const ClassCatalog& pClassCatalog,
                         const MapCatalog& pMapCatalog);
 
     void initialize() override;
@@ -34,9 +36,8 @@ private:
     WorldController& mWorldController;
     InventoryController& mInventoryController;
     const ItemCatalog& mItemCatalog;
+    const ClassCatalog& mClassCatalog;
     const MapCatalog& mMapCatalog;
-
-    static void fillStats(const Character& pCharacter, services::game::CharacterStats* pOut);
 
     void handleCharacterListRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleCharacterCreateRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);

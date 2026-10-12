@@ -1,12 +1,18 @@
 #ifndef LAKOT_CHARACTER_SHEET_RML_CONTROLLER_H
 #define LAKOT_CHARACTER_SHEET_RML_CONTROLLER_H
 
+#include <cstdint>
+#include <functional>
 #include <string>
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
+
+#include <connection.pb.h>
+
+#include "ClassCatalog.h"
 
 #include "../../network/GameTypes.h"
 
@@ -26,7 +32,9 @@ class RmlUiLayer;
 class CharacterSheetRmlController
 {
 public:
-    CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const std::string& pCharacterName);
+    using AllocateStatCallback = std::function<void(services::progression::StatType pStat, uint32_t pAmount)>;
+
+    CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const ClassCatalog& pClassCatalog, const std::string& pCharacterName);
     ~CharacterSheetRmlController();
 
     CharacterSheetRmlController(const CharacterSheetRmlController&) = delete;
@@ -34,18 +42,24 @@ public:
 
     void setStats(const CharacterStats& pStats);
 
+    void setAllocateStatCallback(AllocateStatCallback pCallback);
+
     void toggle();
     void close();
     bool isOpen() const;
 
 private:
     RmlUiLayer& mRmlUiLayer;
+    const ClassCatalog& mClassCatalog;
 
     Rml::ElementDocument* mDocument{nullptr};
     Rml::DataModelHandle mModelHandle;
 
     Rml::String mName;
     Rml::String mLevel;
+    Rml::String mClassName;
+    Rml::String mPathName;
+    Rml::String mStatPoints;
 
     Rml::String mHealth, mMana, mExperience;
 
@@ -56,9 +70,18 @@ private:
     Rml::String mStrength, mDexterity, mIntelligence, mVitality;
     Rml::String mAttack, mDefense, mGold;
 
+    bool mHasStatPoints{false};
+    bool mCanRaiseStrength{false};
+    bool mCanRaiseDexterity{false};
+    bool mCanRaiseIntelligence{false};
+    bool mCanRaiseVitality{false};
+
     bool mIsOpen{false};
 
+    AllocateStatCallback mAllocateStatCallback;
+
     void onCloseClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onRaiseStatClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
 
     void dirtyAll();
 

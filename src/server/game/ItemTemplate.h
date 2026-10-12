@@ -2,7 +2,9 @@
 #define LAKOT_SERVER_ITEMTEMPLATE_H
 
 #include <cstdint>
+#include <algorithm>
 #include <string>
+#include <vector>
 
 namespace lakot
 {
@@ -83,6 +85,8 @@ struct ItemTemplate
     int32_t restoreHealth = 0;
     int32_t restoreMana = 0;
 
+    std::vector<uint32_t> allowedClasses;
+
     bool isEquippable() const
     {
         return type == ItemType::eEquipment && equipSlot != EquipSlotType::eNone;
@@ -91,6 +95,11 @@ struct ItemTemplate
     bool isUsable() const
     {
         return type == ItemType::eConsumable && (restoreHealth > 0 || restoreMana > 0);
+    }
+
+    bool isAllowedForClass(uint32_t pClassId) const
+    {
+        return allowedClasses.empty() || std::find(allowedClasses.begin(), allowedClasses.end(), pClassId) != allowedClasses.end();
     }
 
     bool isStackable() const

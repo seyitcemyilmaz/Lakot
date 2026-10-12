@@ -1,5 +1,8 @@
 #include "CharacterSelectRmlController.h"
 
+#include <algorithm>
+#include <cctype>
+
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataStructHandle.h>
@@ -9,9 +12,10 @@
 
 using namespace lakot;
 
-CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog)
+CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog)
     : mRmlUiLayer(pRmlUiLayer)
     , mMapCatalog(pMapCatalog)
+    , mClassCatalog(pClassCatalog)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
@@ -30,6 +34,8 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
         tRowHandle.RegisterMember("index", &CharacterRow::index);
         tRowHandle.RegisterMember("name", &CharacterRow::name);
         tRowHandle.RegisterMember("location", &CharacterRow::location);
+        tRowHandle.RegisterMember("class_name", &CharacterRow::className);
+        tRowHandle.RegisterMember("level", &CharacterRow::level);
         tRowHandle.RegisterMember("is_selected", &CharacterRow::isSelected);
         tConstructor.RegisterArray<std::vector<CharacterRow>>();
 
@@ -41,11 +47,20 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
         tKingdomHandle.RegisterMember("is_selected", &KingdomRow::isSelected);
         tConstructor.RegisterArray<std::vector<KingdomRow>>();
 
+        Rml::StructHandle<ClassRow> tClassHandle = tConstructor.RegisterStruct<ClassRow>();
+        tClassHandle.RegisterMember("id", &ClassRow::id);
+        tClassHandle.RegisterMember("name", &ClassRow::name);
+        tClassHandle.RegisterMember("description", &ClassRow::description);
+        tClassHandle.RegisterMember("is_selected", &ClassRow::isSelected);
+        tConstructor.RegisterArray<std::vector<ClassRow>>();
+
         sCharacterRowTypeRegistered = true;
     }
 
     tConstructor.Bind("characters", &mRows);
     tConstructor.Bind("kingdoms", &mKingdomRows);
+    tConstructor.Bind("classes", &mClassRows);
+    tConstructor.Bind("has_class", &mHasClass);
     tConstructor.Bind("kingdom_label", &mKingdomLabel);
     tConstructor.Bind("has_kingdom", &mHasKingdom);
     tConstructor.Bind("slots_label", &mSlotsLabel);
@@ -66,10 +81,12 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
     tConstructor.BindEventCallback("logout", &CharacterSelectRmlController::onLogoutClicked, this);
     tConstructor.BindEventCallback("name_keydown", &CharacterSelectRmlController::onNameKeyDown, this);
     tConstructor.BindEventCallback("choose_kingdom", &CharacterSelectRmlController::onChooseKingdomClicked, this);
+    tConstructor.BindEventCallback("choose_class", &CharacterSelectRmlController::onChooseClassClicked, this);
 
     mModelHandle = tConstructor.GetModelHandle();
 
     rebuildKingdomRows();
+    rebuildClassRows();
 
     mDocument = mRmlUiLayer.loadDocument("ui/characterselect.rml");
 
@@ -115,6 +132,12 @@ std::string CharacterSelectRmlController::getMapName(uint32_t pMapId) const
     return tMap ? tMap->getName() : std::string("Unknown");
 }
 
+std::string CharacterSelectRmlController::getClassName(uint32_t pClassId) const
+{
+    const ClassDefinition* tClass = mClassCatalog.find(pClassId);
+    return tClass ? tClass->name : std::string("Classless");
+}
+
 void CharacterSelectRmlController::setKingdom(uint32_t pKingdom)
 {
     mKingdom = pKingdom;
@@ -140,6 +163,54 @@ void CharacterSelectRmlController::rebuildKingdomRows()
 
         mKingdomRows.push_back(std::move(tRow));
     }
+}
+
+void CharacterSelectRmlController::rebuildClassRows()
+{
+    mClassRows.clear();
+
+    for (const ClassDefinition& tClass : mClassCatalog.getAll())
+    {
+        std::string tMain;
+
+        for (const std::string& tStat : tClass.mainStats)
+        {
+            std::string tUpper = tStat;
+            std::transform(tUpper.begin(), tUpper.end(), tUpper.begin(), [](unsigned char pChar) { return static_cast<char>(std::toupper(pChar)); });
+            tMain += (tMain.empty() ? "" : " + ") + tUpper;
+        }
+
+        ClassRow tRow;
+        tRow.id = static_cast<int>(tClass.id);
+        tRow.name = tClass.name;
+        tRow.description = tMain + " | STR " + std::to_string(tClass.startStrength) + "  DEX " + std::to_string(tClass.startDexterity)
+                         + "  INT " + std::to_string(tClass.startIntelligence) + "  VIT " + std::to_string(tClass.startVitality);
+        tRow.isSelected = (tClass.id == mChosenClass);
+
+        mClassRows.push_back(std::move(tRow));
+    }
+
+    mHasClass = mClassCatalog.find(mChosenClass) != nullptr;
+}
+
+void CharacterSelectRmlController::onChooseClassClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
+{
+    if (mIsBusy || pArguments.empty())
+    {
+        return;
+    }
+
+    uint32_t tClass = static_cast<uint32_t>(pArguments[0].Get<int>(0));
+
+    if (!mClassCatalog.find(tClass))
+    {
+        return;
+    }
+
+    mChosenClass = tClass;
+
+    rebuildClassRows();
+    dirtyAll();
 }
 
 void CharacterSelectRmlController::onChooseKingdomClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
@@ -193,6 +264,8 @@ void CharacterSelectRmlController::rebuildRows()
         tRow.index = static_cast<int>(tIndex);
         tRow.name = mCharacters[tIndex].name;
         tRow.location = getMapName(mCharacters[tIndex].mapId);
+        tRow.className = getClassName(mCharacters[tIndex].classId);
+        tRow.level = static_cast<int>(mCharacters[tIndex].level);
         tRow.isSelected = (static_cast<int>(tIndex) == mSelectedIndex);
 
         mRows.push_back(std::move(tRow));
@@ -249,6 +322,9 @@ void CharacterSelectRmlController::onBeginCreateClicked(Rml::DataModelHandle /*p
 
     mIsCreating = true;
     mNewName.clear();
+    mChosenClass = 0;
+
+    rebuildClassRows();
 
     setStatus("", false);
 }
@@ -294,6 +370,12 @@ void CharacterSelectRmlController::doConfirmCreate()
         return;
     }
 
+    if (!mClassCatalog.find(mChosenClass))
+    {
+        setStatus("Choose a class first.", true);
+        return;
+    }
+
     // Matched to the server's own rule (RequestLimits::kMinUsernameLength /
     // kMaxUsernameLength) so the common mistake is caught without a round
     // trip - the server still enforces it, this is not the check that counts.
@@ -308,7 +390,7 @@ void CharacterSelectRmlController::doConfirmCreate()
 
     if (mCreateRequestCallback)
     {
-        mCreateRequestCallback(tName, mHasKingdom ? mKingdom : mChosenKingdom);
+        mCreateRequestCallback(tName, mHasKingdom ? mKingdom : mChosenKingdom, mChosenClass);
     }
 }
 

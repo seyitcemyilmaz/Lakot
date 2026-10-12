@@ -97,7 +97,7 @@ public:
     // the account's kingdom and ignore it. Every character starts at its
     // kingdom's starting map, taken from pMapCatalog.
     void createCharacter(uint64_t pAccountId, const std::string& pName, uint32_t pRequestedKingdom,
-                         const MapCatalog& pMapCatalog, CreateCallback pCallback);
+                         const CharacterStats& pStartStats, const MapCatalog& pMapCatalog, CreateCallback pCallback);
 
     // Looks the character up AND checks it belongs to pAccountId - the two
     // are one query on purpose, so no caller can accidentally load a

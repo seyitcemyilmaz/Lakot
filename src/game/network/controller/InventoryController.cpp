@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "../NetworkManager.h"
+#include "../StatsMessage.h"
 
 using namespace lakot;
 
@@ -199,6 +200,7 @@ void InventoryController::handleItemTemplateList(std::shared_ptr<NetworkSession<
         tTemplate.icon = tIncoming.icon();
         tTemplate.model = tIncoming.model();
         tTemplate.tint = tIncoming.tint();
+        tTemplate.allowedClasses.assign(tIncoming.allowed_classes().begin(), tIncoming.allowed_classes().end());
 
         mTemplates.emplace(tTemplate.templateId, std::move(tTemplate));
     }
@@ -222,23 +224,7 @@ void InventoryController::handleInventoryUpdate(std::shared_ptr<NetworkSession<c
                            static_cast<ItemLocationType>(tItem.location()), tItem.slot() });
     }
 
-    const auto& tIncomingStats = tUpdate.stats();
-
-    CharacterStats tStats;
-    tStats.level = tIncomingStats.level();
-    tStats.experience = tIncomingStats.experience();
-    tStats.experienceForNextLevel = tIncomingStats.experience_for_next_level();
-    tStats.health = tIncomingStats.health();
-    tStats.maxHealth = tIncomingStats.max_health();
-    tStats.mana = tIncomingStats.mana();
-    tStats.maxMana = tIncomingStats.max_mana();
-    tStats.strength = tIncomingStats.strength();
-    tStats.dexterity = tIncomingStats.dexterity();
-    tStats.intelligence = tIncomingStats.intelligence();
-    tStats.vitality = tIncomingStats.vitality();
-    tStats.attack = tIncomingStats.attack();
-    tStats.defense = tIncomingStats.defense();
-    tStats.gold = tIncomingStats.gold();
+    CharacterStats tStats = StatsMessage::read(tUpdate.stats());
 
     mInventoryUpdateCallback(tItems, tStats);
 }

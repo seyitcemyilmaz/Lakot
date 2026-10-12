@@ -42,6 +42,10 @@ message CharacterStats {
     int32 defense = 13;
 
     uint64 gold = 14;
+
+    uint32 class_id = 15;
+    uint32 path_id = 16;
+    uint32 stat_points = 17;
 }
 
 // Where an item is. Mirrors the server's ItemLocationType.

@@ -35,6 +35,7 @@ public:
     WorldController(NetworkManager& pNetworkManager,
                     RepositoryManager& pRepositoryManager,
                     const ItemCatalog& pItemCatalog,
+                    const ClassCatalog& pClassCatalog,
                     const MapCatalog& pMapCatalog,
                     const MonsterCatalog& pMonsterCatalog);
 
@@ -94,6 +95,7 @@ private:
     std::unordered_map<uint32_t, std::unique_ptr<Zone>> mZones;
 
     const ItemCatalog& mItemCatalog;
+    const ClassCatalog& mClassCatalog;
     const MapCatalog& mMapCatalog;
     const MonsterCatalog& mMonsterCatalog;
 

@@ -8,6 +8,7 @@
 
 #include <glm/glm.hpp>
 
+#include "ClassCatalog.h"
 #include "GarbageCollector.h"
 #include "MapCatalog.h"
 #include "MonsterCatalog.h"
@@ -65,6 +66,7 @@ public:
     // Maps and kingdoms from data/, loaded once at startup.
     const MapCatalog& getMapCatalog() const;
     const MonsterCatalog& getMonsterCatalog() const;
+    const ClassCatalog& getClassCatalog() const;
 
     void setClearColor(const glm::vec3& pColor);
 
@@ -89,6 +91,7 @@ private:
 
     MapCatalog mMapCatalog;
     MonsterCatalog mMonsterCatalog;
+    ClassCatalog mClassCatalog;
 
     DisplaySettings mDisplaySettings;
 

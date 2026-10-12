@@ -178,10 +178,11 @@ class Client:
     def char_list(self):
         return self.call(lambda q: q.character_list_request.SetInParent())
 
-    def create_char(self, name, kingdom=1):
+    def create_char(self, name, kingdom=1, class_id=1):
         def f(q):
             q.character_create_request.name = name
             q.character_create_request.kingdom = kingdom
+            q.character_create_request.class_id = class_id
         return self.call(f)
 
     def enter(self, cid):
@@ -224,7 +225,7 @@ class Client:
             return [m.response.world_snapshot for _, m in self.log[since:] if m.response.HasField("world_snapshot")]
 
 
-def make_player(kingdom=1, prefix="p"):
+def make_player(kingdom=1, prefix="p", class_id=1):
     from common_pb2 import STATUS_OK
     c = Client()
     user = rand_name(prefix)
@@ -233,7 +234,7 @@ def make_player(kingdom=1, prefix="p"):
     r = c.login(user)
     assert r is not None and r.header.status.code == STATUS_OK and r.login_response.token, f"login failed: {r}"
     name = rand_name("c")
-    r = c.create_char(name, kingdom)
+    r = c.create_char(name, kingdom, class_id)
     assert r is not None and r.character_create_response.status == 0, f"create failed: {r}"
     cid = r.character_create_response.character.character_id
     c.user, c.name, c.cid = user, name, cid

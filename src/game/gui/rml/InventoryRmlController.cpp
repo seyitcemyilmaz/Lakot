@@ -78,9 +78,10 @@ Rml::String InventoryRmlController::toIconPath(const ItemTemplate* pTemplate) co
     return Rml::String(ItemIconPath::resolve(mItemIcons, pTemplate));
 }
 
-InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, ItemIconRenderer& pItemIcons)
+InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons)
     : mRmlUiLayer(pRmlUiLayer)
     , mInventoryController(pInventoryController)
+    , mClassCatalog(pClassCatalog)
     , mItemIcons(pItemIcons)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
@@ -361,6 +362,19 @@ void InventoryRmlController::showTooltip(const ItemTemplate* pTemplate, uint32_t
 
         if (pTemplate->requiredLevel > 1)
             mTooltipLines.push_back({ Rml::String("Requires level " + std::to_string(pTemplate->requiredLevel)) });
+
+        if (!pTemplate->allowedClasses.empty())
+        {
+            std::string tClasses;
+
+            for (uint32_t tClassId : pTemplate->allowedClasses)
+            {
+                const ClassDefinition* tClass = mClassCatalog.find(tClassId);
+                tClasses += (tClasses.empty() ? "" : ", ") + (tClass ? tClass->name : std::string("?"));
+            }
+
+            mTooltipLines.push_back({ Rml::String("Class: " + tClasses) });
+        }
 
         if (pIsEquipped)
         {

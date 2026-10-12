@@ -12,6 +12,7 @@ namespace lakot
 {
 
 class ItemCatalog;
+class ClassCatalog;
 
 enum class ConsumeResultType : uint32_t
 {
@@ -19,6 +20,22 @@ enum class ConsumeResultType : uint32_t
     eNotUsable = 1,
     eNotOwned = 2,
     eFull = 3
+};
+
+enum class AllocateStatResultType : uint32_t
+{
+    eAllocated = 0,
+    eInvalid = 1,
+    eNoPoints = 2,
+    eAtCap = 3
+};
+
+enum class ChoosePathResultType : uint32_t
+{
+    eChosen = 0,
+    eInvalid = 1,
+    eLevelTooLow = 2,
+    eAlreadyChosen = 3
 };
 
 // Everything needed to reconstruct a character somewhere else: loading one
@@ -50,7 +67,7 @@ struct CharacterSnapshot
 class Character
 {
 public:
-    Character(uint64_t pCharacterId, std::string pName, const ItemCatalog& pCatalog);
+    Character(uint64_t pCharacterId, std::string pName, const ItemCatalog& pCatalog, const ClassCatalog& pClassCatalog);
 
     uint64_t getId() const;
     const std::string& getName() const;
@@ -100,6 +117,9 @@ public:
     // number of levels gained, so the caller can tell the client.
     uint32_t addExperience(uint64_t pAmount);
 
+    AllocateStatResultType allocateStat(StatType pStat, uint32_t pAmount);
+    ChoosePathResultType choosePath(uint32_t pPathId);
+
     void addGold(int64_t pAmount);
 
     // Current health/mana pulled back inside their (possibly just changed)
@@ -116,10 +136,12 @@ private:
     uint32_t mKingdom{0};
     CharacterStats mStats;
     Inventory mInventory;
+    const ClassCatalog& mClassCatalog;
 
     bool mIsDirty{false};
 
     void markDirty();
+    int32_t* findStat(StatType pStat);
 };
 
 }

@@ -12,6 +12,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    SDL_Window* pWindow,
                    const std::string& pUsername,
                    const CharacterStats& pStats,
+                   const ClassCatalog& pClassCatalog,
                    const std::vector<OwnedItem>& pItems,
                    ItemIconRenderer& pItemIcons,
                    uint64_t pCharacterId)
@@ -25,8 +26,8 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mWorldChat(pRmlUiLayer)
     , mSkillBar(pRmlUiLayer)
     , mVitals(pRmlUiLayer)
-    , mInventory(pRmlUiLayer, pNetworkManager.getInventoryController(), pItemIcons)
-    , mCharacterSheet(pRmlUiLayer, pUsername)
+    , mInventory(pRmlUiLayer, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
+    , mCharacterSheet(pRmlUiLayer, pClassCatalog, pUsername)
     , mSystemMenu(pRmlUiLayer)
     , mWhispers(pRmlUiLayer)
 {
@@ -185,6 +186,20 @@ void WorldHud::connectNetwork()
     [this](SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo)
     {
         onSkillSlotDropped(pFrom, pTo);
+    });
+
+    ProgressionController& tProgression = mNetworkManager.getProgressionController();
+
+    tProgression.setAllocateStatResultCallback(
+    [this](services::progression::AllocateStatStatus pStatus)
+    {
+        onAllocateStatResult(pStatus);
+    });
+
+    mCharacterSheet.setAllocateStatCallback(
+    [this](services::progression::StatType pStat, uint32_t pAmount)
+    {
+        mNetworkManager.getProgressionController().sendAllocateStat(pStat, pAmount);
     });
 
     mInventory.setEquipRequestCallback(
@@ -483,6 +498,27 @@ void WorldHud::onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY)
     if (std::optional<SkillBarSlot> tSlot = mSkillBar.getSlotAt(pX, pY))
     {
         bindSkillSlot(*tSlot, pTemplateId);
+    }
+}
+
+void WorldHud::onAllocateStatResult(services::progression::AllocateStatStatus pStatus)
+{
+    switch (pStatus)
+    {
+        case services::progression::ALLOCATE_STAT_NO_POINTS:
+            mWorldChat.appendSystemLine("You have no stat points to spend.", WorldChatRmlController::SystemLineType::eWarning);
+            break;
+
+        case services::progression::ALLOCATE_STAT_AT_CAP:
+            mWorldChat.appendSystemLine("That attribute is already at its maximum.", WorldChatRmlController::SystemLineType::eWarning);
+            break;
+
+        case services::progression::ALLOCATE_STAT_INVALID:
+            mWorldChat.appendSystemLine("That attribute cannot be raised.", WorldChatRmlController::SystemLineType::eError);
+            break;
+
+        default:
+            break;
     }
 }
 

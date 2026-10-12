@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package services.progression;
+
+enum StatType {
+    STAT_TYPE_UNSPECIFIED = 0;
+    STAT_TYPE_STRENGTH = 1;
+    STAT_TYPE_DEXTERITY = 2;
+    STAT_TYPE_INTELLIGENCE = 3;
+    STAT_TYPE_VITALITY = 4;
+}
+
+enum AllocateStatStatus {
+    ALLOCATE_STAT_OK = 0;
+    ALLOCATE_STAT_INVALID = 1;
+    ALLOCATE_STAT_NO_POINTS = 2;
+    ALLOCATE_STAT_AT_CAP = 3;
+}
+
+message AllocateStatRequest {
+    StatType stat = 1;
+    uint32 amount = 2;
+}
+
+message AllocateStatResponse {
+    AllocateStatStatus status = 1;
+}
+
+enum ChoosePathStatus {
+    CHOOSE_PATH_OK = 0;
+    CHOOSE_PATH_INVALID = 1;
+    CHOOSE_PATH_LEVEL_TOO_LOW = 2;
+    CHOOSE_PATH_ALREADY_CHOSEN = 3;
+}
+
+message ChoosePathRequest {
+    uint32 path_id = 1;
+}
+
+message ChoosePathResponse {
+    ChoosePathStatus status = 1;
+}

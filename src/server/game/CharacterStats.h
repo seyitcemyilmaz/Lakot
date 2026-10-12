@@ -31,6 +31,18 @@ struct CharacterStats
     int32_t vitality = 10;
 
     uint64_t gold = 0;
+
+    uint32_t classId = 0;
+    uint32_t pathId = 0;
+    uint32_t statPoints = 0;
+};
+
+enum class StatType : uint32_t
+{
+    eStrength = 1,
+    eDexterity = 2,
+    eIntelligence = 3,
+    eVitality = 4
 };
 
 // The formulas, kept together and free of any dependency on items or the
@@ -55,7 +67,7 @@ namespace StatFormula
 
     inline int32_t getDefense(const CharacterStats& pStats, int32_t pEquipmentBonus)
     {
-        return pStats.dexterity + static_cast<int32_t>(pStats.level) + pEquipmentBonus;
+        return pStats.dexterity + static_cast<int32_t>(pStats.level) + pStats.vitality / 2 + pEquipmentBonus;
     }
 
     // Total experience needed to advance FROM pLevel to pLevel + 1.

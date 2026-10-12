@@ -18,6 +18,7 @@ HELMETS = [
     "Karakhanid Helm", "Seljuk Helm", "Turban Helm", "Khagan's Wolf Helm",
 ]
 TEMPERED_TINT = 0xD8E4FF
+SWORD_CLASSES = [1, 3]
 
 WEAPON, ARMOR, HELMET = 1, 2, 3
 TYPE_EQUIPMENT, TYPE_CONSUMABLE, TYPE_MATERIAL, TYPE_QUEST = 1, 2, 3, 4
@@ -40,8 +41,10 @@ def main():
         level = 1 if tier == 0 else tier * 5
         tempered = tier % 2 == 1
         name = ("Tempered " if tempered else "") + SWORDS[family]
-        items.append(equipment(1001 + tier, name, WEAPON, level, f"models/weapons/sword_l{family * 10:02d}.glb".replace("l00", "l01"),
-                               1, 3, TEMPERED_TINT if tempered else 0xFFFFFF, attack=4 + 6 * tier))
+        sword = equipment(1001 + tier, name, WEAPON, level, f"models/weapons/sword_l{family * 10:02d}.glb".replace("l00", "l01"),
+                          1, 3, TEMPERED_TINT if tempered else 0xFFFFFF, attack=4 + 6 * tier)
+        sword["classes"] = SWORD_CLASSES
+        items.append(sword)
 
     for tier in range(8):
         level = 1 if tier == 0 else tier * 10

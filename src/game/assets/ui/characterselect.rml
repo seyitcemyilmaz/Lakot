@@ -31,7 +31,7 @@
                      data-class-is-selected="character.is_selected"
                      data-event-click="select(character.index)">
                     <div class="char-name">{{ character.name }}</div>
-                    <div class="char-meta">{{ character.location }}</div>
+                    <div class="char-meta">{{ character.class_name }} · Lv {{ character.level }} · {{ character.location }}</div>
                 </div>
 
                 <div class="char-empty" data-if="!has_characters">
@@ -64,12 +64,21 @@
                 </div>
             </div>
 
+            <div class="field-label">Choose your class</div>
+
+            <div class="char-row" data-for="cls : classes"
+                 data-class-is-selected="cls.is_selected"
+                 data-event-click="choose_class(cls.id)">
+                <div class="char-name">{{ cls.name }}</div>
+                <div class="char-meta">{{ cls.description }}</div>
+            </div>
+
             <div class="field-label">Character name</div>
             <input type="text" class="field" data-value="new_name" data-event-keydown="name_keydown"/>
 
             <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
 
-            <div class="btn-primary" data-class-is-busy="is_busy" data-event-click="confirm_create">CREATE</div>
+            <div class="btn-primary" data-class-is-busy="is_busy || !has_class" data-event-click="confirm_create">CREATE</div>
 
             <div class="link" data-event-click="cancel_create">Back to character list</div>
         </div>

@@ -1,0 +1,15 @@
+{
+  "statPointsPerLevel": 4,
+  "statCap": 200,
+  "pathUnlockLevel": 10,
+  "classes": [
+    { "id": 1, "key": "alp", "name": "Alp", "mainStats": ["str", "vit"], "startStats": { "str": 14, "dex": 8, "int": 6, "vit": 12 },
+      "paths": [ { "id": 1, "key": "kalkan", "name": "Kalkan" }, { "id": 2, "key": "ofke", "name": "Öfke" } ] },
+    { "id": 2, "key": "kurtcu", "name": "Kurtcu", "mainStats": ["dex"], "startStats": { "str": 8, "dex": 16, "int": 6, "vit": 10 },
+      "paths": [ { "id": 1, "key": "ok", "name": "Ok" }, { "id": 2, "key": "hancer", "name": "Hançer" } ] },
+    { "id": 3, "key": "bahadir", "name": "Bahadır", "mainStats": ["str", "int"], "startStats": { "str": 13, "dex": 8, "int": 13, "vit": 6 },
+      "paths": [ { "id": 1, "key": "ates", "name": "Ateş" }, { "id": 2, "key": "golge", "name": "Gölge" } ] },
+    { "id": 4, "key": "kam", "name": "Kam", "mainStats": ["int"], "startStats": { "str": 6, "dex": 8, "int": 16, "vit": 10 },
+      "paths": [ { "id": 1, "key": "sifa", "name": "Şifa" }, { "id": 2, "key": "ruh", "name": "Ruh" } ] }
+  ]
+}

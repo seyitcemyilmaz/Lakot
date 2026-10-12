@@ -11,6 +11,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "ClassCatalog.h"
 #include "MapCatalog.h"
 
 #include "../../network/controller/AuthController.h"
@@ -32,10 +33,10 @@ public:
     // Raised when the player picks a character and the server has confirmed
     // it - the scene turns this into the switch to WorldScene.
     using EnterWorldRequestCallback = std::function<void(uint64_t pCharacterId)>;
-    using CreateRequestCallback = std::function<void(const std::string& pName, uint32_t pKingdom)>;
+    using CreateRequestCallback = std::function<void(const std::string& pName, uint32_t pKingdom, uint32_t pClassId)>;
     using LogoutCallback = std::function<void()>;
 
-    CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog);
+    CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog);
     ~CharacterSelectRmlController();
 
     CharacterSelectRmlController(const CharacterSelectRmlController&) = delete;
@@ -66,6 +67,16 @@ private:
         int index = 0;
         Rml::String name;
         Rml::String location;
+        Rml::String className;
+        int level = 1;
+        bool isSelected = false;
+    };
+
+    struct ClassRow
+    {
+        int id = 0;
+        Rml::String name;
+        Rml::String description;
         bool isSelected = false;
     };
 
@@ -81,6 +92,7 @@ private:
 
     RmlUiLayer& mRmlUiLayer;
     const MapCatalog& mMapCatalog;
+    const ClassCatalog& mClassCatalog;
 
     Rml::ElementDocument* mDocument{nullptr};
     Rml::DataModelHandle mModelHandle;
@@ -90,14 +102,17 @@ private:
     std::vector<AuthController::CharacterSummary> mCharacters;
     std::vector<CharacterRow> mRows;
     std::vector<KingdomRow> mKingdomRows;
+    std::vector<ClassRow> mClassRows;
 
     // The account's kingdom (0 = not chosen yet) and, until then, the one
     // picked on the create form.
     uint32_t mKingdom{0};
     uint32_t mChosenKingdom{0};
+    uint32_t mChosenClass{0};
 
     Rml::String mKingdomLabel;
     bool mHasKingdom{false};
+    bool mHasClass{false};
 
     Rml::String mSlotsLabel;
     Rml::String mStatusMessage;
@@ -125,15 +140,18 @@ private:
     void onLogoutClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onNameKeyDown(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onChooseKingdomClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onChooseClassClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
 
     void doConfirmCreate();
     void selectIndex(int pIndex);
     void rebuildRows();
     void rebuildKingdomRows();
+    void rebuildClassRows();
     void setKingdom(uint32_t pKingdom);
     void dirtyAll();
 
     std::string getMapName(uint32_t pMapId) const;
+    std::string getClassName(uint32_t pClassId) const;
 };
 
 }

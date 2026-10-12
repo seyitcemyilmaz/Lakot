@@ -49,11 +49,13 @@ NetworkManager::NetworkManager()
     , mWorldController(this)
     , mChatController(this)
     , mInventoryController(this)
+    , mProgressionController(this)
 {
     mAuthController.initialize();
     mWorldController.initialize();
     mChatController.initialize();
     mInventoryController.initialize();
+    mProgressionController.initialize();
 
     mClient.setOnMessageReceived(
     [this](const connection::Message& pMessage)
@@ -273,4 +275,9 @@ ChatController& NetworkManager::getChatController()
 InventoryController& NetworkManager::getInventoryController()
 {
     return mInventoryController;
+}
+
+ProgressionController& NetworkManager::getProgressionController()
+{
+    return mProgressionController;
 }

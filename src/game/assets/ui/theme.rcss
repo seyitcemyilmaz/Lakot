@@ -654,6 +654,64 @@ body
     font-size: 15dp;
 }
 
+.char-points
+{
+    display: block;
+    margin-top: 6dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.char-points.has-points .char-points-value
+{
+    color: #D9A640;
+}
+
+.char-sheet-end
+{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.stat-plus
+{
+    display: block;
+    width: 24dp;
+    height: 24dp;
+    margin-left: 8dp;
+    text-align: center;
+    line-height: 24dp;
+    color: #EBEBF0;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    opacity: 0;
+    pointer-events: none;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.stat-plus.is-active
+{
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+    border-color: #D9A640;
+    color: #D9A640;
+}
+
+.stat-plus.is-active:hover
+{
+    background-color: #292933;
+    color: #F2B852;
+}
+
+.stat-plus.is-active:active
+{
+    color: #B88A2E;
+}
+
 .char-sheet-key { color: #9999A8; }
 .char-sheet-val { color: #EBEBF0; }
 
