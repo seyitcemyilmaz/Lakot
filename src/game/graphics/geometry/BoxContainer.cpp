@@ -1,5 +1,7 @@
 #include "BoxContainer.h"
 
+#include <SDL3/SDL_log.h>
+
 using namespace lakot;
 
 BoxContainer::~BoxContainer()
@@ -101,6 +103,12 @@ void BoxContainer::addBox(const glm::vec3& pPosition, const glm::vec3& pSize, co
 
 void BoxContainer::setBoxes(const std::vector<glm::vec3>& pPositions, const std::vector<glm::vec3>& pSizes, const std::vector<glm::vec3>& pColors)
 {
+    if (pPositions.size() != pSizes.size() || pPositions.size() != pColors.size())
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Box arrays differ in size (%zu, %zu, %zu)", pPositions.size(), pSizes.size(), pColors.size());
+        return;
+    }
+
     mVertexInformation.set<glm::vec3>("dynamicPosition", pPositions);
     mVertexInformation.set<glm::vec3>("dynamicSize", pSizes);
     mVertexInformation.set<glm::vec3>("dynamicColor", pColors);

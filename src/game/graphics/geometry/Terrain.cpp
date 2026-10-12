@@ -56,6 +56,8 @@ void Terrain::drawChunksNear(const glm::vec3& pCenter, float pMaxDistance) const
 
 void Terrain::generateMesh()
 {
+    mChunks.clear();
+
     const int tResolution = mMap.getResolution();
     const float tSpacing = mMap.getGridSpacing();
 

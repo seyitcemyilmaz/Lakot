@@ -73,8 +73,18 @@ void AnimationClip::sample(float pTime, std::vector<JointPose>& pPoses) const
 {
     float tTime = mDuration > 0.0f && std::isfinite(pTime) ? std::fmod(pTime, mDuration) : 0.0f;
 
+    if (tTime < 0.0f)
+    {
+        tTime += mDuration;
+    }
+
     for (const Track& tTrack : mTracks)
     {
+        if (tTrack.joint < 0 || static_cast<size_t>(tTrack.joint) >= pPoses.size())
+        {
+            continue;
+        }
+
         JointPose& tPose = pPoses[static_cast<size_t>(tTrack.joint)];
 
         if (!tTrack.translations.empty())

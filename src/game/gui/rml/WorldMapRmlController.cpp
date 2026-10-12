@@ -63,7 +63,7 @@ WorldMapRmlController::~WorldMapRmlController()
 
 void WorldMapRmlController::setMap(const std::string& pImageName, const std::string& pMapName, float pWorldSize)
 {
-    mWorldSize = pWorldSize;
+    mWorldSize = pWorldSize > 0.0f ? pWorldSize : 1.0f;
 
     assign(mMapSource, "lakot-generated/" + pImageName, "map_source");
     assign(mMapName, pMapName, "map_name");
@@ -93,10 +93,10 @@ void WorldMapRmlController::toggle()
         return;
     }
 
-    mIsOpen = true;
-
     if (mDocument)
     {
+        mIsOpen = true;
+
         // FocusFlag::None, like the bag - opening the map must not take
         // keyboard focus away from movement.
         mDocument->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
@@ -112,6 +112,7 @@ void WorldMapRmlController::close()
     }
 
     mIsOpen = false;
+    mIsDragging = false;
 
     if (mDocument)
     {

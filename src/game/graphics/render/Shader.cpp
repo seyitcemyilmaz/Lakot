@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <SDL3/SDL.h>
 
+#include <stdexcept>
+
 using namespace lakot;
 
 Shader::~Shader()
@@ -38,7 +40,7 @@ void Shader::initialize()
     }
     else
     {
-        throw std::string("Undefined shader type.");
+        throw std::runtime_error("Undefined shader type.");
     }
 
     mId = glCreateShader(tShaderType);
@@ -48,13 +50,12 @@ void Shader::initialize()
 #elif defined(LAKOT_RENDERER_OPENGL_TYPE_ES)
     std::string tShaderHeader = "#version 320 es\n";
     tShaderHeader += "precision highp float;\n";
-#elif
+#else
 #error "Undefined shader header."
 #endif
 
-    mFileContent = tShaderHeader + mFileContent;
-
-    const char* tContentCStr = mFileContent.c_str();
+    std::string tSource = tShaderHeader + mFileContent;
+    const char* tContentCStr = tSource.c_str();
 
     glShaderSource(mId, 1, &tContentCStr, nullptr);
     glCompileShader(mId);
@@ -70,7 +71,9 @@ void Shader::initialize()
         glGetShaderInfoLog(mId, 512, nullptr, tErrorInfo);
 
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Shader compilation failed. Error: %s", tErrorInfo);
-        throw std::string("A shader did not compile.");
+        glDeleteShader(mId);
+        mId = 0;
+        throw std::runtime_error("A shader did not compile.");
     }
 }
 

@@ -205,5 +205,12 @@ const std::vector<glm::mat4>& Animator::getPalette() const
 
 const glm::mat4& Animator::getJointTransform(int pJoint) const
 {
+    static const glm::mat4 sIdentity(1.0f);
+
+    if (pJoint < 0 || static_cast<size_t>(pJoint) >= mGlobals.size())
+    {
+        return sIdentity;
+    }
+
     return mGlobals[static_cast<size_t>(pJoint)];
 }

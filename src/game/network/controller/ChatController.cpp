@@ -93,6 +93,11 @@ void ChatController::sendChatMessage(const std::string& pText, bool pIsGlobal)
 
     if (!tSession)
     {
+        if (mChatMessageResultCallback)
+        {
+            mChatMessageResultCallback(false, "No connection to server!");
+        }
+
         return;
     }
 
@@ -110,6 +115,11 @@ void ChatController::sendCommand(const std::string& pText)
 
     if (!tSession)
     {
+        if (mCommandResultCallback)
+        {
+            mCommandResultCallback(services::chat::COMMAND_FAILED, { "No connection to server!" });
+        }
+
         return;
     }
 

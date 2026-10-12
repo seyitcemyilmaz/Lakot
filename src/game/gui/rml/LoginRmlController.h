@@ -10,13 +10,6 @@
 
 #include "../../network/controller/AuthController.h"
 
-// Shows a one-click dev login row on the login screen for the seeded
-// lakot1/lakot2 test accounts - carried over from the old ImGui LoginPanel,
-// which defined this the same way (a plain #define here, not a CMake
-// option) - mirrors the LAKOT_DEV_MODE toggle in Engine.cpp. Comment out
-// before release.
-#define LAKOT_DEV_QUICK_LOGIN
-
 namespace lakot
 {
 

@@ -3,6 +3,7 @@
 #include "../../asset/AssetManager.h"
 
 #include <glad/glad.h>
+#include <SDL3/SDL_log.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -135,6 +136,13 @@ void Model::deinitialize()
 
 void Model::setInstances(const std::vector<glm::vec3>& pOffsets, const std::vector<glm::vec3>& pYawScaleStretches)
 {
+    if (pOffsets.size() != pYawScaleStretches.size())
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Model instance arrays differ in size (%zu offsets, %zu params)",
+                     pOffsets.size(), pYawScaleStretches.size());
+        return;
+    }
+
     mVertexInformation.set<glm::vec3>("instanceOffsets", pOffsets);
     mVertexInformation.set<glm::vec3>("instanceParams", pYawScaleStretches);
     mInstanceCount = static_cast<unsigned int>(pOffsets.size());

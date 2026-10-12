@@ -1,5 +1,7 @@
 #include "VertexArrayObject.h"
 
+#include <stdexcept>
+
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
 
@@ -95,7 +97,7 @@ void VertexArrayObject::initialize()
             }
             default:
             {
-                throw "Vertex Buffer Object undefined data type.";
+                throw std::runtime_error("Vertex Buffer Object undefined data type.");
             }
         }
 
@@ -122,9 +124,12 @@ void VertexArrayObject::initialize()
 
 void VertexArrayObject::deinitialize()
 {
-    bind();
-
-    glDeleteVertexArrays(1, &mId);
+    if (mId != UINT_MAX)
+    {
+        bind();
+        glDeleteVertexArrays(1, &mId);
+        mId = UINT_MAX;
+    }
 
     for (auto& tElement : mBuffers)
     {
@@ -229,5 +234,10 @@ VertexBufferObject* VertexArrayObject::getElementBufferObject() const
 
 void VertexArrayObject::generate()
 {
+    if (mId != UINT_MAX)
+    {
+        glDeleteVertexArrays(1, &mId);
+    }
+
     glGenVertexArrays(1, &mId);
 }

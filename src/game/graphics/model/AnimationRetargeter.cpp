@@ -8,6 +8,7 @@ using namespace lakot;
 namespace
 {
     const char* const kRootJoint = "Hips";
+    constexpr float kMaxClipSeconds = 600.0f;
 
     std::vector<glm::quat> toGlobalRotations(const Skeleton& pSkeleton, const std::vector<JointPose>& pPoses)
     {
@@ -80,13 +81,20 @@ std::unique_ptr<AnimationClip> AnimationRetargeter::retarget(const AnimationClip
 
     std::vector<AnimationClip::Key<glm::vec3>> tRootMotion;
 
-    int tFrameCount = std::max(2, static_cast<int>(std::ceil(pClip.getDuration() * kSampleRate)) + 1);
+    float tDuration = pClip.getDuration();
+
+    if (!std::isfinite(tDuration) || tDuration < 0.0f || tDuration > kMaxClipSeconds)
+    {
+        tDuration = 0.0f;
+    }
+
+    int tFrameCount = std::max(2, static_cast<int>(std::ceil(tDuration * kSampleRate)) + 1);
     std::vector<JointPose> tSourcePose;
     std::vector<glm::quat> tTargetGlobal(tTargetJoints.size());
 
     for (int tFrame = 0; tFrame < tFrameCount; ++tFrame)
     {
-        float tTime = std::min(static_cast<float>(tFrame) / kSampleRate, pClip.getDuration());
+        float tTime = std::min(static_cast<float>(tFrame) / kSampleRate, tDuration);
 
         tSourcePose = tSourceBind;
         pClip.sample(std::min(tTime, pClip.getDuration() * 0.999f), tSourcePose);

@@ -68,6 +68,16 @@ ShaderProgram* ShaderManager::createProgram(const std::string& pName, const std:
     {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create shader program '%s': %s", pName.c_str(), tException.what());
 
+        if (tVertexShader)
+        {
+            tVertexShader->deinitialize();
+        }
+
+        if (tFragmentShader)
+        {
+            tFragmentShader->deinitialize();
+        }
+
         delete tProgram;
         delete tVertexShader;
         delete tFragmentShader;

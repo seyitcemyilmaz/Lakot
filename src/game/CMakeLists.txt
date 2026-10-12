@@ -101,15 +101,15 @@ option(LAKOT_DEV_MODE "Skip the login screen and start directly in WorldScene" O
 option(LAKOT_DEV_QUICK_LOGIN "Show the one-click quick-login buttons on the login screen" OFF)
 option(LAKOT_DEV_TOOLS "Show in-game tuning panels (F10) that save into the source data folder" ON)
 
-if (LAKOT_DEV_MODE)
+if (LAKOT_DEV_MODE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${PROJECT_NAME} PRIVATE LAKOT_DEV_MODE)
 endif()
 
-if (LAKOT_DEV_QUICK_LOGIN)
+if (LAKOT_DEV_QUICK_LOGIN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${PROJECT_NAME} PRIVATE LAKOT_DEV_QUICK_LOGIN)
 endif()
 
-if (LAKOT_DEV_TOOLS)
+if (LAKOT_DEV_TOOLS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${PROJECT_NAME} PRIVATE LAKOT_DEV_TOOLS LAKOT_SOURCE_DATA_DIR="${CMAKE_SOURCE_DIR}/data")
 endif()
 

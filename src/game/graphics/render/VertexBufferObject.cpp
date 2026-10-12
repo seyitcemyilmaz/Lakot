@@ -28,12 +28,23 @@ VertexBufferObject::VertexBufferObject(const std::string& pName,
 
 void VertexBufferObject::initialize()
 {
+    if (mId != UINT_MAX)
+    {
+        return;
+    }
+
     glGenBuffers(1, &mId);
+    mCapacityBytes = 0;
 }
 
 void VertexBufferObject::deinitialize()
 {
-    glDeleteBuffers(1, &mId);
+    if (mId != UINT_MAX)
+    {
+        glDeleteBuffers(1, &mId);
+        mId = UINT_MAX;
+    }
+
     mCapacityBytes = 0;
 }
 

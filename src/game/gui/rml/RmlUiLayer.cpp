@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include <RmlUi/Core.h>
+#include <SDL3/SDL.h>
 
 #include "FileManager.h"
 
@@ -48,7 +49,10 @@ void RmlUiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
     // Same vendored font asset ImGui already uses (src/game/assets/fonts) -
     // no new font file needed.
     std::string tFontPath = FileManager::createPath(FileManager::getAssetPath(), "fonts/Roboto-Medium.ttf");
-    Rml::LoadFontFace(tFontPath);
+    if (!Rml::LoadFontFace(tFontPath))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "RmlUi font could not be loaded: %s", tFontPath.c_str());
+    }
 }
 
 void RmlUiLayer::deinitialize()
@@ -57,7 +61,13 @@ void RmlUiLayer::deinitialize()
     // RmlUi's own GL resources through the render interface, so the
     // interfaces must still be alive (and the GL context still current)
     // when it runs - only reset them afterward.
+    if (!mRenderInterface)
+    {
+        return;
+    }
+
     Rml::Shutdown();
+    mContext = nullptr;
 
     Rml::SetSystemInterface(nullptr);
     Rml::SetRenderInterface(nullptr);
@@ -166,6 +176,12 @@ bool RmlUiLayer::handleEvent(SDL_Event* pEvent)
 
 void RmlUiLayer::registerGeneratedImage(const std::string& pName, int pWidth, int pHeight, std::vector<uint8_t> pRgba)
 {
+    if (pWidth <= 0 || pHeight <= 0 || pRgba.size() != static_cast<size_t>(pWidth) * static_cast<size_t>(pHeight) * 4)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Generated image '%s' has a size that does not match its pixels", pName.c_str());
+        return;
+    }
+
     if (mRenderInterface)
     {
         // Opaque pixels are already premultiplied, which is what RmlUi wants.
@@ -241,6 +257,11 @@ float RmlUiLayer::getScale() const
 
 void RmlUiLayer::updateScale()
 {
+    if (!mContext)
+    {
+        return;
+    }
+
     float tScale = std::min(mLastKnownSize.x / kDesignWidth, mLastKnownSize.y / kDesignHeight);
     mContext->SetDensityIndependentPixelRatio(std::clamp(tScale, 0.5f, 2.0f));
 }

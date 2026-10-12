@@ -1,5 +1,7 @@
 #include "MinimapRmlController.h"
 
+#include <SDL3/SDL_log.h>
+
 #include <cmath>
 
 #include <RmlUi/Core/Context.h>
@@ -35,7 +37,18 @@ MinimapRmlController::MinimapRmlController(RmlUiLayer& pRmlUiLayer)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
+    if (!tContext)
+    {
+        return;
+    }
+
     Rml::DataModelConstructor tConstructor = tContext->CreateDataModel("minimap");
+
+    if (!tConstructor)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "RmlUi data model 'minimap' could not be created");
+        return;
+    }
 
     // RmlUi's struct registry is per context, not per model, and this
     // controller is rebuilt on every visit to the world.
@@ -96,6 +109,11 @@ void MinimapRmlController::setMap(const std::string& pImageName, const std::stri
 
 void MinimapRmlController::update(const glm::vec3& pPlayerPosition, float pFacingDegrees, const std::vector<glm::vec3>& pOtherPlayers)
 {
+    if (!std::isfinite(pPlayerPosition.x) || !std::isfinite(pPlayerPosition.z) || !std::isfinite(pFacingDegrees))
+    {
+        return;
+    }
+
     const float tHalfWorld = mWorldSize * 0.5f;
     const float tCentre = kViewPixels * 0.5f;
 
@@ -116,7 +134,7 @@ void MinimapRmlController::update(const glm::vec3& pPlayerPosition, float pFacin
         float tX = tCentre + (tOther.x - pPlayerPosition.x) * kPixelsPerUnit;
         float tY = tCentre + (tOther.z - pPlayerPosition.z) * kPixelsPerUnit;
 
-        if (tX < 0.0f || tY < 0.0f || tX > kViewPixels || tY > kViewPixels)
+        if (!(tX >= 0.0f && tY >= 0.0f && tX <= kViewPixels && tY <= kViewPixels))
         {
             continue;
         }

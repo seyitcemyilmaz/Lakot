@@ -138,12 +138,12 @@ std::shared_ptr<Texture> AssetManager::getModelTexture(const aiScene& pScene, co
             });
         }
 
-        if (!tTexture)
+        if (tTexture)
         {
-            pError = "cannot read texture '" + std::string(tTexturePath.C_Str()) + "' of " + pModelPath;
+            return tTexture;
         }
 
-        return tTexture;
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Cannot read texture '%s' of %s, using white", tTexturePath.C_Str(), pModelPath.c_str());
     }
 
     return getCached(mTextures, "#white", [](std::string&)

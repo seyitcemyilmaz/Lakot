@@ -41,6 +41,11 @@ void GuiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
 
 void GuiLayer::deinitialize()
 {
+    if (!ImGui::GetCurrentContext())
+    {
+        return;
+    }
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
@@ -138,6 +143,11 @@ bool GuiLayer::handleEvent(SDL_Event* pEvent)
 
 void GuiLayer::addPanel(std::shared_ptr<Panel> pPanel)
 {
+    if (!pPanel)
+    {
+        return;
+    }
+
     mPanels.push_back(pPanel);
 }
 

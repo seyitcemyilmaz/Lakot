@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <SDL3/SDL.h>
 
+#include <stdexcept>
+
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace lakot;
@@ -22,6 +24,11 @@ ShaderProgram::ShaderProgram(const std::string& pName, Shader* pVertexShader, Sh
 
 void ShaderProgram::initialize()
 {
+    if (mId != 0)
+    {
+        return;
+    }
+
     if (mVertexShader) mVertexShader->initialize();
     if (mFragmentShader) mFragmentShader->initialize();
 
@@ -41,8 +48,13 @@ void ShaderProgram::initialize()
         glGetProgramInfoLog(mId, 512, nullptr, tErrorInfo);
 
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Linking error in shader program (%s): %s", mName.c_str(), tErrorInfo);
-        throw std::string("Linking error in shader program.");
+        glDeleteProgram(mId);
+        mId = 0;
+        throw std::runtime_error("Linking error in shader program.");
     }
+
+    mVertexShader = nullptr;
+    mFragmentShader = nullptr;
 }
 
 void ShaderProgram::deinitialize()
@@ -77,6 +89,8 @@ ShaderUniform* ShaderProgram::createUniform(const std::string& pName)
 
     if (tLocation < 0)
     {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pName.c_str(), mName.c_str());
+        mUniforms[pName] = nullptr;
         return nullptr;
     }
 
@@ -106,7 +120,6 @@ void ShaderProgram::setBool(const std::string& pUniformName, bool pValue)
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -119,7 +132,6 @@ void ShaderProgram::setInt(const std::string& pUniformName, int pValue)
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -132,7 +144,6 @@ void ShaderProgram::setFloat(const std::string& pUniformName, float pValue)
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -145,7 +156,6 @@ void ShaderProgram::setVec3(const std::string& pUniformName, const glm::vec3& pV
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -158,7 +168,6 @@ void ShaderProgram::setMat4(const std::string& pUniformName, const glm::mat4& pV
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -171,7 +180,6 @@ void ShaderProgram::setMat4Array(const std::string& pUniformName, const glm::mat
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 
@@ -184,7 +192,6 @@ void ShaderProgram::setTexture(const std::string& pUniformName, unsigned int pUn
 
     if (!tUniform)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Uniform %s is not found in %s shader program.", pUniformName.c_str(), mName.c_str());
         return;
     }
 

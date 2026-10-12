@@ -119,6 +119,8 @@ public:
     void onSendResult(uint64_t pRequestId, bool pIsSuccess, const std::string& pMessage);
 
 private:
+    static constexpr size_t kMaxHistoryLines = 200;
+
     struct ChatLine
     {
         bool isLocal;
@@ -236,6 +238,7 @@ private:
 
     void scrollHistoryToBottom();
     void dirtyAll();
+    void trimHistory();
 };
 
 }

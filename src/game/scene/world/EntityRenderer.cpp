@@ -102,7 +102,7 @@ void EntityRenderer::draw(ShaderProgram& pShader, const WorldEntities& pEntities
 
             const EquipmentAttachments::Placement* tPlacement = mAttachments.find(tEquipped.slot, *tEntity.model, *tLook->model);
 
-            if (!tPlacement)
+            if (!tPlacement || tPlacement->joint < 0 || static_cast<size_t>(tPlacement->joint) >= tPalette.size())
             {
                 continue;
             }

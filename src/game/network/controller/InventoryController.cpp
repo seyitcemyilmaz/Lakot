@@ -1,8 +1,16 @@
 #include "InventoryController.h"
 
+#include <cmath>
+
 #include "../NetworkManager.h"
 
 using namespace lakot;
+
+namespace
+{
+    constexpr uint32_t kMaxGridSide = 64;
+    constexpr uint32_t kMaxGridPages = 16;
+}
 
 InventoryController::InventoryController(NetworkManager* pNetworkManager)
     : mNetworkManager(pNetworkManager)
@@ -160,7 +168,8 @@ void InventoryController::handleItemTemplateList(std::shared_ptr<NetworkSession<
 
     // Guarded: a server that sends zeros (an older build, a partial message)
     // would otherwise leave the client drawing a zero-sized bag.
-    if (tList.grid_width() > 0 && tList.page_height() > 0 && tList.page_count() > 0)
+    if (tList.grid_width() > 0 && tList.page_height() > 0 && tList.page_count() > 0
+        && tList.grid_width() <= kMaxGridSide && tList.page_height() <= kMaxGridSide && tList.page_count() <= kMaxGridPages)
     {
         mGrid.width = tList.grid_width();
         mGrid.pageHeight = tList.page_height();
@@ -256,5 +265,6 @@ void InventoryController::handleUseItemResponse(std::shared_ptr<NetworkSession<c
 
     const auto& tResponse = pMessage.response().use_item_response();
 
-    mUseItemResultCallback(tResponse.status(), tResponse.cooldown_seconds());
+    float tCooldown = tResponse.cooldown_seconds();
+    mUseItemResultCallback(tResponse.status(), std::isfinite(tCooldown) && tCooldown > 0.0f ? tCooldown : 0.0f);
 }

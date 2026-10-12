@@ -62,7 +62,7 @@ void AttachmentPanel::render()
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Revert"))
+    if (ImGui::Button("Revert") && !mSavePaths.empty())
     {
         std::string tError;
         mStatus = mAttachments.load(mSavePaths.front(), tError) ? "Reverted" : tError;

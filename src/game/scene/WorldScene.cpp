@@ -822,6 +822,10 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 
     if (pEvent->type == SDL_EVENT_WINDOW_FOCUS_LOST)
     {
+        mIsMovingForward = false;
+        mIsMovingBackward = false;
+        mIsMovingLeft = false;
+        mIsMovingRight = false;
         mIsAttackHeld = false;
         endOrbit();
         return false;

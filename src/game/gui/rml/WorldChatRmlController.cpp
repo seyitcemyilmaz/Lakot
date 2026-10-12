@@ -92,6 +92,7 @@ void WorldChatRmlController::appendLine(const std::string& pAuthorUsername, cons
     tLine.text = pText;
     tLine.isGlobal = pIsGlobal;
 
+    trimHistory();
     mHistory.push_back(std::move(tLine));
     mModelHandle.DirtyVariable("history");
     scrollHistoryToBottom();
@@ -108,6 +109,7 @@ void WorldChatRmlController::appendSystemLine(const std::string& pText, SystemLi
     tLine.isError = pType == SystemLineType::eError || pType == SystemLineType::eWarning;
     tLine.isEcho = pType == SystemLineType::eEcho;
 
+    trimHistory();
     mHistory.push_back(std::move(tLine));
     mModelHandle.DirtyVariable("history");
     scrollHistoryToBottom();
@@ -434,4 +436,24 @@ void WorldChatRmlController::scrollHistoryToBottom()
 void WorldChatRmlController::dirtyAll()
 {
     mModelHandle.DirtyAllVariables();
+}
+
+void WorldChatRmlController::trimHistory()
+{
+    if (mHistory.size() < kMaxHistoryLines)
+    {
+        return;
+    }
+
+    size_t tDropped = mHistory.size() - kMaxHistoryLines + 1;
+    mHistory.erase(mHistory.begin(), mHistory.begin() + static_cast<std::ptrdiff_t>(tDropped));
+
+    if (mLastSentLineIndex >= tDropped)
+    {
+        mLastSentLineIndex -= tDropped;
+    }
+    else
+    {
+        mHasPendingSend = false;
+    }
 }

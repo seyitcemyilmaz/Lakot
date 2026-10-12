@@ -20,13 +20,17 @@ JointPose JointPose::blend(const JointPose& pFrom, const JointPose& pTo, float p
 
 int Skeleton::addJoint(const std::string& pName, int pParent, const JointPose& pBindPose)
 {
-    mJoints.push_back({ pName, pParent, pBindPose, glm::mat4(1.0f) });
+    int tParent = pParent >= 0 && pParent < static_cast<int>(mJoints.size()) ? pParent : -1;
+    mJoints.push_back({ pName, tParent, pBindPose, glm::mat4(1.0f) });
     return static_cast<int>(mJoints.size()) - 1;
 }
 
 void Skeleton::setInverseBind(int pJoint, const glm::mat4& pInverseBind)
 {
-    mJoints[static_cast<size_t>(pJoint)].inverseBind = pInverseBind;
+    if (pJoint >= 0 && static_cast<size_t>(pJoint) < mJoints.size())
+    {
+        mJoints[static_cast<size_t>(pJoint)].inverseBind = pInverseBind;
+    }
 }
 
 int Skeleton::findJoint(const std::string& pName) const
@@ -91,6 +95,13 @@ std::vector<JointPose> Skeleton::getBindPose() const
 
 const glm::mat4& Skeleton::getInverseBind(int pJoint) const
 {
+    static const glm::mat4 sIdentity(1.0f);
+
+    if (pJoint < 0 || static_cast<size_t>(pJoint) >= mJoints.size())
+    {
+        return sIdentity;
+    }
+
     return mJoints[static_cast<size_t>(pJoint)].inverseBind;
 }
 
@@ -103,7 +114,7 @@ void Skeleton::computePalette(const std::vector<JointPose>& pLocalPoses, std::ve
     for (size_t tIndex = 0; tIndex < mJoints.size(); ++tIndex)
     {
         const Joint& tJoint = mJoints[tIndex];
-        glm::mat4 tLocal = pLocalPoses[tIndex].toMatrix();
+        glm::mat4 tLocal = (tIndex < pLocalPoses.size() ? pLocalPoses[tIndex] : tJoint.bindPose).toMatrix();
 
         tGlobal[tIndex] = tJoint.parent >= 0 ? tGlobal[static_cast<size_t>(tJoint.parent)] * tLocal : tLocal;
         pPalette[tIndex] = tGlobal[tIndex] * tJoint.inverseBind;

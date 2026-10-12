@@ -93,23 +93,35 @@ glm::vec2 AutoWalk::advance(const MapData& pMap, const glm::vec2& pPosition, flo
         const glm::vec2& tWaypoint = mPath[mPathIndex];
         float tToWaypoint = glm::distance(tPosition, tWaypoint);
 
-        if (tToWaypoint <= tRemaining)
+        bool tReachesWaypoint = tToWaypoint <= tRemaining;
+        glm::vec2 tNext = tReachesWaypoint ? tWaypoint : tPosition + (tWaypoint - tPosition) * (tRemaining / tToWaypoint);
+
+        if (!pMap.isMoveAllowed(tPosition.x, tPosition.y, tNext.x, tNext.y))
         {
-            tPosition = tWaypoint;
+            if (mIsFollowing)
+            {
+                mPath.clear();
+                mPathIndex = 0;
+            }
+            else
+            {
+                stop();
+            }
+
+            return tPosition;
+        }
+
+        tPosition = tNext;
+
+        if (tReachesWaypoint)
+        {
             tRemaining -= tToWaypoint;
             ++mPathIndex;
         }
         else
         {
-            tPosition += (tWaypoint - tPosition) * (tRemaining / tToWaypoint);
             tRemaining = 0.0f;
         }
-    }
-
-    if (!pMap.isMoveAllowed(pPosition.x, pPosition.y, tPosition.x, tPosition.y))
-    {
-        stop();
-        return pPosition;
     }
 
     if (!mIsFollowing && mPathIndex >= mPath.size())

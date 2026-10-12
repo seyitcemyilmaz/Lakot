@@ -119,6 +119,8 @@ public:
     void update(double pDeltaTime);
 
 private:
+    static constexpr size_t kMaxHistoryLines = 200;
+
     static constexpr double kMessageVisibleSeconds = 5.0;
 
     struct ChatLine
@@ -194,6 +196,7 @@ private:
 
     void scrollHistoryToBottom();
     void dirtyAll();
+    void trimHistory();
 };
 
 }

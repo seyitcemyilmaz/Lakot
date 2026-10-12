@@ -327,11 +327,6 @@ void CharacterSelectRmlController::onCancelCreateClicked(Rml::DataModelHandle /*
 
 void CharacterSelectRmlController::onLogoutClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
 {
-    if (mIsBusy)
-    {
-        return;
-    }
-
     if (mLogoutCallback)
     {
         mLogoutCallback();

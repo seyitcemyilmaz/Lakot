@@ -152,6 +152,7 @@ void ChatRmlController::appendIncoming(const std::string& pAuthorUsername, const
 {
     bool tHadNeverBeenShown = mDocument && !mDocument->IsVisible();
 
+    trimHistory();
     mHistory.push_back(ChatLine{ false, pAuthorUsername, pText });
     mModelHandle.DirtyVariable("history");
     scrollHistoryToBottom();
@@ -302,6 +303,7 @@ void ChatRmlController::doSend()
     // otherwise never show what they just sent. Remembered by index so
     // onSendResult() can mark THIS specific line red if it turns out to
     // have failed - see mLastSentLineIndex's own comment.
+    trimHistory();
     mHistory.push_back(ChatLine{ true, "You", tText });
     mLastSentLineIndex = mHistory.size() - 1;
     mHasPendingSentLine = true;
@@ -414,6 +416,7 @@ void ChatRmlController::doMinimize()
     }
 
     mIsMinimized = true;
+    mIsDragging = false;
     dirtyAll();
 }
 
@@ -507,5 +510,25 @@ void ChatRmlController::dirtyAll()
             mDocument->SetProperty("left", mFullWindowLeft);
             mDocument->SetProperty("top", mFullWindowTop);
         }
+    }
+}
+
+void ChatRmlController::trimHistory()
+{
+    if (mHistory.size() < kMaxHistoryLines)
+    {
+        return;
+    }
+
+    size_t tDropped = mHistory.size() - kMaxHistoryLines + 1;
+    mHistory.erase(mHistory.begin(), mHistory.begin() + static_cast<std::ptrdiff_t>(tDropped));
+
+    if (mLastSentLineIndex >= tDropped)
+    {
+        mLastSentLineIndex -= tDropped;
+    }
+    else
+    {
+        mHasPendingSentLine = false;
     }
 }

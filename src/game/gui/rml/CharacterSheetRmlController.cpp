@@ -1,5 +1,7 @@
 #include "CharacterSheetRmlController.h"
 
+#include <SDL3/SDL_log.h>
+
 #include <algorithm>
 
 #include <RmlUi/Core/Context.h>
@@ -27,7 +29,18 @@ CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
+    if (!tContext)
+    {
+        return;
+    }
+
     Rml::DataModelConstructor tConstructor = tContext->CreateDataModel("character");
+
+    if (!tConstructor)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "RmlUi data model 'character' could not be created");
+        return;
+    }
 
     tConstructor.Bind("name", &mName);
     tConstructor.Bind("level", &mLevel);
@@ -111,16 +124,18 @@ void CharacterSheetRmlController::toggle()
         return;
     }
 
+    if (!mDocument)
+    {
+        return;
+    }
+
     mIsOpen = true;
     dirtyAll();
 
-    if (mDocument)
-    {
-        // FocusFlag::None, same as the bag - opening a panel must not take
-        // keyboard focus away from movement.
-        mDocument->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
-        mDocument->PullToFront();
-    }
+    // FocusFlag::None, same as the bag - opening a panel must not take
+    // keyboard focus away from movement.
+    mDocument->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
+    mDocument->PullToFront();
 }
 
 void CharacterSheetRmlController::close()

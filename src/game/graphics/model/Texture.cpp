@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#include <limits>
+
 #include <glad/glad.h>
 
 #ifdef _MSC_VER
@@ -52,6 +54,12 @@ std::shared_ptr<Texture> Texture::fromMemory(const unsigned char* pData, size_t 
     int tWidth = 0;
     int tHeight = 0;
     int tChannels = 0;
+
+    if (!pData || pSize == 0 || pSize > static_cast<size_t>(std::numeric_limits<int>::max()))
+    {
+        pError = "embedded texture has no data or is too large";
+        return nullptr;
+    }
 
     stbi_set_flip_vertically_on_load(1);
     stbi_uc* tPixels = stbi_load_from_memory(pData, static_cast<int>(pSize), &tWidth, &tHeight, &tChannels, 4);

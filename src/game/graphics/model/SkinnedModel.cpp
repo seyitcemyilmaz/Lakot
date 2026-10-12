@@ -373,6 +373,13 @@ float SkinnedModel::getHeight() const
 
 const std::optional<SkinnedModel::Bounds>& SkinnedModel::getJointBounds(int pJoint) const
 {
+    static const std::optional<Bounds> sNoBounds;
+
+    if (pJoint < 0 || static_cast<size_t>(pJoint) >= mJointBounds.size())
+    {
+        return sNoBounds;
+    }
+
     return mJointBounds[static_cast<size_t>(pJoint)];
 }
 

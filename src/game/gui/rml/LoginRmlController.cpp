@@ -64,6 +64,9 @@ LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const std::strin
 
 LoginRmlController::~LoginRmlController()
 {
+    Engine::getInstance().getNetworkManager().getAuthController().setLoginResultCallback(nullptr);
+    Engine::getInstance().getNetworkManager().getAuthController().setRegisterResultCallback(nullptr);
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
@@ -168,7 +171,7 @@ void LoginRmlController::doRegister()
 
 void LoginRmlController::onLoginResult(bool pIsSuccess, const std::string& pMessage)
 {
-    mIsBusy = false;
+    mIsBusy = pIsSuccess;
     setStatus(pMessage, !pIsSuccess);
 
     if (pIsSuccess)

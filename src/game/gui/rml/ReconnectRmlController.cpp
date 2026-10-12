@@ -1,5 +1,7 @@
 #include "ReconnectRmlController.h"
 
+#include <SDL3/SDL_log.h>
+
 #include <string>
 
 #include <RmlUi/Core/Context.h>
@@ -14,7 +16,18 @@ ReconnectRmlController::ReconnectRmlController(RmlUiLayer& pRmlUiLayer)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
+    if (!tContext)
+    {
+        return;
+    }
+
     Rml::DataModelConstructor tConstructor = tContext->CreateDataModel("reconnect");
+
+    if (!tConstructor)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "RmlUi data model 'reconnect' could not be created");
+        return;
+    }
 
     tConstructor.Bind("seconds_left", &mSecondsLeftText);
     tConstructor.BindEventCallback("logout", &ReconnectRmlController::onLogoutClicked, this);
