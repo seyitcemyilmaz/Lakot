@@ -9,6 +9,18 @@
 
 using namespace lakot;
 
+namespace
+{
+
+constexpr int kInstructionBudget = 5000000;
+
+void onInstructionBudgetExceeded(lua_State* pState, lua_Debug*)
+{
+    luaL_error(pState, "script exceeded the instruction budget of %d", kInstructionBudget);
+}
+
+}
+
 Character& ScriptCharacter::require() const
 {
     if (!target)
@@ -33,9 +45,18 @@ ScriptEngine::ScriptEngine()
                         sol::lib::table,
                         sol::lib::math);
 
+    mLua["dofile"] = sol::lua_nil;
+    mLua["loadfile"] = sol::lua_nil;
+    mLua["load"] = sol::lua_nil;
+
     mCharacterHandle = std::make_shared<ScriptCharacter>();
 
     bindApi();
+}
+
+void ScriptEngine::armInstructionBudget()
+{
+    lua_sethook(mLua.lua_state(), onInstructionBudgetExceeded, LUA_MASKCOUNT, kInstructionBudget);
 }
 
 void ScriptEngine::bindApi()
@@ -155,6 +176,7 @@ bool ScriptEngine::loadDirectory(const std::string& pDirectory)
     {
         // safe_script_file, not script_file: a syntax error in one content
         // file must not take the server down with it.
+        armInstructionBudget();
         auto tResult = mLua.safe_script_file(tPath.string(), sol::script_pass_on_error);
 
         if (!tResult.valid())
@@ -185,6 +207,7 @@ void ScriptEngine::callCharacterHook(const char* pName, Character& pCharacter, T
 
     for (sol::protected_function& tHandler : tIterator->second)
     {
+        armInstructionBudget();
         auto tResult = tHandler(mCharacterHandle, pArgs...);
 
         if (!tResult.valid())

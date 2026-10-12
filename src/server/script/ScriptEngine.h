@@ -75,6 +75,8 @@ private:
 
     void bindApi();
 
+    void armInstructionBudget();
+
     // Runs every handler registered for pName, each in its own pcall, and
     // keeps going after one fails. Per-handler isolation matters as much as
     // per-script: one broken quest must not stop the others from running,
