@@ -2,34 +2,72 @@
 
 using namespace lakot;
 
-bool LoginAttemptLimiter::isAllowed(const std::string& pAddress)
+bool LoginAttemptLimiter::tryAcquire(const std::string& pAddress, const std::string& pUsername)
 {
-    if (pAddress.empty())
-    {
-        return true;
-    }
-
     auto tNow = std::chrono::steady_clock::now();
+    bool tHasAddress = !pAddress.empty();
+    std::string tPairKey = makePairKey(pAddress, pUsername);
 
     std::lock_guard<std::mutex> tLock(mMutex);
 
-    auto tIterator = mAttempts.find(pAddress);
+    sweepIfDue(tNow);
 
-    if (tIterator == mAttempts.end())
+    if (tHasAddress && (!mAddressTable.hasRoom(pAddress, tNow) || !mPairTable.hasRoom(tPairKey, tNow)))
     {
-        return true;
+        return false;
     }
 
-    if (tNow - tIterator->second.windowStart >= kAttemptWindow)
+    if (!mUsernameTable.hasRoom(pUsername, tNow))
     {
-        mAttempts.erase(tIterator);
-        return true;
+        return false;
     }
 
-    return tIterator->second.failedCount < kMaxFailedAttemptsPerWindow;
+    if (tHasAddress)
+    {
+        mAddressTable.reserve(pAddress, tNow);
+        mPairTable.reserve(tPairKey, tNow);
+    }
+
+    mUsernameTable.reserve(pUsername, tNow);
+    return true;
 }
 
-void LoginAttemptLimiter::recordFailure(const std::string& pAddress)
+void LoginAttemptLimiter::recordFailure(const std::string& pAddress, const std::string& pUsername)
+{
+    auto tNow = std::chrono::steady_clock::now();
+    std::string tPairKey = makePairKey(pAddress, pUsername);
+
+    std::lock_guard<std::mutex> tLock(mMutex);
+
+    if (!pAddress.empty())
+    {
+        mAddressTable.release(pAddress);
+        mAddressTable.addFailure(pAddress, tNow);
+        mPairTable.release(tPairKey);
+        mPairTable.addFailure(tPairKey, tNow);
+    }
+
+    mUsernameTable.release(pUsername);
+    mUsernameTable.addFailure(pUsername, tNow);
+}
+
+void LoginAttemptLimiter::recordSuccess(const std::string& pAddress, const std::string& pUsername)
+{
+    std::string tPairKey = makePairKey(pAddress, pUsername);
+
+    std::lock_guard<std::mutex> tLock(mMutex);
+
+    if (!pAddress.empty())
+    {
+        mAddressTable.release(pAddress);
+        mPairTable.release(tPairKey);
+        mPairTable.reset(tPairKey);
+    }
+
+    mUsernameTable.release(pUsername);
+}
+
+void LoginAttemptLimiter::recordMalformed(const std::string& pAddress)
 {
     if (pAddress.empty())
     {
@@ -40,24 +78,24 @@ void LoginAttemptLimiter::recordFailure(const std::string& pAddress)
 
     std::lock_guard<std::mutex> tLock(mMutex);
 
-    AttemptRecord& tRecord = mAttempts[pAddress];
-
-    if (tRecord.failedCount == 0 || tNow - tRecord.windowStart >= kAttemptWindow)
-    {
-        tRecord.windowStart = tNow;
-        tRecord.failedCount = 0;
-    }
-
-    tRecord.failedCount++;
+    sweepIfDue(tNow);
+    mAddressTable.addFailure(pAddress, tNow);
 }
 
-void LoginAttemptLimiter::clear(const std::string& pAddress)
+std::string LoginAttemptLimiter::makePairKey(const std::string& pAddress, const std::string& pUsername)
 {
-    if (pAddress.empty())
+    return pAddress + '|' + pUsername;
+}
+
+void LoginAttemptLimiter::sweepIfDue(std::chrono::steady_clock::time_point pNow)
+{
+    if (pNow - mLastSweep < kSweepInterval)
     {
         return;
     }
 
-    std::lock_guard<std::mutex> tLock(mMutex);
-    mAttempts.erase(pAddress);
+    mLastSweep = pNow;
+    mAddressTable.sweep(pNow);
+    mPairTable.sweep(pNow);
+    mUsernameTable.sweep(pNow);
 }

@@ -655,6 +655,9 @@ def main():
     g = subprocess.call([sys.executable, str(HERE / 't_login_pipeline_g54.py')])
     if g != 0:
         RESULTS.append(('t_login_pipeline_g54', False, 'see output above'))
+    g = subprocess.call([sys.executable, str(HERE / 't_login_limiter_g55.py')])
+    if g != 0:
+        RESULTS.append(('t_login_limiter_g55', False, 'see output above'))
     p = sum(1 for r in RESULTS if r[1])
     print(f"\n{p}/{len(RESULTS)} passed")
     if p != len(RESULTS):

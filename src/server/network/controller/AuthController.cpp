@@ -222,10 +222,18 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
     std::string tAddress = NetworkManager::getRemoteAddress(pSession);
 
-    // Checked before the credentials are even looked at: a refused address
-    // costs no database query and no password derivation, which is what makes
-    // this a brute-force defence rather than just a message.
-    if (!mAttemptLimiter.isAllowed(tAddress))
+    if (tUsername.empty() || tUsername.size() > RequestLimits::kMaxUsernameLength
+        || tPassword.empty() || tPassword.size() > RequestLimits::kMaxPasswordLength)
+    {
+        mAttemptLimiter.recordMalformed(tAddress);
+        mNetworkManager.abandonLogin(pSession);
+
+        sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
+                      "Invalid username or password.", true);
+        return;
+    }
+
+    if (!mAttemptLimiter.tryAcquire(tAddress, tUsername))
     {
         mNetworkManager.abandonLogin(pSession);
 
@@ -233,19 +241,6 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
         sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
                       "Too many failed attempts. Try again later.", true);
-        return;
-    }
-
-    if (tUsername.empty() || tUsername.size() > RequestLimits::kMaxUsernameLength
-        || tPassword.empty() || tPassword.size() > RequestLimits::kMaxPasswordLength)
-    {
-        // Counted as a failed attempt too - otherwise malformed requests are
-        // a free way to probe without ever tripping the limit.
-        mAttemptLimiter.recordFailure(tAddress);
-        mNetworkManager.abandonLogin(pSession);
-
-        sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
-                      "Invalid username or password.", true);
         return;
     }
 
@@ -261,7 +256,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
         {
             std::osyncstream(std::cout) << "[Server] Giris basarisiz: " << tUsername << std::endl;
 
-            mAttemptLimiter.recordFailure(tAddress);
+            mAttemptLimiter.recordFailure(tAddress, tUsername);
             mNetworkManager.abandonLogin(pSession);
 
             tHeader->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
@@ -277,10 +272,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
         std::osyncstream(std::cout) << "[Server] Giris Istegi: " << tUsername << " (Hesap: " << pAccountId << ")" << std::endl;
 
-        // A success clears the address's history, so a player who mistyped a
-        // few times and then got it right is not still one slip away from
-        // being locked out.
-        mAttemptLimiter.clear(tAddress);
+        mAttemptLimiter.recordSuccess(tAddress, tUsername);
 
         auto tToken = mNetworkManager.beginSession(pSession, pAccountId);
 

@@ -65,6 +65,7 @@ add_executable(${PROJECT_NAME}
 
     security/PasswordHasher.h security/PasswordHasher.cpp
     security/LoginAttemptLimiter.h security/LoginAttemptLimiter.cpp
+    security/AttemptTable.h security/AttemptTable.cpp
     security/TokenBucketLimiter.h security/TokenBucketLimiter.cpp
 
     database/DatabaseConfig.h

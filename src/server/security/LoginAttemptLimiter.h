@@ -4,7 +4,8 @@
 #include <chrono>
 #include <mutex>
 #include <string>
-#include <unordered_map>
+
+#include "AttemptTable.h"
 
 namespace lakot
 {
@@ -12,23 +13,29 @@ namespace lakot
 class LoginAttemptLimiter
 {
 public:
-    bool isAllowed(const std::string& pAddress);
+    bool tryAcquire(const std::string& pAddress, const std::string& pUsername);
 
-    void recordFailure(const std::string& pAddress);
-    void clear(const std::string& pAddress);
+    void recordFailure(const std::string& pAddress, const std::string& pUsername);
+    void recordSuccess(const std::string& pAddress, const std::string& pUsername);
+    void recordMalformed(const std::string& pAddress);
 
 private:
-    static constexpr int kMaxFailedAttemptsPerWindow = 8;
-    static constexpr std::chrono::seconds kAttemptWindow{60};
-
-    struct AttemptRecord
-    {
-        int failedCount = 0;
-        std::chrono::steady_clock::time_point windowStart;
-    };
+    static constexpr int kMaxFailuresPerAddress = 8;
+    static constexpr int kMaxFailuresPerPair = 5;
+    static constexpr int kMaxFailuresPerUsername = 20;
+    static constexpr std::chrono::seconds kAddressWindow{60};
+    static constexpr std::chrono::seconds kPairWindow{60};
+    static constexpr std::chrono::seconds kUsernameWindow{300};
+    static constexpr std::chrono::seconds kSweepInterval{30};
 
     std::mutex mMutex;
-    std::unordered_map<std::string, AttemptRecord> mAttempts;
+    AttemptTable mAddressTable{kMaxFailuresPerAddress, kAddressWindow};
+    AttemptTable mPairTable{kMaxFailuresPerPair, kPairWindow};
+    AttemptTable mUsernameTable{kMaxFailuresPerUsername, kUsernameWindow};
+    std::chrono::steady_clock::time_point mLastSweep = std::chrono::steady_clock::now();
+
+    static std::string makePairKey(const std::string& pAddress, const std::string& pUsername);
+    void sweepIfDue(std::chrono::steady_clock::time_point pNow);
 };
 
 }

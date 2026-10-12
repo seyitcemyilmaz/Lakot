@@ -224,7 +224,7 @@ def t_register_inflight_blocks_login():
 def t_server_survived():
     srv = C["srv"]
     check(srv.proc.poll() is None, "server process exited\n" + "\n".join(srv.log_lines[-15:]))
-    check(not any("Assertion" in l or "terminate" in l.lower() or "exception" in l.lower() for l in srv.log_lines),
+    check(not any("Assertion" in l or "terminate" in l.lower() or "exception" in l.lower() for l in C["all_lines"] + srv.log_lines),
           "exception/assert line in server log")
     c, u = new_user()
     r = c.login(u)
@@ -247,10 +247,17 @@ def main():
             print("SETUP FAILED:", e, flush=True)
             sys.exit(2)
         C["srv"] = srv
+        C["all_lines"] = []
+        tFirst = True
         for t in TESTS:
             if tOnly and t.__name__ not in tOnly:
                 continue
             t0 = time.time()
+            if not tFirst:
+                C["all_lines"] += srv.log_lines
+                srv.stop()
+                srv.start()
+            tFirst = False
             try:
                 t()
                 tResults.append((t.__name__, True, ""))
