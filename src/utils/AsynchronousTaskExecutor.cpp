@@ -1,5 +1,8 @@
 #include "AsynchronousTaskExecutor.h"
 
+#include <iostream>
+#include <syncstream>
+
 using namespace lakot;
 
 AsynchronousTaskExecutor::~AsynchronousTaskExecutor()
@@ -11,9 +14,13 @@ AsynchronousTaskExecutor::~AsynchronousTaskExecutor()
 
     mTaskConditionVariable.notify_all();
 
-    if (mTaskThread.joinable())
+    if (mTaskThread.joinable() && mTaskThread.get_id() != std::this_thread::get_id())
     {
         mTaskThread.join();
+    }
+    else if (mTaskThread.joinable())
+    {
+        mTaskThread.detach();
     }
 }
 
@@ -68,7 +75,7 @@ void AsynchronousTaskExecutor::execute()
             }
             catch (...)
             {
-                // TODO: add handler
+                std::osyncstream(std::cerr) << "[AsyncTask] Gorev bilinmeyen istisna" << std::endl;
             }
         }
 
@@ -80,7 +87,7 @@ void AsynchronousTaskExecutor::execute()
             }
             catch (...)
             {
-                // TODO: add handler
+                std::osyncstream(std::cerr) << "[AsyncTask] Gorev bilinmeyen istisna" << std::endl;
             }
         }
     }

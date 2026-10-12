@@ -136,12 +136,10 @@ public:
     bool isWalkable(float pX, float pZ) const;
 
     // Checks the whole path, not just the destination, so a single long step
-    // cannot jump through a wall. A move starting somewhere unwalkable is
-    // always allowed - a character saved there must be able to walk out.
+    // cannot jump through a wall.
     bool isMoveAllowed(float pFromX, float pFromZ, float pToX, float pToZ) const;
 
-    // Every point along the segment, pSampleStep apart, is walkable - no
-    // escape clause, unlike isMoveAllowed.
+    // Every point along the segment, pSampleStep apart, is walkable.
     bool isPathWalkable(float pFromX, float pFromZ, float pToX, float pToZ, float pSampleStep = 1.0f) const;
 
     // ---- Walk grid (the block map's cells), for path finding ----

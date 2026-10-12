@@ -42,10 +42,18 @@ bool MapCatalog::load(const std::string& pDataDirectory, std::string& pError)
         return false;
     }
 
+    mKingdoms.clear();
+    mMaps.clear();
     mDefaultStartMapId = tDocument["defaultStartMap"].GetUint();
 
     for (const auto& tEntry : tDocument["kingdoms"].GetArray())
     {
+        if (!tEntry.IsObject())
+        {
+            pError = "kingdoms.json has an entry that is not an object";
+            return false;
+        }
+
         KingdomInfo tKingdom;
         tKingdom.id = tEntry.HasMember("id") && tEntry["id"].IsUint() ? tEntry["id"].GetUint() : 0;
         tKingdom.name = tEntry.HasMember("name") && tEntry["name"].IsString() ? tEntry["name"].GetString() : "";
@@ -56,6 +64,12 @@ bool MapCatalog::load(const std::string& pDataDirectory, std::string& pError)
         if (!isValidKingdom(tKingdom.id))
         {
             pError = "kingdoms.json has a kingdom id outside 1.." + std::to_string(kKingdomCount);
+            return false;
+        }
+
+        if (getKingdom(tKingdom.id))
+        {
+            pError = "kingdoms.json has a duplicate kingdom id " + std::to_string(tKingdom.id);
             return false;
         }
 

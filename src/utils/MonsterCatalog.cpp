@@ -1,9 +1,12 @@
 #include "MonsterCatalog.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <unordered_map>
 
 #include <rapidjson/document.h>
 
@@ -11,6 +14,8 @@ using namespace lakot;
 
 namespace
 {
+    constexpr float kMinAttackInterval = 0.1f;
+
     float getFloat(const rapidjson::Value& pObject, const char* pName, float pDefault)
     {
         auto tMember = pObject.FindMember(pName);
@@ -54,20 +59,28 @@ bool MonsterCatalog::load(const std::string& pDataDirectory, std::string& pError
         return false;
     }
 
+    std::unordered_map<uint32_t, MonsterTemplate> tTemplates;
+
     for (const auto& tEntry : tDocument["monsters"].GetArray())
     {
+        if (!tEntry.IsObject())
+        {
+            pError = "monsters.json has an entry that is not an object";
+            return false;
+        }
+
         MonsterTemplate tTemplate;
-        tTemplate.id = static_cast<uint32_t>(getInt(tEntry, "id", 0));
+        tTemplate.id = static_cast<uint32_t>(std::max(0, getInt(tEntry, "id", 0)));
         tTemplate.name = getString(tEntry, "name");
         tTemplate.model = getString(tEntry, "model");
-        tTemplate.level = static_cast<uint32_t>(getInt(tEntry, "level", 1));
+        tTemplate.level = static_cast<uint32_t>(std::max(1, getInt(tEntry, "level", 1)));
         tTemplate.minLevel = static_cast<uint32_t>(std::max(1, getInt(tEntry, "minLevel", static_cast<int32_t>(tTemplate.level))));
         tTemplate.maxLevel = std::max(tTemplate.minLevel, static_cast<uint32_t>(std::max(1, getInt(tEntry, "maxLevel", static_cast<int32_t>(tTemplate.level)))));
         tTemplate.scalePerLevel = std::max(0.0f, getFloat(tEntry, "scalePerLevel", 0.1f));
         tTemplate.maxHealth = getInt(tEntry, "maxHealth", 1);
         tTemplate.attack = getInt(tEntry, "attack", 1);
         tTemplate.defense = getInt(tEntry, "defense", 0);
-        tTemplate.experience = static_cast<uint32_t>(getInt(tEntry, "experience", 0));
+        tTemplate.experience = static_cast<uint32_t>(std::max(0, getInt(tEntry, "experience", 0)));
         tTemplate.moveSpeed = getFloat(tEntry, "moveSpeed", 3.0f);
         tTemplate.aggroRange = getFloat(tEntry, "aggroRange", 8.0f);
         tTemplate.attackRange = getFloat(tEntry, "attackRange", 1.8f);
@@ -139,9 +152,24 @@ bool MonsterCatalog::load(const std::string& pDataDirectory, std::string& pError
             return false;
         }
 
-        mTemplates[tTemplate.id] = std::move(tTemplate);
+        if (!(tTemplate.attackInterval >= kMinAttackInterval) || !(tTemplate.moveSpeed >= 0.0f)
+            || !(tTemplate.respawnSeconds >= 0.0f) || !std::isfinite(tTemplate.moveSpeed)
+            || !std::isfinite(tTemplate.attackInterval) || !std::isfinite(tTemplate.respawnSeconds))
+        {
+            pError = "monsters.json has an entry with an invalid speed, attack interval or respawn time: " + tTemplate.name;
+            return false;
+        }
+
+        uint32_t tId = tTemplate.id;
+
+        if (!tTemplates.emplace(tId, std::move(tTemplate)).second)
+        {
+            pError = "monsters.json has a duplicate id: " + std::to_string(tId);
+            return false;
+        }
     }
 
+    mTemplates = std::move(tTemplates);
     return true;
 }
 

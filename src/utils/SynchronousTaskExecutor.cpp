@@ -1,5 +1,8 @@
 #include "SynchronousTaskExecutor.h"
 
+#include <iostream>
+#include <syncstream>
+
 using namespace lakot;
 
 void SynchronousTaskExecutor::execute()
@@ -30,11 +33,11 @@ void SynchronousTaskExecutor::execute()
         }
         catch (const std::exception& tException)
         {
-            // TODO: add handling
+            std::osyncstream(std::cerr) << "[SyncTask] Gorev istisnasi: " << tException.what() << std::endl;
         }
         catch (...)
         {
-            // TODO: add handling
+            std::osyncstream(std::cerr) << "[SyncTask] Gorev bilinmeyen istisna" << std::endl;
         }
 
         tProcessQueue.pop();

@@ -1,7 +1,10 @@
 #include "FileManager.h"
 
 #include <fstream>
+#include <iterator>
+#include <stdexcept>
 #include <string>
+#include <system_error>
 
 using namespace lakot;
 
@@ -12,14 +15,16 @@ std::string FileManager::createPath(const std::filesystem::path& pPath, const st
     std::string tPath = pPath.string();
     unsigned int tPathLength = static_cast<unsigned int>(tPath.size());
 
-    if (tPathLength > 0)
+    if (tPathLength == 0)
     {
-        char tLastElement = tPath.at(tPathLength - 1);
+        return pFileOrDirectory;
+    }
 
-        if (tLastElement == '/' || tLastElement == '\\')
-        {
-            return tPath + pFileOrDirectory;
-        }
+    char tLastElement = tPath.at(tPathLength - 1);
+
+    if (tLastElement == '/' || tLastElement == '\\')
+    {
+        return tPath + pFileOrDirectory;
     }
 
     return tPath + '/' + pFileOrDirectory;
@@ -27,12 +32,14 @@ std::string FileManager::createPath(const std::filesystem::path& pPath, const st
 
 bool FileManager::isFileExist(const std::filesystem::path& pPath)
 {
-    return std::filesystem::exists(pPath);
+    std::error_code tErrorCode;
+    return std::filesystem::exists(pPath, tErrorCode);
 }
 
 bool FileManager::isFileExist(const std::filesystem::path& pPath, const std::string& pFile)
 {
-    return std::filesystem::exists(createPath(pPath, pFile));
+    std::error_code tErrorCode;
+    return std::filesystem::exists(createPath(pPath, pFile), tErrorCode);
 }
 
 bool FileManager::hasParentPath(const std::filesystem::path& pPath)
@@ -42,17 +49,14 @@ bool FileManager::hasParentPath(const std::filesystem::path& pPath)
 
 std::string FileManager::getFileContent(const std::filesystem::path& pPath)
 {
-    std::ifstream tFile(pPath);
+    std::ifstream tFile(pPath, std::ios::binary);
 
     if (!tFile.is_open())
     {
-        throw "File is not found.";
+        throw std::runtime_error("File is not found: " + pPath.string());
     }
 
-    std::string tFileContent;
-    std::getline(tFile, tFileContent, '\0');
-
-    return tFileContent;
+    return std::string(std::istreambuf_iterator<char>(tFile), std::istreambuf_iterator<char>());
 }
 
 std::string FileManager::getParentDirectory(const std::filesystem::path& pPath)

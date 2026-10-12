@@ -1,10 +1,13 @@
 #include "Timer.h"
 
+#include <stdexcept>
+
 using namespace lakot;
 
 void Timer::start()
 {
     mStartTime = std::chrono::steady_clock::now();
+    mStopTime = mStartTime;
 }
 
 void Timer::stop()
@@ -44,5 +47,5 @@ std::string Timer::getTime(Type pTimerType)
         return std::to_string(std::chrono::duration_cast<std::chrono::hours>(mStopTime - mStartTime).count()) + "h";
     }
 
-    throw "Undefined behaviour";
+    throw std::invalid_argument("Unknown timer type");
 }

@@ -116,6 +116,11 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
     {
         for (const auto& tEntry : tPortals->value.GetArray())
         {
+            if (!tEntry.IsObject())
+            {
+                continue;
+            }
+
             MapPortal tPortal;
             tPortal.triggerX = getFloat(tEntry, "x", 0.0f);
             tPortal.triggerZ = getFloat(tEntry, "z", 0.0f);
@@ -136,6 +141,11 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
 
         for (const auto& tEntry : tObjects->value.GetArray())
         {
+            if (!tEntry.IsObject())
+            {
+                continue;
+            }
+
             MapObject tObject;
             tObject.type = getString(tEntry, "type");
             tObject.model = getString(tEntry, "model");
@@ -157,7 +167,10 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
             {
                 for (rapidjson::SizeType tIndex = 0; tIndex < 3; ++tIndex)
                 {
-                    tObject.color[tIndex] = tColor->value[tIndex].GetFloat();
+                    if (tColor->value[tIndex].IsNumber())
+                    {
+                        tObject.color[tIndex] = tColor->value[tIndex].GetFloat();
+                    }
                 }
             }
 
@@ -171,6 +184,11 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
     {
         for (const auto& tEntry : tNpcs->value.GetArray())
         {
+            if (!tEntry.IsObject())
+            {
+                continue;
+            }
+
             MapNpc tNpc;
             tNpc.name = getString(tEntry, "name");
             tNpc.model = getString(tEntry, "model");
@@ -188,6 +206,11 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
     {
         for (const auto& tEntry : tMonsterSpawns->value.GetArray())
         {
+            if (!tEntry.IsObject())
+            {
+                continue;
+            }
+
             MapMonsterSpawn tSpawnPoint;
             tSpawnPoint.monsterId = getUint(tEntry, "monster", 0);
             tSpawnPoint.x = getFloat(tEntry, "x", 0.0f);
@@ -206,6 +229,11 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
     {
         for (const auto& tEntry : tSafeZones->value.GetArray())
         {
+            if (!tEntry.IsObject())
+            {
+                continue;
+            }
+
             MapSafeZone tZone;
             tZone.name = getString(tEntry, "name");
             auto tPoints = tEntry.FindMember("points");
@@ -214,7 +242,7 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
             {
                 for (const auto& tPoint : tPoints->value.GetArray())
                 {
-                    if (tPoint.IsArray() && tPoint.Size() == 2)
+                    if (tPoint.IsArray() && tPoint.Size() == 2 && tPoint[0].IsNumber() && tPoint[1].IsNumber())
                     {
                         tZone.points.push_back({ tPoint[0].GetFloat(), tPoint[1].GetFloat() });
                     }
@@ -515,11 +543,6 @@ bool MapData::isWalkable(float pX, float pZ) const
 
 bool MapData::isMoveAllowed(float pFromX, float pFromZ, float pToX, float pToZ) const
 {
-    if (!isWalkable(pFromX, pFromZ))
-    {
-        return true;
-    }
-
     // Finer than the smallest blocking feature (one 2-unit block cell), so
     // nothing solid can fall between two samples.
     return isPathWalkable(pFromX, pFromZ, pToX, pToZ, 1.0f);
@@ -527,7 +550,7 @@ bool MapData::isMoveAllowed(float pFromX, float pFromZ, float pToX, float pToZ) 
 
 bool MapData::isPathWalkable(float pFromX, float pFromZ, float pToX, float pToZ, float pSampleStep) const
 {
-    if (!isWalkable(pToX, pToZ) || !std::isfinite(pFromX) || !std::isfinite(pFromZ))
+    if (!isWalkable(pToX, pToZ) || !isInside(pFromX, pFromZ) || !(pSampleStep > 0.0f))
     {
         return false;
     }
