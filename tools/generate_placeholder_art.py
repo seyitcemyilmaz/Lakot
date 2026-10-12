@@ -32,7 +32,7 @@ STONE = (128, 132, 140, 255)
 STONE_DARK = (92, 96, 104, 255)
 OUTLINE = (24, 24, 30, 255)
 
-OUT_DIR = os.path.join("src", "game", "assets", "ui", "textures", "items")
+OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "game", "assets", "ui", "textures", "items")
 
 
 def new_icon(cells_w, cells_h):

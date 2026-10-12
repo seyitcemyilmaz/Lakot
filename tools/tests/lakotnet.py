@@ -59,6 +59,8 @@ class Server:
                 return
             except OSError:
                 time.sleep(0.3)
+        self.proc.kill()
+        self.proc.wait()
         raise RuntimeError("server did not open port\n" + "\n".join(self.log_lines[-20:]))
 
     def _pump(self):
@@ -69,6 +71,8 @@ class Server:
         if not self.proc:
             return
         try:
+            self.proc.stdin.write("exit\n")
+            self.proc.stdin.flush()
             self.proc.stdin.close()
         except Exception:
             pass

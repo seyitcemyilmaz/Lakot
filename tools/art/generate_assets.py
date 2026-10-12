@@ -140,6 +140,15 @@ def gradio_headers():
     return {"Authorization": f"Bearer {token}"} if token else {}
 
 
+def fetch_hf(url, timeout):
+    parts = urllib.parse.urlparse(url or "")
+    trusted = parts.scheme == "https" and ("." + (parts.hostname or "")).endswith((".hf.space", ".huggingface.co"))
+    if not trusted:
+        raise RuntimeError(f"refusing to download from untrusted url: {url}")
+    with urllib.request.urlopen(urllib.request.Request(url, headers=gradio_headers()), timeout=timeout) as response:
+        return response.read()
+
+
 def gradio_upload(space, path):
     boundary = "lakotboundary" + str(int(time.time() * 1000))
     data = open(path, "rb").read()
@@ -172,8 +181,7 @@ def gradio_call(space, endpoint, data):
 def gradio_image(result):
     item = result[0]
     url = item.get("url") if isinstance(item, dict) else None
-    with urllib.request.urlopen(urllib.request.Request(url, headers=gradio_headers()), timeout=300) as response:
-        return response.read()
+    return fetch_hf(url, 300)
 
 
 class GradioSession:
@@ -210,8 +218,7 @@ def fetch_file(item):
     url = item.get("url") if isinstance(item, dict) else None
     if not url and isinstance(item, dict) and "value" in item:
         url = item["value"].get("url")
-    with urllib.request.urlopen(urllib.request.Request(url, headers=gradio_headers()), timeout=600) as response:
-        return response.read()
+    return fetch_hf(url, 600)
 
 
 TRELLIS = "microsoft-trellis-2"
@@ -376,6 +383,15 @@ def cmd_split(args, manifest):
         print(f"split {entry['id']}: {len(boxes)} views {status}", flush=True)
 
 
+MESHY_STATE_KEYS = {"multi-image-to-3d": "mesh", "remesh": "remesh", "rigging": "rig"}
+
+
+class MeshyTaskFailed(RuntimeError):
+    def __init__(self, kind, message):
+        super().__init__(message)
+        self.kind = kind
+
+
 def meshy_wait(key, kind, task_id, label):
     while True:
         task = http_json("GET", f"{MESHY_URL}/{kind}/{task_id}", {"Authorization": f"Bearer {key}"})
@@ -383,7 +399,7 @@ def meshy_wait(key, kind, task_id, label):
         if status == "SUCCEEDED":
             return task
         if status in ("FAILED", "CANCELED"):
-            raise RuntimeError(f"{label} {kind} {status}: {task.get('task_error')}")
+            raise MeshyTaskFailed(kind, f"{label} {kind} {status}: {task.get('task_error')}")
         print(f"  {label} {kind} {status} {task.get('progress', 0)}%", flush=True)
         time.sleep(15)
 
@@ -447,6 +463,9 @@ def cmd_models(args, manifest):
             save_tasks(tasks)
             print("model", os.path.relpath(target, ROOT), flush=True)
         except Exception as error:
+            if isinstance(error, MeshyTaskFailed):
+                state.pop(MESHY_STATE_KEYS.get(error.kind, ""), None)
+                save_tasks(tasks)
             print(f"model {entry['id']} failed: {error}", flush=True)
 
 

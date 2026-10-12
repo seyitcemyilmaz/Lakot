@@ -287,8 +287,6 @@ def t_raw_slash_chat_not_delivered():
         time.sleep(0.6)
         r = p1.chat(tText, tGlobal)
         check(r is not None, f"no response to raw slash chat {tText}")
-        check(not (r.HasField("chat_message_response") and r.chat_message_response.error_code == 0
-                   and r.header.status.code == 0 and False), "n/a")
     time.sleep(1.5)
     tGot = [r for r in log_since(p2, tMark2) if r.HasField("chat_message_received") and r.chat_message_received.text.startswith("/")]
     check(not tGot, f"raw slash chat delivered to another player: {tGot[:1]}")
@@ -781,7 +779,6 @@ def t_gm_audit_log():
     print(f"      [GM] lines: {len(tGm)}; sample: {tGm[:1]}", flush=True)
     check(tGm, "no [GM] audit lines in the server log")
     check(any(C["G"].name in l or GM_ACCOUNT in l for l in tGm), "[GM] lines do not name the GM")
-    check(not any("/item" in l and "Health Potion" in l and False for l in tGm), "n/a")
 
 
 def t_moderator_level_1():

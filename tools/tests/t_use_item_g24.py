@@ -305,7 +305,6 @@ def t_rejects():
     try:
         enter_world(d)
         time.sleep(1.5)
-        check(True, "starter script grants 5 health potions, so only the mana potion can be tested as not owned")
         expect(use(d, MANA), [USE_NOT_OWNED, USE_INVALID], "mana potion, none owned")
     finally:
         d.close()

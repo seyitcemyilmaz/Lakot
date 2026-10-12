@@ -66,6 +66,14 @@ if(LAKOT_USE_PLATFORM_WINDOWS OR LAKOT_USE_PLATFORM_LINUX)
     endif()
 endif()
 
+if (NOT DEFINED ENV{LAKOT_EXTERNAL} OR "$ENV{LAKOT_EXTERNAL}" STREQUAL "")
+    message(FATAL_ERROR "LAKOT_EXTERNAL environment variable is not set.")
+endif()
+
+if (NOT DEFINED ENV{VCPKG_ROOT} OR "$ENV{VCPKG_ROOT}" STREQUAL "")
+    message(FATAL_ERROR "VCPKG_ROOT environment variable is not set.")
+endif()
+
 set(LAKOT_EXTERNAL_PATH "$ENV{LAKOT_EXTERNAL}")
 
 option(LAKOT_USE_BUILD_TYPE_DEBUG "Lakot Debug Build" OFF)

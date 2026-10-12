@@ -192,7 +192,6 @@
       "drops": [
         {
           "itemId": 4,
-          "chance": 0.6,
           "min": 2,
           "max": 4,
           "guaranteed": true
@@ -295,7 +294,6 @@
       "drops": [
         {
           "itemId": 4,
-          "chance": 1.0,
           "min": 3,
           "max": 5,
           "guaranteed": true
@@ -320,7 +318,6 @@
         },
         {
           "itemId": 3003,
-          "chance": 0.3,
           "min": 1,
           "max": 1,
           "guaranteed": true
