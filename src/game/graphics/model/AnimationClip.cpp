@@ -71,7 +71,7 @@ glm::vec3 AnimationClip::sampleRootMotion(float pTime) const
 
 void AnimationClip::sample(float pTime, std::vector<JointPose>& pPoses) const
 {
-    float tTime = mDuration > 0.0f ? std::fmod(pTime, mDuration) : 0.0f;
+    float tTime = mDuration > 0.0f && std::isfinite(pTime) ? std::fmod(pTime, mDuration) : 0.0f;
 
     for (const Track& tTrack : mTracks)
     {

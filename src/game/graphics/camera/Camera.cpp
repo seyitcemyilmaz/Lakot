@@ -25,9 +25,9 @@ Camera::Camera(CameraType pType)
 
 void Camera::updateProjection(int pWidth, int pHeight)
 {
-    if (pHeight <= 0)
+    if (pWidth <= 0 || pHeight <= 0)
     {
-        pHeight = 1;
+        return;
     }
 
     float tAspectRatio = static_cast<float>(pWidth) / static_cast<float>(pHeight);
