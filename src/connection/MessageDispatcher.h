@@ -80,7 +80,7 @@ private:
         }
         else
         {
-            std::osyncstream(std::cerr) << "[Dispatcher] Unhandled Packet Key: " << pKey << " (ID: " << tOriginalId << ") from Account: " << pSession->getAccountId() << std::endl;
+            std::osyncstream(std::cerr) << "[Dispatcher] Unhandled Packet Key: " << pKey << " (ID: " << tOriginalId << ") from Account: " << (pSession ? pSession->getAccountId() : 0) << std::endl;
         }
     }
 };

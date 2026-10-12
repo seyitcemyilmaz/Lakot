@@ -20,6 +20,11 @@ public:
 
     std::shared_ptr<SessionType> addOrReplace(uint64_t pUserId, std::shared_ptr<SessionType> pSession)
     {
+        if (!pSession)
+        {
+            return nullptr;
+        }
+
         std::unique_lock tLock(mMutex);
 
         std::shared_ptr<SessionType> tOldSession = nullptr;
@@ -93,7 +98,10 @@ public:
 
         for (const auto& [tId, tSession] : mSessions)
         {
-            tSession->send(pMessage);
+            if (tSession)
+            {
+                tSession->send(pMessage);
+            }
         }
     }
 
@@ -113,6 +121,11 @@ public:
 
     void bindCharacter(uint64_t pCharacterId, std::shared_ptr<SessionType> pSession)
     {
+        if (!pSession)
+        {
+            return;
+        }
+
         std::unique_lock tLock(mMutex);
         mCharacterSessions[pCharacterId] = std::move(pSession);
     }

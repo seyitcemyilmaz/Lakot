@@ -1,6 +1,8 @@
 #ifndef LAKOT_NETWORKSERVER_H
 #define LAKOT_NETWORKSERVER_H
 
+#include <atomic>
+#include <chrono>
 #include <exception>
 #include <iostream>
 #include <vector>
@@ -39,6 +41,7 @@ public:
 
     NetworkServer(uint16_t pPort)
         : mAcceptor(mContext)
+        , mAcceptRetryTimer(mContext)
     {
         try
         {
@@ -103,9 +106,13 @@ public:
 
         for (auto& tThread : mWorkerThreads)
         {
-            if (tThread.joinable())
+            if (tThread.joinable() && tThread.get_id() != std::this_thread::get_id())
             {
                 tThread.join();
+            }
+            else if (tThread.joinable())
+            {
+                tThread.detach();
             }
         }
 
@@ -148,11 +155,42 @@ private:
                 return;
             }
 
-            if (!pErrorCode)
+            if (pErrorCode)
+            {
+                std::osyncstream(std::cerr) << "[NetworkServer] Kabul hatasi: " << pErrorCode.message() << std::endl;
+
+                mAcceptRetryTimer.expires_after(kAcceptRetryDelay);
+                mAcceptRetryTimer.async_wait(
+                [this](boost::system::error_code pTimerError)
+                {
+                    if (!pTimerError)
+                    {
+                        doAccept();
+                    }
+                });
+
+                return;
+            }
+
+            if (mConnectionCount->load() >= kMaxConnections)
+            {
+                boost::system::error_code tIgnored;
+                pSocket.close(tIgnored);
+            }
+            else
             {
                 try
                 {
                     auto tSession = std::make_shared<NetworkSession<MessageType>>(std::move(pSocket));
+
+                    tSession->setMaxIncomingBytes(kMaxClientMessageBytes);
+
+                    ++*mConnectionCount;
+                    tSession->setLifetimeToken(std::shared_ptr<void>(mConnectionCount.get(),
+                    [tCount = mConnectionCount](void*)
+                    {
+                        --*tCount;
+                    }));
 
                     if (mOnClientConnect)
                     {
@@ -175,8 +213,14 @@ private:
         });
     }
 
+    static constexpr size_t kMaxConnections = 4096;
+    static constexpr uint32_t kMaxClientMessageBytes = 64 * 1024;
+    static constexpr std::chrono::milliseconds kAcceptRetryDelay{100};
+
     boost::asio::io_context mContext;
     boost::asio::ip::tcp::acceptor mAcceptor;
+    boost::asio::steady_timer mAcceptRetryTimer;
+    std::shared_ptr<std::atomic<size_t>> mConnectionCount = std::make_shared<std::atomic<size_t>>(0);
 
     std::vector<std::thread> mWorkerThreads;
 

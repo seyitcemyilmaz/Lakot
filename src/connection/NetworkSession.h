@@ -167,6 +167,16 @@ public:
         mOnErrorFunction = pHandler;
     }
 
+    void setMaxIncomingBytes(uint32_t pBytes)
+    {
+        mMaxIncomingBytes = pBytes;
+    }
+
+    void setLifetimeToken(std::shared_ptr<void> pToken)
+    {
+        mLifetimeToken = std::move(pToken);
+    }
+
     bool isConnected() const
     {
         return mIsConnected.load();
@@ -259,6 +269,9 @@ private:
     std::atomic<uint64_t> mWorldEntryTicket{0};
     std::atomic<bool> mIsLoginPending{false};
 
+    std::shared_ptr<void> mLifetimeToken;
+    uint32_t mMaxIncomingBytes{10 * 1024 * 1024};
+
     void readHeader()
     {
         auto self = this->shared_from_this();
@@ -272,7 +285,7 @@ private:
             {
                 uint32_t tBodySize = ntohl(self->mIncomingHeader);
 
-                if (tBodySize > 10 * 1024 * 1024)
+                if (tBodySize > self->mMaxIncomingBytes)
                 {
                     self->onDisconnect(boost::asio::error::message_size);
                     return;
