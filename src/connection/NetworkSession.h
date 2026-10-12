@@ -242,7 +242,11 @@ private:
     uint32_t mIncomingHeader{0};
     std::vector<char> mIncomingBody;
 
+    static constexpr size_t kMaxWriteBatchBuffers = 64;
+    static constexpr size_t kMaxWriteBatchBytes = 256 * 1024;
+
     std::deque<Packet> mWriteQueue;
+    std::vector<boost::asio::const_buffer> mWriteBuffers;
     size_t mWriteQueueBytes{0};
 
     std::atomic<size_t> mPendingWrites{0};
@@ -349,16 +353,36 @@ private:
     {
         auto self = this->shared_from_this();
 
-        boost::asio::async_write(mSocket,
-                                 boost::asio::buffer(*mWriteQueue.front()),
-                                 boost::asio::bind_executor(mStrand,
-        [self](boost::system::error_code pErrorCode, std::size_t)
+        mWriteBuffers.clear();
+
+        size_t tBatchBytes = 0;
+
+        for (const Packet& tPacket : mWriteQueue)
+        {
+            if (!mWriteBuffers.empty()
+                && (mWriteBuffers.size() >= kMaxWriteBatchBuffers
+                    || tBatchBytes + tPacket->size() > kMaxWriteBatchBytes))
+            {
+                break;
+            }
+
+            mWriteBuffers.push_back(boost::asio::buffer(*tPacket));
+            tBatchBytes += tPacket->size();
+        }
+
+        const size_t tBatchCount = mWriteBuffers.size();
+
+        auto tHandler = boost::asio::bind_executor(mStrand,
+        [self, tBatchCount, tBatchBytes](boost::system::error_code pErrorCode, std::size_t)
         {
             if (!pErrorCode)
             {
-                self->mWriteQueueBytes -= self->mWriteQueue.front()->size();
-                self->mWriteQueue.pop_front();
-                self->mPendingWrites.fetch_sub(1);
+                self->mWriteQueueBytes -= tBatchBytes;
+                for (size_t tIndex = 0; tIndex < tBatchCount; ++tIndex)
+                {
+                    self->mWriteQueue.pop_front();
+                }
+                self->mPendingWrites.fetch_sub(tBatchCount);
 
                 if (!self->mWriteQueue.empty())
                 {
@@ -369,7 +393,16 @@ private:
             {
                 self->onDisconnect(pErrorCode);
             }
-        }));
+        });
+
+        if (tBatchCount == 1)
+        {
+            boost::asio::async_write(mSocket, mWriteBuffers.front(), std::move(tHandler));
+        }
+        else
+        {
+            boost::asio::async_write(mSocket, mWriteBuffers, std::move(tHandler));
+        }
     }
 
     void handleIncomingMessage(const MessageType& pMessage)
