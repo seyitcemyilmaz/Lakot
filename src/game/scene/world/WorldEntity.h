@@ -36,6 +36,7 @@ struct WorldEntity
     glm::vec3 targetPosition{0.0f};
     double interpolationElapsed{0.0};
     double interpolationDuration{1.0};
+    bool isServerUpdated{false};
 
     float facing{0.0f};
     double movingTimer{0.0};

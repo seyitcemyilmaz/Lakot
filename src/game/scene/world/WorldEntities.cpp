@@ -281,6 +281,10 @@ void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapsho
         WorldEntity& tExisting = tIterator->second;
         tExisting.previousPosition = getPosition(tExisting);
         tExisting.targetPosition = glm::vec3(tEntity.x, tEntity.y, tEntity.z);
+        tExisting.interpolationDuration = tExisting.isServerUpdated
+            ? std::clamp(tExisting.interpolationElapsed, WorldView::kMinRemoteInterpolationSeconds, WorldView::kMaxRemoteInterpolationSeconds)
+            : WorldView::kMinRemoteInterpolationSeconds;
+        tExisting.isServerUpdated = true;
         tExisting.interpolationElapsed = 0.0;
     }
 

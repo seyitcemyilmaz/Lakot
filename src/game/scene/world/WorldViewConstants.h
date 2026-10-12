@@ -12,6 +12,10 @@ namespace lakot::WorldView
 
     inline constexpr double kStateSendInterval = 0.1;
 
+    inline constexpr double kMinRemoteInterpolationSeconds = 0.1;
+
+    inline constexpr double kMaxRemoteInterpolationSeconds = 0.5;
+
     inline constexpr double kAttackIntervalSeconds = 0.6;
 
     inline constexpr double kAttackSegmentSeconds = kAttackIntervalSeconds * 1.1;
