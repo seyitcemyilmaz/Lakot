@@ -26,7 +26,10 @@ private:
         int failedCount = 0;
         int pendingCount = 0;
         std::chrono::steady_clock::time_point windowStart;
+        std::chrono::steady_clock::time_point pendingSince;
     };
+
+    static constexpr std::chrono::seconds kPendingTimeout{30};
 
     int mMaxFailures;
     std::chrono::seconds mWindow;

@@ -34,6 +34,12 @@ void AttemptTable::reserve(const std::string& pKey, std::chrono::steady_clock::t
     AttemptRecord& tRecord = mRecords[pKey];
 
     expire(tRecord, pNow);
+
+    if (tRecord.pendingCount == 0)
+    {
+        tRecord.pendingSince = pNow;
+    }
+
     tRecord.pendingCount++;
 }
 
@@ -110,6 +116,11 @@ void AttemptTable::expire(AttemptRecord& pRecord, std::chrono::steady_clock::tim
     if (pRecord.failedCount > 0 && pNow - pRecord.windowStart >= mWindow)
     {
         pRecord.failedCount = 0;
+    }
+
+    if (pRecord.pendingCount > 0 && pNow - pRecord.pendingSince >= kPendingTimeout)
+    {
+        pRecord.pendingCount = 0;
     }
 }
 
