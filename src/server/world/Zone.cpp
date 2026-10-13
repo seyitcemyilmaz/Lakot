@@ -25,6 +25,7 @@ Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog
     , mCombat(pMap, mRegistry, mCharacters, mMonsters)
     , mMonsterBrain(pMap, mRegistry, mCharacters, mMonsters, mCombat)
     , mLoot(pMap, pMonsterCatalog, pItemCatalog, mRegistry, mNextEntityId)
+    , mRegeneration(mCharacters, mCombat)
 {
     spawnWorldEntities();
 }
@@ -637,6 +638,22 @@ void Zone::tick()
     }
 
     mLoot.update(mTime);
+
+    RegenerationResult tRegeneration = mRegeneration.update(mTime);
+
+    for (uint64_t tCharacterId : tRegeneration.healthChanged)
+    {
+        mCombat.markVitalsChanged(tCharacterId);
+    }
+
+    for (uint64_t tCharacterId : tRegeneration.manaChanged)
+    {
+        if (auto tCharacter = mCharacters.find(tCharacterId); tCharacter != mCharacters.end())
+        {
+            sendInventoryUpdate(tCharacter->second);
+        }
+    }
+
     mStats.endSection(ZoneTickStats::SectionType::eCombatLoot);
 
     if (mTickCounter % kSnapshotEveryNTicks == 0)

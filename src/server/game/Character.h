@@ -122,6 +122,8 @@ public:
 
     void addGold(int64_t pAmount);
 
+    void markStarterGiven();
+
     // Current health/mana pulled back inside their (possibly just changed)
     // maxima. Called automatically after anything that moves a maximum.
     void refreshVitals();

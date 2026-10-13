@@ -62,6 +62,7 @@ add_executable(${PROJECT_NAME}
     world/CombatSystem.h world/CombatSystem.cpp
     world/MonsterBrain.h world/MonsterBrain.cpp
     world/LootSystem.h world/LootSystem.cpp
+    world/VitalsRegeneration.h world/VitalsRegeneration.cpp
     world/Monster.h world/Npc.h
     world/StatsMessage.h
 

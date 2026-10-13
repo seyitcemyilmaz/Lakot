@@ -444,10 +444,14 @@ def t_level():
     check(latest_vitals(P1)[2] == 30, "rejected /level changed level")
 
 
+def _near(pVitals, pWant):
+    return pVitals is not None and pWant <= pVitals[0] <= pWant + max(2, pVitals[1] * 6 // 100)
+
+
 def t_heal_sethp():
     g = C["G"]
     expect(cmd(g, "/sethp 1"), OK, "/sethp 1")
-    check(poll(lambda: latest_vitals(g)[0] == 1, 3), f"hp after /sethp 1: {latest_vitals(g)}")
+    check(poll(lambda: _near(latest_vitals(g), 1), 3), f"hp after /sethp 1: {latest_vitals(g)}")
     tMax = latest_vitals(g)[1]
     expect(cmd(g, "/heal"), OK, "/heal", "healed")
     check(poll(lambda: latest_vitals(g)[0] == tMax, 3), f"hp after /heal {latest_vitals(g)} want {tMax}")
@@ -457,11 +461,11 @@ def t_heal_sethp():
         r = cmd(g, f"/sethp {tBad}")
         check(r.ok and r.status in (USAGE, FAILED), f"/sethp {tBad} not rejected: {r}")
     expect(cmd(g, f"/sethp {tMax // 2}"), OK, "/sethp half")
-    check(poll(lambda: latest_vitals(g)[0] == tMax // 2, 3), "hp not half")
+    check(poll(lambda: _near(latest_vitals(g), tMax // 2), 3), "hp not half")
     cmd(g, "/heal")
     p2 = C["P2"]
     expect(cmd(g, f"/sethp 5 {p2.name}"), OK, "/sethp on other")
-    check(poll(lambda: latest_vitals(p2)[0] == 5, 3), f"other's hp {latest_vitals(p2)}")
+    check(poll(lambda: _near(latest_vitals(p2), 5), 3), f"other's hp {latest_vitals(p2)}")
     cmd(g, f"/heal {p2.name}")
     check(poll(lambda: latest_vitals(p2)[0] == latest_vitals(p2)[1], 3), "other not healed")
 
@@ -473,7 +477,7 @@ def t_setmp_then_mana_potion_clamps():
     tMax = tStats.max_mana
     tLow = max(0, tMax - 10)
     expect(cmd(g, f"/setmp {tLow} {P5.name}"), OK, "/setmp low", "mana")
-    check(poll(lambda: latest_stats(P5).mana == tLow, 3), f"mana after /setmp {tLow}: {latest_stats(P5).mana}")
+    check(poll(lambda: tLow <= latest_stats(P5).mana <= tLow + max(3, tMax * 6 // 100), 3), f"mana after /setmp {tLow}: {latest_stats(P5).mana}")
     expect(cmd(g, f"/item {MANA} 2 {P5.name}"), OK, "/item mana potion")
     check(poll(lambda: inv_counts(P5).get(MANA, 0) >= 2, 3), "mana potions not delivered")
     r = use_item(P5, MANA)
@@ -484,7 +488,7 @@ def t_setmp_then_mana_potion_clamps():
         r = cmd(g, f"/setmp {tBad} {P5.name}")
         check(r.ok and r.status in (USAGE, FAILED), f"/setmp {tBad} not rejected: {r}")
     expect(cmd(g, f"/setmp 0 {P5.name}"), OK, "/setmp 0")
-    check(poll(lambda: latest_stats(P5).mana == 0, 3), "mana not 0")
+    check(poll(lambda: 0 <= latest_stats(P5).mana <= max(3, tMax * 6 // 100), 3), "mana not 0")
 
 
 def t_kill_revive():

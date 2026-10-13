@@ -15,7 +15,7 @@ namespace
     // new column cannot be added to one query and forgotten in another.
     constexpr const char* kPositionColumns = "id, name, map_id, pos_x, pos_y, pos_z, yaw";
     constexpr const char* kStatColumns =
-        "level, experience, health, mana, strength, dexterity, intelligence, vitality, gold, class_id, path_id, stat_points";
+        "level, experience, health, mana, strength, dexterity, intelligence, vitality, gold, class_id, path_id, stat_points, starter_given";
 
     lakot::CharacterRepository::CharacterRecord toRecord(const pqxx::row& pRow)
     {
@@ -44,6 +44,7 @@ namespace
         pStats.classId = pRow["class_id"].as<uint32_t>();
         pStats.pathId = pRow["path_id"].as<uint32_t>();
         pStats.statPoints = pRow["stat_points"].as<uint32_t>();
+        pStats.starterGiven = pRow["starter_given"].as<bool>();
     }
 }
 
@@ -121,6 +122,24 @@ void CharacterRepository::initializeTable()
                 ALTER COLUMN stat_points SET NOT NULL,
                 ALTER COLUMN stat_points SET DEFAULT 0;
         )");
+
+        // item_instances may not exist yet here, so the backfill reaches it through dynamic SQL.
+        tWork.exec(R"SQL(
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name = 'characters' AND column_name = 'starter_given') THEN
+                    ALTER TABLE characters ADD COLUMN starter_given BOOLEAN NOT NULL DEFAULT FALSE;
+                    UPDATE characters SET starter_given = TRUE
+                        WHERE level > 1 OR experience > 0 OR gold > 0;
+                    IF to_regclass('item_instances') IS NOT NULL THEN
+                        EXECUTE 'UPDATE characters SET starter_given = TRUE WHERE EXISTS '
+                                '(SELECT 1 FROM item_instances i WHERE i.character_id = characters.id)';
+                    END IF;
+                END IF;
+            END
+            $$;
+        )SQL");
 
         // Accounts that already had characters before kingdoms existed.
         tWork.exec(
@@ -372,13 +391,13 @@ void CharacterRepository::saveCharacter(CharacterSave pSave)
                 "UPDATE characters SET map_id=$1, pos_x=$2, pos_y=$3, pos_z=$4, yaw=$5, "
                 "level=$6, experience=$7, health=$8, mana=$9, "
                 "strength=$10, dexterity=$11, intelligence=$12, vitality=$13, gold=$14, "
-                "path_id=$15, stat_points=$16 "
-                "WHERE id=$17",
+                "path_id=$15, stat_points=$16, starter_given=$17 "
+                "WHERE id=$18",
                 pqxx::params{pSave.mapId, pSave.x, pSave.y, pSave.z, pSave.yaw,
                              pSave.stats.level, pSave.stats.experience, pSave.stats.health, pSave.stats.mana,
                              pSave.stats.strength, pSave.stats.dexterity, pSave.stats.intelligence,
                              pSave.stats.vitality, pSave.stats.gold,
-                             pSave.stats.pathId, pSave.stats.statPoints,
+                             pSave.stats.pathId, pSave.stats.statPoints, pSave.stats.starterGiven,
                              pSave.characterId});
 
             ItemRepository::writeItems(tWork, pSave.characterId, pSave.items);

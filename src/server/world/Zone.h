@@ -22,6 +22,7 @@
 #include "CombatSystem.h"
 #include "MonsterBrain.h"
 #include "LootSystem.h"
+#include "VitalsRegeneration.h"
 #include "Monster.h"
 #include "Npc.h"
 #include "MonsterCatalog.h"
@@ -236,6 +237,7 @@ private:
     std::mt19937 mRandom{std::random_device{}()};
     uint64_t mNextEntityId{kWorldEntityIdBase};
     LootSystem mLoot;
+    VitalsRegeneration mRegeneration;
     std::unordered_map<uint64_t, double> mLastPickupAt;
     std::unordered_map<uint64_t, double> mLastPotionAt;
 

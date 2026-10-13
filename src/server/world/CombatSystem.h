@@ -79,6 +79,7 @@ public:
 
     bool canBeTargeted(uint64_t pEntityId) const;
     bool isDead(uint64_t pEntityId) const;
+    bool isInCombat(uint64_t pCharacterId, double pNow) const;
     uint32_t getHealthPercent(uint64_t pEntityId) const;
     void markVitalsChanged(uint64_t pEntityId);
 
@@ -97,6 +98,7 @@ private:
     std::mt19937 mRandom{std::random_device{}()};
     std::unordered_map<uint64_t, double> mNextAttackAt;
     std::unordered_map<uint64_t, double> mRespawnAt;
+    std::unordered_map<uint64_t, double> mLastCombatAt;
 
     std::vector<CombatRecord> mRecords;
     std::unordered_set<uint64_t> mChangedVitals;

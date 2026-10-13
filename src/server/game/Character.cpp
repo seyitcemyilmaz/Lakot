@@ -360,6 +360,12 @@ void Character::addGold(int64_t pAmount)
     markDirty();
 }
 
+void Character::markStarterGiven()
+{
+    mStats.starterGiven = true;
+    markDirty();
+}
+
 void Character::refreshVitals()
 {
     StatFormula::clampVitals(mStats, getMaxHealth(), getMaxMana());

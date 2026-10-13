@@ -111,6 +111,16 @@ CombatHit CombatSystem::applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t
     tHit.damage = static_cast<uint32_t>(tDamage);
     mChangedVitals.insert(pTargetId);
 
+    if (mCharacters.count(pAttackerId) != 0)
+    {
+        mLastCombatAt[pAttackerId] = pNow;
+    }
+
+    if (mCharacters.count(pTargetId) != 0)
+    {
+        mLastCombatAt[pTargetId] = pNow;
+    }
+
     if (auto tCharacter = mCharacters.find(pTargetId); tCharacter != mCharacters.end())
     {
         tHit.killed = tCharacter->second.takeDamage(tDamage);
@@ -311,6 +321,13 @@ void CombatSystem::forget(uint64_t pCharacterId)
     mNextAttackAt.erase(pCharacterId);
     mRespawnAt.erase(pCharacterId);
     mChangedVitals.erase(pCharacterId);
+    mLastCombatAt.erase(pCharacterId);
+}
+
+bool CombatSystem::isInCombat(uint64_t pCharacterId, double pNow) const
+{
+    auto tIterator = mLastCombatAt.find(pCharacterId);
+    return tIterator != mLastCombatAt.end() && pNow - tIterator->second < StatFormula::kCombatWindowSeconds;
 }
 
 std::vector<CombatRecord> CombatSystem::takeRecords()

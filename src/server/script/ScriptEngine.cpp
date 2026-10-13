@@ -99,6 +99,10 @@ void ScriptEngine::bindApi()
         {
             return pSelf.require().getStats().classId;
         }),
+        "is_starter_given", sol::property([](const ScriptCharacter& pSelf)
+        {
+            return pSelf.require().getStats().starterGiven;
+        }),
         "health", sol::property([](const ScriptCharacter& pSelf)
         {
             return pSelf.require().getStats().health;
@@ -131,6 +135,10 @@ void ScriptEngine::bindApi()
         "add_experience", [](ScriptCharacter& pSelf, int64_t pAmount)
         {
             return pSelf.require().addExperience(toScriptAmount<uint64_t>(pAmount, kMaxScriptExperience));
+        },
+        "mark_starter_given", [](ScriptCharacter& pSelf)
+        {
+            pSelf.require().markStarterGiven();
         },
         "add_gold", [](ScriptCharacter& pSelf, int64_t pAmount)
         {

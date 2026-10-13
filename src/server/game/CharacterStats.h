@@ -35,6 +35,8 @@ struct CharacterStats
     uint32_t classId = 0;
     uint32_t pathId = 0;
     uint32_t statPoints = 0;
+
+    bool starterGiven = false;
 };
 
 enum class StatType : uint32_t
@@ -79,6 +81,19 @@ namespace StatFormula
     inline uint64_t getExperienceForNextLevel(uint32_t pLevel)
     {
         return static_cast<uint64_t>(pLevel) * pLevel * 100ull;
+    }
+
+    constexpr double kCombatWindowSeconds = 8.0;
+    constexpr double kRegenIntervalSeconds = 1.0;
+
+    inline int32_t getHealthRegen(int32_t pMaxHealth, bool pInCombat)
+    {
+        return std::max(1, pMaxHealth * (pInCombat ? 5 : 20) / 1000);
+    }
+
+    inline int32_t getManaRegen(int32_t pMaxMana, bool pInCombat)
+    {
+        return std::max(1, pMaxMana * (pInCombat ? 5 : 50) / 1000);
     }
 
     // A brand new character starts at full health and mana. Used at creation

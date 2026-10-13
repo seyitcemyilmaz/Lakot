@@ -20,15 +20,10 @@ local SWORD_CLASSES = { [1] = true, [3] = true }
 --
 -- Fires every time a character enters the world - on login and after walking
 -- through a portal. So it has to tell a brand new character from one that has
--- simply come back, and "owns nothing at all" is the test: anyone who has
--- ever been given this gear fails it, including someone who sold part of it.
+-- simply come back: the persistent starter-given flag is the test, so selling,
+-- using or dropping the gear never earns a second kit.
 lakot.on("enter_world", function(character)
-    local owns_anything =
-        character:count_item(WOODEN_SWORD) > 0 or
-        character:count_item(LEATHER_ARMOR) > 0 or
-        character:count_item(HEALTH_POTION) > 0
-
-    if owns_anything then
+    if character.is_starter_given then
         return
     end
 
@@ -49,6 +44,7 @@ lakot.on("enter_world", function(character)
     end
 
     character:add_gold(100)
+    character:mark_starter_given()
 
     lakot.log(character.name .. " received starter equipment (attack " .. character.attack .. ")")
 end)

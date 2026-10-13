@@ -13,11 +13,21 @@ def snap(pClient):
     s = latest_stats(pClient)
     v = latest_vitals(pClient)
     check(s is not None and v is not None, f"no stats snapshot for {pClient.name}")
-    return {"gold": s.gold, "mana": s.mana, "inv": dict(inv_counts(pClient)), "hp": v[0], "level": v[2], "pos": get_pos(pClient)}
+    return {"gold": s.gold, "mana": s.mana, "inv": dict(inv_counts(pClient)), "hp": v[0], "level": v[2], "pos": get_pos(pClient),
+            "t": time.time(), "mmana": s.max_mana, "mhp": v[1]}
+
+
+def _regen_ok(pOld, pNew, pMax, pPermille, pDt):
+    tTicks = int(pDt) + 3
+    return pNew >= pOld and pNew - pOld <= tTicks * max(1, pMax * pPermille // 1000)
 
 
 def same(pA, pB):
-    return (pA["gold"] == pB["gold"] and pA["mana"] == pB["mana"] and pA["inv"] == pB["inv"] and pA["hp"] == pB["hp"]
+    tFirst, tSecond = (pA, pB) if pA["t"] <= pB["t"] else (pB, pA)
+    tDt = tSecond["t"] - tFirst["t"]
+    return (pA["gold"] == pB["gold"] and pA["inv"] == pB["inv"]
+            and _regen_ok(tFirst["mana"], tSecond["mana"], tSecond["mmana"], 50, tDt)
+            and _regen_ok(tFirst["hp"], tSecond["hp"], tSecond["mhp"], 20, tDt)
             and pA["level"] == pB["level"] and pA["pos"][0] == pB["pos"][0]
             and math.hypot(pA["pos"][1] - pB["pos"][1], pA["pos"][2] - pB["pos"][2]) < 1.0)
 
@@ -147,7 +157,7 @@ def t_gm_on_normal_player_and_self():
     expect(cmd(g, f"/level 7 {v.name}"), OK, "gm /level on player")
     check(poll(lambda: latest_vitals(v)[2] == 7, 3), "player level unchanged after GM /level")
     expect(cmd(g, f"/sethp 3 {v.name}"), OK, "gm /sethp on player")
-    check(poll(lambda: latest_vitals(v)[0] == 3, 3), "player hp unchanged after GM /sethp")
+    check(poll(lambda: g27._near(latest_vitals(v), 3), 3), "player hp unchanged after GM /sethp")
     expect(cmd(g, f"/heal {v.name}"), OK, "gm /heal on player")
     check(poll(lambda: latest_vitals(v)[0] == latest_vitals(v)[1], 3), "player not healed")
     tPot = inv_counts(v).get(POTION, 0)
@@ -164,7 +174,7 @@ def t_gm_on_normal_player_and_self():
     expect(cmd(g, f"/gold 10 {g.name}"), OK, "gm /gold own name")
     check(poll(lambda: latest_stats(g).gold == tOwn + 10, 3), "own-name /gold had no effect")
     expect(cmd(g, f"/sethp 2 {g.name}"), OK, "gm /sethp own name")
-    check(poll(lambda: latest_vitals(g)[0] == 2, 3), "own-name /sethp no effect")
+    check(poll(lambda: g27._near(latest_vitals(g), 2), 3), "own-name /sethp no effect")
     expect(cmd(g, f"/heal {g.name}"), OK, "gm /heal own name")
     expect(cmd(g, "/heal"), OK, "gm /heal implicit self")
     expect(cmd(g, f"/mute {v.name} 0"), OK, "gm /mute 0 on player")

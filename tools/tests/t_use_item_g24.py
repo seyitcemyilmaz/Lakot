@@ -5,7 +5,7 @@ from t_monsters_g21 import tpl, open_site, walk_to, step_toward, engage, View, O
 RUN = HERE / ".run_g24"
 POTION, ORE, RELIC, MANA = 4, 5, 6, 7
 LOOT_ID, BITER_ID, KILLER_ID = 201, 202, 203
-BITER_ATTACK = 8
+BITER_ATTACK = 12
 USE_OK, USE_INVALID, USE_NOT_OWNED, USE_DEAD, USE_COOLDOWN, USE_FULL = 0, 1, 2, 3, 4, 5
 NAMES = {0: "OK", 1: "INVALID", 2: "NOT_OWNED", 3: "DEAD", 4: "COOLDOWN", 5: "FULL"}
 STATE = {}
@@ -173,9 +173,9 @@ def next_hit(pWatch, pTimeout=12.0):
 def hurt_player():
     c, w, v = new_looter()
     provoke_biter(c, v, w)
-    for _ in range(14):
+    for _ in range(20):
         w.ingest()
-        if w.max_hp - w.hp >= 50:
+        if w.max_hp - w.hp >= 30:
             break
         check(w.hp > BITER_ATTACK * 3, f"player hp {w.hp}/{w.max_hp} too low to keep hurting safely")
         next_hit(w)
@@ -189,9 +189,9 @@ def t_drink_heals_and_second_client_sees():
     wb = Watch(b)
     try:
         provoke_biter(c, v, w)
-        for _ in range(14):
+        for _ in range(20):
             w.ingest()
-            if w.max_hp - w.hp >= 50:
+            if w.max_hp - w.hp >= 30:
                 break
             check(w.hp > BITER_ATTACK * 3, f"player hp {w.hp}/{w.max_hp} too low to keep hurting safely")
             next_hit(w)
@@ -207,14 +207,17 @@ def t_drink_heals_and_second_client_sees():
         tGain = min(50, tMissing)
         tExpect = tBefore + tGain
         print(f"      hp {tBefore}/{tMax} missing {tMissing} -> {w.stats.health} (expect +{tGain}); potions {tCount}->{w.inv.get(POTION)}; cooldown {r.cooldown_seconds:.2f}", flush=True)
-        check(w.stats.health == tExpect, f"health after drink {w.stats.health}, expected {tExpect}")
+        tRegenSlack = 4
+        tHi = min(tMax, tExpect + tRegenSlack)
+        check(tExpect <= w.stats.health <= tHi, f"health after drink {w.stats.health}, expected {tExpect}..{tHi} (regen slack)")
+        tExpect = w.stats.health
         check(w.inv.get(POTION, 0) == tCount - 1, f"potion count {tCount} -> {w.inv.get(POTION, 0)}, expected -1")
-        check(w.wait(lambda: w.hp == tExpect, 3), f"self_vitals health {w.hp}, expected {tExpect}")
+        check(w.wait(lambda: w.hp is not None and tExpect <= w.hp <= min(tMax, tExpect + tRegenSlack), 3), f"self_vitals health {w.hp}, expected about {tExpect}")
         tSeen = []
         wb.wait(lambda: wb.pct.get(c.cid) is not None and wb.pct.get(c.cid) >= 100 * tExpect // tMax - 1, 3)
         check(c.cid in wb.pct, "second client never received health_percent for the drinker")
         tWant = 100.0 * tExpect / tMax
-        check(abs(wb.pct[c.cid] - tWant) <= 2.0, f"second client sees health_percent {wb.pct[c.cid]}, expected about {tWant:.1f}")
+        check(abs(wb.pct[c.cid] - tWant) <= 2.0 + 100.0 * tRegenSlack / tMax, f"second client sees health_percent {wb.pct[c.cid]}, expected about {tWant:.1f}")
         w.ingest()
         STATE["user"], STATE["cid"], STATE["potions"] = c.user, c.cid, w.inv.get(POTION, 0)
     finally:
@@ -392,7 +395,7 @@ def main():
             {"itemId": MANA, "chance": 0.0, "min": 3, "max": 3, "guaranteed": True},
             {"itemId": ORE, "chance": 0.0, "min": 1, "max": 1, "guaranteed": True},
             {"itemId": ITEM_SABRE, "chance": 0.0, "min": 1, "max": 1, "guaranteed": True}]),
-        tpl(BITER_ID, maxHealth=100000000, attack=BITER_ATTACK, attackInterval=4.0, aggressive=False, aggroRange=0, moveSpeed=4.0),
+        tpl(BITER_ID, maxHealth=100000000, attack=BITER_ATTACK, attackInterval=3.0, aggressive=False, aggroRange=0, moveSpeed=4.0),
         tpl(KILLER_ID, maxHealth=100000000, attack=500, attackInterval=1.0, aggressive=True, aggroRange=6, moveSpeed=0.5)]
     tSpawns = [{"monster": LOOT_ID, "x": tLoot[0], "z": tLoot[1], "radius": 4.0, "count": 12},
                {"monster": BITER_ID, "x": tBiter[0], "z": tBiter[1], "radius": 2.0, "count": 2},
