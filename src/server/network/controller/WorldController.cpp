@@ -135,6 +135,18 @@ std::optional<CharacterAccess> WorldController::getCharacterAccess(uint64_t pCha
     return tIterator->second;
 }
 
+bool WorldController::isCharacterInWorld(uint64_t pAccountId, uint64_t pCharacterId)
+{
+    if (!getCharacterZone(pCharacterId))
+    {
+        return false;
+    }
+
+    auto tAccess = getCharacterAccess(pCharacterId);
+
+    return tAccess && tAccess->accountId == pAccountId;
+}
+
 void WorldController::setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds)
 {
     std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);

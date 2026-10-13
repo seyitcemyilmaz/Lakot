@@ -410,3 +410,50 @@ void CharacterRepository::saveCharacter(CharacterSave pSave)
         }
     }, tCharacterId);
 }
+
+void CharacterRepository::deleteCharacter(uint64_t pAccountId, uint64_t pCharacterId, const std::string& pConfirmName, DeleteCallback pCallback)
+{
+    mDatabaseManager.executeAsync([pAccountId, pCharacterId, pConfirmName, pCallback](pqxx::connection& pConnection)
+    {
+        DeleteResult tOutcome = DeleteResult::eDatabaseError;
+
+        try
+        {
+            pqxx::work tWork(pConnection);
+
+            auto tDeleted = tWork.exec(
+                "DELETE FROM characters WHERE id = $1 AND account_id = $2 AND LOWER(name) = LOWER($3) RETURNING name",
+                pqxx::params{pCharacterId, pAccountId, pConfirmName});
+
+            if (!tDeleted.empty())
+            {
+                tWork.commit();
+                tOutcome = DeleteResult::eDeleted;
+            }
+            else
+            {
+                auto tOwned = tWork.exec("SELECT 1 FROM characters WHERE id = $1 AND account_id = $2",
+                                         pqxx::params{pCharacterId, pAccountId});
+
+                tOutcome = tOwned.empty() ? DeleteResult::eNotFound : DeleteResult::eNameMismatch;
+            }
+        }
+        catch (const std::exception& tException)
+        {
+            tOutcome = DeleteResult::eDatabaseError;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter silme hatasi: " << tException.what() << std::endl;
+        }
+
+        if (pCallback)
+        {
+            pCallback(tOutcome);
+        }
+    }, pCharacterId,
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback(DeleteResult::eDatabaseError);
+        }
+    });
+}

@@ -23,7 +23,7 @@
         <div class="char-slots" data-if="has_kingdom">{{ kingdom_label }}</div>
 
         <!-- ===== Mode 1: pick an existing character ===== -->
-        <div data-if="!is_creating">
+        <div data-if="!is_creating &amp;&amp; !is_deleting">
             <div class="char-slots">{{ slots_label }}</div>
 
             <div class="char-list">
@@ -46,7 +46,28 @@
 
             <div class="btn-secondary" data-if="has_free_slot" data-event-click="begin_create">CREATE NEW CHARACTER</div>
 
+            <div class="btn-danger" data-class-is-disabled="is_busy || !has_selection"
+                 data-event-click="begin_delete">DELETE CHARACTER</div>
+
             <div class="link" data-event-click="logout">Log out</div>
+        </div>
+
+        <!-- ===== Mode 3: confirm deleting the selected character ===== -->
+        <div data-if="is_deleting">
+            <div class="char-row is-selected">
+                <div class="char-name">{{ delete_target_name }}</div>
+                <div class="char-meta">{{ delete_target_meta }}</div>
+            </div>
+
+            <div class="field-label">Type the character name to delete it. This cannot be undone.</div>
+            <input type="text" class="field" data-value="delete_name_input"
+                   data-event-keyup="delete_name_changed" data-event-keydown="delete_name_keydown"/>
+
+            <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
+
+            <div class="btn-primary" data-event-click="cancel_delete">CANCEL</div>
+            <div class="btn-danger" data-class-is-disabled="is_busy || !delete_name_matches"
+                 data-event-click="confirm_delete">DELETE</div>
         </div>
 
         <!-- ===== Mode 2: create a new character ===== -->

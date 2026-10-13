@@ -34,6 +34,7 @@ public:
     // it - the scene turns this into the switch to WorldScene.
     using EnterWorldRequestCallback = std::function<void(uint64_t pCharacterId)>;
     using CreateRequestCallback = std::function<void(const std::string& pName, uint32_t pKingdom, uint32_t pClassId)>;
+    using DeleteRequestCallback = std::function<void(uint64_t pCharacterId, const std::string& pConfirmName)>;
     using LogoutCallback = std::function<void()>;
 
     CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog);
@@ -44,6 +45,7 @@ public:
 
     void setEnterWorldRequestCallback(EnterWorldRequestCallback pCallback);
     void setCreateRequestCallback(CreateRequestCallback pCallback);
+    void setDeleteRequestCallback(DeleteRequestCallback pCallback);
     void setLogoutCallback(LogoutCallback pCallback);
 
     // Replaces the whole list - called on the initial listing and again after
@@ -52,6 +54,7 @@ public:
     void setCharacters(const std::vector<AuthController::CharacterSummary>& pCharacters, uint32_t pMaxSlots, uint32_t pKingdom);
 
     void onCreateResult(bool pIsSuccess, const std::string& pMessage, const AuthController::CharacterSummary& pCharacter);
+    void onDeleteResult(bool pIsSuccess, const std::string& pMessage, uint64_t pCharacterId);
     void onEnterWorldFailed(const std::string& pMessage);
 
     void setStatus(const std::string& pMessage, bool pIsError);
@@ -117,11 +120,16 @@ private:
     Rml::String mSlotsLabel;
     Rml::String mStatusMessage;
     Rml::String mNewName;
+    Rml::String mDeleteTargetName;
+    Rml::String mDeleteTargetMeta;
+    Rml::String mDeleteNameInput;
 
     bool mHasCharacters{false};
     bool mHasSelection{false};
     bool mHasFreeSlot{false};
     bool mIsCreating{false};
+    bool mIsDeleting{false};
+    bool mDeleteNameMatches{false};
     bool mIsBusy{false};
     bool mIsError{false};
 
@@ -130,6 +138,7 @@ private:
 
     EnterWorldRequestCallback mEnterWorldRequestCallback;
     CreateRequestCallback mCreateRequestCallback;
+    DeleteRequestCallback mDeleteRequestCallback;
     LogoutCallback mLogoutCallback;
 
     void onSelectClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
@@ -137,12 +146,20 @@ private:
     void onBeginCreateClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onConfirmCreateClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onCancelCreateClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onBeginDeleteClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onCancelDeleteClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onConfirmDeleteClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onDeleteNameChanged(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
+    void onDeleteNameKeyDown(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onLogoutClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onNameKeyDown(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onChooseKingdomClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onChooseClassClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
 
     void doConfirmCreate();
+    void doConfirmDelete();
+    void doCancelDelete();
+    void updateDeleteMatch();
     void selectIndex(int pIndex);
     void rebuildRows();
     void rebuildKingdomRows();

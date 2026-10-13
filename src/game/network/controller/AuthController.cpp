@@ -28,6 +28,7 @@ void AuthController::initialize()
     tRegister(protocol::Response::kCharacterListResponse, &AuthController::handleCharacterListResponse);
     tRegister(protocol::Response::kCharacterCreateResponse, &AuthController::handleCharacterCreateResponse);
     tRegister(protocol::Response::kEnterWorldResponse, &AuthController::handleEnterWorldResponse);
+    tRegister(protocol::Response::kDeleteCharacterResponse, &AuthController::handleCharacterDeleteResponse);
     tRegister(protocol::Response::kResumeSessionResponse, &AuthController::handleResumeSessionResponse);
 }
 
@@ -134,6 +135,22 @@ void AuthController::sendEnterWorld(uint64_t pCharacterId)
     });
 }
 
+void AuthController::sendDeleteCharacter(uint64_t pCharacterId, const std::string& pConfirmName)
+{
+    connection::Message tMessage;
+    auto* tRequest = tMessage.mutable_request()->mutable_delete_character_request();
+    tRequest->set_character_id(pCharacterId);
+    tRequest->set_confirm_name(pConfirmName);
+
+    sendOrReport(tMessage, [this, pCharacterId]()
+    {
+        if (mCharacterDeleteCallback)
+        {
+            mCharacterDeleteCallback(false, "No connection to server!", pCharacterId);
+        }
+    });
+}
+
 bool AuthController::hasSessionToken() const
 {
     return !mSessionToken.empty();
@@ -192,6 +209,11 @@ void AuthController::setEnterWorldCallback(EnterWorldCallback pCallback)
     mEnterWorldCallback = pCallback;
 }
 
+void AuthController::setCharacterDeleteCallback(CharacterDeleteCallback pCallback)
+{
+    mCharacterDeleteCallback = pCallback;
+}
+
 void AuthController::clearCallbacks()
 {
     mLoginResultCallback = nullptr;
@@ -199,6 +221,7 @@ void AuthController::clearCallbacks()
     mCharacterListCallback = nullptr;
     mCharacterCreateCallback = nullptr;
     mEnterWorldCallback = nullptr;
+    mCharacterDeleteCallback = nullptr;
 }
 
 void AuthController::handleLoginResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
@@ -314,6 +337,40 @@ void AuthController::handleCharacterCreateResponse(std::shared_ptr<NetworkSessio
     }
 
     mCharacterCreateCallback(false, tMessage, {});
+}
+
+void AuthController::handleCharacterDeleteResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    if (!mCharacterDeleteCallback)
+    {
+        return;
+    }
+
+    const auto& tResponse = pMessage.response().delete_character_response();
+    uint64_t tCharacterId = tResponse.character_id();
+
+    std::string tMessage;
+
+    switch (tResponse.status())
+    {
+        case services::auth::DELETE_CHARACTER_OK:
+            mCharacterDeleteCallback(true, "", tCharacterId);
+            return;
+        case services::auth::DELETE_CHARACTER_NOT_FOUND:
+            tMessage = "That character no longer exists.";
+            break;
+        case services::auth::DELETE_CHARACTER_NAME_MISMATCH:
+            tMessage = "The name does not match.";
+            break;
+        case services::auth::DELETE_CHARACTER_IN_WORLD:
+            tMessage = "That character is still in the world. Try again in a moment.";
+            break;
+        default:
+            tMessage = "Could not delete the character.";
+            break;
+    }
+
+    mCharacterDeleteCallback(false, tMessage, tCharacterId);
 }
 
 void AuthController::handleEnterWorldResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)

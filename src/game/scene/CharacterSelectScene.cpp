@@ -44,6 +44,12 @@ void CharacterSelectScene::enter()
         mController->onCreateResult(pIsSuccess, pMessage, pCharacter);
     });
 
+    tAuthController.setCharacterDeleteCallback(
+    [this](bool pIsSuccess, const std::string& pMessage, uint64_t pCharacterId)
+    {
+        mController->onDeleteResult(pIsSuccess, pMessage, pCharacterId);
+    });
+
     tAuthController.setEnterWorldCallback(
     [this](bool pIsSuccess, const std::string& pMessage, const AuthController::EnterWorldResult& pResult)
     {
@@ -75,6 +81,12 @@ void CharacterSelectScene::enter()
     [this](const std::string& pName, uint32_t pKingdom, uint32_t pClassId)
     {
         mEngine.getNetworkManager().getAuthController().sendCharacterCreate(pName, pKingdom, pClassId);
+    });
+
+    mController->setDeleteRequestCallback(
+    [this](uint64_t pCharacterId, const std::string& pConfirmName)
+    {
+        mEngine.getNetworkManager().getAuthController().sendDeleteCharacter(pCharacterId, pConfirmName);
     });
 
     mController->setLogoutCallback(

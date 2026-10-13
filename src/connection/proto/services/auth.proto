@@ -95,6 +95,24 @@ message CharacterCreateResponse {
     CharacterSummary character = 2;
 }
 
+enum DeleteCharacterStatus {
+    DELETE_CHARACTER_OK = 0;
+    DELETE_CHARACTER_NOT_FOUND = 1;
+    DELETE_CHARACTER_NAME_MISMATCH = 2;
+    DELETE_CHARACTER_IN_WORLD = 3;
+    DELETE_CHARACTER_DATABASE_ERROR = 4;
+}
+
+message DeleteCharacterRequest {
+    uint64 character_id = 1;
+    string confirm_name = 2;
+}
+
+message DeleteCharacterResponse {
+    DeleteCharacterStatus status = 1;
+    uint64 character_id = 2;
+}
+
 enum EnterWorldStatus {
     ENTER_WORLD_OK = 0;
     ENTER_WORLD_NOT_FOUND = 1;   // no such character, or not on this account

@@ -12,6 +12,29 @@
 
 using namespace lakot;
 
+namespace
+{
+    std::string trimmed(const std::string& pText)
+    {
+        size_t tBegin = pText.find_first_not_of(" \t");
+
+        if (tBegin == std::string::npos)
+        {
+            return {};
+        }
+
+        size_t tEnd = pText.find_last_not_of(" \t");
+
+        return pText.substr(tBegin, tEnd - tBegin + 1);
+    }
+
+    std::string toLower(std::string pText)
+    {
+        std::transform(pText.begin(), pText.end(), pText.begin(), [](unsigned char pChar) { return static_cast<char>(std::tolower(pChar)); });
+        return pText;
+    }
+}
+
 CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog)
     : mRmlUiLayer(pRmlUiLayer)
     , mMapCatalog(pMapCatalog)
@@ -70,6 +93,11 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
     tConstructor.Bind("has_selection", &mHasSelection);
     tConstructor.Bind("has_free_slot", &mHasFreeSlot);
     tConstructor.Bind("is_creating", &mIsCreating);
+    tConstructor.Bind("is_deleting", &mIsDeleting);
+    tConstructor.Bind("delete_target_name", &mDeleteTargetName);
+    tConstructor.Bind("delete_target_meta", &mDeleteTargetMeta);
+    tConstructor.Bind("delete_name_input", &mDeleteNameInput);
+    tConstructor.Bind("delete_name_matches", &mDeleteNameMatches);
     tConstructor.Bind("is_busy", &mIsBusy);
     tConstructor.Bind("is_error", &mIsError);
 
@@ -78,6 +106,11 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
     tConstructor.BindEventCallback("begin_create", &CharacterSelectRmlController::onBeginCreateClicked, this);
     tConstructor.BindEventCallback("confirm_create", &CharacterSelectRmlController::onConfirmCreateClicked, this);
     tConstructor.BindEventCallback("cancel_create", &CharacterSelectRmlController::onCancelCreateClicked, this);
+    tConstructor.BindEventCallback("begin_delete", &CharacterSelectRmlController::onBeginDeleteClicked, this);
+    tConstructor.BindEventCallback("cancel_delete", &CharacterSelectRmlController::onCancelDeleteClicked, this);
+    tConstructor.BindEventCallback("confirm_delete", &CharacterSelectRmlController::onConfirmDeleteClicked, this);
+    tConstructor.BindEventCallback("delete_name_changed", &CharacterSelectRmlController::onDeleteNameChanged, this);
+    tConstructor.BindEventCallback("delete_name_keydown", &CharacterSelectRmlController::onDeleteNameKeyDown, this);
     tConstructor.BindEventCallback("logout", &CharacterSelectRmlController::onLogoutClicked, this);
     tConstructor.BindEventCallback("name_keydown", &CharacterSelectRmlController::onNameKeyDown, this);
     tConstructor.BindEventCallback("choose_kingdom", &CharacterSelectRmlController::onChooseKingdomClicked, this);
@@ -119,6 +152,11 @@ void CharacterSelectRmlController::setEnterWorldRequestCallback(EnterWorldReques
 void CharacterSelectRmlController::setCreateRequestCallback(CreateRequestCallback pCallback)
 {
     mCreateRequestCallback = pCallback;
+}
+
+void CharacterSelectRmlController::setDeleteRequestCallback(DeleteRequestCallback pCallback)
+{
+    mDeleteRequestCallback = pCallback;
 }
 
 void CharacterSelectRmlController::setLogoutCallback(LogoutCallback pCallback)
@@ -405,6 +443,133 @@ void CharacterSelectRmlController::onCancelCreateClicked(Rml::DataModelHandle /*
     mNewName.clear();
 
     setStatus("", false);
+}
+
+void CharacterSelectRmlController::onBeginDeleteClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    if (mIsBusy || !mHasSelection)
+    {
+        return;
+    }
+
+    const AuthController::CharacterSummary& tCharacter = mCharacters[mSelectedIndex];
+
+    mDeleteTargetName = tCharacter.name;
+    mDeleteTargetMeta = getClassName(tCharacter.classId) + " - Lv " + std::to_string(tCharacter.level) + " - " + getMapName(tCharacter.mapId);
+    mDeleteNameInput.clear();
+    mDeleteNameMatches = false;
+    mIsDeleting = true;
+
+    setStatus("", false);
+}
+
+void CharacterSelectRmlController::onCancelDeleteClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    doCancelDelete();
+}
+
+void CharacterSelectRmlController::onConfirmDeleteClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    doConfirmDelete();
+}
+
+void CharacterSelectRmlController::onDeleteNameChanged(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    updateDeleteMatch();
+}
+
+void CharacterSelectRmlController::onDeleteNameKeyDown(Rml::DataModelHandle /*pHandle*/, Rml::Event& pEvent, const Rml::VariantList& /*pArguments*/)
+{
+    auto tKeyIdentifier = static_cast<Rml::Input::KeyIdentifier>(pEvent.GetParameter<int>("key_identifier", 0));
+
+    if (tKeyIdentifier == Rml::Input::KI_RETURN || tKeyIdentifier == Rml::Input::KI_NUMPADENTER)
+    {
+        doConfirmDelete();
+    }
+    else if (tKeyIdentifier == Rml::Input::KI_ESCAPE)
+    {
+        doCancelDelete();
+    }
+    else
+    {
+        return;
+    }
+
+    pEvent.StopImmediatePropagation();
+}
+
+void CharacterSelectRmlController::doCancelDelete()
+{
+    if (mIsBusy)
+    {
+        return;
+    }
+
+    mIsDeleting = false;
+    mDeleteNameInput.clear();
+    mDeleteNameMatches = false;
+
+    setStatus("", false);
+}
+
+void CharacterSelectRmlController::doConfirmDelete()
+{
+    updateDeleteMatch();
+
+    if (mIsBusy || !mIsDeleting || !mDeleteNameMatches || !mHasSelection)
+    {
+        return;
+    }
+
+    std::string tConfirmName = trimmed(mDeleteNameInput);
+
+    setBusy(true);
+    setStatus("Deleting...", false);
+
+    if (mDeleteRequestCallback)
+    {
+        mDeleteRequestCallback(mCharacters[mSelectedIndex].characterId, tConfirmName);
+    }
+}
+
+void CharacterSelectRmlController::updateDeleteMatch()
+{
+    std::string tTyped = trimmed(mDeleteNameInput);
+
+    mDeleteNameMatches = !tTyped.empty() && toLower(tTyped) == toLower(mDeleteTargetName);
+
+    mModelHandle.DirtyVariable("delete_name_matches");
+}
+
+void CharacterSelectRmlController::onDeleteResult(bool pIsSuccess, const std::string& pMessage, uint64_t pCharacterId)
+{
+    setBusy(false);
+
+    if (!pIsSuccess)
+    {
+        setStatus(pMessage, true);
+        return;
+    }
+
+    auto tIterator = std::find_if(mCharacters.begin(), mCharacters.end(),
+        [pCharacterId](const AuthController::CharacterSummary& pCharacter) { return pCharacter.characterId == pCharacterId; });
+
+    if (tIterator != mCharacters.end())
+    {
+        mCharacters.erase(tIterator);
+    }
+
+    mHasCharacters = !mCharacters.empty();
+    mHasFreeSlot = mCharacters.size() < mMaxSlots;
+    mSlotsLabel = std::to_string(mCharacters.size()) + " / " + std::to_string(mMaxSlots) + " slots used";
+
+    mSelectedIndex = mCharacters.empty() ? -1 : 0;
+    mIsDeleting = false;
+    mDeleteNameInput.clear();
+    mDeleteNameMatches = false;
+
+    rebuildRows();
+    setStatus("Character deleted.", false);
 }
 
 void CharacterSelectRmlController::onLogoutClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)

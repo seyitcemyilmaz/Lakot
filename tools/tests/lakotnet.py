@@ -190,6 +190,13 @@ class Client:
             q.enter_world_request.character_id = cid
         return self.call(f)
 
+    def delete_character(self, cid, confirm_name, timeout=8.0):
+        def f(q):
+            q.delete_character_request.character_id = cid
+            q.delete_character_request.confirm_name = confirm_name
+        r = self.call(f, timeout)
+        return r.delete_character_response.status if r is not None and r.HasField("delete_character_response") else None
+
     def move(self, x, y, z, yaw=0.0):
         def f(q):
             p = q.player_state_update

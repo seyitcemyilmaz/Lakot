@@ -56,6 +56,7 @@ public:
     // pKingdom is the account's kingdom, 0 until its first character exists.
     using CharacterListCallback = std::function<void(const std::vector<CharacterSummary>& pCharacters, uint32_t pMaxSlots, uint32_t pKingdom)>;
     using CharacterCreateCallback = std::function<void(bool pIsSuccess, const std::string& pMessage, const CharacterSummary& pCharacter)>;
+    using CharacterDeleteCallback = std::function<void(bool pIsSuccess, const std::string& pMessage, uint64_t pCharacterId)>;
     using EnterWorldCallback = std::function<void(bool pIsSuccess, const std::string& pMessage, const EnterWorldResult& pResult)>;
     using ResumeResultCallback = std::function<void(bool pIsSuccess)>;
 
@@ -70,6 +71,7 @@ public:
     // pKingdom only matters for the account's first character.
     void sendCharacterCreate(const std::string& pName, uint32_t pKingdom, uint32_t pClassId);
     void sendEnterWorld(uint64_t pCharacterId);
+    void sendDeleteCharacter(uint64_t pCharacterId, const std::string& pConfirmName);
 
     // Session resume token from the last login (rotated on every resume).
     // Empty when not logged in.
@@ -91,6 +93,7 @@ public:
     void setCharacterListCallback(CharacterListCallback pCallback);
     void setCharacterCreateCallback(CharacterCreateCallback pCallback);
     void setEnterWorldCallback(EnterWorldCallback pCallback);
+    void setCharacterDeleteCallback(CharacterDeleteCallback pCallback);
 
     // Drops every callback above. They capture the scene/UI object that
     // registered them, but this controller lives as long as the process (it
@@ -109,6 +112,7 @@ private:
     CharacterListCallback mCharacterListCallback;
     CharacterCreateCallback mCharacterCreateCallback;
     EnterWorldCallback mEnterWorldCallback;
+    CharacterDeleteCallback mCharacterDeleteCallback;
     ResumeResultCallback mResumeResultCallback;
 
     std::string mSessionToken;
@@ -121,6 +125,7 @@ private:
     void handleRegisterResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleCharacterListResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleCharacterCreateResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleCharacterDeleteResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleEnterWorldResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleResumeSessionResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };

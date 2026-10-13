@@ -52,6 +52,13 @@ void CharacterController::initialize()
             this->handleEnterWorldRequest(pSession, pMessage);
         }
     );
+
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kDeleteCharacterRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleDeleteCharacterRequest(pSession, pMessage);
+        }
+    );
 }
 
 void CharacterController::sendCharacterList(const std::shared_ptr<NetworkSession<connection::Message>>& pSession, uint64_t pReplyTo)
@@ -334,6 +341,97 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
                       << ", " << tSnapshot.items.size() << " esya)" << std::endl;
         });
     });
+}
+
+void CharacterController::handleDeleteCharacterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tAccountId = pSession->getAccountId();
+
+    if (tAccountId == 0)
+    {
+        return;
+    }
+
+    const auto& tRequest = pMessage.request().delete_character_request();
+    uint64_t tCharacterId = tRequest.character_id();
+    uint64_t tReplyTo = pMessage.request().header().id();
+
+    if (tRequest.confirm_name().size() > RequestLimits::kMaxUsernameLength)
+    {
+        sendDeleteResult(pSession, tReplyTo, services::auth::DELETE_CHARACTER_NAME_MISMATCH, tCharacterId);
+        return;
+    }
+
+    uint64_t tTicket = mNetworkManager.claimWorldEntry(pSession);
+
+    if (tTicket == 0)
+    {
+        sendDeleteResult(pSession, tReplyTo, services::auth::DELETE_CHARACTER_IN_WORLD, tCharacterId);
+        return;
+    }
+
+    std::string tConfirmName = tRequest.confirm_name();
+
+    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket, tConfirmName]()
+    {
+        if (mWorldController.isCharacterInWorld(tAccountId, tCharacterId))
+        {
+            if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+            {
+                sendDeleteResult(pSession, tReplyTo, services::auth::DELETE_CHARACTER_IN_WORLD, tCharacterId);
+            }
+
+            return;
+        }
+
+        mRepositoryManager.getCharacterRepository().deleteCharacter(tAccountId, tCharacterId, tConfirmName,
+        [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket, tConfirmName](CharacterRepository::DeleteResult pResult)
+        {
+            bool tIsOwner = mNetworkManager.abandonWorldEntry(pSession, tTicket);
+
+            services::auth::DeleteCharacterStatus tStatus = services::auth::DELETE_CHARACTER_DATABASE_ERROR;
+
+            switch (pResult)
+            {
+                case CharacterRepository::DeleteResult::eDeleted:
+                    tStatus = services::auth::DELETE_CHARACTER_OK;
+                    std::osyncstream(std::cout) << "[Server] Karakter silindi (hesap: " << tAccountId
+                                                << ", ID: " << tCharacterId << ", ad: " << tConfirmName << ")" << std::endl;
+                    break;
+                case CharacterRepository::DeleteResult::eNotFound:
+                    tStatus = services::auth::DELETE_CHARACTER_NOT_FOUND;
+                    break;
+                case CharacterRepository::DeleteResult::eNameMismatch:
+                    tStatus = services::auth::DELETE_CHARACTER_NAME_MISMATCH;
+                    break;
+                default:
+                    break;
+            }
+
+            if (tIsOwner)
+            {
+                sendDeleteResult(pSession, tReplyTo, tStatus, tCharacterId);
+            }
+        });
+    });
+}
+
+void CharacterController::sendDeleteResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                                           uint64_t pReplyTo,
+                                           services::auth::DeleteCharacterStatus pStatus,
+                                           uint64_t pCharacterId)
+{
+    connection::Message tResponse;
+
+    auto* tHeader = tResponse.mutable_response()->mutable_header();
+    tHeader->set_reply_to(pReplyTo);
+    tHeader->mutable_status()->set_code(common::STATUS_OK);
+
+    auto* tDelete = tResponse.mutable_response()->mutable_delete_character_response();
+    tDelete->set_status(pStatus);
+    tDelete->set_character_id(pCharacterId);
+
+    pSession->send(tResponse);
 }
 
 void CharacterController::sendEnterWorldFailure(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,

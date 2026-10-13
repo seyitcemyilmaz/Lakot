@@ -42,6 +42,12 @@ private:
     void handleCharacterListRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleCharacterCreateRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleEnterWorldRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleDeleteCharacterRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+
+    static void sendDeleteResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
+                                 uint64_t pReplyTo,
+                                 services::auth::DeleteCharacterStatus pStatus,
+                                 uint64_t pCharacterId);
 
     static void sendEnterWorldFailure(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                                       uint64_t pReplyTo,

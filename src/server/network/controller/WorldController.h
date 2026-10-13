@@ -64,6 +64,7 @@ public:
     std::string getCharacterName(uint64_t pCharacterId);
 
     std::optional<CharacterAccess> getCharacterAccess(uint64_t pCharacterId);
+    bool isCharacterInWorld(uint64_t pAccountId, uint64_t pCharacterId);
     void setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds);
     std::optional<uint64_t> findOnlineCharacterIdByAccount(uint64_t pAccountId);
     size_t getOnlineCount();

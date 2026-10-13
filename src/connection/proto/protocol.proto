@@ -23,6 +23,7 @@ message Request {
         services.auth.EnterWorldRequest enter_world_request = 1004;
         services.auth.ResumeSessionRequest resume_session_request = 1005;
         services.auth.LogoutRequest logout_request = 1006;
+        services.auth.DeleteCharacterRequest delete_character_request = 1007;
 
         // chat service
         services.chat.ChatMessageRequest chat_message_request = 2000;
@@ -67,6 +68,7 @@ message Response {
         services.auth.CharacterCreateResponse character_create_response = 1003;
         services.auth.EnterWorldResponse enter_world_response = 1004;
         services.auth.ResumeSessionResponse resume_session_response = 1005;
+        services.auth.DeleteCharacterResponse delete_character_response = 1006;
 
         // chat service
         services.chat.ChatMessageResponse chat_message_response = 2000;

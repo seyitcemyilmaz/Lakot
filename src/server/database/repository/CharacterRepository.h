@@ -71,6 +71,14 @@ public:
         eDatabaseError
     };
 
+    enum class DeleteResult
+    {
+        eDeleted,
+        eNotFound,
+        eNameMismatch,
+        eDatabaseError
+    };
+
     struct CharacterSave
     {
         uint64_t characterId = 0;
@@ -84,6 +92,7 @@ public:
     };
 
     using LoadCallback = std::function<void(LoadResult, const CharacterRecord&, std::vector<ItemInstance>)>;
+    using DeleteCallback = std::function<void(DeleteResult)>;
 
     virtual ~CharacterRepository();
     explicit CharacterRepository(DatabaseManager& pDatabaseManager);
@@ -105,6 +114,8 @@ public:
     void loadOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, LoadCallback pCallback);
 
     void saveCharacter(CharacterSave pSave);
+
+    void deleteCharacter(uint64_t pAccountId, uint64_t pCharacterId, const std::string& pConfirmName, DeleteCallback pCallback);
 };
 
 }
