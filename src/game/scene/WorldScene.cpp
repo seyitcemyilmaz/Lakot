@@ -456,6 +456,7 @@ void WorldScene::updatePickup()
     if (glm::distance(glm::vec2(tPosition->x, tPosition->z), glm::vec2(mLocalPosition.x, mLocalPosition.z)) <= kPickupReach)
     {
         mEngine.getNetworkManager().getWorldController().sendPickup(mPendingPickupId);
+        mLastSentPickupId = mPendingPickupId;
         mPendingPickupId = 0;
         mAutoWalk->stop();
     }
@@ -465,8 +466,53 @@ void WorldScene::updatePickup()
     }
 }
 
+void WorldScene::requestAutoPickup()
+{
+    constexpr float kAutoPickupSearch = 10.0f;
+
+    uint64_t tNow = SDL_GetTicks();
+
+    std::erase_if(mSkippedPickups, [tNow](const auto& pEntry) { return pEntry.second <= tNow; });
+
+    uint64_t tBestId = 0;
+    float tBestDistance = kAutoPickupSearch;
+
+    for (const auto& [tId, tEntity] : mEntities->getAll())
+    {
+        if (tEntity.type != EntityType::eGroundItem || mSkippedPickups.contains(tId))
+        {
+            continue;
+        }
+
+        glm::vec3 tPosition = WorldEntities::getPosition(tEntity);
+        float tDistance = glm::distance(glm::vec2(tPosition.x, tPosition.z), glm::vec2(mLocalPosition.x, mLocalPosition.z));
+
+        if (tDistance <= tBestDistance)
+        {
+            tBestDistance = tDistance;
+            tBestId = tId;
+        }
+    }
+
+    if (tBestId == 0)
+    {
+        mHud->showNotice("Nothing to pick up nearby.");
+        return;
+    }
+
+    mAutoWalk->follow(tBestId);
+    mPendingPickupId = tBestId;
+}
+
 void WorldScene::onPickupResult(services::world::PickupResult pResult)
 {
+    constexpr uint64_t kSkipDurationMs = 10000;
+
+    if (pResult == services::world::PICKUP_RESULT_NOT_OWNER && mLastSentPickupId != 0)
+    {
+        mSkippedPickups[mLastSentPickupId] = SDL_GetTicks() + kSkipDurationMs;
+    }
+
     switch (pResult)
     {
         case services::world::PICKUP_RESULT_NOT_OWNER: mHud->showNotice("This belongs to someone else for now."); break;
@@ -809,6 +855,12 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
             case SDLK_A: mIsMovingLeft = tIsPressed;     return true;
             case SDLK_D: mIsMovingRight = tIsPressed;    return true;
             case SDLK_SPACE: mIsAttackHeld = tIsPressed; return true;
+            case SDLK_Z:
+                if (tIsPressed && !pEvent->key.repeat)
+                {
+                    requestAutoPickup();
+                }
+                return true;
             case SDLK_F10:
                 if (tIsPressed && mAttachmentPanel)
                 {
@@ -848,7 +900,7 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
         return true;
     }
 
-    if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_LEFT && mHud->isSystemMenuOpen())
+    if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_LEFT && mHud->isModalOpen())
     {
         return true;
     }
@@ -883,7 +935,7 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
         bool tWasOrbiting = mIsOrbiting;
         endOrbit();
 
-        if (tWasOrbiting && mOrbitDragDistance < kClickDragThresholdPixels && !mHud->isSystemMenuOpen())
+        if (tWasOrbiting && mOrbitDragDistance < kClickDragThresholdPixels && !mHud->isModalOpen())
         {
             if (auto tTarget = mPicker->pickTarget(mRightClickDownPos); tTarget && tTarget->type == EntityType::ePlayer)
             {

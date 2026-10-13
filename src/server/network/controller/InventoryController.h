@@ -47,6 +47,7 @@ private:
     void handleUnequipItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleMoveItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleUseItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleDiscardItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 
     void sendUseItemResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                            uint64_t pReplyTo,

@@ -38,12 +38,16 @@ public:
     static constexpr double kDespawnSeconds = 60.0;
     static constexpr float kPickupRange = 3.0f;
     static constexpr float kScatterRadius = 0.6f;
+    static constexpr size_t kMaxGroundItems = 500;
 
     LootSystem(const MapData& pMap, const MonsterCatalog& pMonsterCatalog, const ItemCatalog& pItemCatalog,
                WorldRegistry& pRegistry, uint64_t& pNextEntityId);
 
     void drop(const CombatReward& pReward, double pNow);
     void update(double pNow);
+
+    bool dropItem(uint32_t pTemplateId, uint32_t pCount, float pX, float pZ, double pNow);
+    bool hasGroundCapacity() const;
 
     const GroundItem* find(uint64_t pEntityId) const;
 
@@ -59,6 +63,7 @@ private:
     std::mt19937 mRandom{std::random_device{}()};
     std::unordered_map<uint64_t, GroundItem> mItems;
 
+    void scatter(float pCenterX, float pCenterZ, float& pX, float& pZ);
     void spawn(GroundItem pItem, float pX, float pZ);
     void remove(uint64_t pEntityId);
 };

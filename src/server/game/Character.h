@@ -106,6 +106,7 @@ public:
     uint32_t giveItem(uint32_t pTemplateId, uint32_t pCount);
     uint32_t takeItem(uint32_t pTemplateId, uint32_t pCount);
     uint32_t countItem(uint32_t pTemplateId) const;
+    std::optional<ItemInstance> takeItemAt(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount);
 
     ConsumeResultType useConsumable(const ItemTemplate& pTemplate);
 

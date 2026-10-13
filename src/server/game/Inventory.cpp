@@ -246,6 +246,31 @@ uint32_t Inventory::removeItem(uint32_t pTemplateId, uint32_t pCount)
     return pCount - tRemaining;
 }
 
+std::optional<ItemInstance> Inventory::removeAt(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount)
+{
+    auto tIndex = findIndexAt(ItemLocationType::eInventory, pBagSlot);
+
+    if (!tIndex || mItems[*tIndex].templateId != pTemplateId)
+    {
+        return std::nullopt;
+    }
+
+    ItemInstance& tStack = mItems[*tIndex];
+    uint32_t tTaken = (pCount == 0 || pCount > tStack.count) ? tStack.count : pCount;
+
+    ItemInstance tRemoved = tStack;
+    tRemoved.count = tTaken;
+
+    tStack.count -= tTaken;
+
+    if (tStack.count == 0)
+    {
+        mItems.erase(mItems.begin() + static_cast<std::ptrdiff_t>(*tIndex));
+    }
+
+    return tRemoved;
+}
+
 uint32_t Inventory::countItem(uint32_t pTemplateId) const
 {
     uint32_t tTotal = 0;

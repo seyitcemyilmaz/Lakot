@@ -21,6 +21,7 @@
 #include "../../gui/rml/InventoryRmlController.h"
 #include "../../gui/rml/CharacterSheetRmlController.h"
 #include "../../gui/rml/SystemMenuRmlController.h"
+#include "../../gui/rml/ItemDiscardRmlController.h"
 #include "../../gui/rml/MinimapRmlController.h"
 #include "../../gui/rml/WorldMapRmlController.h"
 #include "../../network/GameTypes.h"
@@ -70,7 +71,7 @@ public:
 
     void handleEscape();
 
-    bool isSystemMenuOpen() const;
+    bool isModalOpen() const;
 
     void closeWorldChat();
     void openWhisper(uint64_t pPlayerId, const std::string& pUsername);
@@ -94,6 +95,7 @@ private:
     InventoryRmlController mInventory;
     CharacterSheetRmlController mCharacterSheet;
     SystemMenuRmlController mSystemMenu;
+    ItemDiscardRmlController mItemDiscard;
     WhisperWindows mWhispers;
 
     std::vector<DisplayMode> mDisplayModes;
@@ -105,6 +107,8 @@ private:
     LocalSayCallback mLocalSayCallback;
     LocalItemsCallback mLocalItemsCallback;
 
+    bool mIsAwaitingDiscardResult{false};
+
     void connectNetwork();
     void refreshDisplayOptions();
 
@@ -114,7 +118,9 @@ private:
     void activateSkillSlot(SkillBarSlot pSlot);
     void bindSkillSlot(SkillBarSlot pSlot, uint32_t pTemplateId);
     void onSkillSlotDropped(SkillBarSlot pFrom, std::optional<SkillBarSlot> pTo);
-    void onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY);
+    void onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY);
+    void onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy);
+    void onInventoryActionResult(bool pIsSuccess);
     void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
     void onAllocateStatResult(services::progression::AllocateStatStatus pStatus);
 };

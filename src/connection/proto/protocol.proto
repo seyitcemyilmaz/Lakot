@@ -42,6 +42,7 @@ message Request {
         services.inventory.UnequipItemRequest unequip_item_request = 5001;
         services.inventory.MoveItemRequest move_item_request = 5002;
         services.inventory.UseItemRequest use_item_request = 5003;
+        services.inventory.DiscardItemRequest discard_item_request = 5004;
 
         // progression service
         services.progression.AllocateStatRequest allocate_stat_request = 6000;

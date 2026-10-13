@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <imgui.h>
@@ -99,6 +100,8 @@ private:
     std::optional<WorldPicker::Target> mContextMenuTarget;
 
     uint64_t mPendingPickupId{0};
+    uint64_t mLastSentPickupId{0};
+    std::unordered_map<uint64_t, uint64_t> mSkippedPickups;
 
     glm::vec3 mLocalPosition{0.0f, 0.0f, 0.0f};
     glm::vec3 mPreviousLocalPosition{0.0f, 0.0f, 0.0f};
@@ -130,6 +133,7 @@ private:
 
     void updateLocalMovement(double pDeltaTime);
     void updatePickup();
+    void requestAutoPickup();
     void onPickupResult(services::world::PickupResult pResult);
     glm::vec3 slideLocal(glm::vec3 pPosition, glm::vec2 pStep) const;
 

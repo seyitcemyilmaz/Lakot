@@ -157,6 +157,18 @@ uint32_t Character::takeItem(uint32_t pTemplateId, uint32_t pCount)
     return tRemoved;
 }
 
+std::optional<ItemInstance> Character::takeItemAt(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount)
+{
+    std::optional<ItemInstance> tRemoved = mInventory.removeAt(pBagSlot, pTemplateId, pCount);
+
+    if (tRemoved)
+    {
+        markDirty();
+    }
+
+    return tRemoved;
+}
+
 uint32_t Character::countItem(uint32_t pTemplateId) const
 {
     return mInventory.countItem(pTemplateId);

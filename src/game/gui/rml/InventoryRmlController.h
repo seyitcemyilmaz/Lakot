@@ -30,7 +30,7 @@ public:
     using EquipRequestCallback = std::function<void(uint32_t pBagSlot)>;
     using UnequipRequestCallback = std::function<void(EquipSlotType pSlot, std::optional<uint32_t> pBagSlot)>;
     using MoveRequestCallback = std::function<void(uint32_t pFromSlot, uint32_t pToSlot)>;
-    using ItemDroppedOutsideCallback = std::function<void(uint32_t pTemplateId, float pX, float pY)>;
+    using ItemDroppedOutsideCallback = std::function<void(const OwnedItem& pItem, float pX, float pY)>;
 
     InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons);
     ~InventoryRmlController();

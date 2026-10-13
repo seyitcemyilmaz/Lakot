@@ -663,12 +663,7 @@ void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
                 continue;
             }
 
-            const ItemTemplate* tTemplate = mInventoryController.findTemplate(tItem.templateId);
-
-            if (tTemplate && tTemplate->isUsable())
-            {
-                mItemDroppedOutsideCallback(tItem.templateId, pMouseX, pMouseY);
-            }
+            mItemDroppedOutsideCallback(tItem, pMouseX, pMouseY);
 
             break;
         }

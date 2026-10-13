@@ -244,6 +244,7 @@ void Zone::leavePlayer(uint64_t pCharacterId, ReleasedCallback pOnReleased)
         mLastAcceptedAt.erase(pCharacterId);
         mPendingCorrections.erase(pCharacterId);
         mLastPickupAt.erase(pCharacterId);
+        mLastDiscardAt.erase(pCharacterId);
         mLastPotionAt.erase(pCharacterId);
 
         if (pOnReleased)
@@ -504,6 +505,70 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
     });
 }
 
+void Zone::discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    postTimed([this, pCharacterId, pBagSlot, pTemplateId, pCount, pMode, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+        const PlayerState* tState = mRegistry.getState(pCharacterId);
+
+        if (tCharacter == mCharacters.end() || !tState)
+        {
+            pCallback(false, "Player is not online.");
+            return;
+        }
+
+        auto [tLastDiscard, tIsFirst] = mLastDiscardAt.try_emplace(pCharacterId, mTime);
+
+        if (!tIsFirst)
+        {
+            if (mTime - tLastDiscard->second < kDiscardCooldownSeconds)
+            {
+                pCallback(false, "Too fast.");
+                return;
+            }
+
+            tLastDiscard->second = mTime;
+        }
+
+        if (tCharacter->second.isDead())
+        {
+            pCallback(false, "You cannot do that while dead.");
+            return;
+        }
+
+        bool tIsDrop = pMode == services::inventory::DISCARD_MODE_DROP;
+
+        if (tIsDrop && !mLoot.hasGroundCapacity())
+        {
+            pCallback(false, "Too many items on the ground.");
+            return;
+        }
+
+        std::optional<ItemInstance> tRemoved = tCharacter->second.takeItemAt(pBagSlot, pTemplateId, pCount);
+
+        if (!tRemoved)
+        {
+            pCallback(false, "That item is no longer there.");
+            return;
+        }
+
+        if (tIsDrop)
+        {
+            mLoot.dropItem(tRemoved->templateId, tRemoved->count, tState->x, tState->z, mTime);
+        }
+
+        sendInventoryUpdate(tCharacter->second);
+        persistCharacter(pCharacterId);
+        pCallback(true, std::string());
+    });
+}
+
 void Zone::useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback)
 {
     if (!pCallback)
@@ -752,6 +817,7 @@ void Zone::transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const Playe
     mCharacters.erase(pCharacterId);
     mCombat.forget(pCharacterId);
     mLastPickupAt.erase(pCharacterId);
+    mLastDiscardAt.erase(pCharacterId);
     mLastPotionAt.erase(pCharacterId);
     mLastAcceptedAt.erase(pCharacterId);
     mPendingCorrections.erase(pCharacterId);

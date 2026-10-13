@@ -119,3 +119,15 @@ message UseItemResponse {
     UseItemStatus status = 1;
     float cooldown_seconds = 2;
 }
+
+enum DiscardMode {
+    DISCARD_MODE_DROP = 0;
+    DISCARD_MODE_DESTROY = 1;
+}
+
+message DiscardItemRequest {
+    uint32 bag_slot = 1;
+    uint32 template_id = 2;
+    uint32 count = 3;
+    DiscardMode mode = 4;
+}

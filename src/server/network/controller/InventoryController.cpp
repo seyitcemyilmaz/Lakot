@@ -47,6 +47,13 @@ void InventoryController::initialize()
             this->handleUseItemRequest(pSession, pMessage);
         }
     );
+
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kDiscardItemRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleDiscardItemRequest(pSession, pMessage);
+        }
+    );
 }
 
 void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession<connection::Message>>& pSession)
@@ -240,5 +247,30 @@ void InventoryController::handleUseItemRequest(std::shared_ptr<NetworkSession<co
     [pSession, tReplyTo, this](services::inventory::UseItemStatus pStatus, float pCooldownSeconds)
     {
         sendUseItemResult(pSession, tReplyTo, pStatus, pCooldownSeconds);
+    });
+}
+
+void InventoryController::handleDiscardItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tCharacterId = pSession->getCharacterId();
+
+    if (tCharacterId == 0)
+    {
+        return;
+    }
+
+    const auto& tRequest = pMessage.request().discard_item_request();
+    uint64_t tReplyTo = pMessage.request().header().id();
+
+    if (tRequest.mode() != services::inventory::DISCARD_MODE_DROP && tRequest.mode() != services::inventory::DISCARD_MODE_DESTROY)
+    {
+        sendActionResult(pSession, tReplyTo, false);
+        return;
+    }
+
+    mWorldController.discardItem(tCharacterId, tRequest.bag_slot(), tRequest.template_id(), tRequest.count(), tRequest.mode(),
+    [pSession, tReplyTo, this](bool pIsSuccess, const std::string&)
+    {
+        sendActionResult(pSession, tReplyTo, pIsSuccess);
     });
 }

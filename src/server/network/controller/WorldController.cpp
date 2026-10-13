@@ -482,6 +482,25 @@ void WorldController::useItem(uint64_t pCharacterId, const ItemTemplate& pTempla
     tZone->useItem(pCharacterId, pTemplate, std::move(pCallback));
 }
 
+void WorldController::discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, Zone::ActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    auto tMapId = getCharacterZone(pCharacterId);
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (!tZone)
+    {
+        pCallback(false, "Player is not online.");
+        return;
+    }
+
+    tZone->discardItem(pCharacterId, pBagSlot, pTemplateId, pCount, pMode, std::move(pCallback));
+}
+
 void WorldController::sendNearby(uint64_t pOriginCharacterId, Zone::Packet pPacket)
 {
     auto tMapId = getCharacterZone(pOriginCharacterId);

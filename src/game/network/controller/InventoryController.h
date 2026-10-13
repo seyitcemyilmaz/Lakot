@@ -42,6 +42,7 @@ public:
     void sendUnequipItem(EquipSlotType pEquipSlot, std::optional<uint32_t> pBagSlot = std::nullopt);
     void sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot);
     void sendUseItem(uint32_t pTemplateId);
+    bool sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy);
 
     void setInventoryUpdateCallback(InventoryUpdateCallback pCallback);
     void setActionResultCallback(ActionResultCallback pCallback);

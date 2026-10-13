@@ -141,11 +141,14 @@ public:
 
     void pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo);
 
+    using ActionCallback = std::function<void(bool pIsSuccess, const std::string& pText)>;
+
+    void discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, ActionCallback pCallback);
+
     using UseItemCallback = std::function<void(services::inventory::UseItemStatus pStatus, float pCooldownSeconds)>;
 
     void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback);
 
-    using ActionCallback = std::function<void(bool pIsSuccess, const std::string& pText)>;
     using PositionCallback = std::function<void(bool pIsFound, uint32_t pMapId, float pX, float pZ)>;
 
     void teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, ActionCallback pCallback);
@@ -199,6 +202,7 @@ private:
     static constexpr double kMaxBudgetSeconds = 2.0;
 
     static constexpr double kPickupCooldownSeconds = 0.1;
+    static constexpr double kDiscardCooldownSeconds = 0.1;
     static constexpr double kPotionCooldownSeconds = 1.0;
 
     const MapData& mMap;
@@ -239,6 +243,7 @@ private:
     LootSystem mLoot;
     VitalsRegeneration mRegeneration;
     std::unordered_map<uint64_t, double> mLastPickupAt;
+    std::unordered_map<uint64_t, double> mLastDiscardAt;
     std::unordered_map<uint64_t, double> mLastPotionAt;
 
     // One Lua state per zone, created ON the zone thread (see start()) so the

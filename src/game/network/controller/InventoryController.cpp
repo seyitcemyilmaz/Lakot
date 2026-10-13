@@ -105,6 +105,29 @@ void InventoryController::sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot)
     tSession->send(tMessage);
 }
 
+bool InventoryController::sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
+{
+    auto tSession = mNetworkManager->getClient().getSession();
+
+    if (!tSession)
+    {
+        return false;
+    }
+
+    connection::Message tMessage;
+    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
+
+    auto* tRequest = tMessage.mutable_request()->mutable_discard_item_request();
+    tRequest->set_bag_slot(pBagSlot);
+    tRequest->set_template_id(pTemplateId);
+    tRequest->set_count(pCount);
+    tRequest->set_mode(pIsDestroy ? services::inventory::DISCARD_MODE_DESTROY : services::inventory::DISCARD_MODE_DROP);
+
+    tSession->send(tMessage);
+
+    return true;
+}
+
 void InventoryController::sendUseItem(uint32_t pTemplateId)
 {
     auto tSession = mNetworkManager->getClient().getSession();

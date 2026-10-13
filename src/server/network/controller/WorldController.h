@@ -88,6 +88,8 @@ public:
 
     void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, Zone::UseItemCallback pCallback);
 
+    void discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, Zone::ActionCallback pCallback);
+
 private:
     // Zones are constructed in initialize(), not the constructor, because
     // each needs the ItemCatalog and that is only filled once the database is

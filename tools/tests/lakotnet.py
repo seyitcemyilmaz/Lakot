@@ -220,6 +220,15 @@ class Client:
         r = self.call(f, timeout)
         return r.pickup_item_response.result if r is not None and r.HasField("pickup_item_response") else None
 
+    def discard(self, bag_slot, template_id, count=0, destroy=False, timeout=8.0):
+        def f(q):
+            q.discard_item_request.bag_slot = bag_slot
+            q.discard_item_request.template_id = template_id
+            q.discard_item_request.count = count
+            q.discard_item_request.mode = 1 if destroy else 0
+        r = self.call(f, timeout)
+        return r.inventory_action_response.status if r is not None and r.HasField("inventory_action_response") else None
+
     def snapshots(self, since=0):
         with self.cv:
             return [m.response.world_snapshot for _, m in self.log[since:] if m.response.HasField("world_snapshot")]

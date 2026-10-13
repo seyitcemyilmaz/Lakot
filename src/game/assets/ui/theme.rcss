@@ -1722,3 +1722,432 @@ body
     font-size: 19dp;
     color: #EBEBF0;
 }
+
+.vitals-death-buttons
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 14dp;
+}
+
+.vitals-revive-btn
+{
+    display: block;
+    min-width: 140dp;
+    margin: 0dp 4dp;
+    padding: 10dp 12dp;
+    text-align: center;
+    background-color: #D9A640;
+    color: #212129;
+    font-weight: bold;
+    border-radius: 6dp;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.vitals-revive-btn:hover
+{
+    background-color: #F2B852;
+}
+
+.vitals-revive-btn:active
+{
+    background-color: #B88A2E;
+}
+
+.vitals-revive-btn.is-disabled
+{
+    background-color: #40404c;
+    color: #9999A8;
+    cursor: default;
+    pointer-events: none;
+}
+
+.vitals-death-auto
+{
+    margin-top: 10dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+/* ===== Destructive actions (itemdiscard.rml, characterselect.rml) =====
+   Danger-outlined secondary button: red border and text on the surface
+   fill, filled red only on hover, so it never competes with the accent
+   primary button (rule 1). */
+.btn-danger
+{
+    display: block;
+    width: 100%;
+    margin-top: 8dp;
+    padding: 8dp;
+    text-align: center;
+    background-color: #212129;
+    color: #FF6666;
+    border-width: 1px;
+    border-color: #FF6666;
+    border-radius: 6dp;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-danger:hover
+{
+    background-color: #FF6666;
+    color: #212129;
+}
+
+.btn-danger.is-disabled
+{
+    color: #9999A8;
+    border-color: #40404c;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* ===== Item discard (src/game/assets/ui/itemdiscard.rml) =====
+   Modal over the world: scrim dims it and the full-window body swallows
+   clicks, like the reconnect overlay. */
+.discard-screen
+{
+    background-color: rgba(18, 18, 24, 160);
+}
+
+.discard-card
+{
+    max-width: 340dp;
+}
+
+.discard-item
+{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10dp;
+}
+
+.discard-icon
+{
+    flex-shrink: 0;
+    width: 48dp;
+    height: 48dp;
+    padding: 4dp;
+    margin-right: 12dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+}
+
+.discard-icon img
+{
+    width: 100%;
+    height: 100%;
+}
+
+.discard-name
+{
+    flex: 1 1 auto;
+    color: #EBEBF0;
+}
+
+/* ===== Skill window (src/game/assets/ui/skills.rml) =====
+   Drag lives on the icon only, and only for learned skills, so locked rows
+   cannot be dragged onto the skill bar. */
+.skills-screen
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.skills-root
+{
+    display: block;
+}
+
+.skills-window
+{
+    position: absolute;
+    bottom: 73dp;
+    left: 12dp;
+    width: 380dp;
+    max-height: 70%;
+
+    display: flex;
+    flex-direction: column;
+    padding: 12dp;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 10dp;
+    pointer-events: auto;
+}
+
+.skills-header
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 8dp;
+    padding-bottom: 8dp;
+    border-bottom-width: 1px;
+    border-bottom-color: #40404c;
+}
+
+.skills-class
+{
+    font-weight: bold;
+    color: #D9A640;
+}
+
+.skills-path
+{
+    color: #EBEBF0;
+}
+
+.skills-points
+{
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.skills-points.has-points
+{
+    color: #D9A640;
+    font-weight: bold;
+}
+
+.skills-body
+{
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin-top: 8dp;
+}
+
+.skills-section-title
+{
+    font-size: 15dp;
+    font-weight: bold;
+    color: #9999A8;
+    margin-bottom: 6dp;
+}
+
+.skills-note
+{
+    font-size: 15dp;
+    color: #9999A8;
+    margin-bottom: 6dp;
+}
+
+.path-card
+{
+    margin-bottom: 8dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+    transition: border-color 0.15s;
+}
+
+.path-card:hover
+{
+    border-color: #D9A640;
+}
+
+.path-card.is-pending
+{
+    border-color: #FF6666;
+}
+
+.path-card.is-locked
+{
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.path-card-head
+{
+    padding: 8dp;
+    cursor: pointer;
+}
+
+.path-name
+{
+    font-weight: bold;
+    color: #EBEBF0;
+}
+
+.path-skills
+{
+    font-size: 15dp;
+    color: #9999A8;
+    margin-top: 4dp;
+}
+
+.path-confirm
+{
+    padding: 0 8dp 8dp 8dp;
+}
+
+.path-warning
+{
+    font-size: 15dp;
+    color: #FF6666;
+}
+
+.path-confirm-row
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.path-confirm-btn
+{
+    flex: 1 1 0;
+    width: auto;
+    margin-right: 6dp;
+}
+
+.skill-row
+{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 6dp;
+    padding: 8dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+}
+
+.skill-row.locked
+{
+    opacity: 0.55;
+}
+
+.skill-icon-box
+{
+    flex-shrink: 0;
+    width: 48dp;
+    height: 48dp;
+    margin-right: 10dp;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+    overflow: hidden;
+}
+
+.skill-icon
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.skill-row.learned .skill-icon
+{
+    drag: clone;
+    cursor: pointer;
+}
+
+.skill-row.learned .skill-icon-box
+{
+    border-color: #D9A640;
+}
+
+.skill-info
+{
+    flex: 1 1 auto;
+}
+
+.skill-name
+{
+    font-weight: bold;
+    color: #EBEBF0;
+}
+
+.skill-tier
+{
+    color: #D9A640;
+}
+
+.skill-description
+{
+    font-size: 15dp;
+    color: #9999A8;
+    margin-top: 4dp;
+}
+
+.skill-stats
+{
+    font-size: 15dp;
+    color: #8CBFF2;
+    margin-top: 4dp;
+}
+
+.skill-side
+{
+    flex-shrink: 0;
+    width: 52dp;
+    margin-left: 8dp;
+    text-align: right;
+}
+
+.skill-level
+{
+    color: #EBEBF0;
+}
+
+.skill-lock
+{
+    font-size: 15dp;
+    color: #FF6666;
+}
+
+.skill-raise
+{
+    width: 32dp;
+    height: 32dp;
+    margin-top: 6dp;
+    margin-left: 20dp;
+    line-height: 32dp;
+    text-align: center;
+    font-weight: bold;
+    color: #212129;
+    background-color: #D9A640;
+    border-radius: 4dp;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.skill-raise:hover
+{
+    background-color: #F2B852;
+}
+
+.skill-raise:active
+{
+    background-color: #B88A2E;
+}
+
+.skillbar-slot.skill
+{
+    border-color: #D9A640;
+}
+
+.skillbar-slot.skill:hover
+{
+    border-color: #F2B852;
+}
+
+.skillbar-slot.skill.flashing
+{
+    border-color: #F2B852;
+    background-color: #292933;
+}

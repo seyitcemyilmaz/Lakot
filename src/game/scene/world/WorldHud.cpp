@@ -29,6 +29,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mInventory(pRmlUiLayer, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
     , mCharacterSheet(pRmlUiLayer, pClassCatalog, pUsername)
     , mSystemMenu(pRmlUiLayer)
+    , mItemDiscard(pRmlUiLayer)
     , mWhispers(pRmlUiLayer)
 {
     mSystemMenu.setLogoutCallback(
@@ -161,7 +162,7 @@ void WorldHud::connectNetwork()
     tInventory.setActionResultCallback(
     [this](bool pIsSuccess)
     {
-        mInventory.onActionResult(pIsSuccess);
+        onInventoryActionResult(pIsSuccess);
     });
 
     tInventory.setUseItemResultCallback(
@@ -171,9 +172,15 @@ void WorldHud::connectNetwork()
     });
 
     mInventory.setItemDroppedOutsideCallback(
-    [this](uint32_t pTemplateId, float pX, float pY)
+    [this](const OwnedItem& pItem, float pX, float pY)
     {
-        onItemDroppedOutside(pTemplateId, pX, pY);
+        onItemDroppedOutside(pItem, pX, pY);
+    });
+
+    mItemDiscard.setConfirmCallback(
+    [this](uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
+    {
+        onDiscardConfirmed(pBagSlot, pTemplateId, pCount, pIsDestroy);
     });
 
     mSkillBar.setSlotActivatedCallback(
@@ -343,6 +350,12 @@ bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
 
 void WorldHud::handleEscape()
 {
+    if (mItemDiscard.isOpen())
+    {
+        mItemDiscard.close();
+        return;
+    }
+
     if (mSystemMenu.isOpen())
     {
         if (mSystemMenu.isSettingsOpen())
@@ -372,9 +385,9 @@ void WorldHud::handleEscape()
     }
 }
 
-bool WorldHud::isSystemMenuOpen() const
+bool WorldHud::isModalOpen() const
 {
-    return mSystemMenu.isOpen();
+    return mSystemMenu.isOpen() || mItemDiscard.isOpen();
 }
 
 void WorldHud::closeWorldChat()
@@ -493,12 +506,45 @@ void WorldHud::onSkillSlotDropped(SkillBarSlot pFrom, std::optional<SkillBarSlot
     }
 }
 
-void WorldHud::onItemDroppedOutside(uint32_t pTemplateId, float pX, float pY)
+void WorldHud::onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY)
 {
-    if (std::optional<SkillBarSlot> tSlot = mSkillBar.getSlotAt(pX, pY))
+    InventoryController& tInventory = mNetworkManager.getInventoryController();
+    const ItemTemplate* tTemplate = tInventory.findTemplate(pItem.templateId);
+
+    if (tTemplate && tTemplate->isUsable())
     {
-        bindSkillSlot(*tSlot, pTemplateId);
+        if (std::optional<SkillBarSlot> tSlot = mSkillBar.getSlotAt(pX, pY))
+        {
+            bindSkillSlot(*tSlot, pItem.templateId);
+            return;
+        }
     }
+
+    std::string tName = tTemplate ? tTemplate->name : std::string("Unknown item");
+
+    mItemDiscard.open(pItem.slot, pItem.templateId, pItem.count, tName, ItemIconPath::resolve(mItemIcons, tTemplate));
+}
+
+void WorldHud::onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
+{
+    mIsAwaitingDiscardResult = mNetworkManager.getInventoryController().sendDiscardItem(pBagSlot, pTemplateId, pCount, pIsDestroy);
+}
+
+void WorldHud::onInventoryActionResult(bool pIsSuccess)
+{
+    if (mIsAwaitingDiscardResult)
+    {
+        mIsAwaitingDiscardResult = false;
+
+        if (!pIsSuccess)
+        {
+            mVitals.showNotice("You cannot discard that right now.");
+        }
+
+        return;
+    }
+
+    mInventory.onActionResult(pIsSuccess);
 }
 
 void WorldHud::onAllocateStatResult(services::progression::AllocateStatStatus pStatus)

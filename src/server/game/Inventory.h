@@ -90,6 +90,9 @@ public:
     // were actually removed.
     uint32_t removeItem(uint32_t pTemplateId, uint32_t pCount);
 
+    // pCount 0 or above the stack size takes the whole stack.
+    std::optional<ItemInstance> removeAt(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount);
+
     uint32_t countItem(uint32_t pTemplateId) const;
 
     // Moves the item whose top-left cell is pBagSlot into its body slot,

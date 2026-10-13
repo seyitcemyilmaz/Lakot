@@ -30,13 +30,7 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
 
     auto tScatter = [&](float& pX, float& pZ)
     {
-        float tAngle = tUnit(mRandom) * 6.2831853f;
-        float tDistance = std::sqrt(tUnit(mRandom)) * kScatterRadius;
-        float tX = pReward.x + std::cos(tAngle) * tDistance;
-        float tZ = pReward.z + std::sin(tAngle) * tDistance;
-
-        pX = mMap.isWalkable(tX, tZ) ? tX : pReward.x;
-        pZ = mMap.isWalkable(tX, tZ) ? tZ : pReward.z;
+        scatter(pReward.x, pReward.z, pX, pZ);
     };
 
     // TODO: party loot - ownerId becomes a party id once parties exist
@@ -92,6 +86,47 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
             }
         }
     }
+}
+
+void LootSystem::scatter(float pCenterX, float pCenterZ, float& pX, float& pZ)
+{
+    std::uniform_real_distribution<float> tUnit(0.0f, 1.0f);
+
+    float tAngle = tUnit(mRandom) * 6.2831853f;
+    float tDistance = std::sqrt(tUnit(mRandom)) * kScatterRadius;
+    float tX = pCenterX + std::cos(tAngle) * tDistance;
+    float tZ = pCenterZ + std::sin(tAngle) * tDistance;
+
+    bool tIsWalkable = mMap.isWalkable(tX, tZ);
+
+    pX = tIsWalkable ? tX : pCenterX;
+    pZ = tIsWalkable ? tZ : pCenterZ;
+}
+
+bool LootSystem::hasGroundCapacity() const
+{
+    return mItems.size() < kMaxGroundItems;
+}
+
+bool LootSystem::dropItem(uint32_t pTemplateId, uint32_t pCount, float pX, float pZ, double pNow)
+{
+    if (!hasGroundCapacity() || pCount == 0 || !mItemCatalog.find(pTemplateId))
+    {
+        return false;
+    }
+
+    GroundItem tItem;
+    tItem.templateId = pTemplateId;
+    tItem.count = pCount;
+    tItem.ownerId = 0;
+    tItem.ownerUntil = 0.0;
+    tItem.despawnAt = pNow + kDespawnSeconds;
+
+    float tX = 0.0f;
+    float tZ = 0.0f;
+    scatter(pX, pZ, tX, tZ);
+    spawn(tItem, tX, tZ);
+    return true;
 }
 
 void LootSystem::update(double pNow)
