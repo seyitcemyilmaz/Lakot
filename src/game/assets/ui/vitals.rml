@@ -18,7 +18,14 @@
         <div class="vitals-notice" data-if="notice != ''">{{ notice }}</div>
         <div class="vitals-death" data-if="is_dead">
             <div class="vitals-death-title">You died</div>
-            <div class="vitals-death-timer">Respawning in {{ respawn }}</div>
+            <div class="vitals-death-timer" data-if="!can_choose">You can revive in {{ respawn }}</div>
+            <div class="vitals-death-buttons">
+                <div class="vitals-revive-btn" data-class-is-disabled="!can_choose"
+                     data-event-click="revive_here">Revive here</div>
+                <div class="vitals-revive-btn" data-class-is-disabled="!can_choose"
+                     data-event-click="revive_town">Revive in town</div>
+            </div>
+            <div class="vitals-death-auto" data-if="auto_respawn != ''">Auto-revive in {{ auto_respawn }} s</div>
         </div>
     </div>
 </body>

@@ -39,6 +39,25 @@ struct MonsterAggro
     uint64_t targetId = 0;
 };
 
+struct DeathPenalty
+{
+    uint64_t characterId = 0;
+    uint64_t experienceLost = 0;
+};
+
+enum class RespawnPlaceType
+{
+    eHere,
+    eCity
+};
+
+enum class RespawnOutcomeType
+{
+    eOk,
+    eNotDead,
+    eTooEarly
+};
+
 struct CombatReward
 {
     uint64_t characterId = 0;
@@ -60,6 +79,7 @@ public:
     static constexpr float kAttackArcCos = 0.5f;
     static constexpr float kBodyRadius = 0.5f;
     static constexpr double kPlayerRespawnSeconds = 5.0;
+    static constexpr double kAutoRespawnSeconds = 60.0;
     static constexpr double kCorpseSeconds = 3.0;
 
     CombatSystem(const MapData& pMap, WorldRegistry& pRegistry,
@@ -75,6 +95,8 @@ public:
     void scheduleRespawnIfDead(uint64_t pCharacterId, double pNow);
     std::vector<uint64_t> reviveDuePlayers(double pNow);
     double getRespawnRemaining(uint64_t pCharacterId, double pNow) const;
+    double getAutoRespawnRemaining(uint64_t pCharacterId, double pNow) const;
+    RespawnOutcomeType tryRespawn(uint64_t pCharacterId, RespawnPlaceType pPlace, double pNow);
     void forget(uint64_t pCharacterId);
 
     bool canBeTargeted(uint64_t pEntityId) const;
@@ -86,6 +108,7 @@ public:
     std::vector<CombatRecord> takeRecords();
     std::unordered_set<uint64_t> takeChangedVitals();
     std::vector<CombatReward> takeRewards();
+    std::vector<DeathPenalty> takeDeathPenalties();
     std::vector<MonsterAggro> takeAggro();
     void reportAggro(uint64_t pMonsterId, uint64_t pTargetId);
 
@@ -97,17 +120,26 @@ private:
 
     std::mt19937 mRandom{std::random_device{}()};
     std::unordered_map<uint64_t, double> mNextAttackAt;
-    std::unordered_map<uint64_t, double> mRespawnAt;
+    struct DeathEntry
+    {
+        double choosableAt = 0.0;
+        double autoAt = 0.0;
+    };
+
+    std::unordered_map<uint64_t, DeathEntry> mDeaths;
+    double mAutoRespawnSeconds;
     std::unordered_map<uint64_t, double> mLastCombatAt;
 
     std::vector<CombatRecord> mRecords;
     std::unordered_set<uint64_t> mChangedVitals;
     std::vector<CombatReward> mRewards;
+    std::vector<DeathPenalty> mDeathPenalties;
     std::vector<MonsterAggro> mAggro;
     std::vector<uint64_t> mCandidates;
 
     bool isHostile(uint64_t pAttackerId, uint64_t pTargetId) const;
     int32_t getDefense(uint64_t pEntityId) const;
+    DeathEntry makeDeathEntry(double pNow) const;
     CombatHit applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t pTargetId, double pNow);
 };
 

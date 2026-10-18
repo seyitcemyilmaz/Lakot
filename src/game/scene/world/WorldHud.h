@@ -121,6 +121,7 @@ private:
     void onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY);
     void onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy);
     void onInventoryActionResult(bool pIsSuccess);
+    void onRespawnResult(services::world::RespawnStatus pStatus);
     void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
     void onAllocateStatResult(services::progression::AllocateStatStatus pStatus);
 };

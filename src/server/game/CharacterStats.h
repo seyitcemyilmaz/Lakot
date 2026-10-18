@@ -83,6 +83,16 @@ namespace StatFormula
         return static_cast<uint64_t>(pLevel) * pLevel * 100ull;
     }
 
+    constexpr uint64_t kDeathExperiencePercent = 5;
+    constexpr uint32_t kDeathPenaltyFreeMaxLevel = 5;
+    constexpr float kReviveHereHealthFraction = 0.5f;
+    constexpr float kReviveCityHealthFraction = 1.0f;
+
+    inline uint64_t getDeathExperienceLoss(uint32_t pLevel, uint64_t pExperience)
+    {
+        return pLevel <= kDeathPenaltyFreeMaxLevel ? 0 : pExperience * kDeathExperiencePercent / 100;
+    }
+
     constexpr double kCombatWindowSeconds = 8.0;
     constexpr double kRegenIntervalSeconds = 1.0;
 

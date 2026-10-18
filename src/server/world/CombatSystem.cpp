@@ -2,9 +2,23 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <utility>
 
 using namespace lakot;
+
+namespace
+{
+    constexpr double kMaxAutoRespawnSeconds = 3600.0;
+
+    double readAutoRespawnSeconds()
+    {
+        const char* tValue = std::getenv("LAKOT_AUTO_RESPAWN_SECONDS");
+        double tParsed = tValue != nullptr ? std::atof(tValue) : 0.0;
+
+        return std::isfinite(tParsed) && tParsed > 0.0 ? std::min(tParsed, kMaxAutoRespawnSeconds) : CombatSystem::kAutoRespawnSeconds;
+    }
+}
 
 CombatSystem::CombatSystem(const MapData& pMap, WorldRegistry& pRegistry,
                            std::unordered_map<uint64_t, Character>& pCharacters,
@@ -13,6 +27,7 @@ CombatSystem::CombatSystem(const MapData& pMap, WorldRegistry& pRegistry,
     , mRegistry(pRegistry)
     , mCharacters(pCharacters)
     , mMonsters(pMonsters)
+    , mAutoRespawnSeconds(readAutoRespawnSeconds())
 {
 
 }
@@ -127,7 +142,12 @@ CombatHit CombatSystem::applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t
 
         if (tHit.killed)
         {
-            mRespawnAt[pTargetId] = pNow + kPlayerRespawnSeconds;
+            mDeaths[pTargetId] = makeDeathEntry(pNow);
+
+            if (uint64_t tLost = tCharacter->second.loseDeathExperience(); tLost > 0)
+            {
+                mDeathPenalties.push_back({pTargetId, tLost});
+            }
         }
 
         return tHit;
@@ -251,7 +271,7 @@ bool CombatSystem::killPlayer(uint64_t pCharacterId, double pNow)
     }
 
     tCharacter->second.takeDamage(tCharacter->second.getStats().health);
-    mRespawnAt[pCharacterId] = pNow + kPlayerRespawnSeconds;
+    mDeaths[pCharacterId] = makeDeathEntry(pNow);
     mChangedVitals.insert(pCharacterId);
     return true;
 }
@@ -266,7 +286,7 @@ bool CombatSystem::revivePlayer(uint64_t pCharacterId)
     }
 
     tCharacter->second.revive();
-    mRespawnAt.erase(pCharacterId);
+    mDeaths.erase(pCharacterId);
     mChangedVitals.insert(pCharacterId);
     return true;
 }
@@ -277,7 +297,7 @@ void CombatSystem::scheduleRespawnIfDead(uint64_t pCharacterId, double pNow)
 
     if (tCharacter != mCharacters.end() && tCharacter->second.isDead())
     {
-        mRespawnAt.try_emplace(pCharacterId, pNow + kPlayerRespawnSeconds);
+        mDeaths.try_emplace(pCharacterId, makeDeathEntry(pNow));
     }
 }
 
@@ -285,26 +305,26 @@ std::vector<uint64_t> CombatSystem::reviveDuePlayers(double pNow)
 {
     std::vector<uint64_t> tRevived;
 
-    for (auto tIterator = mRespawnAt.begin(); tIterator != mRespawnAt.end();)
+    for (auto tIterator = mDeaths.begin(); tIterator != mDeaths.end();)
     {
         auto tCharacter = mCharacters.find(tIterator->first);
 
         if (tCharacter == mCharacters.end())
         {
-            tIterator = mRespawnAt.erase(tIterator);
+            tIterator = mDeaths.erase(tIterator);
             continue;
         }
 
-        if (pNow < tIterator->second)
+        if (pNow < tIterator->second.autoAt)
         {
             ++tIterator;
             continue;
         }
 
-        tCharacter->second.revive();
+        tCharacter->second.revive(StatFormula::kReviveCityHealthFraction);
         mChangedVitals.insert(tIterator->first);
         tRevived.push_back(tIterator->first);
-        tIterator = mRespawnAt.erase(tIterator);
+        tIterator = mDeaths.erase(tIterator);
     }
 
     return tRevived;
@@ -312,14 +332,49 @@ std::vector<uint64_t> CombatSystem::reviveDuePlayers(double pNow)
 
 double CombatSystem::getRespawnRemaining(uint64_t pCharacterId, double pNow) const
 {
-    auto tIterator = mRespawnAt.find(pCharacterId);
-    return tIterator == mRespawnAt.end() ? 0.0 : std::max(0.0, tIterator->second - pNow);
+    auto tIterator = mDeaths.find(pCharacterId);
+    return tIterator == mDeaths.end() ? 0.0 : std::max(0.0, tIterator->second.choosableAt - pNow);
+}
+
+double CombatSystem::getAutoRespawnRemaining(uint64_t pCharacterId, double pNow) const
+{
+    auto tIterator = mDeaths.find(pCharacterId);
+    return tIterator == mDeaths.end() ? 0.0 : std::max(0.0, tIterator->second.autoAt - pNow);
+}
+
+RespawnOutcomeType CombatSystem::tryRespawn(uint64_t pCharacterId, RespawnPlaceType pPlace, double pNow)
+{
+    auto tCharacter = mCharacters.find(pCharacterId);
+    auto tDeath = mDeaths.find(pCharacterId);
+
+    if (tCharacter == mCharacters.end() || tDeath == mDeaths.end() || !tCharacter->second.isDead())
+    {
+        return RespawnOutcomeType::eNotDead;
+    }
+
+    if (pNow < tDeath->second.choosableAt)
+    {
+        return RespawnOutcomeType::eTooEarly;
+    }
+
+    tCharacter->second.revive(pPlace == RespawnPlaceType::eHere ? StatFormula::kReviveHereHealthFraction : StatFormula::kReviveCityHealthFraction);
+    mDeaths.erase(tDeath);
+    mChangedVitals.insert(pCharacterId);
+    return RespawnOutcomeType::eOk;
+}
+
+CombatSystem::DeathEntry CombatSystem::makeDeathEntry(double pNow) const
+{
+    DeathEntry tEntry;
+    tEntry.choosableAt = pNow + kPlayerRespawnSeconds;
+    tEntry.autoAt = pNow + std::max(kPlayerRespawnSeconds, mAutoRespawnSeconds);
+    return tEntry;
 }
 
 void CombatSystem::forget(uint64_t pCharacterId)
 {
     mNextAttackAt.erase(pCharacterId);
-    mRespawnAt.erase(pCharacterId);
+    mDeaths.erase(pCharacterId);
     mChangedVitals.erase(pCharacterId);
     mLastCombatAt.erase(pCharacterId);
 }
@@ -338,6 +393,11 @@ std::vector<CombatRecord> CombatSystem::takeRecords()
 std::unordered_set<uint64_t> CombatSystem::takeChangedVitals()
 {
     return std::exchange(mChangedVitals, {});
+}
+
+std::vector<DeathPenalty> CombatSystem::takeDeathPenalties()
+{
+    return std::exchange(mDeathPenalties, {});
 }
 
 std::vector<CombatReward> CombatSystem::takeRewards()

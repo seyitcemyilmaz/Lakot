@@ -76,6 +76,7 @@ public:
         uint64_t experienceForNextLevel;
         float respawnSeconds;
         uint32_t kingdom;
+        float autoRespawnSeconds;
     };
 
     struct AppearanceSnapshot
@@ -119,6 +120,7 @@ public:
     using WorldSnapshotCallback = std::function<void(const WorldSnapshot&)>;
     using MapChangedCallback = std::function<void(const MapSnapshot&)>;
     using PickupResultCallback = std::function<void(services::world::PickupResult)>;
+    using RespawnResultCallback = std::function<void(services::world::RespawnStatus)>;
 
     WorldController(NetworkManager* pNetworkManager);
 
@@ -127,10 +129,12 @@ public:
     void sendPlayerStateUpdate(float pX, float pY, float pZ, float pYaw);
     void sendAttack(float pYaw, uint32_t pCombo);
     void sendPickup(uint64_t pEntityId);
+    void sendRespawn(services::world::RespawnChoice pChoice);
 
     void setWorldSnapshotCallback(WorldSnapshotCallback pCallback);
     void setMapChangedCallback(MapChangedCallback pCallback);
     void setPickupResultCallback(PickupResultCallback pCallback);
+    void setRespawnResultCallback(RespawnResultCallback pCallback);
 
     // Drops every callback above. They capture the WorldScene that registered
     // them, but this controller lives as long as the process (it is owned by
@@ -144,10 +148,12 @@ private:
     WorldSnapshotCallback mWorldSnapshotCallback;
     MapChangedCallback mMapChangedCallback;
     PickupResultCallback mPickupResultCallback;
+    RespawnResultCallback mRespawnResultCallback;
 
     void handleWorldSnapshot(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleMapChanged(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handlePickupItemResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
+    void handleRespawnResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 };
 
 }

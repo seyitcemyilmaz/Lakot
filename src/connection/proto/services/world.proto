@@ -79,6 +79,27 @@ message PickupItemResponse {
     PickupResult result = 1;
 }
 
+enum RespawnChoice {
+    RESPAWN_CHOICE_UNSPECIFIED = 0;
+    RESPAWN_CHOICE_HERE = 1;
+    RESPAWN_CHOICE_CITY = 2;
+}
+
+message RespawnRequest {
+    RespawnChoice choice = 1;
+}
+
+enum RespawnStatus {
+    RESPAWN_STATUS_OK = 0;
+    RESPAWN_STATUS_NOT_DEAD = 1;
+    RESPAWN_STATUS_TOO_EARLY = 2;
+    RESPAWN_STATUS_INVALID = 3;
+}
+
+message RespawnResponse {
+    RespawnStatus status = 1;
+}
+
 message Hit {
     uint64 target_id = 1;
     uint32 damage = 2;
@@ -107,6 +128,7 @@ message SelfVitals {
     uint64 experience_for_next_level = 5;
     float respawn_seconds = 6;
     uint32 kingdom = 7;
+    float auto_respawn_seconds = 8;
 }
 
 // What an entity already in view now has equipped - the whole set, not a diff.

@@ -177,6 +177,18 @@ void WorldHud::connectNetwork()
         onItemDroppedOutside(pItem, pX, pY);
     });
 
+    mVitals.setRespawnChoiceCallback(
+    [this](services::world::RespawnChoice pChoice)
+    {
+        mNetworkManager.getWorldController().sendRespawn(pChoice);
+    });
+
+    mNetworkManager.getWorldController().setRespawnResultCallback(
+    [this](services::world::RespawnStatus pStatus)
+    {
+        onRespawnResult(pStatus);
+    });
+
     mItemDiscard.setConfirmCallback(
     [this](uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
     {
@@ -248,7 +260,7 @@ void WorldHud::onSelfVitals(const WorldController::SelfVitalsSnapshot& pVitals)
 
     mCharacterSheet.setStats(mStats);
     mVitals.setVitals(pVitals.health, pVitals.maxHealth, pVitals.level, pVitals.experience, pVitals.experienceForNextLevel);
-    mVitals.setDeath(pVitals.health <= 0, pVitals.respawnSeconds);
+    mVitals.setDeath(pVitals.health <= 0, pVitals.respawnSeconds, pVitals.autoRespawnSeconds);
 }
 
 void WorldHud::setSafeZone(bool pIsSafe)
@@ -528,6 +540,23 @@ void WorldHud::onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY)
 void WorldHud::onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
 {
     mIsAwaitingDiscardResult = mNetworkManager.getInventoryController().sendDiscardItem(pBagSlot, pTemplateId, pCount, pIsDestroy);
+}
+
+void WorldHud::onRespawnResult(services::world::RespawnStatus pStatus)
+{
+    switch (pStatus)
+    {
+    case services::world::RESPAWN_STATUS_TOO_EARLY:
+        mVitals.showNotice("Not yet - wait a moment.");
+        break;
+
+    case services::world::RESPAWN_STATUS_INVALID:
+        mVitals.showNotice("You cannot revive right now.");
+        break;
+
+    default:
+        break;
+    }
 }
 
 void WorldHud::onInventoryActionResult(bool pIsSuccess)

@@ -85,10 +85,24 @@ bool Character::takeDamage(int32_t pAmount)
     return isDead();
 }
 
-void Character::revive()
+void Character::revive(float pHealthFraction)
 {
-    mStats.health = getMaxHealth();
+    int32_t tMaxHealth = getMaxHealth();
+    mStats.health = std::clamp(static_cast<int32_t>(static_cast<float>(tMaxHealth) * pHealthFraction), 1, std::max(1, tMaxHealth));
     markDirty();
+}
+
+uint64_t Character::loseDeathExperience()
+{
+    uint64_t tLost = StatFormula::getDeathExperienceLoss(mStats.level, mStats.experience);
+
+    if (tLost > 0)
+    {
+        mStats.experience -= tLost;
+        markDirty();
+    }
+
+    return tLost;
 }
 
 void Character::setStats(const CharacterStats& pStats)

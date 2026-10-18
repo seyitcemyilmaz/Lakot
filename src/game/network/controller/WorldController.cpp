@@ -83,6 +83,13 @@ void WorldController::initialize()
             this->handlePickupItemResponse(pSession, pMessage);
         }
     );
+
+    mNetworkManager->getDispatcher().registerHandler(protocol::Response::kRespawnResponse, PacketType::Response,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleRespawnResponse(pSession, pMessage);
+        }
+    );
 }
 
 void WorldController::sendPlayerStateUpdate(float pX, float pY, float pZ, float pYaw)
@@ -135,6 +142,21 @@ void WorldController::sendPickup(uint64_t pEntityId)
     tSession->send(tMessage);
 }
 
+void WorldController::sendRespawn(services::world::RespawnChoice pChoice)
+{
+    auto tSession = mNetworkManager->getClient().getSession();
+
+    if (!tSession)
+    {
+        return;
+    }
+
+    connection::Message tMessage;
+    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
+    tMessage.mutable_request()->mutable_respawn_request()->set_choice(pChoice);
+    tSession->send(tMessage);
+}
+
 void WorldController::setWorldSnapshotCallback(WorldSnapshotCallback pCallback)
 {
     mWorldSnapshotCallback = pCallback;
@@ -150,8 +172,14 @@ void WorldController::setPickupResultCallback(PickupResultCallback pCallback)
     mPickupResultCallback = pCallback;
 }
 
+void WorldController::setRespawnResultCallback(RespawnResultCallback pCallback)
+{
+    mRespawnResultCallback = pCallback;
+}
+
 void WorldController::clearCallbacks()
 {
+    mRespawnResultCallback = nullptr;
     mPickupResultCallback = nullptr;
     mWorldSnapshotCallback = nullptr;
     mMapChangedCallback = nullptr;
@@ -213,7 +241,7 @@ void WorldController::handleWorldSnapshot(std::shared_ptr<NetworkSession<connect
     {
         const auto& tSelf = tSnapshot.self_vitals();
         tResult.selfVitals = SelfVitalsSnapshot{ tSelf.health(), tSelf.max_health(), tSelf.level(), tSelf.experience(),
-                                                 tSelf.experience_for_next_level(), tSelf.respawn_seconds(), tSelf.kingdom() };
+                                                 tSelf.experience_for_next_level(), tSelf.respawn_seconds(), tSelf.kingdom(), tSelf.auto_respawn_seconds() };
     }
 
     tResult.appearance.reserve(tSnapshot.appearance_size());
@@ -230,6 +258,14 @@ void WorldController::handlePickupItemResponse(std::shared_ptr<NetworkSession<co
     if (mPickupResultCallback)
     {
         mPickupResultCallback(pMessage.response().pickup_item_response().result());
+    }
+}
+
+void WorldController::handleRespawnResponse(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    if (mRespawnResultCallback)
+    {
+        mRespawnResultCallback(pMessage.response().respawn_response().status());
     }
 }
 

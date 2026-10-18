@@ -88,7 +88,8 @@ public:
 
     bool isDead() const;
     bool takeDamage(int32_t pAmount);
-    void revive();
+    void revive(float pHealthFraction = 1.0f);
+    uint64_t loseDeathExperience();
 
     // ---- Mutations. Each marks the character dirty, so the autosave only
     // writes characters that actually changed. ----

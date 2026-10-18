@@ -56,6 +56,13 @@ void WorldController::initialize()
         }
     );
 
+    mNetworkManager.getDispatcher().registerHandler(protocol::Request::kRespawnRequest, PacketType::Request,
+        [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+        {
+            this->handleRespawnRequest(pSession, pMessage);
+        }
+    );
+
     mNetworkManager.setOnUserDisconnected(
     [this](uint64_t pCharacterId)
     {
@@ -239,6 +246,18 @@ void WorldController::handlePickupItemRequest(std::shared_ptr<NetworkSession<con
     if (tZone)
     {
         tZone->pickUp(tCharacterId, pMessage.request().pickup_item_request().entity_id(), pMessage.request().header().id());
+    }
+}
+
+void WorldController::handleRespawnRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
+{
+    uint64_t tCharacterId = pSession->getCharacterId();
+    auto tMapId = tCharacterId != 0 ? getCharacterZone(tCharacterId) : std::nullopt;
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (tZone)
+    {
+        tZone->respawn(tCharacterId, pMessage.request().respawn_request().choice(), pMessage.request().header().id());
     }
 }
 

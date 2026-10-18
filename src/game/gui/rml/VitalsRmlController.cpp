@@ -37,9 +37,13 @@ VitalsRmlController::VitalsRmlController(RmlUiLayer& pRmlUiLayer)
     tConstructor.Bind("mana_percent", &mManaPercent);
     tConstructor.Bind("experience_percent", &mExperiencePercent);
     tConstructor.Bind("respawn", &mRespawn);
+    tConstructor.Bind("auto_respawn", &mAutoRespawn);
     tConstructor.Bind("notice", &mNotice);
     tConstructor.Bind("is_dead", &mIsDead);
     tConstructor.Bind("is_safe", &mIsSafe);
+    tConstructor.Bind("can_choose", &mCanChoose);
+    tConstructor.BindEventCallback("revive_here", &VitalsRmlController::onReviveHereClicked, this);
+    tConstructor.BindEventCallback("revive_town", &VitalsRmlController::onReviveTownClicked, this);
     mModel = tConstructor.GetModelHandle();
 
     mDocument = mRmlUiLayer.loadDocument("ui/vitals.rml");
@@ -89,11 +93,45 @@ void VitalsRmlController::setMana(int32_t pMana, int32_t pMaxMana)
     }
 }
 
-void VitalsRmlController::setDeath(bool pIsDead, float pRespawnSeconds)
+void VitalsRmlController::setDeath(bool pIsDead, float pRespawnSeconds, float pAutoRespawnSeconds)
 {
     mIsDead = pIsDead;
     mRespawnRemaining = pRespawnSeconds;
+    mAutoRespawnRemaining = pAutoRespawnSeconds;
     mModel.DirtyVariable("is_dead");
+
+    if (!mIsDead)
+    {
+        mRespawn.clear();
+        mAutoRespawn.clear();
+        mCanChoose = false;
+        mModel.DirtyVariable("respawn");
+        mModel.DirtyVariable("auto_respawn");
+        mModel.DirtyVariable("can_choose");
+    }
+}
+
+void VitalsRmlController::setRespawnChoiceCallback(RespawnChoiceCallback pCallback)
+{
+    mRespawnChoiceCallback = std::move(pCallback);
+}
+
+void VitalsRmlController::onReviveHereClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    requestRespawn(services::world::RESPAWN_CHOICE_HERE);
+}
+
+void VitalsRmlController::onReviveTownClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    requestRespawn(services::world::RESPAWN_CHOICE_CITY);
+}
+
+void VitalsRmlController::requestRespawn(services::world::RespawnChoice pChoice)
+{
+    if (mIsDead && mCanChoose && mRespawnChoiceCallback)
+    {
+        mRespawnChoiceCallback(pChoice);
+    }
 }
 
 void VitalsRmlController::setSafeZone(bool pIsSafe)
@@ -117,12 +155,27 @@ void VitalsRmlController::update(double pDeltaTime)
     if (mIsDead)
     {
         mRespawnRemaining = std::max(0.0, mRespawnRemaining - pDeltaTime);
+        mAutoRespawnRemaining = std::max(0.0, mAutoRespawnRemaining - pDeltaTime);
         Rml::String tRespawn = std::to_string(static_cast<int>(std::ceil(mRespawnRemaining)));
+        Rml::String tAutoRespawn = mAutoRespawnRemaining > 0.0 ? std::to_string(static_cast<int>(std::ceil(mAutoRespawnRemaining))) : Rml::String();
+        bool tCanChoose = mRespawnRemaining <= 0.0;
 
         if (tRespawn != mRespawn)
         {
             mRespawn = tRespawn;
             mModel.DirtyVariable("respawn");
+        }
+
+        if (tAutoRespawn != mAutoRespawn)
+        {
+            mAutoRespawn = tAutoRespawn;
+            mModel.DirtyVariable("auto_respawn");
+        }
+
+        if (tCanChoose != mCanChoose)
+        {
+            mCanChoose = tCanChoose;
+            mModel.DirtyVariable("can_choose");
         }
     }
 

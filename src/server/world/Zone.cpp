@@ -505,6 +505,52 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
     });
 }
 
+void Zone::respawn(uint64_t pCharacterId, services::world::RespawnChoice pChoice, uint64_t pReplyTo)
+{
+    postTimed([this, pCharacterId, pChoice, pReplyTo]()
+    {
+        if (mCharacters.find(pCharacterId) == mCharacters.end() || !mSend)
+        {
+            return;
+        }
+
+        services::world::RespawnStatus tStatus = services::world::RESPAWN_STATUS_INVALID;
+
+        if (pChoice == services::world::RESPAWN_CHOICE_HERE || pChoice == services::world::RESPAWN_CHOICE_CITY)
+        {
+            RespawnPlaceType tPlace = pChoice == services::world::RESPAWN_CHOICE_CITY ? RespawnPlaceType::eCity : RespawnPlaceType::eHere;
+
+            switch (mCombat.tryRespawn(pCharacterId, tPlace, mTime))
+            {
+            case RespawnOutcomeType::eOk:
+                tStatus = services::world::RESPAWN_STATUS_OK;
+
+                if (tPlace == RespawnPlaceType::eCity)
+                {
+                    respawnPlayer(pCharacterId);
+                }
+
+                break;
+
+            case RespawnOutcomeType::eNotDead:
+                tStatus = services::world::RESPAWN_STATUS_NOT_DEAD;
+                break;
+
+            case RespawnOutcomeType::eTooEarly:
+                tStatus = services::world::RESPAWN_STATUS_TOO_EARLY;
+                break;
+            }
+        }
+
+        connection::Message tMessage;
+        auto* tHeader = tMessage.mutable_response()->mutable_header();
+        tHeader->set_reply_to(pReplyTo);
+        tHeader->mutable_status()->set_code(tStatus == services::world::RESPAWN_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+        tMessage.mutable_response()->mutable_respawn_response()->set_status(tStatus);
+        mSend(pCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+    });
+}
+
 void Zone::discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, ActionCallback pCallback)
 {
     if (!pCallback)
@@ -629,6 +675,20 @@ void Zone::useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItem
     });
 }
 
+void Zone::sendSystemMessage(uint64_t pCharacterId, services::chat::SystemMessageKind pKind, const std::string& pText)
+{
+    if (!mSend || mCharacters.find(pCharacterId) == mCharacters.end())
+    {
+        return;
+    }
+
+    connection::Message tMessage;
+    auto* tSystem = tMessage.mutable_response()->mutable_system_message();
+    tSystem->set_kind(pKind);
+    tSystem->set_text(pText);
+    mSend(pCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+}
+
 void Zone::respawnPlayer(uint64_t pCharacterId)
 {
     const MapSpawn& tSpawn = mMap.getSpawn();
@@ -658,6 +718,7 @@ void Zone::fillSelfVitals(const Character& pCharacter, services::world::SelfVita
     pOut->set_experience(tStats.experience);
     pOut->set_experience_for_next_level(StatFormula::getExperienceForNextLevel(tStats.level));
     pOut->set_respawn_seconds(static_cast<float>(mCombat.getRespawnRemaining(pCharacter.getId(), mTime)));
+    pOut->set_auto_respawn_seconds(static_cast<float>(mCombat.getAutoRespawnRemaining(pCharacter.getId(), mTime)));
     pOut->set_kingdom(pCharacter.getKingdom());
 }
 
@@ -680,6 +741,12 @@ void Zone::tick()
     for (uint64_t tRevivedId : mCombat.reviveDuePlayers(mTime))
     {
         respawnPlayer(tRevivedId);
+    }
+
+    for (const DeathPenalty& tPenalty : mCombat.takeDeathPenalties())
+    {
+        sendSystemMessage(tPenalty.characterId, services::chat::SYSTEM_MESSAGE_WARNING,
+                          "You died and lost " + std::to_string(tPenalty.experienceLost) + " experience.");
     }
 
     for (const CombatReward& tReward : mCombat.takeRewards())
@@ -764,7 +831,7 @@ void Zone::applyPortals()
 
         if (auto tPortal = mMapCatalog.findPortalAt(mMap.getId(), tState->x, tState->z))
         {
-            if (mCharacters.find(tCharacterId) == mCharacters.end())
+            if (mCharacters.find(tCharacterId) == mCharacters.end() || mCombat.isDead(tCharacterId))
             {
                 continue; // tracked spatially but with no character behind it
             }

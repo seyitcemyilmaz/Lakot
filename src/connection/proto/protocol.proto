@@ -37,6 +37,7 @@ message Request {
         services.world.PlayerStateUpdate player_state_update = 4000;
         services.world.AttackRequest attack_request = 4001;
         services.world.PickupItemRequest pickup_item_request = 4002;
+        services.world.RespawnRequest respawn_request = 4003;
 
         // inventory service
         services.inventory.EquipItemRequest equip_item_request = 5000;
@@ -85,6 +86,7 @@ message Response {
         services.world.MapChanged map_changed = 4003;
         services.world.WorldSnapshot world_snapshot = 4004;
         services.world.PickupItemResponse pickup_item_response = 4005;
+        services.world.RespawnResponse respawn_response = 4006;
 
         // inventory service
         services.inventory.InventoryActionResponse inventory_action_response = 5000;

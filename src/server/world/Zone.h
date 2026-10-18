@@ -141,6 +141,8 @@ public:
 
     void pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo);
 
+    void respawn(uint64_t pCharacterId, services::world::RespawnChoice pChoice, uint64_t pReplyTo);
+
     using ActionCallback = std::function<void(bool pIsSuccess, const std::string& pText)>;
 
     void discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, ActionCallback pCallback);
@@ -312,6 +314,7 @@ private:
     void spawnWorldEntities();
     void spawnMonster(const MonsterTemplate& pTemplate, float pX, float pZ, uint32_t pMinLevel, uint32_t pMaxLevel, bool pIsTemporary);
     void respawnPlayer(uint64_t pCharacterId);
+    void sendSystemMessage(uint64_t pCharacterId, services::chat::SystemMessageKind pKind, const std::string& pText);
     void placeCharacter(uint64_t pCharacterId, const PlayerState& pState);
     void transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const PlayerState& pSpawnState);
     void fillSelfVitals(const Character& pCharacter, services::world::SelfVitals* pOut) const;

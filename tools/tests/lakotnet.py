@@ -236,6 +236,12 @@ class Client:
         r = self.call(f, timeout)
         return r.inventory_action_response.status if r is not None and r.HasField("inventory_action_response") else None
 
+    def respawn(self, choice, timeout=6.0):
+        def f(q):
+            q.respawn_request.choice = choice
+        r = self.call(f, timeout)
+        return r.respawn_response.status if r is not None and r.HasField("respawn_response") else None
+
     def snapshots(self, since=0):
         with self.cv:
             return [m.response.world_snapshot for _, m in self.log[since:] if m.response.HasField("world_snapshot")]

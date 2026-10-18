@@ -263,11 +263,14 @@ def t_pvp_hit_death_respawn():
     check(dead.world_snapshot.self_vitals.respawn_seconds > 0, "respawn_seconds not set on death")
     with b.cv:
         death_idx = next(i for i in range(sb, len(b.log)) if b.log[i][1].response is dead) + 1
+    check(b.respawn(2) == 2, "respawn request right after death was not TOO_EARLY")
+    time.sleep(max(0.0, killed_at + 5.4 - time.time()))
+    check(b.respawn(2) == 0, "CITY respawn after 5 s was not OK")
     rev = b.wait(lambda r: r.HasField("world_snapshot") and r.world_snapshot.HasField("self_vitals")
                  and r.world_snapshot.self_vitals.health > 0, 10, death_idx)
     t = time.time() - killed_at
     check(rev is not None, "victim never revived")
-    check(4.0 <= t <= 7.5, f"respawn took {t:.1f}s (expected ~5)")
+    check(5.0 <= t <= 8.0, f"respawn took {t:.1f}s (expected ~5.4)")
 
 
 def t_monster_kill_and_respawn():
