@@ -64,8 +64,18 @@ class Server:
         raise RuntimeError("server did not open port\n" + "\n".join(self.log_lines[-20:]))
 
     def _pump(self):
+        tDir = os.environ.get("LAKOT_TEST_LOG_DIR")
+        tFile = None
+        if tDir:
+            os.makedirs(tDir, exist_ok=True)
+            tFile = open(os.path.join(tDir, time.strftime("server-%H%M%S-") + str(self.proc.pid) + ".log"),
+                         "w", encoding="utf-8", buffering=1)
         for line in self.proc.stdout:
             self.log_lines.append(line.rstrip())
+            if tFile:
+                tFile.write(line)
+        if tFile:
+            tFile.close()
 
     def stop(self):
         if not self.proc:

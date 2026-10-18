@@ -1,12 +1,12 @@
 {
  "maxSkillLevel": 20,
- "classLevelCap": 99,
- "jobUnlockLevel": 10,
  "scaling": "damage = coef(L) * attack; heal/shield = base + coef(L) * stat; coef(L) = value.coef + value.perSkillLevel * (L - 1); durations/cc grow by durPerSkillLevel/ccPerSkillLevel per level above 1; magnitudeCap caps buff/debuff magnitudes; tier multipliers (see tiers) apply on top of the Normal level 20 result: value x valueMult, cooldown x cooldownMult, mpCost x mpMult",
  "skills": [
   {
-   "id": "alp_kesik_darbe",
+   "id": 1,
+   "key": "alp_kesik_darbe",
    "name": "Kesik Darbe",
+   "description": "Önündeki koni alana güçlü bir vuruş yapar.",
    "class": "alp",
    "path": "fixed",
    "unlockLevel": 1,
@@ -29,8 +29,10 @@
    "bookItemId": 5001
   },
   {
-   "id": "alp_demir_durus",
+   "id": 2,
+   "key": "alp_demir_durus",
    "name": "Demir Duruş",
+   "description": "Bir süre aldığın hasarı azaltır.",
    "class": "alp",
    "path": "kalkan",
    "unlockLevel": 10,
@@ -55,8 +57,10 @@
    "bookItemId": 5002
   },
   {
-   "id": "alp_kalkan_darbesi",
+   "id": 3,
+   "key": "alp_kalkan_darbesi",
    "name": "Kalkan Darbesi",
+   "description": "Kalkanla vurup hedefi sersemletir.",
    "class": "alp",
    "path": "kalkan",
    "unlockLevel": 16,
@@ -81,8 +85,10 @@
    "bookItemId": 5003
   },
   {
-   "id": "alp_koruyucu",
+   "id": 4,
+   "key": "alp_koruyucu",
    "name": "Koruyucu",
+   "description": "Bir müttefikin aldığı hasarı üstlenirsin.",
    "class": "alp",
    "path": "kalkan",
    "unlockLevel": 24,
@@ -107,8 +113,10 @@
    "bookItemId": 5004
   },
   {
-   "id": "alp_sarsilmaz",
+   "id": 5,
+   "key": "alp_sarsilmaz",
    "name": "Sarsılmaz",
+   "description": "Bir süre itme ve sersemletmeye karşı bağışık olursun.",
    "class": "alp",
    "path": "kalkan",
    "unlockLevel": 34,
@@ -133,8 +141,10 @@
    "bookItemId": 5005
   },
   {
-   "id": "alp_kale",
+   "id": 6,
+   "key": "alp_kale",
    "name": "Kale",
+   "description": "Çevrendeki müttefiklere savunma aurası verir.",
    "class": "alp",
    "path": "kalkan",
    "unlockLevel": 46,
@@ -162,8 +172,10 @@
    "bookItemId": 5006
   },
   {
-   "id": "alp_kasirga",
+   "id": 7,
+   "key": "alp_kasirga",
    "name": "Kasırga",
+   "description": "Dönerek çevrendeki düşmanlara hasar verir.",
    "class": "alp",
    "path": "ofke",
    "unlockLevel": 10,
@@ -188,8 +200,10 @@
    "bookItemId": 5007
   },
   {
-   "id": "alp_kan_davasi",
+   "id": 8,
+   "key": "alp_kan_davasi",
    "name": "Kan Davası",
+   "description": "Canın azaldıkça verdiğin hasar artar.",
    "class": "alp",
    "path": "ofke",
    "unlockLevel": 16,
@@ -215,8 +229,10 @@
    "bookItemId": 5008
   },
   {
-   "id": "alp_yarici_darbe",
+   "id": 9,
+   "key": "alp_yarici_darbe",
    "name": "Yarıcı Darbe",
+   "description": "Zırhı delen derin bir vuruş.",
    "class": "alp",
    "path": "ofke",
    "unlockLevel": 24,
@@ -239,8 +255,10 @@
    "bookItemId": 5009
   },
   {
-   "id": "alp_kudurma",
+   "id": 10,
+   "key": "alp_kudurma",
    "name": "Kudurma",
+   "description": "Bir süre saldırı hızını artırır.",
    "class": "alp",
    "path": "ofke",
    "unlockLevel": 34,
@@ -265,8 +283,10 @@
    "bookItemId": 5010
   },
   {
-   "id": "alp_yer_sarsan",
+   "id": 11,
+   "key": "alp_yer_sarsan",
    "name": "Yer Sarsan",
+   "description": "Önündeki koni alana hasar verir ve düşmanları yavaşlatır.",
    "class": "alp",
    "path": "ofke",
    "unlockLevel": 46,
@@ -292,8 +312,10 @@
    "bookItemId": 5011
   },
   {
-   "id": "kurtcu_cift_vurus",
+   "id": 12,
+   "key": "kurtcu_cift_vurus",
    "name": "Çift Vuruş",
+   "description": "Yayla iki ok, hançerle iki kesik atar.",
    "class": "kurtcu",
    "path": "fixed",
    "unlockLevel": 1,
@@ -317,8 +339,10 @@
    "bookItemId": 5012
   },
   {
-   "id": "kurtcu_ok_yagmuru",
+   "id": 13,
+   "key": "kurtcu_ok_yagmuru",
    "name": "Ok Yağmuru",
+   "description": "Seçilen alana ok yağdırır.",
    "class": "kurtcu",
    "path": "ok",
    "unlockLevel": 10,
@@ -346,8 +370,10 @@
    "bookItemId": 5013
   },
   {
-   "id": "kurtcu_delici_ok",
+   "id": 14,
+   "key": "kurtcu_delici_ok",
    "name": "Delici Ok",
+   "description": "Hat boyunca birden çok hedefi delip geçer.",
    "class": "kurtcu",
    "path": "ok",
    "unlockLevel": 16,
@@ -371,8 +397,10 @@
    "bookItemId": 5014
   },
   {
-   "id": "kurtcu_zehirli_ok",
+   "id": 15,
+   "key": "kurtcu_zehirli_ok",
    "name": "Zehirli Ok",
+   "description": "Hedefe zamanla hasar veren zehir bulaştırır.",
    "class": "kurtcu",
    "path": "ok",
    "unlockLevel": 24,
@@ -397,8 +425,10 @@
    "bookItemId": 5015
   },
   {
-   "id": "kurtcu_kartal_gozu",
+   "id": 16,
+   "key": "kurtcu_kartal_gozu",
    "name": "Kartal Gözü",
+   "description": "Bir süre menzilini ve kritik şansını artırır.",
    "class": "kurtcu",
    "path": "ok",
    "unlockLevel": 34,
@@ -424,8 +454,10 @@
    "bookItemId": 5016
   },
   {
-   "id": "kurtcu_sabitleyen_ok",
+   "id": 17,
+   "key": "kurtcu_sabitleyen_ok",
    "name": "Sabitleyen Ok",
+   "description": "Hedefi bulunduğu yere çivileyip hareketsiz bırakır.",
    "class": "kurtcu",
    "path": "ok",
    "unlockLevel": 46,
@@ -450,8 +482,10 @@
    "bookItemId": 5017
   },
   {
-   "id": "kurtcu_golgeye_karis",
+   "id": 18,
+   "key": "kurtcu_golgeye_karis",
    "name": "Gölgeye Karış",
+   "description": "Düşmanlara görünmez olursun; vurunca ya da süre bitince bozulur.",
    "class": "kurtcu",
    "path": "hancer",
    "unlockLevel": 10,
@@ -477,8 +511,10 @@
    "bookItemId": 5018
   },
   {
-   "id": "kurtcu_arkadan_vurus",
+   "id": 19,
+   "key": "kurtcu_arkadan_vurus",
    "name": "Arkadan Vuruş",
+   "description": "Hedefin arkasından büyük hasar verir.",
    "class": "kurtcu",
    "path": "hancer",
    "unlockLevel": 16,
@@ -502,8 +538,10 @@
    "bookItemId": 5019
   },
   {
-   "id": "kurtcu_kesik_zinciri",
+   "id": 20,
+   "key": "kurtcu_kesik_zinciri",
    "name": "Kesik Zinciri",
+   "description": "Art arda birçok kesik atar.",
    "class": "kurtcu",
    "path": "hancer",
    "unlockLevel": 24,
@@ -527,8 +565,10 @@
    "bookItemId": 5020
   },
   {
-   "id": "kurtcu_zehirli_bicak",
+   "id": 21,
+   "key": "kurtcu_zehirli_bicak",
    "name": "Zehirli Bıçak",
+   "description": "Bıçağını zehirler, vuruşlar zamanla hasar verir.",
    "class": "kurtcu",
    "path": "hancer",
    "unlockLevel": 34,
@@ -553,8 +593,10 @@
    "bookItemId": 5021
   },
   {
-   "id": "kurtcu_siyril",
+   "id": 22,
+   "key": "kurtcu_siyril",
    "name": "Sıyrıl",
+   "description": "Kısa süre ileri atılırsın ve bu sırada gelen saldırılardan kaçınırsın.",
    "class": "kurtcu",
    "path": "hancer",
    "unlockLevel": 46,
@@ -580,8 +622,10 @@
    "bookItemId": 5022
   },
   {
-   "id": "bahadir_ruh_darbesi",
+   "id": 23,
+   "key": "bahadir_ruh_darbesi",
    "name": "Ruh Darbesi",
+   "description": "Kısa menzilde bir büyü dalgası yayar.",
    "class": "bahadir",
    "path": "fixed",
    "unlockLevel": 1,
@@ -604,8 +648,10 @@
    "bookItemId": 5023
   },
   {
-   "id": "bahadir_alev_kesigi",
+   "id": 24,
+   "key": "bahadir_alev_kesigi",
    "name": "Alev Kesiği",
+   "description": "Önüne alevli bir dalga gönderir.",
    "class": "bahadir",
    "path": "ates",
    "unlockLevel": 10,
@@ -628,8 +674,10 @@
    "bookItemId": 5024
   },
   {
-   "id": "bahadir_ates_cemberi",
+   "id": 25,
+   "key": "bahadir_ates_cemberi",
    "name": "Ateş Çemberi",
+   "description": "Etrafında yanan bir halka oluşturur.",
    "class": "bahadir",
    "path": "ates",
    "unlockLevel": 16,
@@ -657,8 +705,10 @@
    "bookItemId": 5025
   },
   {
-   "id": "bahadir_kor_yagmuru",
+   "id": 26,
+   "key": "bahadir_kor_yagmuru",
    "name": "Kor Yağmuru",
+   "description": "Seçilen alana ateş topları düşürür.",
    "class": "bahadir",
    "path": "ates",
    "unlockLevel": 24,
@@ -683,8 +733,10 @@
    "bookItemId": 5026
   },
   {
-   "id": "bahadir_yanan_zirh",
+   "id": 27,
+   "key": "bahadir_yanan_zirh",
    "name": "Yanan Zırh",
+   "description": "Seni vuranlar yanar.",
    "class": "bahadir",
    "path": "ates",
    "unlockLevel": 34,
@@ -709,8 +761,10 @@
    "bookItemId": 5027
   },
   {
-   "id": "bahadir_ejder_solugu",
+   "id": 28,
+   "key": "bahadir_ejder_solugu",
    "name": "Ejder Soluğu",
+   "description": "Önündeki konide yoğun alev püskürtür.",
    "class": "bahadir",
    "path": "ates",
    "unlockLevel": 46,
@@ -734,8 +788,10 @@
    "bookItemId": 5028
   },
   {
-   "id": "bahadir_kara_lanet",
+   "id": 29,
+   "key": "bahadir_kara_lanet",
    "name": "Kara Lanet",
+   "description": "Hedefin savunmasını düşürür.",
    "class": "bahadir",
    "path": "golge",
    "unlockLevel": 10,
@@ -760,8 +816,10 @@
    "bookItemId": 5029
   },
   {
-   "id": "bahadir_can_emen_kilic",
+   "id": 30,
+   "key": "bahadir_can_emen_kilic",
    "name": "Can Emen Kılıç",
+   "description": "Vurduğun hedeften can çalarsın.",
    "class": "bahadir",
    "path": "golge",
    "unlockLevel": 16,
@@ -785,8 +843,10 @@
    "bookItemId": 5030
   },
   {
-   "id": "bahadir_korku",
+   "id": 31,
+   "key": "bahadir_korku",
    "name": "Korku",
+   "description": "Hedefi korkutup kaçmasına neden olur.",
    "class": "bahadir",
    "path": "golge",
    "unlockLevel": 24,
@@ -811,8 +871,10 @@
    "bookItemId": 5031
   },
   {
-   "id": "bahadir_golge_adimi",
+   "id": 32,
+   "key": "bahadir_golge_adimi",
    "name": "Gölge Adımı",
+   "description": "Hedefin arkasına ışınlanıp bir vuruş yaparsın.",
    "class": "bahadir",
    "path": "golge",
    "unlockLevel": 34,
@@ -835,8 +897,10 @@
    "bookItemId": 5032
   },
   {
-   "id": "bahadir_kara_sis",
+   "id": 33,
+   "key": "bahadir_kara_sis",
    "name": "Kara Sis",
+   "description": "Alandaki düşmanları yavaşlatan ve zamanla hasar veren kara sis çıkarır.",
    "class": "bahadir",
    "path": "golge",
    "unlockLevel": 46,
@@ -865,8 +929,10 @@
    "bookItemId": 5033
   },
   {
-   "id": "kam_ruh_oku",
+   "id": 34,
+   "key": "kam_ruh_oku",
    "name": "Ruh Oku",
+   "description": "Hedefe bir ruh mermisi fırlatır.",
    "class": "kam",
    "path": "fixed",
    "unlockLevel": 1,
@@ -888,8 +954,10 @@
    "bookItemId": 5034
   },
   {
-   "id": "kam_sifa_duasi",
+   "id": 35,
+   "key": "kam_sifa_duasi",
    "name": "Şifa Duası",
+   "description": "Tek bir hedefi iyileştirir.",
    "class": "kam",
    "path": "sifa",
    "unlockLevel": 10,
@@ -911,8 +979,10 @@
    "bookItemId": 5035
   },
   {
-   "id": "kam_yagmur_duasi",
+   "id": 36,
+   "key": "kam_yagmur_duasi",
    "name": "Yağmur Duası",
+   "description": "Alandaki müttefikleri zamanla iyileştirir.",
    "class": "kam",
    "path": "sifa",
    "unlockLevel": 16,
@@ -940,8 +1010,10 @@
    "bookItemId": 5036
   },
   {
-   "id": "kam_koruyucu_ruh",
+   "id": 37,
+   "key": "kam_koruyucu_ruh",
    "name": "Koruyucu Ruh",
+   "description": "Hasar emen bir ruh kalkanı verir.",
    "class": "kam",
    "path": "sifa",
    "unlockLevel": 24,
@@ -965,8 +1037,10 @@
    "bookItemId": 5037
   },
   {
-   "id": "kam_arinma",
+   "id": 38,
+   "key": "kam_arinma",
    "name": "Arınma",
+   "description": "Zehir ve lanetleri temizler.",
    "class": "kam",
    "path": "sifa",
    "unlockLevel": 34,
@@ -990,8 +1064,10 @@
    "bookItemId": 5038
   },
   {
-   "id": "kam_tengrinin_lutfu",
+   "id": 39,
+   "key": "kam_tengrinin_lutfu",
    "name": "Tengri'nin Lütfu",
+   "description": "Düşmüş bir müttefiki diriltir.",
    "class": "kam",
    "path": "sifa",
    "unlockLevel": 46,
@@ -1017,8 +1093,10 @@
    "bookItemId": 5039
   },
   {
-   "id": "kam_kurt_ruhu_cagir",
+   "id": 40,
+   "key": "kam_kurt_ruhu_cagir",
    "name": "Kurt Ruhu Çağır",
+   "description": "Yanında savaşan bir ruh kurdu çağırır.",
    "class": "kam",
    "path": "ruh",
    "unlockLevel": 10,
@@ -1044,8 +1122,10 @@
    "bookItemId": 5040
   },
   {
-   "id": "kam_yildirim",
+   "id": 41,
+   "key": "kam_yildirim",
    "name": "Yıldırım",
+   "description": "Tek bir hedefe yıldırım düşürür.",
    "class": "kam",
    "path": "ruh",
    "unlockLevel": 16,
@@ -1067,8 +1147,10 @@
    "bookItemId": 5041
   },
   {
-   "id": "kam_ata_ruhlari",
+   "id": 42,
+   "key": "kam_ata_ruhlari",
    "name": "Ata Ruhları",
+   "description": "Çevrende dönen ruhlar yakındakilere hasar verir.",
    "class": "kam",
    "path": "ruh",
    "unlockLevel": 24,
@@ -1096,8 +1178,10 @@
    "bookItemId": 5042
   },
   {
-   "id": "kam_ruh_zinciri",
+   "id": 43,
+   "key": "kam_ruh_zinciri",
    "name": "Ruh Zinciri",
+   "description": "Hasarı bağlı hedefler arasında paylaştırır.",
    "class": "kam",
    "path": "ruh",
    "unlockLevel": 34,
@@ -1123,8 +1207,10 @@
    "bookItemId": 5043
   },
   {
-   "id": "kam_kara_firtina",
+   "id": 44,
+   "key": "kam_kara_firtina",
    "name": "Kara Fırtına",
+   "description": "Uzun süre alana hasar veren bir fırtına çıkarır.",
    "class": "kam",
    "path": "ruh",
    "unlockLevel": 46,

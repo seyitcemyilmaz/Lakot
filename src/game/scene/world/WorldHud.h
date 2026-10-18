@@ -20,6 +20,7 @@
 #include "../../network/controller/WorldController.h"
 #include "../../gui/rml/InventoryRmlController.h"
 #include "../../gui/rml/CharacterSheetRmlController.h"
+#include "../../gui/rml/SkillWindowRmlController.h"
 #include "../../gui/rml/SystemMenuRmlController.h"
 #include "../../gui/rml/ItemDiscardRmlController.h"
 #include "../../gui/rml/MinimapRmlController.h"
@@ -49,6 +50,7 @@ public:
              const std::string& pUsername,
              const CharacterStats& pStats,
              const ClassCatalog& pClassCatalog,
+             const SkillCatalog& pSkillCatalog,
              const std::vector<OwnedItem>& pItems,
              ItemIconRenderer& pItemIcons,
              uint64_t pCharacterId);
@@ -84,6 +86,7 @@ private:
     DisplaySettings& mDisplaySettings;
     SDL_Window* mWindow;
     ItemIconRenderer& mItemIcons;
+    const ClassCatalog& mClassCatalog;
     SkillBarBindings mBindings;
 
     // Declaration order is document load order, which is draw order.
@@ -94,6 +97,7 @@ private:
     VitalsRmlController mVitals;
     InventoryRmlController mInventory;
     CharacterSheetRmlController mCharacterSheet;
+    SkillWindowRmlController mSkillWindow;
     SystemMenuRmlController mSystemMenu;
     ItemDiscardRmlController mItemDiscard;
     WhisperWindows mWhispers;
@@ -108,6 +112,7 @@ private:
     LocalItemsCallback mLocalItemsCallback;
 
     bool mIsAwaitingDiscardResult{false};
+    bool mIsPathHintShown{false};
 
     void connectNetwork();
     void refreshDisplayOptions();
@@ -124,6 +129,9 @@ private:
     void onRespawnResult(services::world::RespawnStatus pStatus);
     void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
     void onAllocateStatResult(services::progression::AllocateStatStatus pStatus);
+    void onChoosePathResult(services::progression::ChoosePathStatus pStatus);
+    void applyStats(const CharacterStats& pStats);
+    void announcePathChoice();
 };
 
 }

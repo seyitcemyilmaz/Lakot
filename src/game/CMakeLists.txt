@@ -29,6 +29,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/SkillBarRmlController.h gui/rml/SkillBarRmlController.cpp
     gui/rml/InventoryRmlController.h gui/rml/InventoryRmlController.cpp
     gui/rml/CharacterSheetRmlController.h gui/rml/CharacterSheetRmlController.cpp
+    gui/rml/SkillWindowRmlController.h gui/rml/SkillWindowRmlController.cpp
     gui/rml/ItemDiscardRmlController.h gui/rml/ItemDiscardRmlController.cpp
     gui/rml/SystemMenuRmlController.h gui/rml/SystemMenuRmlController.cpp
     gui/rml/ReconnectRmlController.h gui/rml/ReconnectRmlController.cpp

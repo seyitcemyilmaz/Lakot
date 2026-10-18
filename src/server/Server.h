@@ -20,6 +20,7 @@
 #include "game/ItemCatalog.h"
 #include "MonsterCatalog.h"
 #include "ClassCatalog.h"
+#include "SkillCatalog.h"
 
 namespace lakot
 {
@@ -53,6 +54,7 @@ private:
     MapCatalog mMapCatalog;
     MonsterCatalog mMonsterCatalog;
     ClassCatalog mClassCatalog;
+    SkillCatalog mSkillCatalog;
 
     std::unique_ptr<WorldController> mWorldController;
     std::unique_ptr<InventoryController> mInventoryController;

@@ -40,6 +40,12 @@ bool Engine::initialize()
         return false;
     }
 
+    if (!mSkillCatalog.load(std::string(SDL_GetBasePath()) + "data", mClassCatalog, tMapError))
+    {
+        SDL_Log("Skill data could not be loaded: %s", tMapError.c_str());
+        return false;
+    }
+
     mDisplaySettings.load(mWindow);
     mDisplaySettings.apply(mWindow);
 
@@ -214,6 +220,11 @@ const ClassCatalog& Engine::getClassCatalog() const
 void Engine::setClearColor(const glm::vec3& pColor)
 {
     mClearColor = pColor;
+}
+
+const SkillCatalog& Engine::getSkillCatalog() const
+{
+    return mSkillCatalog;
 }
 
 MotionLibrary& Engine::getMotionLibrary()

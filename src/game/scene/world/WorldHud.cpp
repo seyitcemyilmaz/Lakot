@@ -13,6 +13,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    const std::string& pUsername,
                    const CharacterStats& pStats,
                    const ClassCatalog& pClassCatalog,
+                   const SkillCatalog& pSkillCatalog,
                    const std::vector<OwnedItem>& pItems,
                    ItemIconRenderer& pItemIcons,
                    uint64_t pCharacterId)
@@ -20,6 +21,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mDisplaySettings(pDisplaySettings)
     , mWindow(pWindow)
     , mItemIcons(pItemIcons)
+    , mClassCatalog(pClassCatalog)
     , mBindings(pCharacterId)
     , mMinimap(pRmlUiLayer)
     , mWorldMap(pRmlUiLayer)
@@ -28,6 +30,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mVitals(pRmlUiLayer)
     , mInventory(pRmlUiLayer, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
     , mCharacterSheet(pRmlUiLayer, pClassCatalog, pUsername)
+    , mSkillWindow(pRmlUiLayer, pSkillCatalog, pClassCatalog)
     , mSystemMenu(pRmlUiLayer)
     , mItemDiscard(pRmlUiLayer)
     , mWhispers(pRmlUiLayer)
@@ -68,6 +71,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
 
     mInventory.setContents(pItems, pStats);
     mCharacterSheet.setStats(pStats);
+    mSkillWindow.setStats(pStats);
     mStats = pStats;
     mVitals.setVitals(pStats.health, pStats.maxHealth, pStats.level, pStats.experience, pStats.experienceForNextLevel);
     mVitals.setMana(pStats.mana, pStats.maxMana);
@@ -75,6 +79,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     updateBagCounts(pItems);
 
     connectNetwork();
+    announcePathChoice();
     refreshSkillBar();
 }
 
@@ -145,8 +150,7 @@ void WorldHud::connectNetwork()
     [this](const std::vector<OwnedItem>& pItems, const CharacterStats& pStats)
     {
         mInventory.setContents(pItems, pStats);
-        mCharacterSheet.setStats(pStats);
-        mStats = pStats;
+        applyStats(pStats);
         mVitals.setVitals(pStats.health, pStats.maxHealth, pStats.level, pStats.experience, pStats.experienceForNextLevel);
         mVitals.setMana(pStats.mana, pStats.maxMana);
 
@@ -221,6 +225,24 @@ void WorldHud::connectNetwork()
         mNetworkManager.getProgressionController().sendAllocateStat(pStat, pAmount);
     });
 
+    tProgression.setChoosePathResultCallback(
+    [this](services::progression::ChoosePathStatus pStatus)
+    {
+        onChoosePathResult(pStatus);
+    });
+
+    mSkillWindow.setChoosePathCallback(
+    [this](uint32_t pPathId)
+    {
+        mNetworkManager.getProgressionController().sendChoosePath(pPathId);
+    });
+
+    mSkillWindow.setRaiseSkillCallback(
+    [this](uint32_t /*pSkillId*/)
+    {
+        mWorldChat.appendSystemLine("Skill learning is coming soon.", WorldChatRmlController::SystemLineType::eInfo);
+    });
+
     mInventory.setEquipRequestCallback(
     [this](uint32_t pBagSlot)
     {
@@ -258,7 +280,7 @@ void WorldHud::onSelfVitals(const WorldController::SelfVitalsSnapshot& pVitals)
     mStats.experience = pVitals.experience;
     mStats.experienceForNextLevel = pVitals.experienceForNextLevel;
 
-    mCharacterSheet.setStats(mStats);
+    applyStats(mStats);
     mVitals.setVitals(pVitals.health, pVitals.maxHealth, pVitals.level, pVitals.experience, pVitals.experienceForNextLevel);
     mVitals.setDeath(pVitals.health <= 0, pVitals.respawnSeconds, pVitals.autoRespawnSeconds);
 }
@@ -304,6 +326,7 @@ bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
             case SDL_SCANCODE_I: mInventory.toggle();      return true;
             case SDL_SCANCODE_M: mWorldMap.toggle();       return true;
             case SDL_SCANCODE_C: mCharacterSheet.toggle(); return true;
+            case SDL_SCANCODE_K: mSkillWindow.toggle();    return true;
             default: break;
         }
 
@@ -382,10 +405,11 @@ void WorldHud::handleEscape()
         return;
     }
 
-    if (mInventory.isOpen() || mCharacterSheet.isOpen() || mWorldMap.isOpen())
+    if (mInventory.isOpen() || mCharacterSheet.isOpen() || mSkillWindow.isOpen() || mWorldMap.isOpen())
     {
         mInventory.close();
         mCharacterSheet.close();
+        mSkillWindow.close();
         mWorldMap.close();
         return;
     }
@@ -628,6 +652,47 @@ void WorldHud::onUseItemResult(services::inventory::UseItemStatus pStatus, float
             break;
 
         default:
+            break;
+    }
+}
+
+void WorldHud::applyStats(const CharacterStats& pStats)
+{
+    mStats = pStats;
+    mCharacterSheet.setStats(pStats);
+    mSkillWindow.setStats(pStats);
+    announcePathChoice();
+}
+
+void WorldHud::announcePathChoice()
+{
+    if (mIsPathHintShown || mStats.pathId != 0 || mStats.classId == 0 || mStats.level < mClassCatalog.getPathUnlockLevel())
+    {
+        return;
+    }
+
+    mIsPathHintShown = true;
+    mWorldChat.appendSystemLine("Path choice is open - press K.", WorldChatRmlController::SystemLineType::eAnnounce);
+}
+
+void WorldHud::onChoosePathResult(services::progression::ChoosePathStatus pStatus)
+{
+    switch (pStatus)
+    {
+        case services::progression::CHOOSE_PATH_OK:
+            mWorldChat.appendSystemLine("Your path has been chosen.", WorldChatRmlController::SystemLineType::eInfo);
+            break;
+
+        case services::progression::CHOOSE_PATH_LEVEL_TOO_LOW:
+            mWorldChat.appendSystemLine("You are not high enough level to choose a path.", WorldChatRmlController::SystemLineType::eWarning);
+            break;
+
+        case services::progression::CHOOSE_PATH_ALREADY_CHOSEN:
+            mWorldChat.appendSystemLine("You have already chosen a path.", WorldChatRmlController::SystemLineType::eWarning);
+            break;
+
+        default:
+            mWorldChat.appendSystemLine("That path cannot be chosen.", WorldChatRmlController::SystemLineType::eError);
             break;
     }
 }

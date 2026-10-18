@@ -1,0 +1,73 @@
+<rml>
+<head>
+    <title>Skills</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="skills-screen">
+<div class="skills-root" data-model="skills">
+    <div class="skills-window" id="skills-window">
+        <div class="chat-titlebar">
+            <div class="chat-tab">Skills</div>
+            <div class="chat-titlebar-buttons">
+                <div class="chat-icon-btn" data-event-click="close">X</div>
+            </div>
+        </div>
+
+        <div class="skills-header">
+            <div class="skills-identity">
+                <span class="skills-class">{{ class_name }}</span>
+                <span class="skills-path" data-if="has_path"> · {{ path_name }}</span>
+            </div>
+            <div class="skills-points" data-class-has-points="has_skill_points">Skill points: {{ skill_points }}</div>
+        </div>
+
+        <div class="skills-body">
+            <div data-if="!has_path">
+                <div class="skills-section-title">Choose your path</div>
+                <div class="skills-note" data-if="!can_choose_path">The path choice opens at a higher level.</div>
+                <div class="skills-note" data-if="can_choose_path">Your choice is permanent and cannot be undone.</div>
+
+                <div class="path-card" data-for="path : paths"
+                     data-class-is-pending="path.is_pending"
+                     data-class-is-locked="!can_choose_path">
+                    <div class="path-card-head" data-event-click="choose_path(path.id)">
+                        <div class="path-name">{{ path.name }}</div>
+                        <div class="path-skills">{{ path.skill_names }}</div>
+                    </div>
+                    <div class="path-confirm" data-if="path.is_pending">
+                        <div class="path-warning">This cannot be undone. Choose {{ path.name }} for good?</div>
+                        <div class="path-confirm-row">
+                            <div class="btn-danger path-confirm-btn" data-event-click="confirm_path">YES, CHOOSE</div>
+                            <div class="btn-secondary path-confirm-btn" data-event-click="cancel_path">CANCEL</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skills-section-title" data-if="has_path">Your skills</div>
+
+            <div class="skill-row" data-for="skill : skills"
+                 data-class-learned="skill.is_learned"
+                 data-class-locked="skill.is_locked">
+                <div class="skill-icon-box">
+                    <img class="skill-icon" data-attr-src="skill.icon" data-attr-skill-id="skill.id"/>
+                </div>
+                <div class="skill-info">
+                    <div class="skill-name-line">
+                        <span class="skill-name">{{ skill.name }}</span>
+                        <span class="skill-tier" data-if="skill.tier_text != ''"> {{ skill.tier_text }}</span>
+                    </div>
+                    <div class="skill-description">{{ skill.description }}</div>
+                    <div class="skill-stats">MP {{ skill.mp_cost }} · {{ skill.cooldown_text }}</div>
+                </div>
+                <div class="skill-side">
+                    <div class="skill-level">{{ skill.level_text }}</div>
+                    <div class="skill-lock" data-if="skill.is_locked">{{ skill.lock_text }}</div>
+                    <div class="skill-raise" data-if="skill.can_raise" data-event-click="raise_skill(skill.id)">+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</rml>

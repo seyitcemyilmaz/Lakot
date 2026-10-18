@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "ClassCatalog.h"
+#include "SkillCatalog.h"
 #include "GarbageCollector.h"
 #include "MapCatalog.h"
 #include "MonsterCatalog.h"
@@ -67,6 +68,7 @@ public:
     const MapCatalog& getMapCatalog() const;
     const MonsterCatalog& getMonsterCatalog() const;
     const ClassCatalog& getClassCatalog() const;
+    const SkillCatalog& getSkillCatalog() const;
 
     void setClearColor(const glm::vec3& pColor);
 
@@ -92,6 +94,7 @@ private:
     MapCatalog mMapCatalog;
     MonsterCatalog mMonsterCatalog;
     ClassCatalog mClassCatalog;
+    SkillCatalog mSkillCatalog;
 
     DisplaySettings mDisplaySettings;
 

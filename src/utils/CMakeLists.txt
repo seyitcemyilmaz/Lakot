@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME} STATIC
     MapCatalog.h MapCatalog.cpp
     MonsterCatalog.h MonsterCatalog.cpp
     ClassCatalog.h ClassCatalog.cpp
+    SkillCatalog.h SkillCatalog.cpp
     Pathfinder.h Pathfinder.cpp
     MovementRules.h
 

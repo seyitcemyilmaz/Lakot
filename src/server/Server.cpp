@@ -191,6 +191,14 @@ bool Server::initialize()
 
     std::osyncstream(std::cout) << "[Server] Sinif verisi yuklendi: " << mClassCatalog.getAll().size() << " sinif." << std::endl;
 
+    std::string tSkillError;
+
+    if (!mSkillCatalog.load("data", mClassCatalog, tSkillError))
+    {
+        std::osyncstream(std::cerr) << "[Server] Beceri verisi yuklenemedi: " << tSkillError << std::endl;
+        return false;
+    }
+
     for (const ItemTemplate& tItem : mItemCatalog.getAll())
     {
         for (uint32_t tClassId : tItem.allowedClasses)
