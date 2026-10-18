@@ -2,7 +2,7 @@
   "monsters": [
     {
       "id": 1,
-      "name": "Bozkır Haydudu",
+      "name": "Steppe Bandit",
       "model": "models/monsters/steppe_bandit.glb",
       "level": 7,
       "maxHealth": 160,
@@ -47,7 +47,7 @@
     },
     {
       "id": 2,
-      "name": "Bozkır Kurdu",
+      "name": "Steppe Wolf",
       "model": "models/monsters/steppe_bandit.glb",
       "level": 3,
       "maxHealth": 70,
@@ -86,7 +86,7 @@
     },
     {
       "id": 3,
-      "name": "Yaban Domuzu",
+      "name": "Wild Boar",
       "model": "models/monsters/steppe_bandit.glb",
       "level": 5,
       "maxHealth": 130,
@@ -124,7 +124,7 @@
     },
     {
       "id": 4,
-      "name": "Haydut Okçusu",
+      "name": "Bandit Archer",
       "model": "models/monsters/steppe_bandit.glb",
       "level": 10,
       "maxHealth": 220,
@@ -170,7 +170,7 @@
     },
     {
       "id": 5,
-      "name": "Haydut Başı",
+      "name": "Bandit Chief",
       "model": "models/monsters/steppe_bandit.glb",
       "level": 14,
       "maxHealth": 900,
