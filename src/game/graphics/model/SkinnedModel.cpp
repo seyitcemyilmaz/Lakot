@@ -234,6 +234,12 @@ std::unique_ptr<SkinnedModel> SkinnedModel::load(const std::string& pPath, Asset
     tModel->mBounds.max = glm::vec3(std::numeric_limits<float>::lowest());
     tModel->mJointBounds.assign(tModel->mSkeleton.getJointCount(), std::nullopt);
 
+    if (tPositions.empty())
+    {
+        pError = pPath + " has no mesh vertices";
+        return nullptr;
+    }
+
     for (size_t tVertex = 0; tVertex < tPositions.size(); ++tVertex)
     {
         glm::mat4 tSkin(0.0f);

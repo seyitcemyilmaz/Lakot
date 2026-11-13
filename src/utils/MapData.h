@@ -160,6 +160,8 @@ public:
 private:
     MapData() = default;
 
+    bool isCellPathClear(float pFromX, float pFromZ, float pToX, float pToZ) const;
+
     uint32_t mId = 0;
     std::string mName;
     uint32_t mKingdom = 0;

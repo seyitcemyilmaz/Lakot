@@ -4,6 +4,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <sstream>
 
 #include <rapidjson/document.h>
@@ -608,6 +609,74 @@ bool MapData::isPathWalkable(float pFromX, float pFromZ, float pToX, float pToZ,
         {
             return false;
         }
+    }
+
+    return isCellPathClear(pFromX, pFromZ, pToX, pToZ);
+}
+
+bool MapData::isCellPathClear(float pFromX, float pFromZ, float pToX, float pToZ) const
+{
+    float tCellSize = getCellSize();
+    float tHalf = mWorldSize * 0.5f;
+    float tStartX = (pFromX + tHalf) / tCellSize;
+    float tStartZ = (pFromZ + tHalf) / tCellSize;
+    float tDx = (pToX - pFromX) / tCellSize;
+    float tDz = (pToZ - pFromZ) / tCellSize;
+    int tCellX = getCellIndex(pFromX);
+    int tCellZ = getCellIndex(pFromZ);
+    int tEndX = getCellIndex(pToX);
+    int tEndZ = getCellIndex(pToZ);
+    int tStepX = tDx > 0.0f ? 1 : -1;
+    int tStepZ = tDz > 0.0f ? 1 : -1;
+    float tInf = std::numeric_limits<float>::infinity();
+    float tNextX = tDx > 0.0f ? static_cast<float>(tCellX + 1) : static_cast<float>(tCellX);
+    float tNextZ = tDz > 0.0f ? static_cast<float>(tCellZ + 1) : static_cast<float>(tCellZ);
+    float tMaxX = tDx != 0.0f ? (tNextX - tStartX) / tDx : tInf;
+    float tMaxZ = tDz != 0.0f ? (tNextZ - tStartZ) / tDz : tInf;
+    float tDeltaX = tDx != 0.0f ? std::abs(1.0f / tDx) : tInf;
+    float tDeltaZ = tDz != 0.0f ? std::abs(1.0f / tDz) : tInf;
+    auto tBlockedAt = [this](int pX, int pZ)
+    {
+        return mBlocked[static_cast<size_t>(pZ) * mBlockResolution + pX] != 0;
+    };
+    int tMaxSteps = std::abs(tEndX - tCellX) + std::abs(tEndZ - tCellZ);
+
+    for (int tIndex = 0; tIndex < tMaxSteps && (tCellX != tEndX || tCellZ != tEndZ); ++tIndex)
+    {
+        bool tAdvanceX = tMaxX < tMaxZ;
+        bool tAdvanceZ = tMaxZ < tMaxX;
+
+        if (!tAdvanceX && !tAdvanceZ)
+        {
+            tAdvanceX = tCellX != tEndX;
+            tAdvanceZ = tCellZ != tEndZ;
+        }
+
+        int tNextCellX = tAdvanceX ? tCellX + tStepX : tCellX;
+        int tNextCellZ = tAdvanceZ ? tCellZ + tStepZ : tCellZ;
+
+        if (tAdvanceX && tAdvanceZ && (tBlockedAt(tNextCellX, tCellZ) || tBlockedAt(tCellX, tNextCellZ)))
+        {
+            return false;
+        }
+
+        if (tBlockedAt(tNextCellX, tNextCellZ))
+        {
+            return false;
+        }
+
+        if (tAdvanceX)
+        {
+            tMaxX += tDeltaX;
+        }
+
+        if (tAdvanceZ)
+        {
+            tMaxZ += tDeltaZ;
+        }
+
+        tCellX = tNextCellX;
+        tCellZ = tNextCellZ;
     }
 
     return true;

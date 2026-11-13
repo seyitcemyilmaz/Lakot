@@ -53,6 +53,7 @@ void VertexArrayObject::initialize()
 
         unsigned int tSize = 0;
         bool tIsInt = false;
+        GLenum tIntType = GL_INT;
 
         switch (tDataType)
         {
@@ -93,6 +94,7 @@ void VertexArrayObject::initialize()
             {
                 tSize = 1;
                 tIsInt = true;
+                tIntType = GL_UNSIGNED_INT;
                 break;
             }
             default:
@@ -111,7 +113,7 @@ void VertexArrayObject::initialize()
         }
         else
         {
-            glVertexAttribIPointer(i, tSize, GL_INT, 0, (void*)0);
+            glVertexAttribIPointer(i, tSize, tIntType, 0, (void*)0);
             glEnableVertexAttribArray(i);
         }
 

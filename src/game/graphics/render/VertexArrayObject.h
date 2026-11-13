@@ -11,6 +11,8 @@ class VertexArrayObject
 public:
     virtual ~VertexArrayObject();
     VertexArrayObject();
+    VertexArrayObject(const VertexArrayObject&) = delete;
+    VertexArrayObject& operator=(const VertexArrayObject&) = delete;
 
     void initialize();
     void deinitialize();

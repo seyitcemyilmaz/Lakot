@@ -137,6 +137,14 @@ std::vector<uint8_t> ItemIconRenderer::render(const ItemLook& pLook, int pWidth,
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, tRenderbuffers[0]);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, tRenderbuffers[1]);
 
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteRenderbuffers(2, tRenderbuffers);
+        glDeleteFramebuffers(1, &tFramebuffer);
+        return std::vector<uint8_t>(static_cast<size_t>(pWidth) * static_cast<size_t>(pHeight) * 4, 0);
+    }
+
     glViewport(0, 0, tWidth, tHeight);
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
@@ -176,8 +184,11 @@ std::vector<uint8_t> ItemIconRenderer::render(const ItemLook& pLook, int pWidth,
     tModel.draw(0);
 
     std::vector<uint8_t> tSamples(static_cast<size_t>(tWidth) * static_cast<size_t>(tHeight) * 4);
+    GLint tPreviousPackAlignment = 4;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &tPreviousPackAlignment);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, tWidth, tHeight, GL_RGBA, GL_UNSIGNED_BYTE, tSamples.data());
+    glPixelStorei(GL_PACK_ALIGNMENT, tPreviousPackAlignment);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDeleteRenderbuffers(2, tRenderbuffers);
