@@ -211,8 +211,18 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
         return;
     }
 
-    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket]()
+    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket](bool pIsSaved)
     {
+        if (!pIsSaved)
+        {
+            if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+            {
+                sendEnterWorldFailure(pSession, tReplyTo, common::STATUS_ERROR, services::auth::ENTER_WORLD_ERROR);
+            }
+
+            return;
+        }
+
         mRepositoryManager.getCharacterRepository().loadOwnedCharacter(tAccountId, tCharacterId,
         [this, pSession, tReplyTo, tAccountId, tTicket](CharacterRepository::LoadResult pResult, const CharacterRepository::CharacterRecord& pRecord, std::vector<ItemInstance> pItems)
         {
@@ -372,8 +382,18 @@ void CharacterController::handleDeleteCharacterRequest(std::shared_ptr<NetworkSe
 
     std::string tConfirmName = tRequest.confirm_name();
 
-    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket, tConfirmName]()
+    mWorldController.runAfterRelease(tCharacterId, [this, pSession, tAccountId, tCharacterId, tReplyTo, tTicket, tConfirmName](bool pIsSaved)
     {
+        if (!pIsSaved)
+        {
+            if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
+            {
+                sendDeleteResult(pSession, tReplyTo, services::auth::DELETE_CHARACTER_DATABASE_ERROR, tCharacterId);
+            }
+
+            return;
+        }
+
         if (mWorldController.isCharacterInWorld(tAccountId, tCharacterId))
         {
             if (mNetworkManager.abandonWorldEntry(pSession, tTicket))

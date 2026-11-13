@@ -84,7 +84,8 @@ private:
                " port=" + std::to_string(port) +
                " dbname=" + quoteConninfoValue(pDatabase) +
                " user=" + quoteConninfoValue(user) +
-               " password=" + quoteConninfoValue(password);
+               " password=" + quoteConninfoValue(password) +
+               " connect_timeout=3";
     }
 };
 

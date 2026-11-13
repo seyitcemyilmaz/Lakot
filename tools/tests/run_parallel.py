@@ -12,7 +12,7 @@ HERE = Path(__file__).resolve().parent
 SCRIPTS = next(ast.literal_eval(n.value) for n in ast.parse((HERE / "run_all.py").read_text(encoding="utf-8")).body
                if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "SCRIPTS")
 
-SERIAL = ["run_all", "t_login_pipeline_g54", "t_login_limiter_g55", "t_register_limit_g58", "t_speed_y1"]
+SERIAL = ["run_all", "t_login_pipeline_g54", "t_login_limiter_g55", "t_register_limit_g58", "t_speed_y1", "t_save_retry_y3"]
 BASE_PORT = 12400
 WORKERS = int(os.environ.get("LAKOT_TEST_WORKERS") or 6)
 LOG_DIR = Path(os.environ.get("LAKOT_TEST_LOG_DIR") or tempfile.mkdtemp(prefix="lakot_tests_"))

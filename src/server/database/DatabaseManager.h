@@ -4,6 +4,9 @@
 #include <functional>
 #include <vector>
 #include <atomic>
+#include <chrono>
+#include <memory>
+#include <thread>
 
 #include <pqxx/pqxx>
 #include <boost/asio.hpp>
@@ -46,6 +49,10 @@ private:
         boost::asio::executor_work_guard<boost::asio::io_context::executor_type> workGuard;
         std::thread thread;
         std::unique_ptr<pqxx::connection> connection;
+        std::chrono::steady_clock::time_point lastConnectFailureAt;
+        bool hasConnectFailed = false;
+        std::chrono::steady_clock::time_point lastOutageLogAt;
+        bool hasLoggedOutage = false;
 
         Worker()
             : workGuard(boost::asio::make_work_guard(context))

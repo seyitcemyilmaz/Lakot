@@ -55,6 +55,8 @@ add_executable(${PROJECT_NAME}
     script/ScriptEngine.h script/ScriptEngine.cpp
 
     world/Zone.h world/Zone.cpp
+    world/CharacterSaveQueue.h world/CharacterSaveQueue.cpp
+    world/UnsavedSnapshotWriter.h world/UnsavedSnapshotWriter.cpp
     world/ZoneTickStats.h world/ZoneTickStats.cpp
     world/SnapshotEncoder.h world/SnapshotEncoder.cpp
     world/SnapshotChunkCache.hpp

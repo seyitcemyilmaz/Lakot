@@ -17,6 +17,12 @@ namespace
     constexpr const char* kStatColumns =
         "level, experience, health, mana, strength, dexterity, intelligence, vitality, gold, class_id, path_id, stat_points, starter_given";
 
+    bool isTransientSqlState(const std::string& pState)
+    {
+        return pState.rfind("08", 0) == 0 || pState.rfind("57P", 0) == 0 || pState.rfind("53", 0) == 0
+            || pState == "40001" || pState == "40P01";
+    }
+
     lakot::CharacterRepository::CharacterRecord toRecord(const pqxx::row& pRow)
     {
         lakot::CharacterRepository::CharacterRecord tRecord;
@@ -377,17 +383,19 @@ void CharacterRepository::loadOwnedCharacter(uint64_t pAccountId, uint64_t pChar
     });
 }
 
-void CharacterRepository::saveCharacter(CharacterSave pSave)
+void CharacterRepository::saveCharacter(CharacterSave pSave, SaveCallback pCallback)
 {
     uint64_t tCharacterId = pSave.characterId;
 
-    mDatabaseManager.executeAsync([pSave = std::move(pSave)](pqxx::connection& pConnection)
+    mDatabaseManager.executeAsync([pSave = std::move(pSave), pCallback](pqxx::connection& pConnection)
     {
+        SaveResult tResult = SaveResult::eSaved;
+
         try
         {
             pqxx::work tWork(pConnection);
 
-            tWork.exec(
+            pqxx::result tUpdate = tWork.exec(
                 "UPDATE characters SET map_id=$1, pos_x=$2, pos_y=$3, pos_z=$4, yaw=$5, "
                 "level=$6, experience=$7, health=$8, mana=$9, "
                 "strength=$10, dexterity=$11, intelligence=$12, vitality=$13, gold=$14, "
@@ -400,15 +408,72 @@ void CharacterRepository::saveCharacter(CharacterSave pSave)
                              pSave.stats.pathId, pSave.stats.statPoints, pSave.stats.starterGiven,
                              pSave.characterId});
 
-            ItemRepository::writeItems(tWork, pSave.characterId, pSave.items);
+            if (tUpdate.affected_rows() == 0)
+            {
+                tResult = SaveResult::eCharacterGone;
+            }
+            else
+            {
+                ItemRepository::writeItems(tWork, pSave.characterId, pSave.items);
 
-            tWork.commit();
+                tWork.commit();
+            }
+        }
+        catch (const pqxx::broken_connection& tException)
+        {
+            tResult = SaveResult::eTransient;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata (baglanti): " << tException.what() << std::endl;
+        }
+        catch (const pqxx::in_doubt_error& tException)
+        {
+            tResult = SaveResult::eTransient;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata (belirsiz): " << tException.what() << std::endl;
+        }
+        catch (const pqxx::sql_error& tException)
+        {
+            const bool tIsTransient = isTransientSqlState(tException.sqlstate());
+            tResult = tIsTransient ? SaveResult::eTransient : SaveResult::ePermanent;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi " << (tIsTransient ? "gecici" : "kalici") << " hata ("
+                                        << tException.sqlstate() << "): " << tException.what() << std::endl;
+        }
+        catch (const pqxx::conversion_error& tException)
+        {
+            tResult = SaveResult::ePermanent;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+        }
+        catch (const pqxx::usage_error& tException)
+        {
+            tResult = SaveResult::ePermanent;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+        }
+        catch (const pqxx::argument_error& tException)
+        {
+            tResult = SaveResult::ePermanent;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+        }
+        catch (const pqxx::range_error& tException)
+        {
+            tResult = SaveResult::ePermanent;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi hatasi: " << tException.what() << std::endl;
+            tResult = SaveResult::eTransient;
+            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata: " << tException.what() << std::endl;
         }
-    }, tCharacterId);
+
+        if (pCallback)
+        {
+            pCallback(tResult);
+        }
+    }, tCharacterId,
+    [pCallback]()
+    {
+        if (pCallback)
+        {
+            pCallback(SaveResult::eTransient);
+        }
+    });
 }
 
 void CharacterRepository::deleteCharacter(uint64_t pAccountId, uint64_t pCharacterId, const std::string& pConfirmName, DeleteCallback pCallback)

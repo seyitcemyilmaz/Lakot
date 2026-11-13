@@ -12,6 +12,7 @@
 #include <connection.pb.h>
 
 #include "BaseController.h"
+#include "../../world/CharacterSaveQueue.h"
 #include "../../world/Zone.h"
 #include "../../world/WorldRegistry.h"
 #include "MapCatalog.h"
@@ -54,8 +55,10 @@ public:
                     const PlayerState& pState,
                     const CharacterAccess& pAccess);
 
-    // May run on a zone thread: pAction must only post work and never block.
-    void runAfterRelease(uint64_t pCharacterId, std::function<void()> pAction);
+    // May run on a zone or database worker thread: pAction must only post work.
+    void runAfterRelease(uint64_t pCharacterId, std::function<void(bool pIsSaved)> pAction);
+
+    size_t getUnsavedSaveCount() const;
 
     // See Zone::resumePlayer.
     void resumeCharacter(uint64_t pCharacterId);
@@ -106,6 +109,8 @@ private:
     const MapCatalog& mMapCatalog;
     const MonsterCatalog& mMonsterCatalog;
 
+    CharacterSaveQueue mSaveQueue;
+
     const std::string mScriptDirectory{"scripts"};
 
     // Guards both maps below. Only touched at login/disconnect/portal time,
@@ -115,7 +120,7 @@ private:
     std::unordered_map<uint64_t, std::string> mCharacterNames;
     std::unordered_map<std::string, uint64_t> mNameToCharacterId;
     std::unordered_map<uint64_t, CharacterAccess> mCharacterAccess;
-    std::unordered_map<uint64_t, std::vector<std::function<void()>>> mReleaseWaiters;
+    std::unordered_map<uint64_t, std::vector<std::function<void(bool)>>> mReleaseWaiters;
 
     void handlePlayerStateUpdate(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleAttackRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);

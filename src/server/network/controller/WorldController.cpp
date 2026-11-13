@@ -6,8 +6,14 @@
 #include <syncstream>
 
 #include "../NetworkManager.h"
+#include "../../world/UnsavedSnapshotWriter.h"
 
 using namespace lakot;
+
+namespace
+{
+    constexpr std::chrono::seconds kShutdownFlushTimeout{15};
+}
 
 WorldController::WorldController(NetworkManager& pNetworkManager,
                                  RepositoryManager& pRepositoryManager,
@@ -20,12 +26,19 @@ WorldController::WorldController(NetworkManager& pNetworkManager,
     , mClassCatalog(pClassCatalog)
     , mMapCatalog(pMapCatalog)
     , mMonsterCatalog(pMonsterCatalog)
+    , mSaveQueue(pRepositoryManager.getCharacterRepository())
 {
 
 }
 
 void WorldController::initialize()
 {
+    if (const size_t tUnsavedFiles = UnsavedSnapshotWriter::countFiles(); tUnsavedFiles > 0)
+    {
+        std::osyncstream(std::cerr) << "[World] UYARI: unsaved/ dizininde " << tUnsavedFiles
+                                    << " kaydedilememis karakter dosyasi var; otomatik geri yuklenmez, elle incelenmeli." << std::endl;
+    }
+
     // One zone per map in the catalog. Built here rather than in the
     // constructor because a zone needs the ItemCatalog, and that is only
     // loaded once the database is up. Never modified afterwards, so mZones
@@ -92,7 +105,7 @@ void WorldController::initialize()
                 tSave.stats = pData.stats;
                 tSave.items = pData.items;
 
-                mRepositoryManager.getCharacterRepository().saveCharacter(std::move(tSave));
+                mSaveQueue.submit(std::move(tSave));
             },
             // Resolved against the executable, not the source tree - the same
             // reasoning as the game client's asset path.
@@ -106,6 +119,13 @@ void WorldController::shutdown()
     {
         tZone->stop();
     }
+
+    mSaveQueue.flush(kShutdownFlushTimeout);
+}
+
+size_t WorldController::getUnsavedSaveCount() const
+{
+    return mSaveQueue.getUnsavedCount();
 }
 
 Zone* WorldController::getZone(uint32_t pMapId)
@@ -353,7 +373,7 @@ void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
 
 void WorldController::onCharacterReleased(uint64_t pCharacterId)
 {
-    std::vector<std::function<void()>> tWaiters;
+    std::vector<std::function<void(bool)>> tWaiters;
 
     {
         std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
@@ -369,13 +389,16 @@ void WorldController::onCharacterReleased(uint64_t pCharacterId)
         mReleaseWaiters.erase(tIterator);
     }
 
-    for (auto& tWaiter : tWaiters)
+    mSaveQueue.whenSettled(pCharacterId, [tWaiters = std::move(tWaiters)](bool pIsSaved)
     {
-        tWaiter();
-    }
+        for (const auto& tWaiter : tWaiters)
+        {
+            tWaiter(pIsSaved);
+        }
+    });
 }
 
-void WorldController::runAfterRelease(uint64_t pCharacterId, std::function<void()> pAction)
+void WorldController::runAfterRelease(uint64_t pCharacterId, std::function<void(bool pIsSaved)> pAction)
 {
     {
         std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
@@ -389,7 +412,7 @@ void WorldController::runAfterRelease(uint64_t pCharacterId, std::function<void(
         }
     }
 
-    pAction();
+    mSaveQueue.whenSettled(pCharacterId, std::move(pAction));
 }
 
 void WorldController::transferCharacter(uint32_t pSourceMapId,

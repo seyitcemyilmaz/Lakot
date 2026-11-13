@@ -91,6 +91,15 @@ public:
         std::vector<ItemInstance> items;
     };
 
+    enum class SaveResult
+    {
+        eSaved,
+        eCharacterGone,
+        eTransient,
+        ePermanent
+    };
+
+    using SaveCallback = std::function<void(SaveResult)>;
     using LoadCallback = std::function<void(LoadResult, const CharacterRecord&, std::vector<ItemInstance>)>;
     using DeleteCallback = std::function<void(DeleteResult)>;
 
@@ -113,7 +122,7 @@ public:
     // character without proving ownership of it.
     void loadOwnedCharacter(uint64_t pAccountId, uint64_t pCharacterId, LoadCallback pCallback);
 
-    void saveCharacter(CharacterSave pSave);
+    void saveCharacter(CharacterSave pSave, SaveCallback pCallback);
 
     void deleteCharacter(uint64_t pAccountId, uint64_t pCharacterId, const std::string& pConfirmName, DeleteCallback pCallback);
 };

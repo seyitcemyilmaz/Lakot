@@ -7,6 +7,12 @@
 
 using namespace lakot;
 
+namespace
+{
+    constexpr std::chrono::seconds kReconnectCooldown{1};
+    constexpr std::chrono::seconds kOutageLogInterval{10};
+}
+
 DatabaseManager::~DatabaseManager()
 {
     stop();
@@ -123,8 +129,6 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
         }
         else
         {
-            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Hata: Baglanti yok, sorgu calistirilamadi." << std::endl;
-
             if (pOnDropped)
             {
                 pOnDropped();
@@ -137,10 +141,24 @@ bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
 {
     if (pWorker.connection && pWorker.connection->is_open())
     {
-        return true;
+        try
+        {
+            pWorker.connection->get_notifs();
+            return true;
+        }
+        catch (const pqxx::broken_connection& tException)
+        {
+            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " baglanti kopmus: " << tException.what() << std::endl;
+            pWorker.connection.reset();
+        }
     }
 
-    std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " baglanti yok, yeniden baglaniliyor." << std::endl;
+    const auto tNow = std::chrono::steady_clock::now();
+
+    if (pWorker.hasConnectFailed && tNow - pWorker.lastConnectFailureAt < kReconnectCooldown)
+    {
+        return false;
+    }
 
     try
     {
@@ -148,15 +166,26 @@ bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
 
         if (pWorker.connection->is_open())
         {
+            pWorker.hasConnectFailed = false;
+            pWorker.hasLoggedOutage = false;
             std::osyncstream(std::cout) << "[Database] Worker #" << pWorkerIndex << " yeniden baglandi." << std::endl;
             return true;
         }
     }
     catch (const std::exception& tException)
     {
-        std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " yeniden baglanma hatasi: " << tException.what() << std::endl;
+        const auto tFailedAt = std::chrono::steady_clock::now();
+
+        if (!pWorker.hasLoggedOutage || tFailedAt - pWorker.lastOutageLogAt >= kOutageLogInterval)
+        {
+            pWorker.hasLoggedOutage = true;
+            pWorker.lastOutageLogAt = tFailedAt;
+            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " yeniden baglanma hatasi: " << tException.what() << std::endl;
+        }
     }
 
+    pWorker.hasConnectFailed = true;
+    pWorker.lastConnectFailureAt = std::chrono::steady_clock::now();
     return false;
 }
 
