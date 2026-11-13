@@ -100,6 +100,7 @@ private:
     std::optional<WorldPicker::Target> mContextMenuTarget;
 
     uint64_t mPendingPickupId{0};
+    uint64_t mPendingShopNpcId{0};
     uint64_t mLastSentPickupId{0};
     std::unordered_map<uint64_t, uint64_t> mSkippedPickups;
 
@@ -133,6 +134,7 @@ private:
 
     void updateLocalMovement(double pDeltaTime);
     void updatePickup();
+    void updateShop();
     void requestAutoPickup();
     void onPickupResult(services::world::PickupResult pResult);
     glm::vec3 slideLocal(glm::vec3 pPosition, glm::vec2 pStep) const;

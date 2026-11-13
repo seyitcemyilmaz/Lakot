@@ -2,12 +2,14 @@
 
 #include "../../item/ItemIconPath.h"
 #include "../../item/ItemIconRenderer.h"
+#include "../../localization/Localization.h"
 #include "../../network/NetworkManager.h"
 
 using namespace lakot;
 
 WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    NetworkManager& pNetworkManager,
+                   const Localization& pLocalization,
                    DisplaySettings& pDisplaySettings,
                    SDL_Window* pWindow,
                    const std::string& pUsername,
@@ -18,6 +20,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    ItemIconRenderer& pItemIcons,
                    uint64_t pCharacterId)
     : mNetworkManager(pNetworkManager)
+    , mLocalization(pLocalization)
     , mDisplaySettings(pDisplaySettings)
     , mWindow(pWindow)
     , mItemIcons(pItemIcons)
@@ -33,6 +36,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mSkillWindow(pRmlUiLayer, pSkillCatalog, pClassCatalog)
     , mSystemMenu(pRmlUiLayer)
     , mItemDiscard(pRmlUiLayer)
+    , mShop(pRmlUiLayer, pNetworkManager.getInventoryController(), pLocalization, pItemIcons)
     , mWhispers(pRmlUiLayer)
 {
     mSystemMenu.setLogoutCallback(
@@ -70,6 +74,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     });
 
     mInventory.setContents(pItems, pStats);
+    mShop.setContents(pItems, pStats);
     mCharacterSheet.setStats(pStats);
     mSkillWindow.setStats(pStats);
     mStats = pStats;
@@ -150,6 +155,7 @@ void WorldHud::connectNetwork()
     [this](const std::vector<OwnedItem>& pItems, const CharacterStats& pStats)
     {
         mInventory.setContents(pItems, pStats);
+        mShop.setContents(pItems, pStats);
         applyStats(pStats);
         mVitals.setVitals(pStats.health, pStats.maxHealth, pStats.level, pStats.experience, pStats.experienceForNextLevel);
         mVitals.setMana(pStats.mana, pStats.maxMana);
@@ -197,6 +203,38 @@ void WorldHud::connectNetwork()
     [this](uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
     {
         onDiscardConfirmed(pBagSlot, pTemplateId, pCount, pIsDestroy);
+    });
+
+    ShopController& tShop = mNetworkManager.getShopController();
+
+    tShop.setShopOpenedCallback(
+    [this](services::shop::ShopStatus pStatus, uint64_t pNpcId, const std::string& pTitle, const std::vector<uint32_t>& pTemplateIds)
+    {
+        onShopOpened(pStatus, pNpcId, pTitle, pTemplateIds);
+    });
+
+    tShop.setBuyResultCallback(
+    [this](services::shop::ShopStatus pStatus)
+    {
+        onShopTradeResult(pStatus);
+    });
+
+    tShop.setSellResultCallback(
+    [this](services::shop::ShopStatus pStatus)
+    {
+        onShopTradeResult(pStatus);
+    });
+
+    mShop.setBuyCallback(
+    [this](uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity)
+    {
+        mNetworkManager.getShopController().sendBuy(pNpcId, pTemplateId, pQuantity);
+    });
+
+    mShop.setSellCallback(
+    [this](uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount)
+    {
+        mNetworkManager.getShopController().sendSell(pNpcId, pBagSlot, pTemplateId, pCount);
     });
 
     mSkillBar.setSlotActivatedCallback(
@@ -295,6 +333,26 @@ void WorldHud::showNotice(const std::string& pText)
     mVitals.showNotice(pText);
 }
 
+void WorldHud::requestShop(uint64_t pNpcId)
+{
+    mNetworkManager.getShopController().sendOpenShop(pNpcId);
+}
+
+void WorldHud::closeShop()
+{
+    mShop.close();
+}
+
+bool WorldHud::isShopOpen() const
+{
+    return mShop.isOpen();
+}
+
+uint64_t WorldHud::getShopNpcId() const
+{
+    return mShop.getNpcId();
+}
+
 void WorldHud::setLocalItemsCallback(LocalItemsCallback pCallback)
 {
     mLocalItemsCallback = std::move(pCallback);
@@ -310,6 +368,7 @@ void WorldHud::update(double pDeltaTime, const glm::vec3& pLocalPosition, float 
 {
     mWhispers.update();
     mInventory.update();
+    mShop.update();
     mMinimap.update(pLocalPosition, pFacingDegrees, pOthers);
     mWorldMap.update(pLocalPosition, pFacingDegrees);
     mSkillBar.update(pDeltaTime);
@@ -388,6 +447,12 @@ void WorldHud::handleEscape()
     if (mItemDiscard.isOpen())
     {
         mItemDiscard.close();
+        return;
+    }
+
+    if (mShop.isOpen())
+    {
+        mShop.close();
         return;
     }
 
@@ -564,6 +629,46 @@ void WorldHud::onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY)
 void WorldHud::onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
 {
     mIsAwaitingDiscardResult = mNetworkManager.getInventoryController().sendDiscardItem(pBagSlot, pTemplateId, pCount, pIsDestroy);
+}
+
+void WorldHud::onShopOpened(services::shop::ShopStatus pStatus, uint64_t pNpcId, const std::string& pTitle, const std::vector<uint32_t>& pTemplateIds)
+{
+    if (pStatus != services::shop::SHOP_STATUS_OK)
+    {
+        onShopTradeResult(pStatus);
+        return;
+    }
+
+    mShop.open(pNpcId, pTitle, pTemplateIds);
+
+    if (!mInventory.isOpen())
+    {
+        mInventory.toggle();
+    }
+}
+
+void WorldHud::onShopTradeResult(services::shop::ShopStatus pStatus)
+{
+    std::string tText;
+
+    switch (pStatus)
+    {
+    case services::shop::SHOP_STATUS_NOT_ENOUGH_GOLD: tText = mLocalization.text("shop.notice.not_enough_gold"); break;
+    case services::shop::SHOP_STATUS_BAG_FULL:        tText = mLocalization.text("shop.notice.bag_full"); break;
+    case services::shop::SHOP_STATUS_OUT_OF_RANGE:    tText = mLocalization.text("shop.notice.too_far"); break;
+    case services::shop::SHOP_STATUS_NOT_SELLABLE:    tText = mLocalization.text("shop.notice.not_sellable"); break;
+    case services::shop::SHOP_STATUS_NOT_SOLD_HERE:   tText = mLocalization.text("shop.notice.not_sold_here"); break;
+    case services::shop::SHOP_STATUS_GOLD_LIMIT:      tText = mLocalization.text("shop.notice.gold_limit"); break;
+    case services::shop::SHOP_STATUS_TOO_FAST:        tText = mLocalization.text("shop.notice.too_fast"); break;
+    case services::shop::SHOP_STATUS_DEAD:            tText = mLocalization.text("shop.notice.dead"); break;
+    case services::shop::SHOP_STATUS_INVALID:         tText = mLocalization.text("shop.notice.nothing_to_trade"); break;
+    default: break;
+    }
+
+    if (!tText.empty())
+    {
+        mVitals.showNotice(tText);
+    }
 }
 
 void WorldHud::onRespawnResult(services::world::RespawnStatus pStatus)

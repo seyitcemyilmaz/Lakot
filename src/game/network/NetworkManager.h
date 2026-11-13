@@ -18,6 +18,7 @@
 #include "controller/ChatController.h"
 #include "controller/InventoryController.h"
 #include "controller/ProgressionController.h"
+#include "controller/ShopController.h"
 
 namespace lakot
 {
@@ -71,6 +72,7 @@ public:
     ChatController& getChatController();
     InventoryController& getInventoryController();
     ProgressionController& getProgressionController();
+    ShopController& getShopController();
 
     // Monotonic id for common.RequestHeader.id, shared by every controller so
     // ids stay unique across services on one connection. The server echoes it
@@ -103,6 +105,7 @@ private:
     ChatController mChatController;
     InventoryController mInventoryController;
     ProgressionController mProgressionController;
+    ShopController mShopController;
 };
 
 }

@@ -307,7 +307,7 @@ void WorldScene::enter()
     mPicker = std::make_unique<WorldPicker>(mEngine.getWindow(), *mCamera, *mEntities);
     mAutoWalk = std::make_unique<AutoWalk>(*mEntities);
 
-    mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getDisplaySettings(),
+    mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getLocalization(), mEngine.getDisplaySettings(),
                                       mEngine.getWindow(), mLocalUsername, mLocalStats, mEngine.getClassCatalog(), mEngine.getSkillCatalog(), mLocalItems, *mItemIcons, mLocalCharacterId);
 
     mHud->setLocalItemsCallback(
@@ -374,6 +374,7 @@ void WorldScene::exit()
     mEngine.getNetworkManager().getChatController().clearCallbacks();
     mEngine.getNetworkManager().getInventoryController().clearCallbacks();
     mEngine.getNetworkManager().getProgressionController().clearCallbacks();
+    mEngine.getNetworkManager().getShopController().clearCallbacks();
 
     endOrbit();
 
@@ -398,6 +399,7 @@ void WorldScene::update(double pDeltaTime)
     updateAttack(pDeltaTime);
     updateLocalMovement(pDeltaTime);
     updatePickup();
+    updateShop();
     mCameraBob.update(glm::length(glm::vec2(mLocalPosition.x - mPreviousLocalPosition.x, mLocalPosition.z - mPreviousLocalPosition.z)), pDeltaTime);
 
     mStateSendAccumulator += pDeltaTime;
@@ -466,6 +468,48 @@ void WorldScene::updatePickup()
     }
 }
 
+void WorldScene::updateShop()
+{
+    constexpr float kShopRequestReach = 3.0f;
+    constexpr float kShopCloseReach = 6.0f;
+
+    glm::vec2 tLocal(mLocalPosition.x, mLocalPosition.z);
+
+    if (mHud->isShopOpen())
+    {
+        auto tNpc = mEntities->findPosition(mHud->getShopNpcId());
+
+        if (!tNpc || mIsLocalDead || glm::distance(glm::vec2(tNpc->x, tNpc->z), tLocal) > kShopCloseReach)
+        {
+            mHud->closeShop();
+        }
+    }
+
+    if (mPendingShopNpcId == 0)
+    {
+        return;
+    }
+
+    auto tPosition = mEntities->findPosition(mPendingShopNpcId);
+
+    if (!tPosition)
+    {
+        mPendingShopNpcId = 0;
+        return;
+    }
+
+    if (glm::distance(glm::vec2(tPosition->x, tPosition->z), tLocal) <= kShopRequestReach)
+    {
+        mHud->requestShop(mPendingShopNpcId);
+        mPendingShopNpcId = 0;
+        mAutoWalk->stop();
+    }
+    else if (!mAutoWalk->isActive())
+    {
+        mPendingShopNpcId = 0;
+    }
+}
+
 void WorldScene::requestAutoPickup()
 {
     constexpr float kAutoPickupSearch = 10.0f;
@@ -502,6 +546,7 @@ void WorldScene::requestAutoPickup()
 
     mAutoWalk->follow(tBestId);
     mPendingPickupId = tBestId;
+    mPendingShopNpcId = 0;
 }
 
 void WorldScene::onPickupResult(services::world::PickupResult pResult)
@@ -922,10 +967,12 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
             {
                 mAutoWalk->follow(tTarget->id);
                 mPendingPickupId = tTarget->type == EntityType::eGroundItem ? tTarget->id : 0;
+                mPendingShopNpcId = tTarget->type == EntityType::eNpc ? tTarget->id : 0;
                 return true;
             }
 
             mPendingPickupId = 0;
+            mPendingShopNpcId = 0;
 
             if (auto tGround = mPicker->pickGround(*mMap, tPixel))
             {
@@ -1042,6 +1089,8 @@ void WorldScene::onMapChanged(const WorldController::MapSnapshot& pSnapshot)
     mHasSentInitialState = false;
 
     mAutoWalk->stop();
+    mPendingShopNpcId = 0;
+    mHud->closeShop();
 
     if (!mMap || mMap->getId() != pSnapshot.mapId)
     {

@@ -50,12 +50,14 @@ NetworkManager::NetworkManager(const Localization& pLocalization)
     , mChatController(this)
     , mInventoryController(this)
     , mProgressionController(this)
+    , mShopController(this)
 {
     mAuthController.initialize();
     mWorldController.initialize();
     mChatController.initialize();
     mInventoryController.initialize();
     mProgressionController.initialize();
+    mShopController.initialize();
 
     mClient.setOnMessageReceived(
     [this](const connection::Message& pMessage)
@@ -297,6 +299,11 @@ ChatController& NetworkManager::getChatController()
 InventoryController& NetworkManager::getInventoryController()
 {
     return mInventoryController;
+}
+
+ShopController& NetworkManager::getShopController()
+{
+    return mShopController;
 }
 
 ProgressionController& NetworkManager::getProgressionController()

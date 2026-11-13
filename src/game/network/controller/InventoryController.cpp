@@ -221,6 +221,8 @@ void InventoryController::handleItemTemplateList(std::shared_ptr<NetworkSession<
         tTemplate.width = tIncoming.width() > 0 ? tIncoming.width() : 1;
         tTemplate.height = tIncoming.height() > 0 ? tIncoming.height() : 1;
         tTemplate.icon = tIncoming.icon();
+        tTemplate.price = tIncoming.price();
+        tTemplate.sellPrice = tIncoming.sell_price();
         tTemplate.model = tIncoming.model();
         tTemplate.tint = tIncoming.tint();
         tTemplate.allowedClasses.assign(tIncoming.allowed_classes().begin(), tIncoming.allowed_classes().end());

@@ -119,6 +119,9 @@ struct ItemTemplate
     // item has no art yet.
     std::string icon;
 
+    uint32_t price = 0;
+    uint32_t sellPrice = 0;
+
     std::string model;
     uint32_t tint = 0xFFFFFF;
 

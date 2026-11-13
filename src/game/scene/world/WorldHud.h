@@ -23,6 +23,7 @@
 #include "../../gui/rml/SkillWindowRmlController.h"
 #include "../../gui/rml/SystemMenuRmlController.h"
 #include "../../gui/rml/ItemDiscardRmlController.h"
+#include "../../gui/rml/ShopRmlController.h"
 #include "../../gui/rml/MinimapRmlController.h"
 #include "../../gui/rml/WorldMapRmlController.h"
 #include "../../network/GameTypes.h"
@@ -35,6 +36,7 @@ namespace lakot
 class NetworkManager;
 class ItemIconRenderer;
 class RmlUiLayer;
+class Localization;
 
 class WorldHud
 {
@@ -45,6 +47,7 @@ public:
 
     WorldHud(RmlUiLayer& pRmlUiLayer,
              NetworkManager& pNetworkManager,
+             const Localization& pLocalization,
              DisplaySettings& pDisplaySettings,
              SDL_Window* pWindow,
              const std::string& pUsername,
@@ -69,6 +72,11 @@ public:
     void setSafeZone(bool pIsSafe);
     void showNotice(const std::string& pText);
 
+    void requestShop(uint64_t pNpcId);
+    void closeShop();
+    bool isShopOpen() const;
+    uint64_t getShopNpcId() const;
+
     bool handleKeyDown(const SDL_KeyboardEvent& pEvent);
 
     void handleEscape();
@@ -83,6 +91,7 @@ public:
 
 private:
     NetworkManager& mNetworkManager;
+    const Localization& mLocalization;
     DisplaySettings& mDisplaySettings;
     SDL_Window* mWindow;
     ItemIconRenderer& mItemIcons;
@@ -100,6 +109,7 @@ private:
     SkillWindowRmlController mSkillWindow;
     SystemMenuRmlController mSystemMenu;
     ItemDiscardRmlController mItemDiscard;
+    ShopRmlController mShop;
     WhisperWindows mWhispers;
 
     std::vector<DisplayMode> mDisplayModes;
@@ -126,6 +136,8 @@ private:
     void onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY);
     void onDiscardConfirmed(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy);
     void onInventoryActionResult(bool pIsSuccess);
+    void onShopOpened(services::shop::ShopStatus pStatus, uint64_t pNpcId, const std::string& pTitle, const std::vector<uint32_t>& pTemplateIds);
+    void onShopTradeResult(services::shop::ShopStatus pStatus);
     void onRespawnResult(services::world::RespawnStatus pStatus);
     void onUseItemResult(services::inventory::UseItemStatus pStatus, float pCooldownSeconds);
     void onAllocateStatResult(services::progression::AllocateStatStatus pStatus);

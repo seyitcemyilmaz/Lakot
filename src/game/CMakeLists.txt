@@ -53,6 +53,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     network/controller/WorldController.h network/controller/WorldController.cpp
     network/controller/ChatController.h network/controller/ChatController.cpp
     network/controller/ProgressionController.h network/controller/ProgressionController.cpp
+    network/controller/ShopController.h network/controller/ShopController.cpp
+    gui/rml/ShopRmlController.h gui/rml/ShopRmlController.cpp
     network/StatsMessage.h
 
     graphics/camera/CameraFactory.h graphics/camera/CameraFactory.cpp
