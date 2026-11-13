@@ -5,8 +5,8 @@
 #  define LAKOT_UTILS_DECL_EXPORT __declspec(dllexport)
 #  define LAKOT_UTILS_DECL_IMPORT __declspec(dllimport)
 #else
-#  define LAKOT_DECL_EXPORT     __attribute__((visibility("default")))
-#  define LAKOT_DECL_IMPORT     __attribute__((visibility("default")))
+#  define LAKOT_UTILS_DECL_EXPORT __attribute__((visibility("default")))
+#  define LAKOT_UTILS_DECL_IMPORT __attribute__((visibility("default")))
 #endif
 
 #if defined(LAKOT_UTILS_LIBRARY)

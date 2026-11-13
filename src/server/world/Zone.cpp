@@ -29,6 +29,14 @@ Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog
     , mRegeneration(mCharacters, mCombat)
 {
     spawnWorldEntities();
+
+    for (const MapPortal& tPortal : mMap.getPortals())
+    {
+        if (!mMapCatalog.getMap(tPortal.targetMapId))
+        {
+            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Bilinmeyen portal hedefi: " << tPortal.targetMapId << std::endl;
+        }
+    }
 }
 
 void Zone::spawnWorldEntities()
@@ -182,8 +190,8 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
 
         Character tLiveCharacter(tCharacterId, pCharacter.name, mItemCatalog, mClassCatalog);
         tLiveCharacter.setKingdom(pCharacter.kingdom);
-        tLiveCharacter.setStats(pCharacter.stats);
         tLiveCharacter.setItems(std::move(pCharacter.items));
+        tLiveCharacter.setStats(pCharacter.stats);
 
         // erase-then-emplace rather than insert_or_assign: Character holds a
         // reference to the ItemCatalog and is therefore not assignable (by
@@ -473,18 +481,6 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
 {
     postTimed([this, pCharacterId, pEntityId, pReplyTo]()
     {
-        auto [tLastPickup, tIsFirst] = mLastPickupAt.try_emplace(pCharacterId, mTime);
-
-        if (!tIsFirst)
-        {
-            if (mTime - tLastPickup->second < kPickupCooldownSeconds)
-            {
-                return;
-            }
-
-            tLastPickup->second = mTime;
-        }
-
         auto tCharacter = mCharacters.find(pCharacterId);
         const PlayerState* tState = mRegistry.getState(pCharacterId);
 
@@ -493,14 +489,32 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
             return;
         }
 
+        auto tSendResult = [this, pCharacterId, pReplyTo](services::world::PickupResult pResult)
+        {
+            connection::Message tMessage;
+            auto* tHeader = tMessage.mutable_response()->mutable_header();
+            tHeader->set_reply_to(pReplyTo);
+            tHeader->mutable_status()->set_code(pResult == services::world::PICKUP_RESULT_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+            tMessage.mutable_response()->mutable_pickup_item_response()->set_result(pResult);
+            mSend(pCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+        };
+
+        auto [tLastPickup, tIsFirst] = mLastPickupAt.try_emplace(pCharacterId, mTime);
+
+        if (!tIsFirst)
+        {
+            if (mTime - tLastPickup->second < kPickupCooldownSeconds)
+            {
+                tSendResult(services::world::PICKUP_RESULT_NOT_FOUND);
+                return;
+            }
+
+            tLastPickup->second = mTime;
+        }
+
         services::world::PickupResult tResult = mLoot.pickUp(tCharacter->second, *tState, pEntityId, mTime);
 
-        connection::Message tMessage;
-        auto* tHeader = tMessage.mutable_response()->mutable_header();
-        tHeader->set_reply_to(pReplyTo);
-        tHeader->mutable_status()->set_code(tResult == services::world::PICKUP_RESULT_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
-        tMessage.mutable_response()->mutable_pickup_item_response()->set_result(tResult);
-        mSend(pCharacterId, NetworkSession<connection::Message>::makePacket(tMessage));
+        tSendResult(tResult);
 
         if (tResult == services::world::PICKUP_RESULT_OK)
         {
@@ -836,7 +850,10 @@ void Zone::tick()
 
     for (const CombatReward& tReward : mCombat.takeRewards())
     {
-        mLoot.drop(tReward, mTime);
+        if (tReward.isLootOwner)
+        {
+            mLoot.drop(tReward, mTime);
+        }
 
         if (auto tCharacter = mCharacters.find(tReward.characterId); tCharacter != mCharacters.end())
         {
@@ -927,10 +944,16 @@ void Zone::applyPortals()
 
     for (const PendingTransfer& tTransfer : tPending)
     {
+        const MapData* tTargetMap = mMapCatalog.getMap(tTransfer.portal.targetMapId);
+
+        if (!tTargetMap)
+        {
+            continue;
+        }
+
         PlayerState tSpawnState;
         tSpawnState.x = tTransfer.portal.targetX;
-        const MapData* tTargetMap = mMapCatalog.getMap(tTransfer.portal.targetMapId);
-        tSpawnState.y = tTargetMap ? tTargetMap->getHeightAt(tTransfer.portal.targetX, tTransfer.portal.targetZ) + MovementRules::kBodyHalfHeight : 0.0f;
+        tSpawnState.y = tTargetMap->getHeightAt(tTransfer.portal.targetX, tTransfer.portal.targetZ) + MovementRules::kBodyHalfHeight;
         tSpawnState.z = tTransfer.portal.targetZ;
         tSpawnState.yaw = tTransfer.portal.targetYaw;
 
@@ -942,7 +965,7 @@ void Zone::transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const Playe
 {
     auto tCharacterIterator = mCharacters.find(pCharacterId);
 
-    if (!mTransfer || tCharacterIterator == mCharacters.end())
+    if (!mTransfer || !mMapCatalog.getMap(pTargetMapId) || tCharacterIterator == mCharacters.end())
     {
         return;
     }

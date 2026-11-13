@@ -39,7 +39,7 @@ class G27Server(Server):
         self.run_dir = str(RUN)
         self.log_lines = []
         tTemplates = [tpl(MON_TOUGH, maxHealth=100000000, attack=1),
-                      tpl(MON_WEAK, maxHealth=1, attack=1, respawnSeconds=2)]
+                      tpl(MON_WEAK, maxHealth=1, attack=1, respawnSeconds=3)]
         json.dump({"monsters": tTemplates}, open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tPath = RUN / "data" / "maps" / "101_altunay_village" / "map.json"
         tMeta = json.load(open(tPath, encoding="utf-8"))

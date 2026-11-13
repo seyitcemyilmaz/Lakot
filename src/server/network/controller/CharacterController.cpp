@@ -276,8 +276,8 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
             tSnapshot.items = std::move(pItems);
 
             Character tCharacter(tSnapshot.characterId, tSnapshot.name, mItemCatalog, mClassCatalog);
-            tCharacter.setStats(tSnapshot.stats);
             tCharacter.setItems(tSnapshot.items);
+            tCharacter.setStats(tSnapshot.stats);
 
             tSnapshot.stats = tCharacter.getStats();
 

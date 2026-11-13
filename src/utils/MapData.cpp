@@ -156,6 +156,13 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
             tPortal.targetX = getFloat(tEntry, "targetX", 0.0f);
             tPortal.targetZ = getFloat(tEntry, "targetZ", 0.0f);
             tPortal.targetYaw = getFloat(tEntry, "targetYaw", 0.0f);
+
+            if (tPortal.targetMapId == 0)
+            {
+                pError = "portal has an invalid targetMap in " + (tDirectory / "map.json").string();
+                return nullptr;
+            }
+
             tMap->mPortals.push_back(tPortal);
         }
     }

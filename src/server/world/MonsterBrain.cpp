@@ -30,11 +30,13 @@ void MonsterBrain::place(Monster& pMonster)
 
     rollStats(pMonster);
     pMonster.health = pMonster.stats.maxHealth;
+    pMonster.damageBy.clear();
     pMonster.state = MonsterStateType::eIdle;
     pMonster.targetId = 0;
     pMonster.isInWorld = true;
 
     mRegistry.add(pMonster.id, pMonster.monsterTemplate->name, tState, false);
+    mCombat.markVitalsChanged(pMonster.id);
 }
 
 void MonsterBrain::rollStats(Monster& pMonster)
@@ -280,6 +282,7 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
             if (pMonster.health != pMonster.stats.maxHealth)
             {
                 pMonster.health = pMonster.stats.maxHealth;
+                pMonster.damageBy.clear();
                 mCombat.markVitalsChanged(pMonster.id);
             }
         }

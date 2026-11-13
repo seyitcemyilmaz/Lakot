@@ -68,6 +68,7 @@ struct CombatReward
     uint32_t level = 1;
     float x = 0.0f;
     float z = 0.0f;
+    bool isLootOwner = false;
 };
 
 class CombatSystem
@@ -81,6 +82,8 @@ public:
     static constexpr double kPlayerRespawnSeconds = 5.0;
     static constexpr double kAutoRespawnSeconds = 60.0;
     static constexpr double kCorpseSeconds = 3.0;
+    static constexpr float kMinRewardDamageShare = 0.05f;
+    static constexpr double kRewardExperienceSwing = 0.05;
 
     CombatSystem(const MapData& pMap, WorldRegistry& pRegistry,
                  std::unordered_map<uint64_t, Character>& pCharacters,
@@ -141,6 +144,7 @@ private:
     int32_t getDefense(uint64_t pEntityId) const;
     DeathEntry makeDeathEntry(double pNow) const;
     CombatHit applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t pTargetId, double pNow);
+    void rewardKill(Monster& pMonster, uint64_t pKillerId);
 };
 
 }

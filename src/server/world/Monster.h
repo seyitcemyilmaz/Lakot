@@ -2,6 +2,7 @@
 #define LAKOT_SERVER_MONSTER_H
 
 #include <cstdint>
+#include <unordered_map>
 
 #include "MonsterCatalog.h"
 
@@ -49,6 +50,7 @@ struct Monster
     double respawnAt = 0.0;
     bool isInWorld = true;
     bool isTemporary = false;
+    std::unordered_map<uint64_t, uint32_t> damageBy;
 };
 
 }

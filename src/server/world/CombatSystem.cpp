@@ -154,6 +154,12 @@ CombatHit CombatSystem::applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t
     }
 
     Monster& tMonster = mMonsters.at(pTargetId);
+
+    if (mCharacters.count(pAttackerId) != 0)
+    {
+        tMonster.damageBy[pAttackerId] += static_cast<uint32_t>(std::min(tDamage, tMonster.health));
+    }
+
     tMonster.health = std::max(0, tMonster.health - tDamage);
 
     if (tMonster.state == MonsterStateType::eIdle || tMonster.state == MonsterStateType::eReturn)
@@ -171,26 +177,67 @@ CombatHit CombatSystem::applyHit(uint64_t pAttackerId, int32_t pAttack, uint64_t
         tMonster.removeAt = pNow + kCorpseSeconds;
         tMonster.respawnAt = pNow + tMonster.monsterTemplate->respawnSeconds;
 
-        if (auto tKiller = mCharacters.find(pAttackerId); tKiller != mCharacters.end())
-        {
-            CombatReward tReward;
-            tReward.characterId = pAttackerId;
-            tReward.monsterTemplateId = tMonster.monsterTemplate->id;
-            tReward.monsterEntityId = tMonster.id;
-            tReward.level = tMonster.stats.level;
-            tReward.levelsGained = tKiller->second.addExperience(tMonster.stats.experience);
-            tReward.newLevel = tKiller->second.getStats().level;
-            if (const PlayerState* tMonsterState = mRegistry.getState(pTargetId))
-            {
-                tReward.x = tMonsterState->x;
-                tReward.z = tMonsterState->z;
-            }
-
-            mRewards.push_back(tReward);
-        }
+        rewardKill(tMonster, pAttackerId);
     }
 
     return tHit;
+}
+
+void CombatSystem::rewardKill(Monster& pMonster, uint64_t pKillerId)
+{
+    uint32_t tMinDamage = static_cast<uint32_t>(std::ceil(static_cast<float>(pMonster.stats.maxHealth) * kMinRewardDamageShare));
+    std::vector<std::pair<uint64_t, uint32_t>> tEligible;
+    uint64_t tTotalDamage = 0;
+
+    for (const auto& [tCharacterId, tDamage] : pMonster.damageBy)
+    {
+        auto tCharacter = mCharacters.find(tCharacterId);
+
+        if (tCharacter == mCharacters.end() || tCharacter->second.isDead() || (tDamage < tMinDamage && tCharacterId != pKillerId))
+        {
+            continue;
+        }
+
+        tEligible.emplace_back(tCharacterId, std::max<uint32_t>(tDamage, 1));
+        tTotalDamage += std::max<uint32_t>(tDamage, 1);
+    }
+
+    pMonster.damageBy.clear();
+
+    if (tEligible.empty())
+    {
+        return;
+    }
+
+    std::uniform_real_distribution<double> tExperienceSwing(1.0 - kRewardExperienceSwing, 1.0 + kRewardExperienceSwing);
+    std::uniform_int_distribution<uint64_t> tLootRoll(0, tTotalDamage - 1);
+    uint64_t tLootTicket = tLootRoll(mRandom);
+    const PlayerState* tMonsterState = mRegistry.getState(pMonster.id);
+
+    for (const auto& [tCharacterId, tDamage] : tEligible)
+    {
+        Character& tCharacter = mCharacters.at(tCharacterId);
+        double tShare = static_cast<double>(tDamage) / static_cast<double>(tTotalDamage);
+        uint64_t tExperience = static_cast<uint64_t>(std::llround(pMonster.stats.experience * tShare * tExperienceSwing(mRandom)));
+
+        CombatReward tReward;
+        tReward.characterId = tCharacterId;
+        tReward.monsterTemplateId = pMonster.monsterTemplate->id;
+        tReward.monsterEntityId = pMonster.id;
+        tReward.level = pMonster.stats.level;
+        tReward.levelsGained = tCharacter.addExperience(std::max<uint64_t>(tExperience, pMonster.stats.experience > 0 ? 1 : 0));
+        tReward.newLevel = tCharacter.getStats().level;
+        tReward.isLootOwner = tLootTicket < tDamage;
+        tLootTicket = tReward.isLootOwner ? UINT64_MAX : tLootTicket - tDamage;
+
+        if (tMonsterState)
+        {
+            tReward.x = tMonsterState->x;
+            tReward.z = tMonsterState->z;
+        }
+
+        mRewards.push_back(tReward);
+    }
 }
 
 bool CombatSystem::playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pCombo, double pNow)
@@ -210,7 +257,7 @@ bool CombatSystem::playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pComb
         return false;
     }
 
-    tNextAttackAt = pNow + kPlayerAttackInterval;
+    tNextAttackAt = std::max(tNextAttackAt, pNow) + kPlayerAttackInterval;
 
     CombatRecord tRecord;
     tRecord.attackerId = pAttackerId;

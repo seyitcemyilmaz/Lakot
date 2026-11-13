@@ -296,8 +296,11 @@ uint32_t Character::addExperience(uint64_t pAmount)
         // Levelling raises the maximums; a level-up heals to full, which is
         // the near-universal convention and avoids the awkward state where
         // gaining a level leaves you proportionally more wounded.
-        StatFormula::initializeVitals(mStats);
-        refreshVitals();
+        if (!isDead())
+        {
+            mStats.health = getMaxHealth();
+            mStats.mana = getMaxMana();
+        }
     }
 
     markDirty();
@@ -380,12 +383,17 @@ void Character::addGold(int64_t pAmount)
 {
     if (pAmount < 0)
     {
-        uint64_t tCost = static_cast<uint64_t>(-pAmount);
+        uint64_t tCost = pAmount == std::numeric_limits<int64_t>::min()
+            ? static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1ull
+            : static_cast<uint64_t>(-pAmount);
         mStats.gold = tCost > mStats.gold ? 0 : mStats.gold - tCost;
     }
     else
     {
-        mStats.gold += static_cast<uint64_t>(pAmount);
+        constexpr uint64_t tMaxGold = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+        uint64_t tAdd = static_cast<uint64_t>(pAmount);
+        mStats.gold = std::min(mStats.gold, tMaxGold);
+        mStats.gold += std::min(tAdd, tMaxGold - mStats.gold);
     }
 
     markDirty();

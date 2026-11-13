@@ -15,6 +15,7 @@ using namespace lakot;
 namespace
 {
     constexpr float kMinAttackInterval = 0.1f;
+    constexpr float kMinRespawnSeconds = 3.0f;
 
     float getFloat(const rapidjson::Value& pObject, const char* pName, float pDefault)
     {
@@ -153,7 +154,7 @@ bool MonsterCatalog::load(const std::string& pDataDirectory, std::string& pError
         }
 
         if (!(tTemplate.attackInterval >= kMinAttackInterval) || !(tTemplate.moveSpeed >= 0.0f)
-            || !(tTemplate.respawnSeconds >= 0.0f) || !std::isfinite(tTemplate.moveSpeed)
+            || !(tTemplate.respawnSeconds >= kMinRespawnSeconds) || !std::isfinite(tTemplate.moveSpeed)
             || !std::isfinite(tTemplate.attackInterval) || !std::isfinite(tTemplate.respawnSeconds))
         {
             pError = "monsters.json has an entry with an invalid speed, attack interval or respawn time: " + tTemplate.name;

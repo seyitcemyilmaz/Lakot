@@ -36,7 +36,7 @@ class G12Server(Server):
         shutil.copytree(self.bin_dir, RUN)
         self.run_dir = str(RUN)
         self.log_lines = []
-        json.dump({"monsters": [tpl(XP_MON, maxHealth=1, attack=1, experience=100, respawnSeconds=2)]},
+        json.dump({"monsters": [tpl(XP_MON, maxHealth=1, attack=1, experience=100, respawnSeconds=3)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
         shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g12_copy")
