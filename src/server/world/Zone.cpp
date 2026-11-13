@@ -218,7 +218,7 @@ void Zone::enterPlayer(CharacterSnapshot pCharacter, const PlayerState& pState)
         // Entering counts as an accepted position, so the very first update
         // after a login or a portal is measured from here rather than being
         // handed the full idle budget.
-        mLastAcceptedAt[tCharacterId] = std::chrono::steady_clock::now();
+        resetMoveBudget(tCharacterId);
         mPendingCorrections.erase(tCharacterId);
 
         mLastPotionAt.erase(tCharacterId);
@@ -242,7 +242,7 @@ void Zone::leavePlayer(uint64_t pCharacterId, ReleasedCallback pOnReleased)
         mRegistry.remove(pCharacterId);
         mCombat.forget(pCharacterId);
 
-        mLastAcceptedAt.erase(pCharacterId);
+        mMoveBudgets.erase(pCharacterId);
         mPendingCorrections.erase(pCharacterId);
         mLastPickupAt.erase(pCharacterId);
         mLastDiscardAt.erase(pCharacterId);
@@ -275,7 +275,7 @@ void Zone::resumePlayer(uint64_t pCharacterId)
         mPendingCorrections.insert(pCharacterId);
 
         // The time spent disconnected is not movement budget.
-        mLastAcceptedAt[pCharacterId] = std::chrono::steady_clock::now();
+        resetMoveBudget(pCharacterId);
 
         sendInventoryUpdate(tIterator->second);
     });
@@ -370,17 +370,17 @@ void Zone::submitState(uint64_t pCharacterId, const PlayerState& pRequestedState
         tState.yaw = std::remainder(tState.yaw, kTwoPi);
 
         auto tNow = std::chrono::steady_clock::now();
-        auto tLastIterator = mLastAcceptedAt.find(pCharacterId);
+        auto [tBudgetIterator, tIsNew] = mMoveBudgets.try_emplace(pCharacterId, MoveBudget{ tNow, kPositionTolerance });
+        MoveBudget& tBudget = tBudgetIterator->second;
 
-        double tElapsedSeconds = kMaxBudgetSeconds;
-
-        if (tLastIterator != mLastAcceptedAt.end())
+        if (!tIsNew)
         {
-            tElapsedSeconds = std::chrono::duration<double>(tNow - tLastIterator->second).count();
-            tElapsedSeconds = std::min(tElapsedSeconds, kMaxBudgetSeconds);
+            double tElapsedSeconds = std::chrono::duration<double>(tNow - tBudget.refilledAt).count();
+            tBudget.distance = std::min(tBudget.distance + kMaxSpeed * static_cast<float>(tElapsedSeconds), kMaxBudgetDistance);
+            tBudget.refilledAt = tNow;
         }
 
-        float tAllowed = kMaxSpeed * static_cast<float>(tElapsedSeconds) + kPositionTolerance;
+        float tAllowed = tBudget.distance;
 
         float tDx = tState.x - tAccepted->x;
         float tDz = tState.z - tAccepted->z;
@@ -393,16 +393,18 @@ void Zone::submitState(uint64_t pCharacterId, const PlayerState& pRequestedState
 
         if (tIsTooFar || tIsBlocked || tIsWrongHeight)
         {
-            // Rejected: keep the last accepted position as the truth and tell
-            // the client to snap back to it. mLastAcceptedAt is intentionally
-            // left alone - see its declaration.
             mPendingCorrections.insert(pCharacterId);
             return;
         }
 
-        mLastAcceptedAt[pCharacterId] = tNow;
+        tBudget.distance -= std::sqrt(tDx * tDx + tDz * tDz);
         mRegistry.setState(pCharacterId, tState);
     });
+}
+
+void Zone::resetMoveBudget(uint64_t pCharacterId)
+{
+    mMoveBudgets[pCharacterId] = MoveBudget{ std::chrono::steady_clock::now(), kPositionTolerance };
 }
 
 void Zone::sendNearby(uint64_t pOriginCharacterId, Packet pPacket)
@@ -789,7 +791,7 @@ void Zone::placeCharacter(uint64_t pCharacterId, const PlayerState& pState)
 {
     mRegistry.setState(pCharacterId, pState);
     mPendingCorrections.insert(pCharacterId);
-    mLastAcceptedAt[pCharacterId] = std::chrono::steady_clock::now();
+    resetMoveBudget(pCharacterId);
 }
 
 void Zone::fillSelfVitals(const Character& pCharacter, services::world::SelfVitals* pOut) const
@@ -969,7 +971,7 @@ void Zone::transferOut(uint64_t pCharacterId, uint32_t pTargetMapId, const Playe
     mLastPickupAt.erase(pCharacterId);
     mLastDiscardAt.erase(pCharacterId);
     mLastPotionAt.erase(pCharacterId);
-    mLastAcceptedAt.erase(pCharacterId);
+    mMoveBudgets.erase(pCharacterId);
     mPendingCorrections.erase(pCharacterId);
 
     mTransfer(mMap.getId(), tSnapshot, pTargetMapId, pSpawnState);

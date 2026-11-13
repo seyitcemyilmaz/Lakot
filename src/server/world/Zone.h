@@ -210,6 +210,7 @@ private:
     // teleport; with it, the longest legitimate stall still only grants a
     // couple of seconds of walking.
     static constexpr double kMaxBudgetSeconds = 2.0;
+    static constexpr float kMaxBudgetDistance = kMaxSpeed * static_cast<float>(kMaxBudgetSeconds) + kPositionTolerance;
 
     static constexpr double kPickupCooldownSeconds = 0.1;
     static constexpr double kDiscardCooldownSeconds = 0.1;
@@ -266,12 +267,13 @@ private:
     uint32_t mTickCounter{0};
     std::chrono::steady_clock::time_point mNextTickAt{};
 
-    // When each character's last ACCEPTED position was recorded. A rejected
-    // update deliberately does not advance this, so the movement budget keeps
-    // accruing: a client whose packet was merely delayed gets accepted on its
-    // next try, while one genuinely trying to move too fast stays capped at
-    // kMaxSpeed on average.
-    std::unordered_map<uint64_t, std::chrono::steady_clock::time_point> mLastAcceptedAt;
+    struct MoveBudget
+    {
+        std::chrono::steady_clock::time_point refilledAt;
+        float distance = 0.0f;
+    };
+
+    std::unordered_map<uint64_t, MoveBudget> mMoveBudgets;
 
     // Characters whose latest update was rejected and who therefore need to
     // be told, in the next snapshot, where the server actually thinks they
@@ -300,6 +302,7 @@ private:
         });
     }
 
+    void resetMoveBudget(uint64_t pCharacterId);
     void scheduleTick();
     void tick();
 

@@ -652,6 +652,9 @@ def main():
     g = subprocess.call([sys.executable, str(HERE / 't_session_lifecycle_g33.py')])
     if g != 0:
         RESULTS.append(('t_session_lifecycle_g33', False, 'see output above'))
+    g = subprocess.call([sys.executable, str(HERE / 't_speed_y1.py')])
+    if g != 0:
+        RESULTS.append(('t_speed_y1', False, 'see output above'))
     g = subprocess.call([sys.executable, str(HERE / 't_gm_security_g53.py')])
     if g != 0:
         RESULTS.append(('t_gm_security_g53', False, 'see output above'))
