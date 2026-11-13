@@ -236,8 +236,8 @@ std::unique_ptr<SkinnedModel> SkinnedModel::load(const std::string& pPath, Asset
 
     if (tPositions.empty())
     {
-        pError = pPath + " has no mesh vertices";
-        return nullptr;
+        tModel->mBounds.min = glm::vec3(0.0f);
+        tModel->mBounds.max = glm::vec3(0.0f);
     }
 
     for (size_t tVertex = 0; tVertex < tPositions.size(); ++tVertex)
