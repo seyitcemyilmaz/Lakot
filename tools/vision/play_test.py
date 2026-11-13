@@ -211,6 +211,16 @@ def make_account():
     lakotnet.generate_bindings()
     tClient = lakotnet.make_player(prefix="vis")
     tClient.close()
+    tSpawn = os.environ.get("LAKOT_VISION_SPAWN")
+    if tSpawn:
+        from mapnav import nav
+        tValues = [float(v) for v in tSpawn.split(",")]
+        tX, tZ = tValues[0], tValues[1]
+        tYaw = tValues[2] if len(tValues) > 2 else 0.0
+        tY = nav().y_at(tX, tZ)
+        tSql = f"UPDATE characters SET pos_x={tX}, pos_y={tY}, pos_z={tZ}, yaw={tYaw} WHERE id={int(tClient.cid)};"
+        subprocess.run(["C:/Program Files/PostgreSQL/18/bin/psql.exe", "-h", "localhost", "-U", os.environ.get("LAKOT_DB_USER", "postgres"),
+                        "-d", "lakot_db", "-c", tSql], env={**os.environ, "PGPASSWORD": os.environ["LAKOT_DB_PASSWORD"]}, check=True, capture_output=True)
     return tClient.user, "pw12345", tClient.name
 
 
@@ -220,7 +230,7 @@ def build_prompt(pGoal, pUser, pPassword, pHistory, pStep, pMaxSteps):
 Goal for this session: {pGoal}
 Test account (local test server): username "{pUser}", password "{pPassword}". The account already has one character.
 Known controls: W/A/S/D move, Space attack, Z pick up nearest loot, I inventory, C character, K skills, M world map, Enter opens chat and sends, Esc closes windows, 1-5 skill bar, left click selects / uses UI, right click drag rotates the camera.
-Give click coordinates normalized to 0-1000 on both axes (0,0 top-left, 1000,1000 bottom-right of the screenshot). Click a text field before typing into it.
+Give click coordinates normalized to 0-1000 on both axes (0,0 top-left, 1000,1000 bottom-right of the screenshot). Click a text field before typing into it. Type the password exactly once. Never use the "Dev quick login" buttons; if login fails, clear the fields (click a field, press backspace many times) and retry with the test account.
 Step {pStep} of {pMaxSteps}. Your earlier actions and notes:
 {tLog}
 Reply with ONE JSON object only:
@@ -279,13 +289,13 @@ def main():
             focus(tHwnd)
             if tKind in ("click", "right_click"):
                 tWidth, tHeight = client_rect(tHwnd)[2:]
-                click(tOriginX + float(tAction.get("x", 0)) / 1000.0 * tWidth, tOriginY + float(tAction.get("y", 0)) / 1000.0 * tHeight, "right" if tKind == "right_click" else "left")
+                click(tOriginX + float(tAction.get("x") or 0) / 1000.0 * tWidth, tOriginY + float(tAction.get("y") or 0) / 1000.0 * tHeight, "right" if tKind == "right_click" else "left")
             elif tKind == "key" and tAction.get("key") in SCANCODES:
-                press(tAction["key"], float(tAction.get("hold", 0.15)))
+                press(tAction["key"], float(tAction.get("hold") or 0.15))
             elif tKind == "type":
                 type_text(str(tAction.get("text", ""))[:64])
             else:
-                time.sleep(max(0.2, min(float(tAction.get("seconds", 1)), 5.0)))
+                time.sleep(max(0.2, min(float(tAction.get("seconds") or 1), 5.0)))
             time.sleep(0.8)
 
         tShots = sorted(tOutDir.glob("step*.jpg"))
