@@ -32,6 +32,8 @@ message Request {
 
         // shop service
         services.shop.BuyItemRequest buy_item_request = 3000;
+        services.shop.SellItemRequest sell_item_request = 3001;
+        services.shop.OpenShopRequest open_shop_request = 3002;
 
         // world service
         services.world.PlayerStateUpdate player_state_update = 4000;
@@ -81,6 +83,8 @@ message Response {
 
         // shop service
         services.shop.BuyItemResponse buy_item_response = 3000;
+        services.shop.SellItemResponse sell_item_response = 3001;
+        services.shop.OpenShopResponse open_shop_response = 3002;
 
         // world service
         services.world.MapChanged map_changed = 4003;

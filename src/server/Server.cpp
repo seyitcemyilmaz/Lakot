@@ -1,5 +1,7 @@
 #include "Server.h"
 
+#include "world/ShopSystem.h"
+
 #include <atomic>
 #include <charconv>
 #include <chrono>
@@ -211,10 +213,19 @@ bool Server::initialize()
         }
     }
 
+    std::string tShopError;
+
+    if (!ShopSystem::validateStock(mMapCatalog, mItemCatalog, tShopError))
+    {
+        std::osyncstream(std::cerr) << "[Server] Dukkan verisi gecersiz: " << tShopError << std::endl;
+        return false;
+    }
+
     RepositoryManager& tRepositories = *mRepositoryManager;
 
     mWorldController = std::make_unique<WorldController>(mNetworkManager, tRepositories, mItemCatalog, mClassCatalog, mMapCatalog, mMonsterCatalog);
     mInventoryController = std::make_unique<InventoryController>(mNetworkManager, tRepositories, *mWorldController, mItemCatalog);
+    mShopController = std::make_unique<ShopController>(mNetworkManager, tRepositories, *mWorldController, mItemCatalog);
     mProgressionController = std::make_unique<ProgressionController>(mNetworkManager, tRepositories, *mWorldController);
     mCommandController = std::make_unique<CommandController>(mNetworkManager, tRepositories, *mWorldController);
     mWorldCommands = std::make_unique<WorldCommands>(*mWorldController, mItemCatalog, mMonsterCatalog);
@@ -226,6 +237,7 @@ bool Server::initialize()
 
     mWorldController->initialize();
     mInventoryController->initialize();
+    mShopController->initialize();
     mProgressionController->initialize();
     mCommandController->initialize();
     mWorldCommands->registerCommands(*mCommandController);

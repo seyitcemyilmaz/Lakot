@@ -2,12 +2,51 @@ syntax = "proto3";
 
 package services.shop;
 
+enum ShopStatus {
+    SHOP_STATUS_OK = 0;
+    SHOP_STATUS_INVALID = 1;
+    SHOP_STATUS_OUT_OF_RANGE = 2;
+    SHOP_STATUS_NOT_ENOUGH_GOLD = 3;
+    SHOP_STATUS_BAG_FULL = 4;
+    SHOP_STATUS_NOT_SOLD_HERE = 5;
+    SHOP_STATUS_NOT_SELLABLE = 6;
+    SHOP_STATUS_DEAD = 7;
+    SHOP_STATUS_TOO_FAST = 8;
+    SHOP_STATUS_GOLD_LIMIT = 9;
+}
+
+message OpenShopRequest {
+    uint64 npc_id = 1;
+}
+
+message OpenShopResponse {
+    ShopStatus status = 1;
+    uint64 npc_id = 2;
+    string title = 3;
+    repeated uint32 template_ids = 4;
+}
+
 message BuyItemRequest {
     uint32 item_id = 1;
     uint32 quantity = 2;
+    uint64 npc_id = 3;
 }
 
 message BuyItemResponse {
-    uint32 remaining_balance = 1;
+    uint32 remaining_balance = 1 [deprecated = true];
+    ShopStatus status = 2;
+    uint32 item_id = 3;
+    uint32 quantity = 4;
 }
 
+message SellItemRequest {
+    uint64 npc_id = 1;
+    uint32 bag_slot = 2;
+    uint32 template_id = 3;
+    uint32 count = 4;
+}
+
+message SellItemResponse {
+    ShopStatus status = 1;
+    uint64 gold_gained = 2;
+}

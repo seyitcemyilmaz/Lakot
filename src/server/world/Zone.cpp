@@ -25,6 +25,7 @@ Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog
     , mCombat(pMap, mRegistry, mCharacters, mMonsters)
     , mMonsterBrain(pMap, mRegistry, mCharacters, mMonsters, mCombat)
     , mLoot(pMap, pMonsterCatalog, pItemCatalog, mRegistry, mNextEntityId)
+    , mShop(pItemCatalog, mRegistry, mNpcs)
     , mRegeneration(mCharacters, mCombat)
 {
     spawnWorldEntities();
@@ -41,7 +42,7 @@ void Zone::spawnWorldEntities()
         tState.yaw = tNpc.yaw;
 
         uint64_t tId = mNextEntityId++;
-        mNpcs[tId] = Npc{ tId, tNpc.model, tNpc.role };
+        mNpcs[tId] = Npc{ tId, tNpc.model, tNpc.role, tNpc.name, tNpc.shopItems };
         mRegistry.add(tId, tNpc.name, tState, false);
     }
 
@@ -245,6 +246,7 @@ void Zone::leavePlayer(uint64_t pCharacterId, ReleasedCallback pOnReleased)
         mPendingCorrections.erase(pCharacterId);
         mLastPickupAt.erase(pCharacterId);
         mLastDiscardAt.erase(pCharacterId);
+        mShop.forget(pCharacterId);
         mLastPotionAt.erase(pCharacterId);
 
         if (pOnReleased)
@@ -612,6 +614,87 @@ void Zone::discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTempl
         sendInventoryUpdate(tCharacter->second);
         persistCharacter(pCharacterId);
         pCallback(true, std::string());
+    });
+}
+
+void Zone::openShop(uint64_t pCharacterId, uint64_t pNpcId, OpenShopCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    postTimed([this, pCharacterId, pNpcId, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+        const PlayerState* tState = mRegistry.getState(pCharacterId);
+
+        if (tCharacter == mCharacters.end() || !tState)
+        {
+            pCallback(ShopOpenResult{});
+            return;
+        }
+
+        pCallback(mShop.open(pCharacterId, tCharacter->second, *tState, pNpcId, mTime));
+    });
+}
+
+void Zone::buyFromShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity, ShopActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    postTimed([this, pCharacterId, pNpcId, pTemplateId, pQuantity, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+        const PlayerState* tState = mRegistry.getState(pCharacterId);
+
+        if (tCharacter == mCharacters.end() || !tState)
+        {
+            pCallback(services::shop::SHOP_STATUS_INVALID, 0);
+            return;
+        }
+
+        services::shop::ShopStatus tStatus = mShop.buy(pCharacterId, tCharacter->second, *tState, pNpcId, pTemplateId, pQuantity, mTime);
+
+        if (tStatus == services::shop::SHOP_STATUS_OK)
+        {
+            sendInventoryUpdate(tCharacter->second);
+        }
+
+        pCallback(tStatus, 0);
+    });
+}
+
+void Zone::sellToShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, ShopActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    postTimed([this, pCharacterId, pNpcId, pBagSlot, pTemplateId, pCount, pCallback = std::move(pCallback)]()
+    {
+        auto tCharacter = mCharacters.find(pCharacterId);
+        const PlayerState* tState = mRegistry.getState(pCharacterId);
+
+        if (tCharacter == mCharacters.end() || !tState)
+        {
+            pCallback(services::shop::SHOP_STATUS_INVALID, 0);
+            return;
+        }
+
+        uint64_t tGained = 0;
+        services::shop::ShopStatus tStatus = mShop.sell(pCharacterId, tCharacter->second, *tState, pNpcId, pBagSlot, pTemplateId, pCount, mTime, tGained);
+
+        if (tStatus == services::shop::SHOP_STATUS_OK)
+        {
+            sendInventoryUpdate(tCharacter->second);
+        }
+
+        pCallback(tStatus, tGained);
     });
 }
 

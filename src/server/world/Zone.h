@@ -22,6 +22,7 @@
 #include "CombatSystem.h"
 #include "MonsterBrain.h"
 #include "LootSystem.h"
+#include "ShopSystem.h"
 #include "VitalsRegeneration.h"
 #include "Monster.h"
 #include "Npc.h"
@@ -151,6 +152,13 @@ public:
 
     void useItem(uint64_t pCharacterId, const ItemTemplate& pTemplate, UseItemCallback pCallback);
 
+    using OpenShopCallback = std::function<void(const ShopOpenResult& pResult)>;
+    using ShopActionCallback = std::function<void(services::shop::ShopStatus pStatus, uint64_t pGold)>;
+
+    void openShop(uint64_t pCharacterId, uint64_t pNpcId, OpenShopCallback pCallback);
+    void buyFromShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity, ShopActionCallback pCallback);
+    void sellToShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, ShopActionCallback pCallback);
+
     using PositionCallback = std::function<void(bool pIsFound, uint32_t pMapId, float pX, float pZ)>;
 
     void teleport(uint64_t pCharacterId, uint32_t pMapId, float pX, float pZ, ActionCallback pCallback);
@@ -243,6 +251,7 @@ private:
     std::mt19937 mRandom{std::random_device{}()};
     uint64_t mNextEntityId{kWorldEntityIdBase};
     LootSystem mLoot;
+    ShopSystem mShop;
     VitalsRegeneration mRegeneration;
     std::unordered_map<uint64_t, double> mLastPickupAt;
     std::unordered_map<uint64_t, double> mLastDiscardAt;

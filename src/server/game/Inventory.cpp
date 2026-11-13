@@ -215,6 +215,57 @@ uint32_t Inventory::addItem(uint32_t pTemplateId, uint32_t pCount)
     return tRemaining;
 }
 
+bool Inventory::canAdd(uint32_t pTemplateId, uint32_t pCount) const
+{
+    const ItemTemplate* tTemplate = mCatalog.find(pTemplateId);
+
+    if (!tTemplate || pCount == 0)
+    {
+        return false;
+    }
+
+    uint32_t tRemaining = pCount;
+
+    if (tTemplate->isStackable())
+    {
+        for (const ItemInstance& tItem : mItems)
+        {
+            if (tRemaining == 0)
+            {
+                break;
+            }
+
+            if (tItem.location != ItemLocationType::eInventory || tItem.templateId != pTemplateId)
+            {
+                continue;
+            }
+
+            uint32_t tSpace = tTemplate->maxStack > tItem.count ? tTemplate->maxStack - tItem.count : 0;
+            tRemaining -= std::min(tSpace, tRemaining);
+        }
+    }
+
+    uint32_t tWidth = tTemplate->width > 0 ? tTemplate->width : 1;
+    uint32_t tHeight = tTemplate->height > 0 ? tTemplate->height : 1;
+
+    Occupancy tOccupancy = buildOccupancy();
+
+    while (tRemaining > 0)
+    {
+        auto tPlacement = findFreePlacement(tWidth, tHeight, tOccupancy);
+
+        if (!tPlacement)
+        {
+            return false;
+        }
+
+        markOccupied(tOccupancy, *tPlacement, tWidth, tHeight);
+        tRemaining -= std::min(tTemplate->maxStack, tRemaining);
+    }
+
+    return true;
+}
+
 uint32_t Inventory::removeItem(uint32_t pTemplateId, uint32_t pCount)
 {
     uint32_t tRemaining = pCount;

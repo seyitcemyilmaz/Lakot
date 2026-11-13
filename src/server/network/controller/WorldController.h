@@ -91,6 +91,10 @@ public:
 
     void discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, services::inventory::DiscardMode pMode, Zone::ActionCallback pCallback);
 
+    void openShop(uint64_t pCharacterId, uint64_t pNpcId, Zone::OpenShopCallback pCallback);
+    void buyFromShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity, Zone::ShopActionCallback pCallback);
+    void sellToShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, Zone::ShopActionCallback pCallback);
+
 private:
     // Zones are constructed in initialize(), not the constructor, because
     // each needs the ItemCatalog and that is only filled once the database is

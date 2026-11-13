@@ -246,6 +246,39 @@ class Client:
         r = self.call(f, timeout)
         return r.inventory_action_response.status if r is not None and r.HasField("inventory_action_response") else None
 
+    def open_shop(self, npc_id, timeout=8.0):
+        def f(q):
+            q.open_shop_request.npc_id = npc_id
+        r = self.call(f, timeout)
+        return r.open_shop_response if r is not None and r.HasField("open_shop_response") else None
+
+    def buy_item(self, npc_id, template_id, quantity, timeout=8.0):
+        def f(q):
+            q.buy_item_request.npc_id = npc_id
+            q.buy_item_request.item_id = template_id
+            q.buy_item_request.quantity = quantity
+        r = self.call(f, timeout)
+        return r.buy_item_response if r is not None and r.HasField("buy_item_response") else None
+
+    def sell_item(self, npc_id, bag_slot, template_id, count=0, timeout=8.0):
+        def f(q):
+            q.sell_item_request.npc_id = npc_id
+            q.sell_item_request.bag_slot = bag_slot
+            q.sell_item_request.template_id = template_id
+            q.sell_item_request.count = count
+        r = self.call(f, timeout)
+        return r.sell_item_response if r is not None and r.HasField("sell_item_response") else None
+
+    def find_npc_id(self, name, since=0):
+        with self.cv:
+            for _, m in self.log[since:]:
+                if not m.response.HasField("world_snapshot"):
+                    continue
+                for e in m.response.world_snapshot.entered:
+                    if e.kind == 2 and e.name == name:
+                        return e.entity_id
+        return None
+
     def respawn(self, choice, timeout=6.0):
         def f(q):
             q.respawn_request.choice = choice

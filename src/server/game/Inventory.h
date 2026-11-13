@@ -86,6 +86,8 @@ public:
     // destroying the reward.
     uint32_t addItem(uint32_t pTemplateId, uint32_t pCount);
 
+    bool canAdd(uint32_t pTemplateId, uint32_t pCount) const;
+
     // Removes up to pCount across every stack of pTemplateId. Returns how many
     // were actually removed.
     uint32_t removeItem(uint32_t pTemplateId, uint32_t pCount);

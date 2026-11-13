@@ -22906,6 +22906,7 @@
   {
    "name": "Weaponsmith",
    "role": "weaponsmith",
+   "shop": [1001, 1003, 1005, 4, 7],
    "model": "models/warrior/armor_l30.glb",
    "x": -29.0,
    "z": 27.0,
@@ -22914,6 +22915,7 @@
   {
    "name": "Armorsmith",
    "role": "armorsmith",
+   "shop": [2001, 2002, 2003, 3001, 3002, 3003],
    "model": "models/warrior/armor_l50.glb",
    "x": 29.0,
    "z": 27.0,

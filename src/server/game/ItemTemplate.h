@@ -87,6 +87,9 @@ struct ItemTemplate
 
     std::vector<uint32_t> allowedClasses;
 
+    uint32_t price = 0;
+    uint32_t sellPrice = 0;
+
     bool isEquippable() const
     {
         return type == ItemType::eEquipment && equipSlot != EquipSlotType::eNone;

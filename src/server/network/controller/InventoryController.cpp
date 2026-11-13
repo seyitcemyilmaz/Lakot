@@ -90,6 +90,8 @@ void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession
         tOut->set_tint(tTemplate.tint);
         tOut->set_restore_health(tTemplate.restoreHealth);
         tOut->set_restore_mana(tTemplate.restoreMana);
+        tOut->set_price(tTemplate.price);
+        tOut->set_sell_price(tTemplate.sellPrice);
 
         for (uint32_t tClassId : tTemplate.allowedClasses)
         {

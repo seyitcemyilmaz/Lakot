@@ -20,14 +20,27 @@ HELMETS = [
 TEMPERED_TINT = 0xD8E4FF
 SWORD_CLASSES = [1, 3]
 
+SELL_RATIO = 0.25
+EQUIPMENT_BASE_PRICE = 50
+EQUIPMENT_LEVEL_FACTOR = 25
+TEMPERED_PRICE_MULTIPLIER = 1.5
+HELMET_PRICE_MULTIPLIER = 0.6
+POTION_PRICE = 20
+ORE_PRICE = 10
+QUEST_PRICE = 0
+
 WEAPON, ARMOR, HELMET = 1, 2, 3
 TYPE_EQUIPMENT, TYPE_CONSUMABLE, TYPE_MATERIAL, TYPE_QUEST = 1, 2, 3, 4
 
 
-def equipment(template_id, name, slot, level, model, width, height, tint=0xFFFFFF, **bonus):
+def equipmentPrice(level, multiplier=1.0):
+    return round((EQUIPMENT_BASE_PRICE + EQUIPMENT_LEVEL_FACTOR * level * level) * multiplier)
+
+
+def equipment(template_id, name, slot, level, model, width, height, tint=0xFFFFFF, price=0, **bonus):
     return {
         "id": template_id, "name": name, "type": TYPE_EQUIPMENT, "equipSlot": slot, "maxStack": 1,
-        "requiredLevel": level, "width": width, "height": height, "icon": "", "model": model, "tint": tint,
+        "requiredLevel": level, "width": width, "height": height, "icon": "", "model": model, "tint": tint, "price": price,
         "bonusAttack": bonus.get("attack", 0), "bonusDefense": bonus.get("defense", 0),
         "bonusMaxHealth": bonus.get("health", 0), "bonusMaxMana": bonus.get("mana", 0),
     }
@@ -42,7 +55,8 @@ def main():
         tempered = tier % 2 == 1
         name = ("Tempered " if tempered else "") + SWORDS[family]
         sword = equipment(1001 + tier, name, WEAPON, level, f"models/weapons/sword_l{family * 10:02d}.glb".replace("l00", "l01"),
-                          1, 3, TEMPERED_TINT if tempered else 0xFFFFFF, attack=4 + 6 * tier)
+                          1, 3, TEMPERED_TINT if tempered else 0xFFFFFF,
+                          equipmentPrice(level, TEMPERED_PRICE_MULTIPLIER if tempered else 1.0), attack=4 + 6 * tier)
         sword["classes"] = SWORD_CLASSES
         items.append(sword)
 
@@ -50,24 +64,24 @@ def main():
         level = 1 if tier == 0 else tier * 10
         suffix = f"l{tier * 10:02d}".replace("l00", "l01")
         items.append(equipment(2001 + tier, ARMORS[tier], ARMOR, level, f"models/warrior/armor_{suffix}.glb",
-                               2, 3, defense=3 + 5 * tier, health=10 + 15 * tier))
+                               2, 3, price=equipmentPrice(level), defense=3 + 5 * tier, health=10 + 15 * tier))
         items.append(equipment(3001 + tier, HELMETS[tier], HELMET, level, f"models/helmets/helmet_{suffix}.glb",
-                               2, 2, defense=2 + 3 * tier))
+                               2, 2, price=equipmentPrice(level, HELMET_PRICE_MULTIPLIER), defense=2 + 3 * tier))
 
     items += [
         {"id": 4, "name": "Health Potion", "type": TYPE_CONSUMABLE, "equipSlot": 0, "maxStack": 20, "requiredLevel": 1,
-         "width": 1, "height": 1, "icon": "potion.tga", "model": "", "tint": 0xFFFFFF, "restoreHealth": 50},
+         "width": 1, "height": 1, "icon": "potion.tga", "model": "", "tint": 0xFFFFFF, "price": POTION_PRICE, "restoreHealth": 50},
         {"id": 5, "name": "Iron Ore", "type": TYPE_MATERIAL, "equipSlot": 0, "maxStack": 50, "requiredLevel": 1,
-         "width": 1, "height": 1, "icon": "ore.tga", "model": "", "tint": 0xFFFFFF},
+         "width": 1, "height": 1, "icon": "ore.tga", "model": "", "tint": 0xFFFFFF, "price": ORE_PRICE},
         {"id": 6, "name": "Ancient Relic", "type": TYPE_QUEST, "equipSlot": 0, "maxStack": 1, "requiredLevel": 1,
-         "width": 1, "height": 2, "icon": "relic.tga", "model": "", "tint": 0xFFFFFF},
+         "width": 1, "height": 2, "icon": "relic.tga", "model": "", "tint": 0xFFFFFF, "price": QUEST_PRICE},
         {"id": 7, "name": "Mana Potion", "type": TYPE_CONSUMABLE, "equipSlot": 0, "maxStack": 20, "requiredLevel": 1,
-         "width": 1, "height": 1, "icon": "mana_potion.tga", "model": "", "tint": 0xFFFFFF, "restoreMana": 40},
+         "width": 1, "height": 1, "icon": "mana_potion.tga", "model": "", "tint": 0xFFFFFF, "price": POTION_PRICE, "restoreMana": 40},
     ]
 
     items.sort(key=lambda item: item["id"])
     with open(OUT, "w", encoding="utf-8") as file:
-        json.dump({"items": items}, file, indent=1)
+        json.dump({"sellRatio": SELL_RATIO, "items": items}, file, indent=1)
     print("wrote", os.path.normpath(OUT), len(items), "items")
 
 

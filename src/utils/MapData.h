@@ -54,6 +54,7 @@ struct MapNpc
     float x = 0.0f;
     float z = 0.0f;
     float yaw = 0.0f;
+    std::vector<uint32_t> shopItems;
 };
 
 struct MapMonsterSpawn

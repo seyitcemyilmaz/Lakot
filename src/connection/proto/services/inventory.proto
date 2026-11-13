@@ -45,6 +45,9 @@ message ItemTemplate {
 
     // Empty means every class may use it.
     repeated uint32 allowed_classes = 18;
+
+    uint32 price = 19;
+    uint32 sell_price = 20;
 }
 
 // Pushed once, when the player enters the world. Without it the client only

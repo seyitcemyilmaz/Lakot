@@ -105,6 +105,7 @@ public:
     // decide what to do about a full bag, this will not silently destroy the
     // remainder.
     uint32_t giveItem(uint32_t pTemplateId, uint32_t pCount);
+    bool canGiveItem(uint32_t pTemplateId, uint32_t pCount) const;
     uint32_t takeItem(uint32_t pTemplateId, uint32_t pCount);
     uint32_t countItem(uint32_t pTemplateId) const;
     std::optional<ItemInstance> takeItemAt(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount);

@@ -12,6 +12,7 @@
 #include "network/controller/WorldController.h"
 #include "network/controller/ChatController.h"
 #include "network/controller/InventoryController.h"
+#include "network/controller/ShopController.h"
 #include "network/controller/ProgressionController.h"
 #include "network/controller/CommandController.h"
 #include "command/WorldCommands.h"
@@ -58,6 +59,7 @@ private:
 
     std::unique_ptr<WorldController> mWorldController;
     std::unique_ptr<InventoryController> mInventoryController;
+    std::unique_ptr<ShopController> mShopController;
     std::unique_ptr<ProgressionController> mProgressionController;
     std::unique_ptr<CommandController> mCommandController;
     std::unique_ptr<WorldCommands> mWorldCommands;

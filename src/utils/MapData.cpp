@@ -23,6 +23,33 @@ using namespace lakot;
 
 namespace
 {
+    bool readShopItems(const rapidjson::Value& pEntry, std::vector<uint32_t>& pItems)
+    {
+        auto tMember = pEntry.FindMember("shop");
+
+        if (tMember == pEntry.MemberEnd())
+        {
+            return true;
+        }
+
+        if (!tMember->value.IsArray())
+        {
+            return false;
+        }
+
+        for (const auto& tItem : tMember->value.GetArray())
+        {
+            if (!tItem.IsUint() || std::find(pItems.begin(), pItems.end(), tItem.GetUint()) != pItems.end())
+            {
+                return false;
+            }
+
+            pItems.push_back(tItem.GetUint());
+        }
+
+        return true;
+    }
+
     bool readFile(const std::filesystem::path& pPath, std::string& pContent)
     {
         std::ifstream tFile(pPath, std::ios::binary);
@@ -196,6 +223,13 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
             tNpc.x = getFloat(tEntry, "x", 0.0f);
             tNpc.z = getFloat(tEntry, "z", 0.0f);
             tNpc.yaw = getFloat(tEntry, "yaw", 0.0f);
+
+            if (!readShopItems(tEntry, tNpc.shopItems))
+            {
+                pError = "npc " + tNpc.name + " has an invalid shop list in " + (tDirectory / "map.json").string();
+                return nullptr;
+            }
+
             tMap->mNpcs.push_back(std::move(tNpc));
         }
     }

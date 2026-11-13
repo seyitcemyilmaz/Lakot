@@ -1,6 +1,7 @@
 #include "ItemCatalog.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -16,6 +17,7 @@ namespace
 {
     constexpr int32_t kMaxRestoreAmount = 100000;
     constexpr uint32_t kMaxItemCells = 8;
+    constexpr uint32_t kMaxItemPrice = 1000000000;
 
     uint32_t getUint(const rapidjson::Value& pObject, const char* pName, uint32_t pDefault)
     {
@@ -88,6 +90,22 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
         return false;
     }
 
+    auto tRatioMember = tDocument.FindMember("sellRatio");
+
+    if (tRatioMember == tDocument.MemberEnd() || !tRatioMember->value.IsNumber())
+    {
+        pError = "items.json needs a numeric sellRatio";
+        return false;
+    }
+
+    double tSellRatio = tRatioMember->value.GetDouble();
+
+    if (!std::isfinite(tSellRatio) || tSellRatio < 0.0 || tSellRatio > 1.0)
+    {
+        pError = "items.json has a sellRatio outside 0..1";
+        return false;
+    }
+
     std::vector<ItemTemplate> tTemplates;
     std::unordered_set<uint32_t> tSeenIds;
 
@@ -117,6 +135,23 @@ bool ItemCatalog::load(const std::string& pDataDirectory, std::string& pError)
         tTemplate.icon = getString(tEntry, "icon");
         tTemplate.model = getString(tEntry, "model");
         tTemplate.tint = getUint(tEntry, "tint", 0xFFFFFF);
+
+        auto tPriceMember = tEntry.FindMember("price");
+
+        if (tPriceMember != tEntry.MemberEnd())
+        {
+            if (!tPriceMember->value.IsUint() || tPriceMember->value.GetUint() > kMaxItemPrice)
+            {
+                pError = "items.json has an entry with an invalid price: " + tTemplate.name;
+                return false;
+            }
+
+            tTemplate.price = tPriceMember->value.GetUint();
+        }
+
+        tTemplate.sellPrice = tTemplate.type == ItemType::eQuest
+            ? 0
+            : static_cast<uint32_t>(std::floor(static_cast<double>(tTemplate.price) * tSellRatio));
 
         if (!readClasses(tEntry, tTemplate.allowedClasses))
         {

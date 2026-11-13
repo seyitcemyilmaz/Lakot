@@ -532,6 +532,63 @@ void WorldController::discardItem(uint64_t pCharacterId, uint32_t pBagSlot, uint
     tZone->discardItem(pCharacterId, pBagSlot, pTemplateId, pCount, pMode, std::move(pCallback));
 }
 
+void WorldController::openShop(uint64_t pCharacterId, uint64_t pNpcId, Zone::OpenShopCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    auto tMapId = getCharacterZone(pCharacterId);
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (!tZone)
+    {
+        pCallback(ShopOpenResult{});
+        return;
+    }
+
+    tZone->openShop(pCharacterId, pNpcId, std::move(pCallback));
+}
+
+void WorldController::buyFromShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity, Zone::ShopActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    auto tMapId = getCharacterZone(pCharacterId);
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (!tZone)
+    {
+        pCallback(services::shop::SHOP_STATUS_INVALID, 0);
+        return;
+    }
+
+    tZone->buyFromShop(pCharacterId, pNpcId, pTemplateId, pQuantity, std::move(pCallback));
+}
+
+void WorldController::sellToShop(uint64_t pCharacterId, uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, Zone::ShopActionCallback pCallback)
+{
+    if (!pCallback)
+    {
+        return;
+    }
+
+    auto tMapId = getCharacterZone(pCharacterId);
+    Zone* tZone = tMapId ? getZone(*tMapId) : nullptr;
+
+    if (!tZone)
+    {
+        pCallback(services::shop::SHOP_STATUS_INVALID, 0);
+        return;
+    }
+
+    tZone->sellToShop(pCharacterId, pNpcId, pBagSlot, pTemplateId, pCount, std::move(pCallback));
+}
+
 void WorldController::sendNearby(uint64_t pOriginCharacterId, Zone::Packet pPacket)
 {
     auto tMapId = getCharacterZone(pOriginCharacterId);

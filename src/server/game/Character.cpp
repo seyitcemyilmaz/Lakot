@@ -159,6 +159,11 @@ uint32_t Character::giveItem(uint32_t pTemplateId, uint32_t pCount)
     return tLeftOver;
 }
 
+bool Character::canGiveItem(uint32_t pTemplateId, uint32_t pCount) const
+{
+    return mInventory.canAdd(pTemplateId, pCount);
+}
+
 uint32_t Character::takeItem(uint32_t pTemplateId, uint32_t pCount)
 {
     uint32_t tRemoved = mInventory.removeItem(pTemplateId, pCount);
