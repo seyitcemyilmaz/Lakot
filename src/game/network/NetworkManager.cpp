@@ -60,35 +60,13 @@ NetworkManager::NetworkManager(const Localization& pLocalization)
     mClient.setOnMessageReceived(
     [this](const connection::Message& pMessage)
     {
-        auto tSession = mClient.getSession();
-
-        if (tSession)
+        if (!mDeferredMessages.empty() || (mShouldPauseCallback && mShouldPauseCallback()))
         {
-            mDispatcher.dispatch(tSession, pMessage,
-            [](const connection::Message& m) -> uint32_t
-            {
-                if (m.has_request() && m.request().payload_case() != 0)
-                {
-                    return lakot::MessageDispatcher<connection::Message>::generateKey(
-                        m.request().payload_case(),
-                        lakot::PacketType::Request
-                    );
-                }
+            mDeferredMessages.push_back(pMessage);
+            return;
+        }
 
-                if (m.has_response() && m.response().payload_case() != 0)
-                {
-                    return lakot::MessageDispatcher<connection::Message>::generateKey(
-                        m.response().payload_case(),
-                        lakot::PacketType::Response
-                    );
-                }
-                return 0;
-            });
-        }
-        else
-        {
-            SDL_Log("[NetworkManager] Mesaj islenemedi: Session yok.");
-        }
+        dispatchMessage(pMessage);
     });
 
     mClient.setOnConnectionStatusChanged(
@@ -121,7 +99,17 @@ void NetworkManager::start()
 
 void NetworkManager::update()
 {
-    mClient.update();
+    while (!mDeferredMessages.empty() && (!mShouldPauseCallback || !mShouldPauseCallback()))
+    {
+        connection::Message tMessage = std::move(mDeferredMessages.front());
+        mDeferredMessages.pop_front();
+        dispatchMessage(tMessage);
+    }
+
+    if (!mShouldPauseCallback || !mShouldPauseCallback())
+    {
+        mClient.update();
+    }
 
     if (mIsReconnecting && std::chrono::steady_clock::now() >= mReconnectDeadline)
     {
@@ -147,6 +135,44 @@ void NetworkManager::logout()
 void NetworkManager::setConnectionStateCallback(ConnectionStateCallback pCallback)
 {
     mConnectionStateCallback = std::move(pCallback);
+}
+
+void NetworkManager::setShouldPauseCallback(ShouldPauseCallback pCallback)
+{
+    mShouldPauseCallback = std::move(pCallback);
+}
+
+void NetworkManager::dispatchMessage(const connection::Message& pMessage)
+{
+    auto tSession = mClient.getSession();
+
+    if (tSession)
+    {
+        mDispatcher.dispatch(tSession, pMessage,
+        [](const connection::Message& pMsg) -> uint32_t
+        {
+            if (pMsg.has_request() && pMsg.request().payload_case() != 0)
+            {
+                return lakot::MessageDispatcher<connection::Message>::generateKey(
+                    pMsg.request().payload_case(),
+                    lakot::PacketType::Request
+                );
+            }
+
+            if (pMsg.has_response() && pMsg.response().payload_case() != 0)
+            {
+                return lakot::MessageDispatcher<connection::Message>::generateKey(
+                    pMsg.response().payload_case(),
+                    lakot::PacketType::Response
+                );
+            }
+            return 0;
+        });
+    }
+    else
+    {
+        SDL_Log("[NetworkManager] Mesaj islenemedi: Session yok.");
+    }
 }
 
 bool NetworkManager::isReconnecting() const
@@ -177,6 +203,7 @@ void NetworkManager::onConnectionStatusChanged(bool pIsConnected)
     if (!pIsConnected)
     {
         SDL_Log("[NetworkManager] Baglanti koptu, tekrar deneniyor...");
+        mDeferredMessages.clear();
 
         if (mIsReconnecting)
         {

@@ -120,6 +120,7 @@ private:
     Rml::String mSlotsLabel;
     Rml::String mStatusMessage;
     Rml::String mNewName;
+    uint64_t mDeleteTargetId{0};
     Rml::String mDeleteTargetName;
     Rml::String mDeleteTargetMeta;
     Rml::String mDeleteNameInput;

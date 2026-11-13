@@ -35,6 +35,7 @@ public:
 
     void onSessionResumed();
 
+    bool isScenePending() const;
     bool isCapturingMouse() const;
     bool onCloseRequested();
 

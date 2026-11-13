@@ -72,6 +72,11 @@ void SceneManager::onSessionResumed()
     }
 }
 
+bool SceneManager::isScenePending() const
+{
+    return mNextScene != nullptr;
+}
+
 bool SceneManager::onCloseRequested()
 {
     return mCurrentScene && mCurrentScene->onCloseRequested();

@@ -891,6 +891,11 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
             return false;
         }
 
+        if (mHud->isModalOpen())
+        {
+            return true;
+        }
+
         mHud->closeWorldChat();
 
         mIsOrbiting = true;

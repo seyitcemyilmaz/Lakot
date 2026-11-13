@@ -264,12 +264,7 @@ void ChatRmlController::onInputKeyDown(Rml::DataModelHandle /*pHandle*/, Rml::Ev
     if (tKeyIdentifier == Rml::Input::KI_RETURN || tKeyIdentifier == Rml::Input::KI_NUMPADENTER)
     {
         doSend();
-        // NOT calling StopImmediatePropagation() here - this send path has
-        // the same latent "input doesn't fully clear" issue flagged earlier
-        // this session (RmlUi's own text-input default action re-syncing
-        // the model right after doSend()'s clear) but that fix is still
-        // waiting on explicit approval; left as-is on purpose rather than
-        // folding it in as a side effect of the unrelated Escape change below.
+        pEvent.StopImmediatePropagation();
     }
     else if (tKeyIdentifier == Rml::Input::KI_ESCAPE)
     {

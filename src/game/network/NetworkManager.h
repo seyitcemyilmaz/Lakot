@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <string>
 
@@ -34,6 +35,7 @@ class NetworkManager
 {
 public:
     using ConnectionStateCallback = std::function<void(ConnectionStateType)>;
+    using ShouldPauseCallback = std::function<bool()>;
 
     static constexpr std::chrono::seconds kReconnectWindow{30};
 
@@ -53,6 +55,7 @@ public:
     // while not logged in reports eLost directly.
     void setConnectionStateCallback(ConnectionStateCallback pCallback);
 
+    void setShouldPauseCallback(ShouldPauseCallback pCallback);
     bool isReconnecting() const;
     int getReconnectSecondsLeft() const;
 
@@ -83,11 +86,14 @@ private:
     std::atomic<uint64_t> mNextRequestId{1};
 
     ConnectionStateCallback mConnectionStateCallback;
+    ShouldPauseCallback mShouldPauseCallback;
+    std::deque<connection::Message> mDeferredMessages;
 
     bool mIsReconnecting{false};
     bool mIsResumePending{false};
     std::chrono::steady_clock::time_point mReconnectDeadline;
 
+    void dispatchMessage(const connection::Message& pMessage);
     void onConnectionStatusChanged(bool pIsConnected);
     void onResumeResult(bool pIsSuccess);
     void finishReconnect(ConnectionStateType pState);

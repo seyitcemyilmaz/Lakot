@@ -66,6 +66,12 @@ bool Engine::initialize()
         onConnectionStateChanged(pState);
     });
 
+    mNetworkManager.setShouldPauseCallback(
+    [this]()
+    {
+        return mSceneManager.isScenePending();
+    });
+
     mNetworkManager.start();
 
     mShaderManager.initialize();
@@ -297,7 +303,7 @@ SDL_AppResult Engine::eventHandler(SDL_Event* pEvent)
         return SDL_APP_CONTINUE;
     }
 
-    if (mRmlUiLayer.handleEvent(pEvent))
+    if (mRmlUiLayer.handleEvent(pEvent) && pEvent->type != SDL_EVENT_KEY_UP && pEvent->type != SDL_EVENT_MOUSE_BUTTON_UP)
     {
         return SDL_APP_CONTINUE;
     }

@@ -454,6 +454,7 @@ void CharacterSelectRmlController::onBeginDeleteClicked(Rml::DataModelHandle /*p
 
     const AuthController::CharacterSummary& tCharacter = mCharacters[mSelectedIndex];
 
+    mDeleteTargetId = tCharacter.characterId;
     mDeleteTargetName = tCharacter.name;
     mDeleteTargetMeta = getClassName(tCharacter.classId) + " - Lv " + std::to_string(tCharacter.level) + " - " + getMapName(tCharacter.mapId);
     mDeleteNameInput.clear();
@@ -505,6 +506,7 @@ void CharacterSelectRmlController::doCancelDelete()
         return;
     }
 
+    mDeleteTargetId = 0;
     mIsDeleting = false;
     mDeleteNameInput.clear();
     mDeleteNameMatches = false;
@@ -516,7 +518,7 @@ void CharacterSelectRmlController::doConfirmDelete()
 {
     updateDeleteMatch();
 
-    if (mIsBusy || !mIsDeleting || !mDeleteNameMatches || !mHasSelection)
+    if (mIsBusy || !mIsDeleting || !mDeleteNameMatches || mDeleteTargetId == 0)
     {
         return;
     }
@@ -528,7 +530,7 @@ void CharacterSelectRmlController::doConfirmDelete()
 
     if (mDeleteRequestCallback)
     {
-        mDeleteRequestCallback(mCharacters[mSelectedIndex].characterId, tConfirmName);
+        mDeleteRequestCallback(mDeleteTargetId, tConfirmName);
     }
 }
 
@@ -564,6 +566,7 @@ void CharacterSelectRmlController::onDeleteResult(bool pIsSuccess, const std::st
     mSlotsLabel = std::to_string(mCharacters.size()) + " / " + std::to_string(mMaxSlots) + " slots used";
 
     mSelectedIndex = mCharacters.empty() ? -1 : 0;
+    mDeleteTargetId = 0;
     mIsDeleting = false;
     mDeleteNameInput.clear();
     mDeleteNameMatches = false;
