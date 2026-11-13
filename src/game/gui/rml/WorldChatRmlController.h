@@ -28,9 +28,8 @@ class RmlUiLayer;
 // (see .world-chat-window in theme.rcss) - each line fades out 5s after
 // being posted (see update()). Pressing Enter while nothing has RmlUi focus
 // (WorldScene::handleEvent) calls open(): reveals the full history, pauses
-// fading, shows+focuses the input row. From there, Enter with text sends
-// (doSend(), panel stays open for the next message); Enter with an empty
-// input, or Escape, calls close() - both reach onInputKeyDown() below since
+// fading, shows+focuses the input row. From there, Enter sends any typed
+// text and calls close(), as does Escape - both reach onInputKeyDown() below since
 // RmlUiLayer::handleEvent forces every key event to the focused input while
 // this document has focus (see its own comment for why), which is also
 // exactly what keeps a bare Enter from re-opening this over top of itself

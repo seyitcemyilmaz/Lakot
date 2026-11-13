@@ -165,18 +165,12 @@ void WorldChatRmlController::onInputKeyDown(Rml::DataModelHandle /*pHandle*/, Rm
 
     if (tKeyIdentifier == Rml::Input::KI_RETURN || tKeyIdentifier == Rml::Input::KI_NUMPADENTER)
     {
-        // Enter with something typed sends and stays open (ready for the
-        // next line); Enter on an empty input is the "close" gesture - see
-        // class comment for why this is the only place a bare Enter can
-        // reach while the panel is open.
-        if (mInputText.empty())
-        {
-            close();
-        }
-        else
+        if (!mInputText.empty())
         {
             doSend();
         }
+
+        close();
     }
     else if (tKeyIdentifier == Rml::Input::KI_ESCAPE)
     {
