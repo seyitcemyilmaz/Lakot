@@ -1,6 +1,7 @@
 #ifndef LAKOT_NETWORKSESSION_H
 #define LAKOT_NETWORKSESSION_H
 
+#include <algorithm>
 #include <iostream>
 #include <deque>
 #include <atomic>
@@ -35,6 +36,7 @@ public:
     NetworkSession(boost::asio::ip::tcp::socket pSocket)
         : mSocket(std::move(pSocket))
         , mStrand(boost::asio::make_strand(mSocket.get_executor()))
+        , mAuthTimer(mStrand)
         , mIsConnected(true)
     {
         boost::system::error_code tErrorCode;
@@ -172,6 +174,50 @@ public:
         mMaxIncomingBytes = pBytes;
     }
 
+    void setIncomingRateLimit(double pMessagesPerSecond, double pBurst)
+    {
+        mIncomingRatePerSecond = pMessagesPerSecond;
+        mIncomingBurst = pBurst;
+        mRateTokens = pBurst;
+        mRateLastRefill = std::chrono::steady_clock::now();
+    }
+
+    void startAuthTimeout(std::chrono::steady_clock::duration pTimeout)
+    {
+        mIsAuthCancelled.store(false);
+
+        boost::asio::post(mStrand,
+        [self = this->shared_from_this(), pTimeout]()
+        {
+            self->armAuthTimer(pTimeout);
+        });
+    }
+
+    void cancelAuthTimeout()
+    {
+        mIsAuthCancelled.store(true);
+
+        boost::asio::post(mStrand,
+        [self = this->shared_from_this()]()
+        {
+            self->mAuthTimer.cancel();
+        });
+    }
+
+    bool tryLogUnknownPacket()
+    {
+        auto tNow = std::chrono::steady_clock::now();
+
+        if (mHasLoggedUnknownPacket && (tNow - mLastUnknownPacketLog) < std::chrono::seconds(1))
+        {
+            return false;
+        }
+
+        mHasLoggedUnknownPacket = true;
+        mLastUnknownPacketLog = tNow;
+        return true;
+    }
+
     void setLifetimeToken(std::shared_ptr<void> pToken)
     {
         mLifetimeToken = std::move(pToken);
@@ -241,6 +287,7 @@ private:
     // above is written to match this order exactly.
     boost::asio::ip::tcp::socket mSocket;
     boost::asio::strand<boost::asio::ip::tcp::socket::executor_type> mStrand;
+    boost::asio::steady_timer mAuthTimer;
 
     std::atomic<bool> mIsConnected;
 
@@ -271,6 +318,67 @@ private:
 
     std::shared_ptr<void> mLifetimeToken;
     uint32_t mMaxIncomingBytes{10 * 1024 * 1024};
+    std::atomic<bool> mIsAuthCancelled{false};
+
+    double mIncomingRatePerSecond{0.0};
+    double mIncomingBurst{0.0};
+    double mRateTokens{0.0};
+    std::chrono::steady_clock::time_point mRateLastRefill{};
+
+    bool mHasLoggedUnknownPacket{false};
+    std::chrono::steady_clock::time_point mLastUnknownPacketLog{};
+
+    void armAuthTimer(std::chrono::steady_clock::duration pTimeout)
+    {
+        if (!mIsConnected.load() || mIsAuthCancelled.load() || mAccountId.load() != 0)
+        {
+            return;
+        }
+
+        mAuthTimer.expires_after(pTimeout);
+        mAuthTimer.async_wait(boost::asio::bind_executor(mStrand,
+        [self = this->shared_from_this(), pTimeout](const boost::system::error_code& pErrorCode)
+        {
+            if (pErrorCode || self->mIsAuthCancelled.load() || self->mAccountId.load() != 0 || !self->mIsConnected.load())
+            {
+                return;
+            }
+
+            if (self->mIsLoginPending.load())
+            {
+                self->armAuthTimer(pTimeout);
+                return;
+            }
+
+            std::osyncstream(std::cerr) << "[Session] Kimlik dogrulama zaman asimi, baglanti kapatiliyor." << std::endl;
+            self->onDisconnect(boost::asio::error::timed_out);
+        }));
+    }
+
+    bool consumeIncomingToken()
+    {
+        if (mIncomingRatePerSecond <= 0.0 || mIncomingBurst <= 0.0)
+        {
+            return true;
+        }
+
+        auto tNow = std::chrono::steady_clock::now();
+        double tElapsed = std::chrono::duration<double>(tNow - mRateLastRefill).count();
+
+        if (tElapsed > 0.0)
+        {
+            mRateTokens = std::min(mIncomingBurst, mRateTokens + tElapsed * mIncomingRatePerSecond);
+            mRateLastRefill = tNow;
+        }
+
+        if (mRateTokens < 1.0)
+        {
+            return false;
+        }
+
+        mRateTokens -= 1.0;
+        return true;
+    }
 
     void readHeader()
     {
@@ -285,9 +393,9 @@ private:
             {
                 uint32_t tBodySize = ntohl(self->mIncomingHeader);
 
-                if (tBodySize > self->mMaxIncomingBytes)
+                if (tBodySize == 0 || tBodySize > self->mMaxIncomingBytes)
                 {
-                    self->onDisconnect(boost::asio::error::message_size);
+                    self->onDisconnect(tBodySize == 0 ? boost::asio::error::invalid_argument : boost::asio::error::message_size);
                     return;
                 }
 
@@ -322,6 +430,14 @@ private:
         {
             if (!pErrorCode)
             {
+                if (!self->consumeIncomingToken())
+                {
+                    std::osyncstream(std::cerr) << "[Session] Paket hizi siniri asildi, baglanti kapatiliyor. Account: "
+                                                << self->mAccountId.load() << std::endl;
+                    self->onDisconnect(boost::asio::error::operation_aborted);
+                    return;
+                }
+
                 MessageType tMessage;
 
                 try
@@ -434,12 +550,15 @@ private:
         }
 
         mPendingWrites.store(0);
+        mAuthTimer.cancel();
 
         if (mSocket.is_open())
         {
             boost::system::error_code tIgnoredEc;
             mSocket.close(tIgnoredEc);
         }
+
+        mLifetimeToken.reset();
 
         if (mOnErrorFunction)
         {

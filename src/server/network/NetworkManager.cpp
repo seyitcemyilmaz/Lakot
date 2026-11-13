@@ -36,7 +36,10 @@ NetworkManager::NetworkManager(uint16_t pPort)
     mDispatcher.setUnknownPacketHandler(
     [](std::shared_ptr<NetworkSession<connection::Message>> pSession, int pCaseId)
     {
-        std::osyncstream(std::cerr) << "[Security] Bilinmeyen Paket ID: " << pCaseId << " IP: " << getRemoteAddress(pSession) << std::endl;
+        if (pSession && pSession->tryLogUnknownPacket())
+        {
+            std::osyncstream(std::cerr) << "[Security] Bilinmeyen Paket ID: " << pCaseId << " IP: " << getRemoteAddress(pSession) << std::endl;
+        }
     });
 
     mNetworkServer.setOnClientConnect(

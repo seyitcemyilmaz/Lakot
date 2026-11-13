@@ -10,6 +10,12 @@
 #include <memory>
 #include <functional>
 #include <syncstream>
+#include <charconv>
+#include <cstdlib>
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 
 #include <boost/asio.hpp>
 
@@ -42,10 +48,13 @@ public:
     NetworkServer(uint16_t pPort)
         : mAcceptor(mContext)
         , mAcceptRetryTimer(mContext)
+        , mMaxConnectionsPerIp(readMaxConnectionsPerIp())
     {
         try
         {
-            boost::asio::ip::tcp::endpoint tEndpoint(boost::asio::ip::tcp::v4(), pPort);
+            const char* tBind = std::getenv("LAKOT_SERVER_BIND");
+            boost::asio::ip::address tAddress = tBind && *tBind ? boost::asio::ip::make_address(tBind) : boost::asio::ip::address(boost::asio::ip::address_v4::any());
+            boost::asio::ip::tcp::endpoint tEndpoint(tAddress, pPort);
 
             mAcceptor.open(tEndpoint.protocol());
             mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -172,31 +181,90 @@ private:
                 return;
             }
 
-            if (mConnectionCount->load() >= kMaxConnections)
+            boost::system::error_code tEndpointError;
+            auto tEndpoint = pSocket.remote_endpoint(tEndpointError);
+
+            if (tEndpointError)
+            {
+                boost::system::error_code tIgnored;
+                pSocket.close(tIgnored);
+                doAccept();
+                return;
+            }
+
+            std::string tRemoteIp = tEndpoint.address().to_string();
+            bool tAccepted = false;
+
+            {
+                std::lock_guard<std::mutex> tLock(mConnectionTracker->mutex);
+
+                auto tIt = mConnectionTracker->perIpConnections.find(tRemoteIp);
+                size_t tIpCount = (tIt != mConnectionTracker->perIpConnections.end()) ? tIt->second : 0;
+                bool tIpAllowed = (mMaxConnectionsPerIp == 0) || (tIpCount < mMaxConnectionsPerIp);
+
+                if (mConnectionTracker->totalConnections < kMaxConnections && tIpAllowed)
+                {
+                    ++mConnectionTracker->totalConnections;
+
+                    if (tIt != mConnectionTracker->perIpConnections.end())
+                    {
+                        ++tIt->second;
+                    }
+                    else
+                    {
+                        mConnectionTracker->perIpConnections.emplace(tRemoteIp, 1);
+                    }
+
+                    tAccepted = true;
+                }
+            }
+
+            if (!tAccepted)
             {
                 boost::system::error_code tIgnored;
                 pSocket.close(tIgnored);
             }
             else
             {
+                std::shared_ptr<ConnectionTracker> tTracker = mConnectionTracker;
+                std::shared_ptr<void> tLifetimeToken(tTracker.get(),
+                [tTracker, tRemoteIp](void*)
+                {
+                    std::lock_guard<std::mutex> tLock(tTracker->mutex);
+
+                    if (tTracker->totalConnections > 0)
+                    {
+                        --tTracker->totalConnections;
+                    }
+
+                    auto tIt = tTracker->perIpConnections.find(tRemoteIp);
+                    if (tIt != tTracker->perIpConnections.end())
+                    {
+                        if (tIt->second <= 1)
+                        {
+                            tTracker->perIpConnections.erase(tIt);
+                        }
+                        else
+                        {
+                            --tIt->second;
+                        }
+                    }
+                });
+
                 try
                 {
                     auto tSession = std::make_shared<NetworkSession<MessageType>>(std::move(pSocket));
 
                     tSession->setMaxIncomingBytes(kMaxClientMessageBytes);
-
-                    ++*mConnectionCount;
-                    tSession->setLifetimeToken(std::shared_ptr<void>(mConnectionCount.get(),
-                    [tCount = mConnectionCount](void*)
-                    {
-                        --*tCount;
-                    }));
+                    tSession->setIncomingRateLimit(kMaxIncomingMessagesPerSecond, kIncomingMessageBurst);
+                    tSession->setLifetimeToken(std::move(tLifetimeToken));
 
                     if (mOnClientConnect)
                     {
                         mOnClientConnect(tSession);
                     }
 
+                    tSession->startAuthTimeout(kAuthTimeout);
                     tSession->start();
                 }
                 catch (const std::exception& tException)
@@ -214,13 +282,46 @@ private:
     }
 
     static constexpr size_t kMaxConnections = 4096;
+    static constexpr size_t kDefaultMaxConnectionsPerIp = 8;
     static constexpr uint32_t kMaxClientMessageBytes = 64 * 1024;
+    static constexpr double kMaxIncomingMessagesPerSecond = 100.0;
+    static constexpr double kIncomingMessageBurst = 200.0;
+    static constexpr std::chrono::seconds kAuthTimeout{60};
     static constexpr std::chrono::milliseconds kAcceptRetryDelay{100};
+
+    struct ConnectionTracker
+    {
+        std::mutex mutex;
+        size_t totalConnections{0};
+        std::unordered_map<std::string, size_t> perIpConnections;
+    };
+
+    static size_t readMaxConnectionsPerIp()
+    {
+        const char* tValue = std::getenv("LAKOT_MAX_CONNECTIONS_PER_IP");
+
+        if (!tValue || !*tValue)
+        {
+            return kDefaultMaxConnectionsPerIp;
+        }
+
+        std::string_view tText(tValue);
+        size_t tParsed = 0;
+        const auto [tEnd, tError] = std::from_chars(tText.data(), tText.data() + tText.size(), tParsed);
+
+        if (tError != std::errc{} || tEnd != tText.data() + tText.size())
+        {
+            return kDefaultMaxConnectionsPerIp;
+        }
+
+        return tParsed;
+    }
 
     boost::asio::io_context mContext;
     boost::asio::ip::tcp::acceptor mAcceptor;
     boost::asio::steady_timer mAcceptRetryTimer;
-    std::shared_ptr<std::atomic<size_t>> mConnectionCount = std::make_shared<std::atomic<size_t>>(0);
+    std::shared_ptr<ConnectionTracker> mConnectionTracker = std::make_shared<ConnectionTracker>();
+    size_t mMaxConnectionsPerIp{kDefaultMaxConnectionsPerIp};
 
     std::vector<std::thread> mWorkerThreads;
 

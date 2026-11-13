@@ -109,6 +109,8 @@ void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<c
         return;
     }
 
+    pSession->cancelAuthTimeout();
+
     tResponse.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_OK);
     tResume->set_status(services::auth::RESUME_SESSION_OK);
     tResume->set_token(tResult->token);
@@ -330,6 +332,8 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
             return;
         }
+
+        pSession->cancelAuthTimeout();
 
         // Nothing enters the world here any more. Logging in authenticates an
         // account; which character exists in the world - and therefore where

@@ -213,11 +213,6 @@ void NetworkManager::onConnectionStatusChanged(bool pIsConnected)
 
         if (!mAuthController.hasSessionToken())
         {
-            if (mConnectionStateCallback)
-            {
-                mConnectionStateCallback(ConnectionStateType::eLost);
-            }
-
             return;
         }
 
