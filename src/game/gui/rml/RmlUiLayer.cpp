@@ -11,6 +11,12 @@
 
 using namespace lakot;
 
+RmlUiLayer::RmlUiLayer(const Localization& pLocalization)
+    : mLocalization(pLocalization)
+{
+
+}
+
 void RmlUiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
 {
     (void)pGLContext;
@@ -27,7 +33,7 @@ void RmlUiLayer::initialize(SDL_Window* pWindow, SDL_GLContext pGLContext)
     // context / initialized SDL video, neither of which exist yet when
     // Engine's singleton itself is first constructed).
     mRenderInterface = std::make_unique<RenderInterface_GL3>();
-    mSystemInterface = std::make_unique<SystemInterface_SDL>();
+    mSystemInterface = std::make_unique<RmlSystemInterface>(mLocalization);
 
     Rml::SetSystemInterface(mSystemInterface.get());
     Rml::SetRenderInterface(mRenderInterface.get());

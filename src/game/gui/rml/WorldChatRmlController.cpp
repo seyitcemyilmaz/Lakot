@@ -7,6 +7,7 @@
 #include <RmlUi/Core/Input.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 #include "../../Engine.h"
 
@@ -88,8 +89,8 @@ void WorldChatRmlController::appendLine(const std::string& pAuthorUsername, cons
 {
     ChatLine tLine;
     tLine.isLocal = pIsLocal;
-    tLine.author = pAuthorUsername;
-    tLine.text = pText;
+    tLine.author = Localization::escapeMarkup(pAuthorUsername);
+    tLine.text = Localization::escapeMarkup(pText);
     tLine.isGlobal = pIsGlobal;
 
     trimHistory();
@@ -102,7 +103,7 @@ void WorldChatRmlController::appendSystemLine(const std::string& pText, SystemLi
 {
     ChatLine tLine;
     tLine.isLocal = false;
-    tLine.text = pText;
+    tLine.text = Localization::escapeMarkup(pText);
     tLine.isSystem = true;
     tLine.isAnnounce = pType == SystemLineType::eAnnounce;
     tLine.isRoll = pType == SystemLineType::eRoll;

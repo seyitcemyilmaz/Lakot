@@ -14,6 +14,7 @@ namespace lakot
 {
 
 class NetworkManager;
+class Localization;
 
 template <typename MessageType>
 class NetworkSession;
@@ -60,7 +61,7 @@ public:
     using EnterWorldCallback = std::function<void(bool pIsSuccess, const std::string& pMessage, const EnterWorldResult& pResult)>;
     using ResumeResultCallback = std::function<void(bool pIsSuccess)>;
 
-    AuthController(NetworkManager* pNetworkManager);
+    AuthController(NetworkManager* pNetworkManager, const Localization& pLocalization);
 
     void initialize();
 
@@ -106,6 +107,7 @@ public:
 
 private:
     NetworkManager* mNetworkManager;
+    const Localization& mLocalization;
 
     LoginResultCallback mLoginResultCallback;
     RegisterResultCallback mRegisterResultCallback;

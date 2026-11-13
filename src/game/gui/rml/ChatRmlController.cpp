@@ -8,6 +8,7 @@
 #include <RmlUi/Core/Input.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 #include "../../Engine.h"
 
@@ -153,7 +154,7 @@ void ChatRmlController::appendIncoming(const std::string& pAuthorUsername, const
     bool tHadNeverBeenShown = mDocument && !mDocument->IsVisible();
 
     trimHistory();
-    mHistory.push_back(ChatLine{ false, pAuthorUsername, pText });
+    mHistory.push_back(ChatLine{ false, Localization::escapeMarkup(pAuthorUsername), Localization::escapeMarkup(pText) });
     mModelHandle.DirtyVariable("history");
     scrollHistoryToBottom();
 
@@ -304,7 +305,7 @@ void ChatRmlController::doSend()
     // onSendResult() can mark THIS specific line red if it turns out to
     // have failed - see mLastSentLineIndex's own comment.
     trimHistory();
-    mHistory.push_back(ChatLine{ true, "You", tText });
+    mHistory.push_back(ChatLine{ true, "You", Localization::escapeMarkup(tText) });
     mLastSentLineIndex = mHistory.size() - 1;
     mHasPendingSentLine = true;
     mInputText.clear();

@@ -28,6 +28,8 @@ enum class ConnectionStateType
     eLost           // not resumable (no login, refused, or out of time)
 };
 
+class Localization;
+
 class NetworkManager
 {
 public:
@@ -35,7 +37,7 @@ public:
 
     static constexpr std::chrono::seconds kReconnectWindow{30};
 
-    NetworkManager();
+    explicit NetworkManager(const Localization& pLocalization);
 
     void start();
 

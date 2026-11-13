@@ -46,6 +46,15 @@ bool Engine::initialize()
         return false;
     }
 
+    if (!mLocalization.load(std::string(SDL_GetBasePath()) + "data", tMapError))
+    {
+        SDL_Log("Localization data could not be loaded: %s", tMapError.c_str());
+        return false;
+    }
+
+    mLanguageSettings.load();
+    mLocalization.setLanguage(mLanguageSettings.getLanguage());
+
     mDisplaySettings.load(mWindow);
     mDisplaySettings.apply(mWindow);
 
@@ -237,6 +246,11 @@ AssetManager& Engine::getAssetManager()
     return *mAssetManager;
 }
 
+const Localization& Engine::getLocalization() const
+{
+    return mLocalization;
+}
+
 DisplaySettings& Engine::getDisplaySettings()
 {
     return mDisplaySettings;
@@ -299,6 +313,8 @@ SDL_AppResult Engine::eventHandler(SDL_Event* pEvent)
 Engine::Engine()
     : mWindow(nullptr)
     , mGLContext(nullptr)
+    , mNetworkManager(mLocalization)
+    , mRmlUiLayer(mLocalization)
     , mLastTime(0)
     , mAccumulator(0.0)
     , mFixedDeltaTime(1.0 / 60.0)
@@ -344,7 +360,7 @@ void Engine::onConnectionStateChanged(ConnectionStateType pState)
         case ConnectionStateType::eLost:
         {
             mReconnectOverlay.reset();
-            mSceneManager.setNextScene(std::make_unique<LoginScene>(*this, "Connection to the server was lost."));
+            mSceneManager.setNextScene(std::make_unique<LoginScene>(*this, "login.connection_lost"));
             break;
         }
     }

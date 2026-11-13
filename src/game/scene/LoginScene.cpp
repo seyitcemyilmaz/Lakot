@@ -25,7 +25,9 @@ void LoginScene::enter()
     tGui.clearPanels();
     PanelLoader::load(tGui, PanelContext::Login);
 
-    mLoginController = std::make_unique<LoginRmlController>(mEngine.getRmlUiLayer(), mNotice);
+    mLoginController = std::make_unique<LoginRmlController>(
+        mEngine.getRmlUiLayer(), mEngine.getLocalization(),
+        mNotice.empty() ? mNotice : mEngine.getLocalization().text(mNotice));
 }
 
 void LoginScene::exit()

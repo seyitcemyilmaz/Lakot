@@ -14,6 +14,7 @@ namespace lakot
 {
 
 class RmlUiLayer;
+class Localization;
 
 // RmlUi replacement for the ImGui LoginPanel - loads ui/login.rml and binds
 // a data model ("login") the document reads/writes via data-value/data-if,
@@ -24,7 +25,7 @@ class RmlUiLayer;
 class LoginRmlController
 {
 public:
-    LoginRmlController(RmlUiLayer& pRmlUiLayer, const std::string& pNotice);
+    LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const std::string& pNotice);
     ~LoginRmlController();
 
     LoginRmlController(const LoginRmlController&) = delete;
@@ -32,6 +33,7 @@ public:
 
 private:
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
 
     Rml::ElementDocument* mDocument{nullptr};
     Rml::DataModelHandle mModelHandle;

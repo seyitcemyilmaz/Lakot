@@ -685,6 +685,9 @@ def main():
     g = subprocess.call([sys.executable, str(HERE / 't_delete_character_g30.py')])
     if g != 0:
         RESULTS.append(('t_delete_character_g30', False, 'see output above'))
+    g = subprocess.call([sys.executable, str(HERE / 't_locale_g63.py')])
+    if g != 0:
+        RESULTS.append(('t_locale_g63', False, 'see output above'))
     p = sum(1 for r in RESULTS if r[1])
     print(f"\n{p}/{len(RESULTS)} passed")
     if p != len(RESULTS):

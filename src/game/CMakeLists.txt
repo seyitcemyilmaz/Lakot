@@ -10,6 +10,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     asset/AssetManager.h asset/AssetManager.cpp
 
     settings/DisplaySettings.h settings/DisplaySettings.cpp
+    settings/LanguageSettings.h settings/LanguageSettings.cpp
+    localization/Localization.h localization/Localization.cpp
 
     gui/GuiLayer.h
     gui/GuiLayer.cpp
@@ -21,6 +23,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
 
     gui/rml/backend/RmlUi_Renderer_GL3.h gui/rml/backend/RmlUi_Renderer_GL3.cpp
     gui/rml/backend/RmlUi_Platform_SDL.h gui/rml/backend/RmlUi_Platform_SDL.cpp
+    gui/rml/RmlSystemInterface.h gui/rml/RmlSystemInterface.cpp
     gui/rml/RmlUiLayer.h gui/rml/RmlUiLayer.cpp
     gui/rml/LoginRmlController.h gui/rml/LoginRmlController.cpp
     gui/rml/CharacterSelectRmlController.h gui/rml/CharacterSelectRmlController.cpp

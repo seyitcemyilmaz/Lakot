@@ -42,10 +42,10 @@ namespace
     }
 }
 
-NetworkManager::NetworkManager()
+NetworkManager::NetworkManager(const Localization& pLocalization)
     : mClient()
     , mDispatcher()
-    , mAuthController(this)
+    , mAuthController(this, pLocalization)
     , mWorldController(this)
     , mChatController(this)
     , mInventoryController(this)

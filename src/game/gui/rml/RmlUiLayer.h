@@ -12,9 +12,12 @@
 
 #include "backend/RmlUi_Renderer_GL3.h"
 #include "backend/RmlUi_Platform_SDL.h"
+#include "RmlSystemInterface.h"
 
 namespace lakot
 {
+
+class Localization;
 
 // RmlUi's counterpart to GuiLayer - owns the Rml::Context and both
 // interfaces RmlUi requires an application to provide (render + system),
@@ -24,7 +27,7 @@ namespace lakot
 class RmlUiLayer
 {
 public:
-    RmlUiLayer() = default;
+    explicit RmlUiLayer(const Localization& pLocalization);
     ~RmlUiLayer() = default;
 
     void initialize(SDL_Window* pWindow, SDL_GLContext pGLContext);
@@ -76,6 +79,8 @@ private:
     static constexpr float kDesignWidth = 1920.0f;
     static constexpr float kDesignHeight = 1080.0f;
 
+    const Localization& mLocalization;
+
     SDL_Window* mWindow{nullptr};
 
     // Heap-allocated and constructed inside initialize() rather than as
@@ -89,7 +94,7 @@ private:
     // during Phase 1 verification: access violation at address 0 - a null
     // GL function pointer call - from RenderInterface_GL3's constructor).
     std::unique_ptr<RenderInterface_GL3> mRenderInterface;
-    std::unique_ptr<SystemInterface_SDL> mSystemInterface;
+    std::unique_ptr<RmlSystemInterface> mSystemInterface;
 
     Rml::Context* mContext{nullptr};
 

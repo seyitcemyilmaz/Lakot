@@ -5,6 +5,7 @@
 #include <RmlUi/Core/Input.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 #include "../../Engine.h"
 
@@ -12,8 +13,9 @@
 
 using namespace lakot;
 
-LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const std::string& pNotice)
+LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const std::string& pNotice)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mStatusMessage(pNotice)
     , mIsError(!pNotice.empty())
 {
@@ -145,12 +147,12 @@ void LoginRmlController::doLogin()
 {
     if (mUsername.size() < 3 || mPassword.size() < 3)
     {
-        setStatus("Username too short!", true);
+        setStatus(mLocalization.text("login.error.username_short"), true);
         return;
     }
 
     mIsBusy = true;
-    setStatus("Connecting...", false);
+    setStatus(mLocalization.text("login.status.connecting"), false);
 
     Engine::getInstance().getNetworkManager().getAuthController().sendLoginRequest(mUsername, mPassword);
 }
@@ -159,12 +161,12 @@ void LoginRmlController::doRegister()
 {
     if (mUsername.size() < 3 || mPassword.size() < 3 || mEmail.empty())
     {
-        setStatus("Please fill in all fields.", true);
+        setStatus(mLocalization.text("login.error.fill_all"), true);
         return;
     }
 
     mIsBusy = true;
-    setStatus("Registering...", false);
+    setStatus(mLocalization.text("login.status.registering"), false);
 
     Engine::getInstance().getNetworkManager().getAuthController().sendRegisterAccount(mUsername, mPassword, mEmail);
 }
@@ -199,7 +201,7 @@ void LoginRmlController::onRegisterResult(bool pIsSuccess, const std::string& pM
         // ImGui LoginPanel's "Registration Successful" popup conveyed
         // nothing the status line below doesn't already say) - status text
         // carries the confirmation instead.
-        setStatus("Account created - you can now log in.", false);
+        setStatus(mLocalization.text("auth.register.created"), false);
     }
     else
     {

@@ -15,8 +15,7 @@ class LoginScene final : public Scene
 {
 public:
     virtual ~LoginScene() override;
-    // pNotice is shown as an error on arrival - e.g. why the player was sent
-    // back here.
+    // pNotice is a localization key shown as an error on arrival.
     explicit LoginScene(Engine& pEngine, std::string pNotice = {});
 
     void enter() override;

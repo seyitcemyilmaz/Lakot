@@ -2,11 +2,13 @@
 
 #include "../NetworkManager.h"
 #include "../StatsMessage.h"
+#include "../../localization/Localization.h"
 
 using namespace lakot;
 
-AuthController::AuthController(NetworkManager* pNetworkManager)
+AuthController::AuthController(NetworkManager* pNetworkManager, const Localization& pLocalization)
     : mNetworkManager(pNetworkManager)
+    , mLocalization(pLocalization)
 {
 
 }
@@ -66,7 +68,7 @@ void AuthController::sendRegisterAccount(const std::string& pUsername, const std
     {
         if (mRegisterResultCallback)
         {
-            mRegisterResultCallback(false, "No connection to server!");
+            mRegisterResultCallback(false, mLocalization.text("auth.error.no_connection"));
         }
     });
 }
@@ -82,7 +84,7 @@ void AuthController::sendLoginRequest(const std::string& pUsername, const std::s
     {
         if (mLoginResultCallback)
         {
-            mLoginResultCallback(false, "No connection to server!");
+            mLoginResultCallback(false, mLocalization.text("auth.error.no_connection"));
         }
     });
 }
@@ -116,7 +118,7 @@ void AuthController::sendCharacterCreate(const std::string& pName, uint32_t pKin
     {
         if (mCharacterCreateCallback)
         {
-            mCharacterCreateCallback(false, "No connection to server!", {});
+            mCharacterCreateCallback(false, mLocalization.text("auth.error.no_connection"), {});
         }
     });
 }
@@ -130,7 +132,7 @@ void AuthController::sendEnterWorld(uint64_t pCharacterId)
     {
         if (mEnterWorldCallback)
         {
-            mEnterWorldCallback(false, "No connection to server!", {});
+            mEnterWorldCallback(false, mLocalization.text("auth.error.no_connection"), {});
         }
     });
 }
@@ -146,7 +148,7 @@ void AuthController::sendDeleteCharacter(uint64_t pCharacterId, const std::strin
     {
         if (mCharacterDeleteCallback)
         {
-            mCharacterDeleteCallback(false, "No connection to server!", pCharacterId);
+            mCharacterDeleteCallback(false, mLocalization.text("auth.error.no_connection"), pCharacterId);
         }
     });
 }
@@ -244,7 +246,7 @@ void AuthController::handleLoginResponse(std::shared_ptr<NetworkSession<connecti
 
     if (tMessage.empty())
     {
-        tMessage = tIsSuccess ? "Login successful." : "Invalid credentials!";
+        tMessage = tIsSuccess ? mLocalization.text("auth.login.success") : mLocalization.text("auth.login.invalid_credentials");
     }
 
     mLoginResultCallback(tIsSuccess, tMessage);
@@ -262,16 +264,16 @@ void AuthController::handleRegisterResponse(std::shared_ptr<NetworkSession<conne
     switch (tResponse.register_status())
     {
         case services::auth::REGISTER_STATUS_OK:
-            mRegisterResultCallback(true, "Account created - you can now log in.");
+            mRegisterResultCallback(true, mLocalization.text("auth.register.created"));
             break;
         case services::auth::REGISTER_STATUS_EMAIL_IN_USE:
-            mRegisterResultCallback(false, "That email is already registered.");
+            mRegisterResultCallback(false, mLocalization.text("auth.register.email_in_use"));
             break;
         case services::auth::REGISTER_STATUS_USERNAME_IN_USE:
-            mRegisterResultCallback(false, "That username is taken.");
+            mRegisterResultCallback(false, mLocalization.text("auth.register.username_taken"));
             break;
         default:
-            mRegisterResultCallback(false, "Registration failed.");
+            mRegisterResultCallback(false, mLocalization.text("auth.register.failed"));
             break;
     }
 }
@@ -317,22 +319,22 @@ void AuthController::handleCharacterCreateResponse(std::shared_ptr<NetworkSessio
     switch (tResponse.status())
     {
         case services::auth::CHARACTER_CREATE_NAME_IN_USE:
-            tMessage = "That name is already taken.";
+            tMessage = mLocalization.text("auth.character.name_in_use");
             break;
         case services::auth::CHARACTER_CREATE_NAME_INVALID:
-            tMessage = "Names must be 3-50 characters.";
+            tMessage = mLocalization.text("auth.character.name_invalid");
             break;
         case services::auth::CHARACTER_CREATE_NO_FREE_SLOT:
-            tMessage = "No free character slots.";
+            tMessage = mLocalization.text("auth.character.no_free_slot");
             break;
         case services::auth::CHARACTER_CREATE_INVALID_KINGDOM:
-            tMessage = "Choose a kingdom for your first character.";
+            tMessage = mLocalization.text("auth.character.invalid_kingdom");
             break;
         case services::auth::CHARACTER_CREATE_INVALID_CLASS:
-            tMessage = "Choose a class for your character.";
+            tMessage = mLocalization.text("auth.character.invalid_class");
             break;
         default:
-            tMessage = "Could not create character.";
+            tMessage = mLocalization.text("auth.character.create_failed");
             break;
     }
 
@@ -357,16 +359,16 @@ void AuthController::handleCharacterDeleteResponse(std::shared_ptr<NetworkSessio
             mCharacterDeleteCallback(true, "", tCharacterId);
             return;
         case services::auth::DELETE_CHARACTER_NOT_FOUND:
-            tMessage = "That character no longer exists.";
+            tMessage = mLocalization.text("auth.delete.not_found");
             break;
         case services::auth::DELETE_CHARACTER_NAME_MISMATCH:
-            tMessage = "The name does not match.";
+            tMessage = mLocalization.text("auth.delete.name_mismatch");
             break;
         case services::auth::DELETE_CHARACTER_IN_WORLD:
-            tMessage = "That character is still in the world. Try again in a moment.";
+            tMessage = mLocalization.text("auth.delete.in_world");
             break;
         default:
-            tMessage = "Could not delete the character.";
+            tMessage = mLocalization.text("auth.delete.failed");
             break;
     }
 
@@ -384,7 +386,7 @@ void AuthController::handleEnterWorldResponse(std::shared_ptr<NetworkSession<con
 
     if (tResponse.status() != services::auth::ENTER_WORLD_OK)
     {
-        mEnterWorldCallback(false, "Could not enter the world.", {});
+        mEnterWorldCallback(false, mLocalization.text("auth.enter_world.failed"), {});
         return;
     }
 

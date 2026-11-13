@@ -22,6 +22,8 @@
 #include "gui/rml/ReconnectRmlController.h"
 #include "graphics/render/ShaderManager.h"
 #include "settings/DisplaySettings.h"
+#include "settings/LanguageSettings.h"
+#include "localization/Localization.h"
 
 namespace lakot
 {
@@ -74,6 +76,8 @@ public:
 
     DisplaySettings& getDisplaySettings();
 
+    const Localization& getLocalization() const;
+
     AssetManager& getAssetManager();
     MotionLibrary& getMotionLibrary();
 
@@ -97,6 +101,9 @@ private:
     SkillCatalog mSkillCatalog;
 
     DisplaySettings mDisplaySettings;
+
+    Localization mLocalization;
+    LanguageSettings mLanguageSettings;
 
     std::unique_ptr<AssetManager> mAssetManager;
     std::unique_ptr<MotionLibrary> mMotionLibrary;
