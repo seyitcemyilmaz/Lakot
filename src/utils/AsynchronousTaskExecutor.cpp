@@ -67,19 +67,27 @@ void AsynchronousTaskExecutor::execute()
 
     while (getNextTask(tCurrentTask))
     {
+        bool tIsExecuted = true;
+
         if (tCurrentTask.executeFunction)
         {
             try
             {
                 tCurrentTask.executeFunction();
             }
+            catch (const std::exception& tException)
+            {
+                tIsExecuted = false;
+                std::osyncstream(std::cerr) << "[AsyncTask] Gorev istisna: " << tException.what() << std::endl;
+            }
             catch (...)
             {
+                tIsExecuted = false;
                 std::osyncstream(std::cerr) << "[AsyncTask] Gorev bilinmeyen istisna" << std::endl;
             }
         }
 
-        if (tCurrentTask.completedCallback)
+        if (tIsExecuted && tCurrentTask.completedCallback)
         {
             try
             {

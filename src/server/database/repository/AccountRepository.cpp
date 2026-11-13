@@ -6,6 +6,7 @@
 #include <syncstream>
 
 #include "../../security/PasswordHasher.h"
+#include "../../security/PasswordVerifier.h"
 
 using namespace lakot;
 
@@ -37,8 +38,9 @@ AccountRepository::~AccountRepository()
 
 }
 
-AccountRepository::AccountRepository(DatabaseManager& pDatabaseManager)
+AccountRepository::AccountRepository(DatabaseManager& pDatabaseManager, PasswordVerifier& pPasswordVerifier)
     : BaseRepository(pDatabaseManager)
+    , mPasswordVerifier(pPasswordVerifier)
 {
 }
 
@@ -166,10 +168,11 @@ void AccountRepository::createAccount(const std::string& pUsername,
 
 void AccountRepository::findByUsername(const std::string& pUsername, const std::string& pPassword, LoginCallback pCallback)
 {
-    mDatabaseManager.executeAsync([pUsername, pPassword, pCallback](pqxx::connection& pConnection)
+    mDatabaseManager.executeAsync([this, pUsername, pPassword, pCallback](pqxx::connection& pConnection)
     {
-        LoginResultType tOutcome = LoginResultType::eInvalidCredentials;
+        std::string tStoredHash = kUnknownUserHash;
         uint64_t tAccountId = 0;
+        bool tIsKnown = false;
 
         try
         {
@@ -181,29 +184,40 @@ void AccountRepository::findByUsername(const std::string& pUsername, const std::
 
             if (!tResult.empty())
             {
-                std::string tDatabasePassword = tResult[0]["password"].as<std::string>();
-
-                if (PasswordHasher::verify(pPassword, tDatabasePassword))
-                {
-                    tAccountId = tResult[0]["id"].as<uint64_t>();
-                    tOutcome = LoginResultType::eSuccess;
-                }
-            }
-            else
-            {
-                PasswordHasher::verify(pPassword, kUnknownUserHash);
+                tStoredHash = tResult[0]["password"].as<std::string>();
+                tAccountId = tResult[0]["id"].as<uint64_t>();
+                tIsKnown = true;
             }
         }
         catch (const std::exception& tException)
         {
             std::osyncstream(std::cerr) << "[AccountRepo] Login Hatasi: " << tException.what() << std::endl;
-            tOutcome = LoginResultType::eDatabaseError;
+
+            if (pCallback)
+            {
+                pCallback(LoginResultType::eDatabaseError, 0);
+            }
+
+            return;
         }
 
-        if (pCallback)
+        mPasswordVerifier.verifyAsync(pPassword, std::move(tStoredHash),
+        [tIsKnown, tAccountId, pCallback](bool pIsMatch)
         {
-            pCallback(tOutcome, tAccountId);
-        }
+            if (!pCallback)
+            {
+                return;
+            }
+
+            if (tIsKnown && pIsMatch)
+            {
+                pCallback(LoginResultType::eSuccess, tAccountId);
+            }
+            else
+            {
+                pCallback(LoginResultType::eInvalidCredentials, 0);
+            }
+        });
     }, std::hash<std::string>{}(pUsername),
     [pCallback]()
     {

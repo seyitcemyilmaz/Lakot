@@ -10,6 +10,8 @@
 namespace lakot
 {
 
+class PasswordVerifier;
+
 class AccountRepository : public BaseRepository
 {
 public:
@@ -53,7 +55,7 @@ public:
     using GrantGmCallback = std::function<void(bool pIsFound)>;
 
     virtual ~AccountRepository();
-    explicit AccountRepository(DatabaseManager& pDatabaseManager);
+    AccountRepository(DatabaseManager& pDatabaseManager, PasswordVerifier& pPasswordVerifier);
 
     void initializeTable() override;
 
@@ -69,6 +71,8 @@ public:
     void muteByCharacterName(const std::string& pCharacterName, uint32_t pMinutes,
                              uint32_t pActorLevel, uint64_t pActorAccountId, MuteCallback pCallback);
 
+private:
+    PasswordVerifier& mPasswordVerifier;
 };
 
 }

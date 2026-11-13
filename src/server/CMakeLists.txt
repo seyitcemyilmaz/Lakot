@@ -69,6 +69,7 @@ add_executable(${PROJECT_NAME}
     world/StatsMessage.h
 
     security/PasswordHasher.h security/PasswordHasher.cpp
+    security/PasswordVerifier.h security/PasswordVerifier.cpp
     security/LoginAttemptLimiter.h security/LoginAttemptLimiter.cpp
     security/AttemptTable.h security/AttemptTable.cpp
     security/TokenBucketLimiter.h security/TokenBucketLimiter.cpp

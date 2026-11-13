@@ -51,6 +51,9 @@ private:
     // fixed cooldown is both stricter about actual spam and predictable.
     static constexpr double kGlobalCooldownSeconds = 15.0;
 
+    static constexpr std::chrono::minutes kBudgetPruneInterval{1};
+    static constexpr std::chrono::minutes kBudgetIdleLifetime{10};
+
     struct ChatBudget
     {
         double tokens = kChatBucketCapacity;
@@ -76,6 +79,9 @@ private:
     // several threads at once.
     std::mutex mBudgetMutex;
     std::unordered_map<uint64_t, ChatBudget> mBudgets;
+    std::chrono::steady_clock::time_point mLastBudgetPrune{};
+
+    void pruneIdleBudgets(std::chrono::steady_clock::time_point pNow);
 
     // Deducts pCost if the sender can afford it. False means the message is
     // dropped as spam.

@@ -9,7 +9,7 @@ RepositoryManager::~RepositoryManager()
 
 RepositoryManager::RepositoryManager(DatabaseManager& pDatabaseManager)
 {
-    mAccountRepository = std::make_unique<AccountRepository>(pDatabaseManager);
+    mAccountRepository = std::make_unique<AccountRepository>(pDatabaseManager, mPasswordVerifier);
     mCharacterRepository = std::make_unique<CharacterRepository>(pDatabaseManager);
     mItemRepository = std::make_unique<ItemRepository>(pDatabaseManager);
     mGmLogRepository = std::make_unique<GmLogRepository>(pDatabaseManager);

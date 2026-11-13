@@ -320,6 +320,16 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
 
     std::reverse(tPoints.begin(), tPoints.end());
 
+    if (tPoints.size() == 1)
+    {
+        if (tIsReached && pMap.isPathWalkable(pFrom.x, pFrom.y, tGoalPoint.x, tGoalPoint.y, kLegSampleStep))
+        {
+            return { tGoalPoint };
+        }
+
+        return {};
+    }
+
     tPoints.front() = pFrom;
 
     if (tIsReached)

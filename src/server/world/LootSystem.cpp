@@ -21,7 +21,7 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
 {
     const MonsterTemplate* tTemplate = mMonsterCatalog.find(pReward.monsterTemplateId);
 
-    if (!tTemplate)
+    if (!tTemplate || !hasGroundCapacity())
     {
         return;
     }
@@ -46,7 +46,7 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
         float tFactor = getMonsterLevelFactor(*tTemplate, pReward.level);
         tGold.gold = static_cast<uint64_t>(std::lround(tAmount(mRandom) * tFactor));
 
-        if (tGold.gold > 0)
+        if (tGold.gold > 0 && hasGroundCapacity())
         {
             float tX = 0.0f;
             float tZ = 0.0f;
@@ -57,6 +57,11 @@ void LootSystem::drop(const CombatReward& pReward, double pNow)
 
     auto tSpawnDrop = [&](const MonsterDrop& pDrop)
     {
+        if (!hasGroundCapacity())
+        {
+            return;
+        }
+
         std::uniform_int_distribution<uint32_t> tAmount(pDrop.minCount, pDrop.maxCount);
         GroundItem tItem = tBase;
         tItem.templateId = pDrop.itemId;

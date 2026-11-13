@@ -1,6 +1,7 @@
 #ifndef LAKOT_SERVER_REPOSITORYMANAGER_H
 #define LAKOT_SERVER_REPOSITORYMANAGER_H
 
+#include "../../security/PasswordVerifier.h"
 #include "AccountRepository.h"
 #include "CharacterRepository.h"
 #include "ItemRepository.h"
@@ -25,6 +26,8 @@ public:
     GmLogRepository& getGmLogRepository() const;
 
 private:
+    PasswordVerifier mPasswordVerifier;
+
     std::unique_ptr<AccountRepository> mAccountRepository;
     std::unique_ptr<CharacterRepository> mCharacterRepository;
     std::unique_ptr<ItemRepository> mItemRepository;

@@ -11,11 +11,30 @@
 
 using namespace lakot;
 
+void ChatController::pruneIdleBudgets(std::chrono::steady_clock::time_point pNow)
+{
+    if (pNow - mLastBudgetPrune < kBudgetPruneInterval)
+    {
+        return;
+    }
+
+    mLastBudgetPrune = pNow;
+
+    std::erase_if(mBudgets, [pNow](const auto& pEntry)
+    {
+        const ChatBudget& tBudget = pEntry.second;
+        auto tLastActivity = std::max(tBudget.lastRefill, tBudget.lastGlobalAt);
+        return pNow - tLastActivity >= kBudgetIdleLifetime;
+    });
+}
+
 bool ChatController::consumeChatBudget(uint64_t pSenderId, double pCost)
 {
     auto tNow = std::chrono::steady_clock::now();
 
     std::lock_guard<std::mutex> tLock(mBudgetMutex);
+
+    pruneIdleBudgets(tNow);
 
     ChatBudget& tBudget = mBudgets[pSenderId];
 
@@ -43,6 +62,8 @@ bool ChatController::consumeGlobalCooldown(uint64_t pSenderId, int& pRemainingSe
     auto tNow = std::chrono::steady_clock::now();
 
     std::lock_guard<std::mutex> tLock(mBudgetMutex);
+
+    pruneIdleBudgets(tNow);
 
     ChatBudget& tBudget = mBudgets[pSenderId];
 
