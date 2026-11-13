@@ -6,7 +6,7 @@ from t_classes_g12 import equip, bag_slot
 
 generate_bindings()
 
-RUN = HERE / ".run_g11"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g11")
 base.RUN = RUN
 base.GM_ACCOUNT = "gm_g11"
 base.GM_CHAR = "GmG11Hero"
@@ -47,11 +47,11 @@ class G11Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         tMaps = RUN / "data" / "maps"
-        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g11_copy")
+        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g11_copy", dirs_exist_ok=True)
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g11_copy", 102, 101)):
             tPath = tDir / "map.json"
             tMeta = json.load(open(tPath, encoding="utf-8"))

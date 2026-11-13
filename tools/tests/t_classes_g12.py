@@ -6,7 +6,7 @@ generate_bindings()
 
 from services import progression_pb2 as prog
 
-RUN = HERE / ".run_g12"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g12")
 GM_ACCOUNT = "gm_g12"
 GM_CHAR = "GmG12Hero"
 SWORD = 1001
@@ -33,13 +33,13 @@ class G12Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         json.dump({"monsters": [tpl(XP_MON, maxHealth=1, attack=1, experience=100, respawnSeconds=3)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
-        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g12_copy")
+        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g12_copy", dirs_exist_ok=True)
         tSite = C["site"]
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g12_copy", 102, 101)):
             tPath = tDir / "map.json"

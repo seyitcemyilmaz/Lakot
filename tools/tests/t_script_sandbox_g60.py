@@ -3,7 +3,7 @@ from lakotnet import *
 
 generate_bindings()
 
-RUN = HERE / ".run_g60"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g60")
 
 HOSTILE = {
     "aa_dofile.lua": 'lakot.on("enter_world", function(c) dofile("x.lua") end)\n',
@@ -22,7 +22,7 @@ class G60Server(Server):
         if not os.environ.get("LAKOT_DB_PASSWORD"):
             raise RuntimeError("LAKOT_DB_PASSWORD is not set")
         shutil.rmtree(RUN, ignore_errors=True)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         for tName, tBody in HOSTILE.items():

@@ -1,3 +1,4 @@
+import os
 import subprocess, sys, time, math, traceback, threading
 from lakotnet import *
 from mapnav import nav
@@ -610,6 +611,9 @@ TESTS = [t_register_ok, t_register_dup_username, t_register_dup_email, t_registe
          t_loot_double_pickup, t_loot_despawn_and_no_damage]
 
 
+SCRIPTS = ['t_monsters_g21', 't_kill_share_o10', 't_use_item_g24', 't_hardening_g32', 't_gm_commands_g27', 't_session_lifecycle_g33', 't_hardening_g36', 't_speed_y1', 't_gm_security_g53', 't_login_pipeline_g54', 't_login_limiter_g55', 't_register_limit_g58', 't_world_entry_g34', 't_script_sandbox_g60', 't_classes_g12', 't_regen_g25', 't_starter_once_g62', 't_discard_item_g31', 't_delete_character_g30', 't_locale_g63']
+
+
 def main():
     srv = Server()
     srv.start()
@@ -637,60 +641,10 @@ def main():
             S["H"].A.close()
             S["H"].B.close()
         srv.stop()
-    g = subprocess.call([sys.executable, str(HERE / 't_monsters_g21.py')])
-    if g != 0:
-        RESULTS.append(('t_monsters_g21', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_use_item_g24.py')])
-    if g != 0:
-        RESULTS.append(('t_use_item_g24', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_hardening_g32.py')])
-    if g != 0:
-        RESULTS.append(('t_hardening_g32', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_gm_commands_g27.py')])
-    if g != 0:
-        RESULTS.append(('t_gm_commands_g27', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_session_lifecycle_g33.py')])
-    if g != 0:
-        RESULTS.append(('t_session_lifecycle_g33', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_speed_y1.py')])
-    if g != 0:
-        RESULTS.append(('t_speed_y1', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_gm_security_g53.py')])
-    if g != 0:
-        RESULTS.append(('t_gm_security_g53', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_login_pipeline_g54.py')])
-    if g != 0:
-        RESULTS.append(('t_login_pipeline_g54', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_login_limiter_g55.py')])
-    if g != 0:
-        RESULTS.append(('t_login_limiter_g55', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_register_limit_g58.py')])
-    if g != 0:
-        RESULTS.append(('t_register_limit_g58', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_world_entry_g34.py')])
-    if g != 0:
-        RESULTS.append(('t_world_entry_g34', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_script_sandbox_g60.py')])
-    if g != 0:
-        RESULTS.append(('t_script_sandbox_g60', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_classes_g12.py')])
-    if g != 0:
-        RESULTS.append(('t_classes_g12', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_regen_g25.py')])
-    if g != 0:
-        RESULTS.append(('t_regen_g25', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_starter_once_g62.py')])
-    if g != 0:
-        RESULTS.append(('t_starter_once_g62', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_discard_item_g31.py')])
-    if g != 0:
-        RESULTS.append(('t_discard_item_g31', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_delete_character_g30.py')])
-    if g != 0:
-        RESULTS.append(('t_delete_character_g30', False, 'see output above'))
-    g = subprocess.call([sys.executable, str(HERE / 't_locale_g63.py')])
-    if g != 0:
-        RESULTS.append(('t_locale_g63', False, 'see output above'))
+    if not os.environ.get("LAKOT_CORE_ONLY"):
+        for tName in SCRIPTS:
+            if subprocess.call([sys.executable, str(HERE / (tName + '.py'))]) != 0:
+                RESULTS.append((tName, False, 'see output above'))
     p = sum(1 for r in RESULTS if r[1])
     print(f"\n{p}/{len(RESULTS)} passed")
     if p != len(RESULTS):

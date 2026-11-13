@@ -5,7 +5,7 @@ from mapnav import nav
 
 generate_bindings()
 
-RUN = HERE / ".run_g28"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g28")
 GM_ACCOUNT = "gm_g28"
 GM_CHAR = "GmG28Hero"
 XP_MON = 801
@@ -36,7 +36,7 @@ class G28Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         json.dump({"monsters": [tpl(XP_MON, maxHealth=1, attack=1, experience=1000, respawnSeconds=600),
@@ -44,7 +44,7 @@ class G28Server(Server):
                                     attackInterval=1000.0, moveSpeed=6.0, attackRange=2.5, respawnSeconds=600)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
-        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g28_copy")
+        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g28_copy", dirs_exist_ok=True)
         tPortal = C["portal"]
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g28_copy", 102, 101)):
             tPath = tDir / "map.json"

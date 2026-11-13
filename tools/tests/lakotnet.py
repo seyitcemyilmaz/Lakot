@@ -41,12 +41,12 @@ class Server:
     def start(self, timeout=40):
         if not os.environ.get("LAKOT_DB_PASSWORD"):
             raise RuntimeError("LAKOT_DB_PASSWORD is not set in the environment; the server requires it")
-        run_dir = HERE / ".run"
+        run_dir = pathlib.Path(os.environ["LAKOT_TEST_RUN_DIR"]) if os.environ.get("LAKOT_TEST_RUN_DIR") else HERE / ".run"
         shutil.rmtree(run_dir, ignore_errors=True)
-        shutil.copytree(self.bin_dir, run_dir)
+        shutil.copytree(self.bin_dir, run_dir, dirs_exist_ok=True)
         self.run_dir = str(run_dir)
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir,
-                                     env={**os.environ, "LAKOT_SERVER_PORT": str(PORT)},
+                                     env={**os.environ, "LAKOT_SERVER_PORT": str(PORT), "LAKOT_SERVER_BIND": "127.0.0.1", "LAKOT_MAX_CONNECTIONS_PER_IP": "0"},
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      text=True, errors="replace")
         threading.Thread(target=self._pump, daemon=True).start()

@@ -7,7 +7,7 @@ from t_monsters_g21 import View
 
 generate_bindings()
 
-RUN = HERE / ".run_g31"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g31")
 base.RUN = RUN
 base.GM_ACCOUNT = "gm_g31"
 base.GM_CHAR = "GmG31Hero"
@@ -28,7 +28,7 @@ class G31Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         json.dump({"monsters": [tpl(LOOT, maxHealth=1, attack=1, aggressive=False, gold={"min": 0, "max": 0, "chance": 0.0}, drops=[

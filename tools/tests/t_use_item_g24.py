@@ -2,7 +2,7 @@ import sys, os, time, math, json, shutil, subprocess, threading, socket, traceba
 from lakotnet import *
 from t_monsters_g21 import tpl, open_site, walk_to, step_toward, engage, View, ORIGIN, ITEM_SABRE
 
-RUN = HERE / ".run_g24"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g24")
 POTION, ORE, RELIC, MANA = 4, 5, 6, 7
 LOOT_ID, BITER_ID, KILLER_ID = 201, 202, 203
 BITER_ATTACK = 12
@@ -25,7 +25,7 @@ class G24Server(Server):
         if not os.environ.get("LAKOT_DB_PASSWORD"):
             raise RuntimeError("LAKOT_DB_PASSWORD is not set")
         shutil.rmtree(RUN, ignore_errors=True)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         json.dump({"monsters": self.templates}, open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tPath = RUN / "data" / "maps" / "101_altunay_village" / "map.json"

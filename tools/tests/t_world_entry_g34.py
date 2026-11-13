@@ -3,7 +3,7 @@ from lakotnet import *
 
 generate_bindings()
 
-RUN = HERE / ".run_g34"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g34")
 C = {"clients": []}
 ENTER_OK = 0
 POTION = 4
@@ -29,13 +29,13 @@ class G34Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         tMaps = RUN / "data" / "maps"
         tSrc = tMaps / "101_altunay_village"
         tDst = tMaps / "102_g34_copy"
-        shutil.copytree(tSrc, tDst)
+        shutil.copytree(tSrc, tDst, dirs_exist_ok=True)
         for tDir, tId, tTarget in ((tSrc, 101, 102), (tDst, 102, 101)):
             tPath = tDir / "map.json"
             tMeta = json.load(open(tPath, encoding="utf-8"))

@@ -3,7 +3,7 @@ from lakotnet import *
 
 generate_bindings()
 
-RUN = HERE / ".run_g33"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g33")
 C = {"clients": []}
 ENTER_OK, ENTER_NOT_FOUND, ENTER_ERROR = 0, 1, 2
 
@@ -22,7 +22,7 @@ class G33Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir,

@@ -7,7 +7,7 @@ generate_bindings()
 
 from services import chat_pb2
 
-RUN = HERE / ".run_g27"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g27")
 GM_ACCOUNT = "gm_g27"
 GM_CHAR = "GmG27Hero"
 OK, UNKNOWN, USAGE, FAILED, THROTTLED = (chat_pb2.COMMAND_OK, chat_pb2.COMMAND_UNKNOWN, chat_pb2.COMMAND_USAGE,
@@ -35,7 +35,7 @@ class G27Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         tTemplates = [tpl(MON_TOUGH, maxHealth=100000000, attack=1),

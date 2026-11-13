@@ -3,7 +3,7 @@ from lakotnet import *
 
 generate_bindings()
 
-RUN = HERE / ".run_g58"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g58")
 C = {"clients": [], "env": {}}
 SYSTEM_ERROR = 4
 INVALID = "Invalid username or password."
@@ -23,7 +23,7 @@ class G58Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         tEnv = {k: v for k, v in os.environ.items() if k != "LAKOT_REGISTER_PER_MINUTE"}

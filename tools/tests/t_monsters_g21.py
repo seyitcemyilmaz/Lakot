@@ -4,7 +4,7 @@ from mapnav import nav
 
 generate_bindings()
 
-RUN = HERE / ".run_g21"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g21")
 SRC_MAP = ROOT / "data" / "maps" / "101_altunay_village" / "map.json"
 ORIGIN = (-290.0, -200.0)
 ITEM_POTION, ITEM_SABRE, ITEM_BLADE = 4, 1005, 1003
@@ -63,7 +63,7 @@ class OverlayServer(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         json.dump({"monsters": self.templates}, open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         mp = RUN / "data" / "maps" / "101_altunay_village" / "map.json"

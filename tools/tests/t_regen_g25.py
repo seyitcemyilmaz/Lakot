@@ -5,7 +5,7 @@ from t_classes_g12 import poll, stats_of, items_of, equip, bag_slot
 
 generate_bindings()
 
-RUN = HERE / ".run_g25"
+RUN = type(HERE)(os.environ.get("LAKOT_TEST_RUN_DIR") or HERE / ".run_g25")
 GM_ACCOUNT = "gm_g25"
 GM_CHAR = "GmG25Hero"
 TOUGH = 501
@@ -28,13 +28,13 @@ class G25Server(Server):
             if not RUN.exists():
                 break
             time.sleep(1)
-        shutil.copytree(self.bin_dir, RUN)
+        shutil.copytree(self.bin_dir, RUN, dirs_exist_ok=True)
         self.run_dir = str(RUN)
         self.log_lines = []
         json.dump({"monsters": [tpl(TOUGH, maxHealth=100000000, attack=1, aggressive=False)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
-        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g25_copy")
+        shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g25_copy", dirs_exist_ok=True)
         tSite, tPortal = C["site"], C["portal"]
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g25_copy", 102, 101)):
             tPath = tDir / "map.json"
