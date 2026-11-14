@@ -42,6 +42,7 @@ public:
     const std::vector<Joint>& getJoints() const;
 
     std::vector<JointPose> getBindPose() const;
+    void collectDescendants(int pRoot, std::vector<float>& pMask) const;
     const glm::mat4& getInverseBind(int pJoint) const;
 
     void computePalette(const std::vector<JointPose>& pLocalPoses, std::vector<glm::mat4>& pPalette, std::vector<glm::mat4>& pGlobals) const;

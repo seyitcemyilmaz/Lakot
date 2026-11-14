@@ -1,12 +1,16 @@
 #ifndef LAKOT_ANIMATOR_H
 #define LAKOT_ANIMATOR_H
 
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+
+#include "AnimationLayer.h"
+#include "Skeleton.h"
 
 namespace lakot
 {
@@ -19,6 +23,8 @@ class Animator
 {
 public:
     Animator(const SkinnedModel& pModel, MotionLibrary* pLibrary);
+    Animator(const Animator&) = delete;
+    Animator& operator=(const Animator&) = delete;
 
     // Cross-fades from whatever is playing; replaying the current clip does nothing.
     void play(const std::string& pClipName, float pFadeSeconds = 0.2f, float pSpeed = 1.0f, float pStart = 0.0f, float pEnd = 0.0f);
@@ -26,6 +32,10 @@ public:
     void playOnce(const std::string& pClipName, float pFadeSeconds = 0.1f, bool pHoldLastFrame = false);
     void playSegment(const std::string& pClipName, float pStart, float pEnd, float pSeconds, float pFadeSeconds = 0.1f);
     bool isBusy() const;
+
+    void playUpper(const std::string& pClipName, float pFadeSeconds = 0.2f, float pSpeed = 1.0f, float pStart = 0.0f, float pEnd = 0.0f, bool pIsOneShot = false);
+    void stopUpper(float pFadeSeconds = 0.2f);
+    bool isUpperBusy() const;
 
     void setGrip(const std::string& pClipName, float pTime);
 
@@ -42,29 +52,19 @@ public:
 
 private:
     const AnimationClip* findClip(const std::string& pName) const;
-    void start(const AnimationClip* pClip, float pStart, float pLength, float pSpeed, bool pIsOneShot, bool pHoldLastFrame, float pFadeSeconds, bool pIsSegment = false);
+    void ensureUpperLayer();
 
     const SkinnedModel& mModel;
     MotionLibrary* mLibrary;
 
-    const AnimationClip* mCurrent{nullptr};
-    const AnimationClip* mPrevious{nullptr};
-    float mCurrentTime{0.0f};
-    bool mIsOneShot{false};
-    bool mHoldLastFrame{false};
-    float mCurrentStart{0.0f};
-    float mCurrentLength{0.0f};
-    float mCurrentSpeed{1.0f};
-    bool mIsSegment{false};
-    glm::vec3 mRootMotion{0.0f};
-    float mPreviousTime{0.0f};
-    bool mIsPreviousOneShot{false};
-    float mPreviousStart{0.0f};
-    float mPreviousLength{0.0f};
-    float mPreviousSpeed{1.0f};
-
-    float mFadeElapsed{0.0f};
-    float mFadeDuration{0.0f};
+    std::vector<JointPose> mBindPose;
+    AnimationLayer mBase;
+    std::unique_ptr<AnimationLayer> mUpper;
+    std::vector<float> mUpperMask;
+    float mUpperWeight{0.0f};
+    float mUpperTarget{0.0f};
+    float mUpperFadeSeconds{0.0f};
+    std::vector<JointPose> mPose;
 
     std::string mGripClipName;
     std::vector<std::pair<int, glm::quat>> mGrip;

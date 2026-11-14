@@ -93,6 +93,28 @@ std::vector<JointPose> Skeleton::getBindPose() const
     return tPoses;
 }
 
+void Skeleton::collectDescendants(int pRoot, std::vector<float>& pMask) const
+{
+    pMask.assign(mJoints.size(), 0.0f);
+
+    if (pRoot < 0 || static_cast<size_t>(pRoot) >= mJoints.size())
+    {
+        return;
+    }
+
+    pMask[static_cast<size_t>(pRoot)] = 1.0f;
+
+    for (size_t tIndex = static_cast<size_t>(pRoot) + 1; tIndex < mJoints.size(); ++tIndex)
+    {
+        int tParent = mJoints[tIndex].parent;
+
+        if (tParent >= 0 && pMask[static_cast<size_t>(tParent)] > 0.0f)
+        {
+            pMask[tIndex] = 1.0f;
+        }
+    }
+}
+
 const glm::mat4& Skeleton::getInverseBind(int pJoint) const
 {
     static const glm::mat4 sIdentity(1.0f);

@@ -57,6 +57,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     graphics/model/Skeleton.h graphics/model/Skeleton.cpp
     graphics/model/AnimationClip.h graphics/model/AnimationClip.cpp
     graphics/model/SkinnedModel.h graphics/model/SkinnedModel.cpp
+    graphics/model/AnimationLayer.h graphics/model/AnimationLayer.cpp
     graphics/model/Animator.h graphics/model/Animator.cpp
 
     network/GameTypes.h
