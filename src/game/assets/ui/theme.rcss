@@ -1642,9 +1642,9 @@ body
 {
     position: absolute;
     left: 16dp;
-    bottom: 14dp;
+    bottom: 8dp;
     width: 240dp;
-    font-size: 15dp;
+    font-size: 13dp;
     color: #9999A8;
 }
 
@@ -1666,13 +1666,13 @@ body
 
 .vitals-bar
 {
-    height: 14dp;
-    margin-top: 4dp;
+    height: 10dp;
+    margin-top: 3dp;
 }
 
 .vitals-bar-thin
 {
-    height: 6dp;
+    height: 4dp;
 }
 
 .vitals-safe-zone
