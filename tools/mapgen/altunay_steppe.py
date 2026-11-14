@@ -119,6 +119,19 @@ def build_objects(h_at, h):
     return objs
 
 
+def make_splat(h, objs):
+    x, z = splat_grid()
+    hh = height_at_grid(h, x, z)
+    road, shoulder = road_weight(x, z, [ROAD], [], [], 0.0)
+    wooded = forest_floor(x, z, COPSES + COPSES_EXTRA, objs)
+    patch = smoothstep(-0.25, 0.25, smooth_noise(x, z, 2202))
+    dry = 0.55 + 0.4 * patch - 0.25 * wooded
+    dirt = (0.45 * shoulder + 1.0 * wooded + 0.18 * (1.0 - patch) * smoothstep(0.2, -0.2, smooth_noise(x, z, 2203))
+            + 0.75 * shore_weight(x, z, hh, [("circles", POND)]))
+    rock = np.maximum(smoothstep(18.0, -18.0, blob_distance(x, z, KNOLL)), smoothstep(36.0, 50.0, hh))
+    return build_splat(x, z, hh, dry, dirt, road, rock)
+
+
 def main():
     x, z, h = build_height()
     objs = build_objects(make_height_sampler(h), h)
@@ -157,7 +170,7 @@ def main():
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
-    write_map(OUT, meta, h, ground, block, roads, objs)
+    write_map(OUT, meta, h, ground, block, roads, objs, make_splat(h, objs))
 
 
 if __name__ == "__main__":

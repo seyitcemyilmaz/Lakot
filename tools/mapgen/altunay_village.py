@@ -242,6 +242,30 @@ def build_objects(h_at, h):
     return objs
 
 
+def make_splat(h, objs):
+    x, z = splat_grid()
+    hh = height_at_grid(h, x, z)
+    road, shoulder = road_weight(x, z, ROADS, VILLAGE_LANES, BRIDGES, PLAZA_HALF)
+    wooded = forest_floor(x, z, FOREST + FOREST_EXTRA, objs)
+    square = np.maximum(np.abs(x), np.abs(z))
+    inside = smoothstep(VILLAGE_HALF + 4.0, VILLAGE_HALF - 4.0, square)
+    buildings = np.zeros(x.shape)
+    for o in objs:
+        if o["block"] and o["type"] not in ("tree", "boulder", "wall", "tower"):
+            buildings = np.maximum(buildings, smoothstep(7.0, 1.0, rect_distance(
+                x, z, o["x"] - o["sx"] / 2, o["z"] - o["sz"] / 2, o["x"] + o["sx"] / 2, o["z"] + o["sz"] / 2)))
+    fields = np.zeros(x.shape)
+    for x0, z0, x1, z1 in FIELDS:
+        fields = np.maximum(fields, smoothstep(4.0, -2.0, rect_distance(x, z, x0, z0, x1, z1)))
+    patch = smoothstep(0.1, 0.5, smooth_noise(x, z, 2201))
+    dry = 0.08 + 0.4 * patch + 0.9 * fields + 0.3 * wooded
+    dirt = (0.5 * shoulder + 0.65 * inside + 0.85 * buildings + 1.0 * wooded
+            + 0.75 * shore_weight(x, z, hh, [("line", RIVER), ("circles", LAKE)]) + 0.5 * fields)
+    dirt = dirt * (1.0 - 0.6 * fields)
+    rock = np.maximum(smoothstep(18.0, -18.0, blob_distance(x, z, ROCKY)), smoothstep(36.0, 50.0, hh))
+    return build_splat(x, z, hh, dry, dirt, road, rock)
+
+
 def main():
     x, z, h = build_height()
     objs = build_objects(make_height_sampler(h), h)
@@ -289,7 +313,7 @@ def main():
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
-    write_map(OUT, meta, h, ground, block, roads, objs)
+    write_map(OUT, meta, h, ground, block, roads, objs, make_splat(h, objs))
 
 
 if __name__ == "__main__":

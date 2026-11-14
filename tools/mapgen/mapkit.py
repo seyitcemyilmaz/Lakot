@@ -391,6 +391,91 @@ def boulder(rng, px, pz):
     return box("boulder", px, pz, s * rng.uniform(0.8, 1.3), s * 0.7, s, BOULDER)
 
 
+# ---- Splat map ----------------------------------------------------------------
+
+SPLAT_RES = BLOCK_RES
+
+
+def splat_grid():
+    return grid(SPLAT_RES, cell_centred=True)
+
+
+def height_at_grid(h, x, z):
+    step = WORLD / (HEIGHT_RES - 1)
+    fx = np.clip((x + HALF) / step, 0.0, HEIGHT_RES - 1.001)
+    fz = np.clip((z + HALF) / step, 0.0, HEIGHT_RES - 1.001)
+    i0, j0 = fx.astype(int), fz.astype(int)
+    tx, tz = fx - i0, fz - j0
+    top = h[j0, i0] * (1.0 - tx) + h[j0, i0 + 1] * tx
+    bottom = h[j0 + 1, i0] * (1.0 - tx) + h[j0 + 1, i0 + 1] * tx
+    return top * (1.0 - tz) + bottom * tz
+
+
+def blur(field, radius):
+    taps = np.arange(-int(radius * 3), int(radius * 3) + 1)
+    kernel = np.exp(-0.5 * (taps / radius) ** 2)
+    kernel /= kernel.sum()
+    out = np.apply_along_axis(lambda row: np.convolve(row, kernel, mode="same"), 0, field)
+    return np.apply_along_axis(lambda row: np.convolve(row, kernel, mode="same"), 1, out)
+
+
+def tree_density(x, z, objs, radius=6.0):
+    cell = WORLD / SPLAT_RES
+    hits = np.zeros(x.shape)
+    for o in objs:
+        if o["type"] == "tree":
+            ci = min(max(int((o["x"] + HALF) / cell), 0), SPLAT_RES - 1)
+            cj = min(max(int((o["z"] + HALF) / cell), 0), SPLAT_RES - 1)
+            hits[cj, ci] = 1.0
+    return np.clip(blur(hits, radius) * 14.0, 0.0, 1.0)
+
+
+def forest_floor(x, z, circles, objs):
+    inside = smoothstep(20.0, -30.0, blob_distance(x, z, circles))
+    return np.maximum(0.7 * inside, tree_density(x, z, objs))
+
+
+def road_weight(x, z, roads, lanes, bridges, plaza_half):
+    d = np.full(x.shape, np.inf)
+    for r in roads:
+        d = np.minimum(d, polyline_distance(x, z, r))
+    road = smoothstep(ROAD_HALF + 1.5, ROAD_HALF - 2.5, d)
+    for x0, z0, x1, z1 in lanes:
+        road = np.maximum(road, smoothstep(2.5, -1.5, rect_distance(x, z, x0, z0, x1, z1)))
+    if plaza_half > 0.0:
+        road = np.maximum(road, smoothstep(2.0, -2.0, np.maximum(np.abs(x), np.abs(z)) - plaza_half))
+    for bridge in bridges:
+        road = np.maximum(road, bridge_mask(x, z, bridge, 6).astype(float))
+    shoulder = smoothstep(ROAD_HALF + 9.0, ROAD_HALF, d)
+    return road, shoulder
+
+
+def shore_weight(x, z, h, water_features):
+    near = np.zeros(x.shape)
+    for kind, spec in water_features:
+        if kind == "line":
+            near = np.maximum(near, smoothstep(32.0, 20.0, polyline_distance(x, z, spec)))
+        else:
+            for (cx, cz), r in spec:
+                near = np.maximum(near, smoothstep(r + 26.0, r + 12.0, np.hypot(x - cx, z - cz)))
+    return near * smoothstep(3.0, 1.5, h) + smoothstep(0.5, -1.0, h)
+
+
+def build_splat(x, z, h, dry, dirt, road, rock):
+    dry = np.clip(dry, 0.0, 1.0)
+    dirt = np.clip(dirt, 0.0, 1.0)
+    road = np.clip(road, 0.0, 1.0)
+    rock = np.clip(rock, 0.0, 1.0)
+    rest = 1.0 - rock
+    road = road * rest
+    rest = rest - road
+    dirt = dirt * rest
+    rest = rest - dirt
+    dry = dry * rest
+    stack = np.stack([dry, dirt, road, rock], axis=-1)
+    return np.floor(np.clip(stack, 0.0, 1.0) * 255.0 + 1e-6).astype(np.uint8)
+
+
 # ---- Block and road maps ----------------------------------------------------
 
 def build_block(objs):
@@ -479,13 +564,14 @@ def write_preview(out, ground, h, objs):
     img.save(os.path.join(out, "preview.png"))
 
 
-def write_map(out, meta, h, ground, block, roads, objs):
+def write_map(out, meta, h, ground, block, roads, objs, splat):
     os.makedirs(out, exist_ok=True)
     encoded = np.round((h - HEIGHT_MIN) / (HEIGHT_MAX - HEIGHT_MIN) * 65535.0).astype(np.uint16)
     Image.fromarray(encoded).save(os.path.join(out, "height.png"))
     Image.fromarray(ground, "RGB").save(os.path.join(out, "ground.png"))
     Image.fromarray(block, "L").save(os.path.join(out, "block.png"))
     Image.fromarray(roads, "L").save(os.path.join(out, "roads.png"))
+    Image.fromarray(splat, "RGBA").save(os.path.join(out, "splat.png"))
     with open(os.path.join(out, "map.json"), "w", encoding="utf-8", newline="\n") as f:
         f.write(encode_json(meta))
     write_preview(out, ground, h, objs)
