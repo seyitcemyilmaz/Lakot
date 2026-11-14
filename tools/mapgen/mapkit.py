@@ -461,11 +461,27 @@ def shore_weight(x, z, h, water_features):
     return near * smoothstep(3.0, 1.5, h) + smoothstep(0.5, -1.0, h)
 
 
+def patch_noise(x, z, seed):
+    r = np.random.RandomState(seed)
+    out = np.zeros(np.shape(x))
+    for freq in (0.045, 0.09, 0.19):
+        a, b, c = r.uniform(0, 6.28, 3)
+        out += np.sin(x * freq + a) * np.cos(z * freq * 1.3 + b) + 0.5 * np.sin((x + z) * freq * 0.7 + c)
+    return out / 4.5
+
+
 def build_splat(x, z, h, dry, dirt, road, rock):
     dry = np.clip(dry, 0.0, 1.0)
     dirt = np.clip(dirt, 0.0, 1.0)
     road = np.clip(road, 0.0, 1.0)
     rock = np.clip(rock, 0.0, 1.0)
+    floor = np.clip(dirt, 0.0, 1.0)
+    dirt = np.maximum(dirt, 0.85 * blur(floor, 6.0))
+    litter = patch_noise(x, z, 4101)
+    moss = patch_noise(x, z, 4102)
+    deep = smoothstep(0.55, 0.95, floor)
+    dirt = dirt * (0.62 + 0.38 * smoothstep(-0.3, 0.3, litter)) * (1.0 - 0.45 * smoothstep(0.1, 0.5, moss) * deep)
+    dry = dry + 0.55 * deep * smoothstep(0.0, 0.5, -litter) * (1.0 - 0.5 * smoothstep(0.1, 0.5, moss))
     rest = 1.0 - rock
     road = road * rest
     rest = rest - road

@@ -16,6 +16,9 @@ OUT_DEFAULT = ROOT / "data" / "models" / "nature"
 VARIANTS = 3
 FULL_BUDGET = 2900
 LOD_BUDGET = 580
+BARK_SIZE = 1024
+LEAF_SCALE = 4
+EDGE_RAMP = 7.0
 UP = Vector((0.0, 0.0, 1.0))
 
 
@@ -49,7 +52,7 @@ SPECIES = {
         "index": 1, "height": (8.0, 11.0), "radius": 0.016, "bark": (0.9, 0.88, 0.84), "birch": True,
         "leaf": "broad", "leafColors": [(0.52, 0.66, 0.20), (0.44, 0.60, 0.18), (0.62, 0.72, 0.26)], "cardSize": 1.0, "cardsPerPoint": 6, "spread": 0.4, "oriented": False,
         "levels": [
-            {"segs": 6, "taper": 0.25, "jitter": 0.05, "up": 0.0, "kids": 13, "start": 0.3, "ang": (28, 52), "kidLen": 0.34, "kidRad": 0.2, "env": spindle, "sides": 6},
+            {"segs": 8, "taper": 0.18, "jitter": 0.11, "up": 0.03, "kids": 13, "start": 0.3, "ang": (28, 52), "kidLen": 0.34, "kidRad": 0.2, "env": spindle, "sides": 6, "irregular": 0.09},
             {"segs": 3, "taper": 0.45, "jitter": 0.1, "up": -0.04, "kids": 3, "start": 0.3, "ang": (20, 45), "kidLen": 0.5, "kidRad": 0.5, "env": flat, "sides": 4},
             {"segs": 2, "taper": 0.5, "jitter": 0.12, "up": -0.14, "kids": 0, "sides": 3},
         ],
@@ -117,7 +120,7 @@ class TreeBuilder:
             tDir = (tDir + tNoise * tLevel["jitter"] + UP * tLevel["up"]).normalized()
             tCur = tCur + tDir * (pLength / tSegs)
             tPoints.append(tCur.copy())
-            tRadii.append(pRadius + (tEnd - pRadius) * (tI + 1) / tSegs)
+            tRadii.append((pRadius + (tEnd - pRadius) * (tI + 1) / tSegs) * (1.0 + self.rng.uniform(-1, 1) * tLevel.get("irregular", 0.0)))
         self.branches.append((tPoints, tRadii, tLevel["sides"], pDepth))
         if pDepth + 1 < len(self.levels):
             self.spawn(tLevel, tPoints, tRadii, pLength, pDepth)
@@ -179,20 +182,32 @@ def value_noise(pH, pW, pCh, pCw, pRng):
     return tTop + (tBot - tTop) * tFy[:, None]
 
 
+def fbm(pSize, pRng, pCh, pCw, pOctaves):
+    tSum = np.zeros((pSize, pSize))
+    tAmp, tNorm = 1.0, 0.0
+    for tO in range(pOctaves):
+        tSum += tAmp * value_noise(pSize, pSize, pCh * 2 ** tO, pCw * 2 ** tO, pRng)
+        tNorm += tAmp
+        tAmp *= 0.5
+    return tSum / tNorm
+
+
 def make_bark(pSpec, pSeed):
     tRng = np.random.default_rng(pSeed)
-    tSize = 512
+    tSize = BARK_SIZE
     tBase = np.array(pSpec["bark"])
     if pSpec["birch"]:
-        tTone = 0.85 + 0.15 * value_noise(tSize, tSize, 8, 6, tRng)
-        tMarks = value_noise(tSize, tSize, 30, 3, tRng)
-        tDark = np.clip((tMarks - 0.68) * 7.0, 0.0, 1.0) * (0.5 + 0.5 * value_noise(tSize, tSize, 4, 4, tRng))
-        tShade = tTone * (1.0 - 0.9 * tDark)
+        tTone = 0.8 + 0.2 * fbm(tSize, tRng, 6, 4, 4)
+        tLines = value_noise(tSize, tSize, 90, 3, tRng)
+        tLineDark = np.clip((tLines - 0.62) * 14.0, 0.0, 1.0) * np.clip(value_noise(tSize, tSize, 6, 5, tRng) * 1.6 - 0.2, 0.0, 1.0)
+        tBlot = 0.75 * np.clip((fbm(tSize, tRng, 28, 8, 3) - 0.7) * 18.0, 0.0, 1.0)
+        tGrain = 0.93 + 0.07 * value_noise(tSize, tSize, 256, 32, tRng)
+        tShade = tTone * tGrain * (1.0 - 0.85 * np.maximum(tLineDark, tBlot))
     else:
-        tStreak = value_noise(tSize, tSize, 5, 26, tRng)
-        tFine = value_noise(tSize, tSize, 80, 120, tRng)
-        tCrack = np.clip((value_noise(tSize, tSize, 8, 18, tRng) - 0.62) * 6.0, 0.0, 1.0)
-        tShade = (0.55 + 0.65 * tStreak) * (0.85 + 0.3 * tFine) * (1.0 - 0.6 * tCrack)
+        tStreak = fbm(tSize, tRng, 5, 26, 3)
+        tFine = fbm(tSize, tRng, 60, 90, 3)
+        tCrack = np.clip((fbm(tSize, tRng, 8, 18, 3) - 0.6) * 8.0, 0.0, 1.0)
+        tShade = (0.5 + 0.7 * tStreak) * (0.8 + 0.4 * tFine) * (1.0 - 0.65 * tCrack)
     tPix = np.clip(tBase[None, None, :] * tShade[:, :, None], 0.0, 1.0)
     return np.concatenate([tPix, np.ones((tSize, tSize, 1))], axis=2)
 
@@ -209,19 +224,21 @@ def stamp(pImg, pCx, pCy, pAng, pA, pB, pColor, pVein):
     tLx = (tDx * tCa + tDy * tSa) / pA
     tLy = (-tDx * tSa + tDy * tCa) / pB
     tD = np.sqrt(tLx * tLx + tLy * tLy)
-    tAlpha = np.clip((1.0 - tD) * max(pA, pB) * 0.5, 0.0, 1.0)
-    tColor = np.array(pColor)[None, None, :] * np.ones(tAlpha.shape)[:, :, None]
+    tAlpha = np.clip(0.5 + ((1.0 - tD) * min(pA, pB * 2.5) - EDGE_RAMP * 0.45) / EDGE_RAMP, 0.0, 1.0)
+    tColor = np.array(pColor)[None, None, :] * (1.0 - 0.18 * np.clip(tD, 0.0, 1.0))[:, :, None]
     if pVein:
-        tLine = np.clip(1.0 - np.abs(tLy) * pB * 0.8, 0.0, 1.0) * (np.abs(tLx) < 0.9)
-        tColor = tColor * (1.0 + 0.35 * tLine[:, :, None])
+        tLine = np.clip(1.0 - np.abs(tLy) * pB * 0.25 / LEAF_SCALE, 0.0, 1.0) * (np.abs(tLx) < 0.9)
+        tColor = tColor * (1.0 + 0.3 * tLine[:, :, None])
     tReg = pImg[tY0:tY1, tX0:tX1]
-    tReg[:, :, :3] = tReg[:, :, :3] * (1 - tAlpha[:, :, None]) + tColor * tAlpha[:, :, None]
+    tW = tAlpha * (tAlpha > tReg[:, :, 3] * 0.6)
+    tReg[:, :, :3] = tReg[:, :, :3] * (1 - tW[:, :, None]) + tColor * tW[:, :, None]
     tReg[:, :, 3] = np.maximum(tReg[:, :, 3], tAlpha)
 
 
 def make_leaf_atlas(pSpec, pSeed):
     tRng = random.Random(pSeed)
-    tCell = 128
+    tS = LEAF_SCALE
+    tCell = 128 * tS
     tImg = np.zeros((tCell * 2, tCell * 2, 4))
     tColors = pSpec["leafColors"]
     tAvg = np.mean(np.array(tColors), axis=0)
@@ -231,27 +248,32 @@ def make_leaf_atlas(pSpec, pSeed):
             tCell2[:, :, :3] = tAvg
             tOx, tOy = tCx * tCell, tCy * tCell
             tKind = pSpec["leaf"]
+            tTint = lambda c: tuple(min(1.0, v * tRng.uniform(0.82, 1.18)) for v in c)
             if tKind == "broad":
-                for _ in range(16):
+                for _ in range(18):
                     tAng = tRng.uniform(0, math.tau)
-                    tRad = tRng.uniform(0, 42)
+                    tRad = tRng.uniform(0, 42) * tS
                     tPx = tCell / 2 + math.cos(tAng) * tRad
                     tPy = tCell / 2 + math.sin(tAng) * tRad
                     tDirA = math.atan2(tPy - tCell / 2, tPx - tCell / 2) + tRng.uniform(-0.7, 0.7)
-                    stamp(tCell2, tPx, tPy, tDirA, tRng.uniform(15, 21), tRng.uniform(7, 10), tRng.choice(tColors), True)
+                    stamp(tCell2, tPx, tPy, tDirA, tRng.uniform(15, 21) * tS, tRng.uniform(7, 10) * tS, tTint(tRng.choice(tColors)), True)
             elif tKind == "needle":
-                for _ in range(46):
-                    tAng = math.radians(tRng.uniform(-62, 62)) - math.pi / 2
-                    tLen = tRng.uniform(40, 58)
-                    tBx, tBy = tCell / 2 + tRng.uniform(-4, 4), tCell - 10
-                    stamp(tCell2, tBx + math.cos(tAng) * tLen, tBy + math.sin(tAng) * tLen, tAng, tLen, tRng.uniform(1.8, 2.8), tRng.choice(tColors), False)
+                for _ in range(120):
+                    tAng = math.radians(tRng.uniform(-64, 64)) - math.pi / 2
+                    tLen = tRng.uniform(34, 60) * tS
+                    tBx, tBy = tCell / 2 + tRng.uniform(-6, 6) * tS, tCell - 8 * tS
+                    stamp(tCell2, tBx + math.cos(tAng) * tLen, tBy + math.sin(tAng) * tLen, tAng, tLen, tRng.uniform(0.7, 1.3) * tS, tTint(tRng.choice(tColors)), False)
+                for _ in range(10):
+                    tAng = math.radians(tRng.uniform(-30, 30)) - math.pi / 2
+                    tLen = tRng.uniform(50, 62) * tS
+                    stamp(tCell2, tCell / 2 + math.cos(tAng) * tLen, tCell - 8 * tS + math.sin(tAng) * tLen, tAng, tLen, 1.6 * tS, tuple(v * 0.7 for v in tColors[0]), False)
             else:
-                for _ in range(60):
+                for _ in range(70):
                     tAng = tRng.uniform(0, math.tau)
-                    tRad = tRng.uniform(0, 44) * (0.5 + 0.5 * tRng.random())
-                    stamp(tCell2, tCell / 2 + math.cos(tAng) * tRad, tCell / 2 + math.sin(tAng) * tRad * 0.8, tRng.uniform(0, math.tau), tRng.uniform(7, 11), tRng.uniform(5, 8), tRng.choice(tColors), False)
+                    tRad = tRng.uniform(0, 44) * (0.5 + 0.5 * tRng.random()) * tS
+                    stamp(tCell2, tCell / 2 + math.cos(tAng) * tRad, tCell / 2 + math.sin(tAng) * tRad * 0.8, tRng.uniform(0, math.tau), tRng.uniform(7, 11) * tS, tRng.uniform(5, 8) * tS, tTint(tRng.choice(tColors)), False)
             tImg[tOy:tOy + tCell, tOx:tOx + tCell] = tCell2
-    return np.repeat(np.repeat(tImg, 2, axis=0), 2, axis=1)
+    return tImg
 
 
 def make_image(pName, pArray):

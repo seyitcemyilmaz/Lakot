@@ -43,7 +43,8 @@ std::string TerrainShaders::fragmentSource(const std::string& pSharedFunctions)
         uniform sampler2D uRock;
         uniform sampler2D uMacro;
 
-        const float kNearScale = 1.0 / 6.0;
+        const float kNearScale = 1.0 / 4.0;
+        const float kFineScale = 1.0 / 1.3;
         const float kFarScale = 1.0 / 37.0;
         const float kMacroScale = 1.0 / 160.0;
         const float kEdgeScale = 1.0 / 23.0;
@@ -94,7 +95,7 @@ std::string TerrainShaders::fragmentSource(const std::string& pSharedFunctions)
 
             float tDistance = distance(vWorldPosition, uCameraPosition);
             float tFade = smoothstep(kFadeStart, kFadeEnd, tDistance);
-            float tBlend = clamp(0.25 + tMacro * 0.7, 0.0, 1.0);
+            float tBlend = clamp(0.25 + tMacro * 0.7, 0.0, 1.0) * smoothstep(8.0, 45.0, tDistance);
 
             vec2 tNear = tWorld * kNearScale;
             vec2 tNearDx = dFdx(tWorld) * kNearScale;
@@ -128,6 +129,22 @@ std::string TerrainShaders::fragmentSource(const std::string& pSharedFunctions)
             if (tRock > kMinWeight)
             {
                 tColor += tRock * sampleLayer(uRock, tNear, tNearDx, tNearDy, tFar, tFarDx, tFarDy, tBlend, tFade);
+            }
+
+            float tCloseWeight = 1.0 - smoothstep(6.0, 28.0, tDistance);
+
+            if (tCloseWeight > 0.0)
+            {
+                vec2 tFine = kRotation * tWorld * kFineScale;
+                vec2 tFineDx = kRotation * dFdx(tWorld) * kFineScale;
+                vec2 tFineDy = kRotation * dFdy(tWorld) * kFineScale;
+                vec3 tFineColor = textureGrad(uGrass, tFine, tFineDx, tFineDy).rgb * tGrass
+                                + textureGrad(uDryGrass, tFine, tFineDx, tFineDy).rgb * tDry
+                                + textureGrad(uDirt, tFine, tFineDx, tFineDy).rgb * tDirt
+                                + textureGrad(uRoad, tFine, tFineDx, tFineDy).rgb * tRoad
+                                + textureGrad(uRock, tFine, tFineDx, tFineDy).rgb * tRock;
+                vec3 tRatio = clamp(tFineColor / max(tColor, vec3(0.04)), 0.6, 1.5);
+                tColor *= mix(vec3(1.0), tRatio, 0.65 * tCloseWeight);
             }
 
             float tMacroTone = 0.85 + 0.3 * tMacro;

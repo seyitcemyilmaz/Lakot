@@ -176,7 +176,7 @@ void WorldScene::enter()
         }
     )";
 
-    std::string tModelFragmentSource = R"(
+    const std::string tModelFragmentHead = R"(
         in vec3 vWorldPosition;
         in vec3 vNormal;
         in vec2 vUv;
@@ -185,12 +185,29 @@ void WorldScene::enter()
         uniform sampler2D uTexture;
         uniform vec3 uTint = vec3(1.0);
         uniform float uGlow = 0.0;
-    )" + tFogFunction + tLightFunction + R"(
+    )" + tFogFunction + tLightFunction;
+
+    const std::string tModelFragmentBody = R"(
         void main()
         {
-            vec4 tSample = texture(uTexture, vUv);
+            float tCameraDistance = distance(vWorldPosition, uCameraPosition);
 
-            if (tSample.a < 0.5)
+            if (kFadeNearCamera && tCameraDistance < 2.4)
+            {
+                float tNoise = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+
+                if (smoothstep(0.8, 2.4, tCameraDistance) <= tNoise)
+                {
+                    discard;
+                }
+            }
+
+            vec4 tSample = texture(uTexture, vUv);
+            vec2 tTexels = vUv * vec2(textureSize(uTexture, 0));
+            float tLod = max(0.0, log2(max(max(length(dFdx(tTexels)), length(dFdy(tTexels))), 1e-6)));
+            float tAlpha = tSample.a * (1.0 + 0.3 * tLod);
+
+            if (tAlpha < 0.5)
             {
                 discard;
             }
@@ -200,6 +217,9 @@ void WorldScene::enter()
             FragColor = vec4(applyFog(applyLight(tColor, tNormal) + tColor * uGlow, vWorldPosition), 1.0);
         }
     )";
+
+    const std::string tModelFragmentSource = tModelFragmentHead + "const bool kFadeNearCamera = true;\n" + tModelFragmentBody;
+    const std::string tSkinnedFragmentSource = tModelFragmentHead + "const bool kFadeNearCamera = false;\n" + tModelFragmentBody;
 
     std::string tSkinnedVertexSource = R"(
         layout (location = 0) in vec3 aPos;
@@ -246,7 +266,7 @@ void WorldScene::enter()
 
     if (!tShaderManager.hasProgram("world_skinned"))
     {
-        tShaderManager.createProgram("world_skinned", tSkinnedVertexSource, tModelFragmentSource);
+        tShaderManager.createProgram("world_skinned", tSkinnedVertexSource, tSkinnedFragmentSource);
     }
 
     mBoxContainer = std::make_unique<BoxContainer>();
