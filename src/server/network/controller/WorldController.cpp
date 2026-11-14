@@ -136,7 +136,7 @@ Zone* WorldController::getZone(uint32_t pMapId)
 
 std::optional<uint32_t> WorldController::getCharacterZone(uint64_t pCharacterId)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mCharacterZone.find(pCharacterId);
 
@@ -150,7 +150,7 @@ std::optional<uint32_t> WorldController::getCharacterZone(uint64_t pCharacterId)
 
 std::optional<CharacterAccess> WorldController::getCharacterAccess(uint64_t pCharacterId)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mCharacterAccess.find(pCharacterId);
 
@@ -176,7 +176,7 @@ bool WorldController::isCharacterInWorld(uint64_t pAccountId, uint64_t pCharacte
 
 void WorldController::setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mCharacterAccess.find(pCharacterId);
 
@@ -188,7 +188,7 @@ void WorldController::setMutedUntil(uint64_t pCharacterId, int64_t pEpochSeconds
 
 std::optional<uint64_t> WorldController::findOnlineCharacterIdByAccount(uint64_t pAccountId)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     for (const auto& [tCharacterId, tAccess] : mCharacterAccess)
     {
@@ -203,7 +203,7 @@ std::optional<uint64_t> WorldController::findOnlineCharacterIdByAccount(uint64_t
 
 size_t WorldController::getOnlineCount()
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
     return mCharacterZone.size();
 }
 
@@ -233,7 +233,7 @@ void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
     }
 
     {
-        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+        std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
         mCharacterZone[pCharacterId] = pMapId;
         mCharacterNames[pCharacterId] = pName;
         mNameToCharacterId[pName] = pCharacterId;
@@ -338,7 +338,7 @@ void WorldController::handlePlayerDisconnect(uint64_t pCharacterId)
     Zone* tZone = nullptr;
 
     {
-        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+        std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
 
         auto tIterator = mCharacterZone.find(pCharacterId);
 
@@ -376,7 +376,7 @@ void WorldController::onCharacterReleased(uint64_t pCharacterId)
     std::vector<std::function<void(bool)>> tWaiters;
 
     {
-        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+        std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
 
         auto tIterator = mReleaseWaiters.find(pCharacterId);
 
@@ -401,7 +401,7 @@ void WorldController::onCharacterReleased(uint64_t pCharacterId)
 void WorldController::runAfterRelease(uint64_t pCharacterId, std::function<void(bool pIsSaved)> pAction)
 {
     {
-        std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+        std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
 
         auto tIterator = mReleaseWaiters.find(pCharacterId);
 
@@ -429,7 +429,7 @@ void WorldController::transferCharacter(uint32_t pSourceMapId,
         return;
     }
 
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::lock_guard<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mCharacterZone.find(pCharacterId);
 
@@ -476,7 +476,7 @@ void WorldController::sendMapChanged(uint64_t pCharacterId, uint32_t pMapId, con
 
 std::string WorldController::getCharacterName(uint64_t pCharacterId)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mCharacterNames.find(pCharacterId);
 
@@ -490,7 +490,7 @@ std::string WorldController::getCharacterName(uint64_t pCharacterId)
 
 std::optional<uint64_t> WorldController::findOnlineCharacterIdByName(const std::string& pName)
 {
-    std::lock_guard<std::mutex> tLock(mPlayerMetaMutex);
+    std::shared_lock<std::shared_mutex> tLock(mPlayerMetaMutex);
 
     auto tIterator = mNameToCharacterId.find(pName);
 

@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -113,9 +113,8 @@ private:
 
     const std::string mScriptDirectory{"scripts"};
 
-    // Guards both maps below. Only touched at login/disconnect/portal time,
-    // never per movement update, so one lock is simplest.
-    std::mutex mPlayerMetaMutex;
+    // Shared for lookups; exclusive for transitions, whose zone posts must stay ordered under it.
+    std::shared_mutex mPlayerMetaMutex;
     std::unordered_map<uint64_t, uint32_t> mCharacterZone;
     std::unordered_map<uint64_t, std::string> mCharacterNames;
     std::unordered_map<std::string, uint64_t> mNameToCharacterId;
