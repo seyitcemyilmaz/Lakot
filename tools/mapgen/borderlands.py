@@ -94,7 +94,7 @@ def build_objects(h_at):
         px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
         inside = blob_distance(np.array(px), np.array(pz), COPSES) < -8.0
         if inside and clear(px, pz) and h_at(px, pz) > 1.5:
-            objs += tree(rng, px, pz, rng.uniform(0.9, 1.4))
+            objs += tree(rng, px, pz, rng.uniform(0.9, 1.4), "border")
             placed += 1
     placed = 0
     while placed < 60:

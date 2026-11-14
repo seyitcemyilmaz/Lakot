@@ -1,5 +1,7 @@
 #include "WorldScene.h"
 
+#include <filesystem>
+
 #include <algorithm>
 #include <cmath>
 
@@ -217,8 +219,16 @@ void WorldScene::enter()
     )" + tFogFunction + tLightFunction + R"(
         void main()
         {
-            vec3 tColor = texture(uTexture, vUv).rgb * uTint;
-            FragColor = vec4(applyFog(applyLight(tColor, vNormal) + tColor * uGlow, vWorldPosition), 1.0);
+            vec4 tSample = texture(uTexture, vUv);
+
+            if (tSample.a < 0.5)
+            {
+                discard;
+            }
+
+            vec3 tColor = tSample.rgb * uTint;
+            vec3 tNormal = gl_FrontFacing ? vNormal : -vNormal;
+            FragColor = vec4(applyFog(applyLight(tColor, tNormal) + tColor * uGlow, vWorldPosition), 1.0);
         }
     )";
 
@@ -929,9 +939,10 @@ void WorldScene::render()
         tSetWorldUniforms(tModelShader);
         tModelShader->setInt("uTexture", 0);
 
-        for (const std::shared_ptr<Model>& tModel : mMapModels)
+        for (MapModelBatch& tBatch : mMapModels)
         {
-            tModel->draw(0);
+            tBatch.update(mCamera->getPosition());
+            tBatch.draw(0);
         }
 
         tModelShader->unbind();
@@ -1248,18 +1259,37 @@ void WorldScene::loadMap(uint32_t pMapId)
     tSizes.reserve(tPositions.capacity());
     tColors.reserve(tPositions.capacity());
 
-    std::unordered_map<std::shared_ptr<Model>, std::pair<std::vector<glm::vec3>, std::vector<glm::vec3>>> tModelInstances;
+    std::unordered_map<std::string, MapModelBatch> tModelBatches;
     AssetManager& tAssets = mEngine.getAssetManager();
 
     for (const MapObject& tObject : mMap->getObjects())
     {
-        if (std::shared_ptr<Model> tModel = tObject.model.empty() ? nullptr : tAssets.getModel("models/" + tObject.model + ".glb"))
+        if (!tObject.model.empty())
         {
-            auto& [tOffsets, tParams] = tModelInstances[tModel];
-            float tGround = mMap->getHeightAt(tObject.x, tObject.z);
-            tOffsets.emplace_back(tObject.x, tGround + tObject.elevation, tObject.z);
-            tParams.emplace_back(tObject.yaw, tObject.scale, tObject.stretch);
-            continue;
+            auto tBatch = tModelBatches.find(tObject.model);
+
+            if (tBatch == tModelBatches.end())
+            {
+                std::shared_ptr<Model> tModel = tAssets.getModel("models/" + tObject.model + ".glb");
+                std::string tLodPath = "models/" + tObject.model + "_lod1.glb";
+                std::shared_ptr<Model> tLodModel = std::filesystem::exists(tAssets.resolve(tLodPath)) ? tAssets.getModel(tLodPath) : nullptr;
+
+                if (!tModel)
+                {
+                    tModelBatches.emplace(tObject.model, MapModelBatch(nullptr, nullptr));
+                    continue;
+                }
+
+                tBatch = tModelBatches.emplace(tObject.model, MapModelBatch(tModel, tLodModel)).first;
+            }
+
+            if (tBatch->second.isValid())
+            {
+                float tGround = mMap->getHeightAt(tObject.x, tObject.z);
+                tBatch->second.addInstance(glm::vec3(tObject.x, tGround + tObject.elevation, tObject.z),
+                                           glm::vec3(tObject.yaw, tObject.scale, tObject.stretch));
+                continue;
+            }
         }
 
         if (tObject.isHidden)
@@ -1283,10 +1313,12 @@ void WorldScene::loadMap(uint32_t pMapId)
 
     mMapModels.clear();
 
-    for (const auto& [tModel, tInstances] : tModelInstances)
+    for (auto& [tName, tBatch] : tModelBatches)
     {
-        tModel->setInstances(tInstances.first, tInstances.second);
-        mMapModels.push_back(tModel);
+        if (tBatch.isValid())
+        {
+            mMapModels.push_back(std::move(tBatch));
+        }
     }
 
     constexpr int kMapImageSize = 1024;

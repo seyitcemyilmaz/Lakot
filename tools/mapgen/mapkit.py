@@ -263,10 +263,25 @@ def bridge_railings(bridges):
     return objs
 
 
-def tree(rng, px, pz, scale):
-    return [box("tree_trunk", px, pz, 1.2 * scale, 4.0 * scale, 1.2 * scale, TRUNK),
-            box("tree_canopy", px, pz, 5.5 * scale, 5.0 * scale, 5.5 * scale,
-                LEAVES[rng.randint(len(LEAVES))], block=False, elevation=3.2 * scale)]
+TREE_BIOMES = {
+    "village": [("oak", 5), ("poplar", 4), ("birch", 1)],
+    "steppe": [("juniper", 5), ("birch", 2), ("poplar", 1)],
+    "border": [("pine", 6), ("juniper", 2), ("oak", 1)],
+}
+TREE_VARIANTS = 3
+TREE_TRUNK_WIDTH = {"oak": 1.2, "poplar": 0.8, "birch": 0.6, "pine": 0.8, "juniper": 0.5}
+
+
+def tree(rng, px, pz, scale, biome="village"):
+    kinds = TREE_BIOMES[biome]
+    weights = np.array([w for _, w in kinds], dtype=float)
+    species = kinds[rng.choice(len(kinds), p=weights / weights.sum())][0]
+    variant = int(rng.randint(TREE_VARIANTS)) + 1
+    s = min(1.2, max(0.8, scale))
+    yaw = rng.uniform(0.0, 2.0 * math.pi)
+    width = TREE_TRUNK_WIDTH[species] * s
+    return [box("tree", px, pz, width, 4.0 * s, width, TRUNK, block=False, model="nature/%s_%d" % (species, variant), yaw=yaw, scale=s),
+            box("tree_trunk", px, pz, width, 4.0 * s, width, TRUNK, hidden=True)]
 
 
 def boulder(rng, px, pz):

@@ -16,6 +16,7 @@
 #include "world/CombatFeel.h"
 #include "world/DamageNumbers.h"
 #include "world/EntityRenderer.h"
+#include "world/MapModelBatch.h"
 #include "../gui/Panel.h"
 #include "world/EquipmentAttachments.h"
 #include "../effect/TrailRenderer.h"
@@ -71,7 +72,7 @@ private:
     std::unique_ptr<BoxContainer> mBoxContainer;
     std::unique_ptr<Terrain> mTerrain;
     std::unique_ptr<ThirdPersonCamera> mCamera;
-    std::vector<std::shared_ptr<Model>> mMapModels;
+    std::vector<MapModelBatch> mMapModels;
 
     int mViewportWidth{1};
     int mViewportHeight{1};

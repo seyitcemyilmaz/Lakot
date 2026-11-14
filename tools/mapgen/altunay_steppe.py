@@ -101,13 +101,13 @@ def build_objects(h_at):
         px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
         inside = blob_distance(np.array(px), np.array(pz), COPSES) < -8.0
         if inside and clear(px, pz) and h_at(px, pz) > 1.5:
-            objs += tree(rng, px, pz, rng.uniform(0.85, 1.35))
+            objs += tree(rng, px, pz, rng.uniform(0.85, 1.35), "steppe")
             placed += 1
     placed = 0
     while placed < 45:
         px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
         if clear(px, pz) and 1.5 < h_at(px, pz) < 40:
-            objs += tree(rng, px, pz, rng.uniform(0.8, 1.2))
+            objs += tree(rng, px, pz, rng.uniform(0.8, 1.2), "steppe")
             placed += 1
     placed = 0
     while placed < 26:

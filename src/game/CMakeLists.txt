@@ -105,6 +105,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     item/ItemIconRenderer.h item/ItemIconRenderer.cpp
     item/ItemIconPath.h item/ItemIconPath.cpp
     settings/SkillBarBindings.h settings/SkillBarBindings.cpp
+    scene/world/MapModelBatch.h scene/world/MapModelBatch.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
     scene/world/CameraBob.h scene/world/CameraBob.cpp
