@@ -26,15 +26,7 @@ namespace
     constexpr float kMinPositionDeltaSq = 0.01f;
     constexpr float kMinYawDelta = 0.01f;
 
-    constexpr float kNameplatePixelOffset = 30.0f;
-
-    constexpr float kSpeechBubbleLineGap = 4.0f;
-
     constexpr float kClickDragThresholdPixels = 6.0f;
-
-    constexpr float kHealthBarWidth = 60.0f;
-    constexpr float kHealthBarHeight = 5.0f;
-    constexpr float kDamageFontScale = 1.4f;
 
     constexpr float kFogStart = 140.0f;
 
@@ -315,6 +307,14 @@ void WorldScene::enter()
 
     mPicker = std::make_unique<WorldPicker>(mEngine.getWindow(), *mCamera, *mEntities);
     mAutoWalk = std::make_unique<AutoWalk>(*mEntities);
+
+    mOverlay.reset();
+    mOverlay = std::make_unique<WorldOverlay>(mEngine.getRmlUiLayer());
+    mOverlay->setMenuChatCallback(
+    [this](uint64_t pPlayerId, const std::string& pName)
+    {
+        mHud->openWhisper(pPlayerId, pName);
+    });
 
     mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getLocalization(), mEngine.getDisplaySettings(),
                                       mEngine.getWindow(), mLocalUsername, mLocalStats, mEngine.getClassCatalog(), mEngine.getSkillCatalog(), mLocalItems, *mItemIcons, mLocalCharacterId);
@@ -851,55 +851,7 @@ void WorldScene::render()
 
     mEffects->render(*mCamera, kSkyColor, kFogStart, WorldView::kViewDistance, tExtraSeconds);
 
-    for (const auto& [tId, tEntity] : mEntities->getAll())
-    {
-        bool tShowsHealth = tEntity.type != EntityType::eNpc && tEntity.type != EntityType::eGroundItem && tId != WorldEntities::kLocalId && !tEntity.isDead
-                         && (tEntity.type == EntityType::eMonster || tEntity.healthPercent < 100);
-
-        if (tEntity.tagText.empty() || tEntity.tagSourceName != tEntity.name || tEntity.tagSourceLevel != tEntity.level)
-        {
-            tEntity.tagSourceName = tEntity.name;
-            tEntity.tagSourceLevel = tEntity.level;
-            tEntity.tagText = tEntity.level > 0 ? mEngine.getLocalization().format("world.nameplate", { { "level", std::to_string(tEntity.level) }, { "name", tEntity.name } }) : tEntity.name;
-        }
-
-        renderNameplate(WorldEntities::getPosition(tEntity, tExtraSeconds) + tEntity.getHeadTopOffset(), tEntity.tagText, tEntity.speechText,
-                        getNameColor(tEntity), tShowsHealth ? static_cast<int>(tEntity.healthPercent) : -1);
-    }
-
-    renderDamageNumbers(tExtraSeconds);
-
-    if (mContextMenuOpenRequested)
-    {
-        ImGui::SetNextWindowPos(toGlobalImGuiPos(ImVec2(mContextMenuScreenPos.x, mContextMenuScreenPos.y)));
-        ImGui::OpenPopup("TargetContextMenu");
-        mContextMenuOpenRequested = false;
-    }
-
-    if (ImGui::BeginPopup("TargetContextMenu"))
-    {
-        if (mContextMenuTarget)
-        {
-            ImGui::TextDisabled("%s", mContextMenuTarget->name.c_str());
-            ImGui::Separator();
-
-            if (ImGui::MenuItem(mEngine.getLocalization().text("world.menu_chat").c_str()))
-            {
-                mHud->openWhisper(mContextMenuTarget->id, mContextMenuTarget->name);
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::BeginDisabled();
-            ImGui::MenuItem(mEngine.getLocalization().text("world.menu_trade").c_str());
-            ImGui::EndDisabled();
-        }
-
-        ImGui::EndPopup();
-    }
-    else
-    {
-        mContextMenuTarget.reset();
-    }
+    renderOverlay(tExtraSeconds);
 }
 
 bool WorldScene::handleEvent(SDL_Event* pEvent)
@@ -953,6 +905,11 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
         mIsAttackHeld = false;
         endOrbit();
         return false;
+    }
+
+    if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    {
+        mOverlay->closeMenu();
     }
 
     if (pEvent->type == SDL_EVENT_MOUSE_BUTTON_DOWN && pEvent->button.button == SDL_BUTTON_RIGHT)
@@ -1017,9 +974,7 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
         {
             if (auto tTarget = mPicker->pickTarget(mRightClickDownPos); tTarget && tTarget->type == EntityType::ePlayer)
             {
-                mContextMenuTarget = *tTarget;
-                mContextMenuScreenPos = mRightClickDownPos;
-                mContextMenuOpenRequested = true;
+                mOverlay->openMenu(mRightClickDownPos.x, mRightClickDownPos.y, tTarget->id, tTarget->name);
             }
         }
 
@@ -1071,7 +1026,7 @@ void WorldScene::onSessionResumed()
     mIsMovingRight = false;
     mIsAttackHeld = false;
     endOrbit();
-    mContextMenuTarget.reset();
+    mOverlay->closeMenu();
 
     mHasSentInitialState = false;
 }
@@ -1242,7 +1197,7 @@ void WorldScene::sendLocalPlayerState()
     mHasSentInitialState = true;
 }
 
-std::optional<ImVec2> WorldScene::projectToScreen(const glm::vec3& pWorldPosition) const
+std::optional<glm::vec2> WorldScene::projectToScreen(const glm::vec3& pWorldPosition) const
 {
     if (!mCamera)
     {
@@ -1263,89 +1218,63 @@ std::optional<ImVec2> WorldScene::projectToScreen(const glm::vec3& pWorldPositio
         return std::nullopt;
     }
 
-    ImGuiIO& tIo = ImGui::GetIO();
-    ImVec2 tFramebufferScale = tIo.DisplayFramebufferScale;
-    if (tFramebufferScale.x <= 0.0f) tFramebufferScale.x = 1.0f;
-    if (tFramebufferScale.y <= 0.0f) tFramebufferScale.y = 1.0f;
-
-    float tPhysicalX = (tNdc.x * 0.5f + 0.5f) * static_cast<float>(mViewportWidth);
-    float tPhysicalY = (1.0f - (tNdc.y * 0.5f + 0.5f)) * static_cast<float>(mViewportHeight);
-
-    return ImVec2(tPhysicalX / tFramebufferScale.x, tPhysicalY / tFramebufferScale.y);
+    return glm::vec2((tNdc.x * 0.5f + 0.5f) * static_cast<float>(mViewportWidth),
+                     (1.0f - (tNdc.y * 0.5f + 0.5f)) * static_cast<float>(mViewportHeight));
 }
 
-ImU32 WorldScene::getNameColor(const WorldEntity& pEntity) const
+WorldOverlay::NameToneType WorldScene::getNameTone(const WorldEntity& pEntity) const
 {
     if (pEntity.isDead)
     {
-        return IM_COL32(150, 150, 150, 255);
+        return WorldOverlay::NameToneType::eDead;
     }
 
     switch (pEntity.type)
     {
-        case EntityType::eNpc:     return IM_COL32(242, 184, 82, 255);
-        case EntityType::eMonster: return IM_COL32(255, 140, 110, 255);
-        case EntityType::eGroundItem: return IM_COL32(255, 224, 120, 255);
+        case EntityType::eNpc:        return WorldOverlay::NameToneType::eNpc;
+        case EntityType::eMonster:    return WorldOverlay::NameToneType::eMonster;
+        case EntityType::eGroundItem: return WorldOverlay::NameToneType::eGroundItem;
         default: break;
     }
 
     if (pEntity.id != WorldEntities::kLocalId && mLocalKingdom != 0 && pEntity.kingdom != 0 && pEntity.kingdom != mLocalKingdom)
     {
-        return IM_COL32(255, 102, 102, 255);
+        return WorldOverlay::NameToneType::eHostilePlayer;
     }
 
-    return IM_COL32(255, 255, 255, 255);
+    return WorldOverlay::NameToneType::ePlayer;
 }
 
-void WorldScene::renderNameplate(const glm::vec3& pWorldPosition, const std::string& pName, const std::string& pSpeechText,
-                                 ImU32 pNameColor, int pHealthPercent)
+void WorldScene::renderOverlay(double pExtraSeconds)
 {
-    if (pName.empty())
+    mOverlay->beginFrame();
+
+    for (const auto& [tId, tEntity] : mEntities->getAll())
     {
-        return;
+        if (tEntity.name.empty())
+        {
+            continue;
+        }
+
+        bool tShowsHealth = tEntity.type != EntityType::eNpc && tEntity.type != EntityType::eGroundItem && tId != WorldEntities::kLocalId && !tEntity.isDead
+                         && (tEntity.type == EntityType::eMonster || tEntity.healthPercent < 100);
+
+        if (tEntity.tagText.empty() || tEntity.tagSourceName != tEntity.name || tEntity.tagSourceLevel != tEntity.level)
+        {
+            tEntity.tagSourceName = tEntity.name;
+            tEntity.tagSourceLevel = tEntity.level;
+            tEntity.tagText = tEntity.level > 0 ? mEngine.getLocalization().format("world.nameplate", { { "level", std::to_string(tEntity.level) }, { "name", tEntity.name } }) : tEntity.name;
+        }
+
+        std::optional<glm::vec2> tScreenPos = projectToScreen(WorldEntities::getPosition(tEntity, pExtraSeconds) + tEntity.getHeadTopOffset());
+
+        if (tScreenPos)
+        {
+            mOverlay->showNameplate(tScreenPos->x, tScreenPos->y, tEntity.tagText, getNameTone(tEntity),
+                                    tShowsHealth ? static_cast<int>(tEntity.healthPercent) : -1, tEntity.speechText);
+        }
     }
 
-    std::optional<ImVec2> tScreenPos = projectToScreen(pWorldPosition);
-
-    if (!tScreenPos)
-    {
-        return;
-    }
-
-    ImDrawList* tDrawList = ImGui::GetBackgroundDrawList(ImGui::GetMainViewport());
-
-    ImVec2 tTextSize = ImGui::CalcTextSize(pName.c_str());
-    ImVec2 tCentered = toGlobalImGuiPos(ImVec2(tScreenPos->x - tTextSize.x * 0.5f, tScreenPos->y - kNameplatePixelOffset - tTextSize.y));
-
-    tDrawList->AddText(ImVec2(tCentered.x + 1.0f, tCentered.y + 1.0f), IM_COL32(0, 0, 0, 200), pName.c_str());
-    tDrawList->AddText(tCentered, pNameColor, pName.c_str());
-
-    if (pHealthPercent >= 0)
-    {
-        ImVec2 tBarMin = toGlobalImGuiPos(ImVec2(tScreenPos->x - kHealthBarWidth * 0.5f, tScreenPos->y - kNameplatePixelOffset + 2.0f));
-        ImVec2 tBarMax(tBarMin.x + kHealthBarWidth, tBarMin.y + kHealthBarHeight);
-        float tFill = kHealthBarWidth * static_cast<float>(std::clamp(pHealthPercent, 0, 100)) / 100.0f;
-
-        tDrawList->AddRectFilled(tBarMin, tBarMax, IM_COL32(26, 26, 32, 220));
-        tDrawList->AddRectFilled(tBarMin, ImVec2(tBarMin.x + tFill, tBarMax.y), IM_COL32(198, 62, 62, 255));
-        tDrawList->AddRect(tBarMin, tBarMax, IM_COL32(64, 64, 76, 255));
-    }
-
-    if (!pSpeechText.empty())
-    {
-        float tSpeechOffset = pHealthPercent >= 0 ? kHealthBarHeight + 4.0f : 0.0f;
-        ImVec2 tSpeechTextSize = ImGui::CalcTextSize(pSpeechText.c_str());
-        ImVec2 tSpeechPos = toGlobalImGuiPos(ImVec2(tScreenPos->x - tSpeechTextSize.x * 0.5f,
-                                                    tScreenPos->y - kNameplatePixelOffset + kSpeechBubbleLineGap + tSpeechOffset));
-
-        tDrawList->AddText(ImVec2(tSpeechPos.x + 1.0f, tSpeechPos.y + 1.0f), IM_COL32(0, 0, 0, 200), pSpeechText.c_str());
-        tDrawList->AddText(tSpeechPos, IM_COL32(255, 255, 255, 255), pSpeechText.c_str());
-    }
-}
-
-void WorldScene::renderDamageNumbers(double pExtraSeconds)
-{
-    ImDrawList* tDrawList = ImGui::GetBackgroundDrawList(ImGui::GetMainViewport());
     for (const DamageNumber& tNumber : mDamageNumbers.getAll())
     {
         auto tEntity = mEntities->getAll().find(tNumber.entityId);
@@ -1359,34 +1288,19 @@ void WorldScene::renderDamageNumbers(double pExtraSeconds)
         glm::vec3 tPosition = WorldEntities::getPosition(tEntity->second, pExtraSeconds) + tEntity->second.getHeadTopOffset()
                             + glm::vec3(0.0f, DamageNumbers::kRiseUnits * tProgress, 0.0f);
 
-        std::optional<ImVec2> tScreenPos = projectToScreen(tPosition);
+        std::optional<glm::vec2> tScreenPos = projectToScreen(tPosition);
 
-        if (!tScreenPos)
+        if (tScreenPos)
         {
-            continue;
+            WorldOverlay::NumberToneType tTone = tNumber.isAgainstLocal ? WorldOverlay::NumberToneType::eAgainstLocal
+                                               : tNumber.isByLocal ? WorldOverlay::NumberToneType::eByLocal
+                                               : WorldOverlay::NumberToneType::eOther;
+
+            mOverlay->showDamageNumber(tScreenPos->x, tScreenPos->y, tNumber.text, tTone, 1.0f - tProgress * tProgress);
         }
-
-        int tAlpha = static_cast<int>(255.0f * (1.0f - tProgress * tProgress));
-        ImU32 tColor = tNumber.isAgainstLocal ? IM_COL32(255, 102, 102, tAlpha)
-                     : tNumber.isByLocal ? IM_COL32(255, 255, 255, tAlpha)
-                     : IM_COL32(200, 200, 210, tAlpha);
-
-        ImFont* tFont = ImGui::GetFont();
-        float tSize = ImGui::GetFontSize() * kDamageFontScale;
-        ImVec2 tTextSize = tFont->CalcTextSizeA(tSize, FLT_MAX, 0.0f, tNumber.text.c_str());
-        ImVec2 tPos = toGlobalImGuiPos(ImVec2(tScreenPos->x - tTextSize.x * 0.5f, tScreenPos->y - kNameplatePixelOffset - tTextSize.y * 2.0f));
-
-        tDrawList->AddText(tFont, tSize, ImVec2(tPos.x + 1.0f, tPos.y + 1.0f), IM_COL32(0, 0, 0, tAlpha), tNumber.text.c_str());
-        tDrawList->AddText(tFont, tSize, tPos, tColor, tNumber.text.c_str());
     }
-}
 
-ImVec2 WorldScene::toGlobalImGuiPos(const ImVec2& pWindowLocalPos) const
-{
-    ImGuiViewport* tViewport = ImGui::GetMainViewport();
-    ImVec2 tOffset = tViewport ? tViewport->Pos : ImVec2(0.0f, 0.0f);
-
-    return ImVec2(pWindowLocalPos.x + tOffset.x, pWindowLocalPos.y + tOffset.y);
+    mOverlay->endFrame();
 }
 
 bool WorldScene::isCapturingMouse() const

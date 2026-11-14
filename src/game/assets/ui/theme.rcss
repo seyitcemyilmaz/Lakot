@@ -2308,3 +2308,161 @@ body
 .shop-confirm-text { display: block; margin-bottom: 8dp; text-align: center; font-size: 15dp; color: #EBEBF0; }
 .shop-confirm-row { display: flex; flex-direction: row; }
 .shop-confirm-btn { flex: 1 1 auto; margin-right: 6dp; }
+
+/* ===== World overlay (worldoverlay.rml) =====
+   Nameplates, damage numbers and the player context menu, positioned in
+   screen pixels each frame by WorldOverlay from projected world points. */
+.wo-screen
+{
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.wo-layer
+{
+    display: block;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.wo-hidden
+{
+    display: none;
+}
+
+.wo-plate
+{
+    position: absolute;
+    width: 240dp;
+    height: 0px;
+    margin-left: -120dp;
+    margin-top: -30dp;
+    text-align: center;
+}
+
+.wo-name
+{
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    font-size: 15dp;
+    color: #FFFFFF;
+    text-shadow: 1px 1px #000000;
+}
+
+.wo-name.tone-hostile { color: #FF6666; }
+.wo-name.tone-npc { color: #F2B852; }
+.wo-name.tone-monster { color: #FF8C6E; }
+.wo-name.tone-item { color: #FFE078; }
+.wo-name.tone-dead { color: #969696; }
+
+.wo-bar
+{
+    display: none;
+    position: absolute;
+    top: 2dp;
+    left: 50%;
+    width: 60dp;
+    height: 5dp;
+    margin-left: -30dp;
+    background-color: #1A1A20;
+    border-width: 1px;
+    border-color: #40404c;
+}
+
+.wo-plate.has-bar .wo-bar
+{
+    display: block;
+}
+
+.wo-bar-fill
+{
+    height: 100%;
+    background-color: #C63E3E;
+}
+
+.wo-speech
+{
+    display: none;
+    position: absolute;
+    top: 4dp;
+    left: 0px;
+    width: 100%;
+    font-size: 15dp;
+    color: #EBEBF0;
+    text-shadow: 1px 1px #000000;
+}
+
+.wo-plate.has-bar .wo-speech
+{
+    top: 12dp;
+}
+
+.wo-plate.has-speech .wo-speech
+{
+    display: block;
+}
+
+.wo-number
+{
+    position: absolute;
+    width: 120dp;
+    margin-left: -60dp;
+    margin-top: -72dp;
+    text-align: center;
+    font-size: 24dp;
+    font-weight: bold;
+    color: #C8C8D2;
+    text-shadow: 1px 1px #000000;
+}
+
+.wo-number.num-against { color: #FF6666; }
+.wo-number.num-local { color: #FFFFFF; }
+
+.wo-menu
+{
+    position: absolute;
+    width: 140dp;
+    padding: 4dp;
+    background-color: #212129;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+    pointer-events: auto;
+}
+
+.wo-menu-title
+{
+    padding: 4dp 8dp;
+    font-size: 15dp;
+    color: #9999A8;
+}
+
+.wo-menu-item
+{
+    display: block;
+    padding: 6dp 8dp;
+    font-size: 15dp;
+    color: #EBEBF0;
+    border-radius: 4dp;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.wo-menu-item:hover
+{
+    background-color: #40404c;
+    color: #D9A640;
+}
+
+.wo-menu-item.is-disabled
+{
+    color: #9999A8;
+    cursor: default;
+    pointer-events: none;
+}

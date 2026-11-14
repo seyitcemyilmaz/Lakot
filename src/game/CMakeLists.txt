@@ -92,6 +92,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     graphics/model/AnimationRetargeter.h graphics/model/AnimationRetargeter.cpp
     graphics/model/MotionLibrary.h graphics/model/MotionLibrary.cpp
     scene/world/DamageNumbers.h scene/world/DamageNumbers.cpp
+    scene/world/WorldOverlay.h scene/world/WorldOverlay.cpp
     gui/rml/VitalsRmlController.h gui/rml/VitalsRmlController.cpp
     item/ItemAppearance.h item/ItemAppearance.cpp
     item/ItemIconRenderer.h item/ItemIconRenderer.cpp

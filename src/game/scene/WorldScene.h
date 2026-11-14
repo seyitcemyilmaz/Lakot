@@ -20,6 +20,7 @@
 #include "world/WorldEffects.h"
 #include "world/WorldEntities.h"
 #include "world/WorldHud.h"
+#include "world/WorldOverlay.h"
 #include "world/WorldPicker.h"
 
 #include "../graphics/camera/ThirdPersonCamera.h"
@@ -87,6 +88,7 @@ private:
     std::unique_ptr<WorldPicker> mPicker;
     std::unique_ptr<AutoWalk> mAutoWalk;
     CameraBob mCameraBob;
+    std::unique_ptr<WorldOverlay> mOverlay;
     std::unique_ptr<WorldHud> mHud;
 
     bool mIsMovingForward{false};
@@ -97,10 +99,6 @@ private:
     bool mIsOrbiting{false};
     glm::vec2 mRightClickDownPos{0.0f, 0.0f};
     float mOrbitDragDistance{0.0f};
-
-    bool mContextMenuOpenRequested{false};
-    glm::vec2 mContextMenuScreenPos{0.0f, 0.0f};
-    std::optional<WorldPicker::Target> mContextMenuTarget;
 
     uint64_t mPendingPickupId{0};
     uint64_t mPendingShopNpcId{0};
@@ -149,14 +147,10 @@ private:
 
     void endOrbit();
 
-    void renderNameplate(const glm::vec3& pWorldPosition, const std::string& pName, const std::string& pSpeechText,
-                         ImU32 pNameColor, int pHealthPercent);
-    void renderDamageNumbers(double pExtraSeconds);
-    std::optional<ImVec2> projectToScreen(const glm::vec3& pWorldPosition) const;
-    ImU32 getNameColor(const WorldEntity& pEntity) const;
+    void renderOverlay(double pExtraSeconds);
+    std::optional<glm::vec2> projectToScreen(const glm::vec3& pWorldPosition) const;
+    WorldOverlay::NameToneType getNameTone(const WorldEntity& pEntity) const;
     void updateAttack(double pDeltaTime);
-
-    ImVec2 toGlobalImGuiPos(const ImVec2& pWindowLocalPos) const;
 };
 
 }

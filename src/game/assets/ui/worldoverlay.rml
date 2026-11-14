@@ -1,0 +1,16 @@
+<rml>
+<head>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="wo-screen">
+    <div id="plates" class="wo-layer"></div>
+    <div id="numbers" class="wo-layer"></div>
+    <div data-model="worldoverlay" class="wo-layer">
+        <div class="wo-menu" data-if="menu_open" data-style-left="menu_left" data-style-top="menu_top">
+            <div class="wo-menu-title">{{ menu_name }}</div>
+            <div class="wo-menu-item" data-event-click="menu_chat">[[world.menu_chat]]</div>
+            <div class="wo-menu-item is-disabled">[[world.menu_trade]]</div>
+        </div>
+    </div>
+</body>
+</rml>
