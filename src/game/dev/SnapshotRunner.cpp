@@ -172,7 +172,44 @@ bool SnapshotRunner::parseLine(const std::string& pLine)
         return true;
     }
 
+    if (tCommand == "orbit" || tCommand == "wheel")
+    {
+        float tX = 0.0f;
+        float tY = 0.0f;
+
+        if (!(tStream >> tX) || (tCommand == "orbit" && !(tStream >> tY)))
+        {
+            return false;
+        }
+
+        if (tCommand == "wheel")
+        {
+            tStep.type = StepType::eWheel;
+            tStep.y = tX;
+            mSteps.push_back(tStep);
+            return true;
+        }
+
+        addOrbit(tX, tY);
+        return true;
+    }
+
     return false;
+}
+
+void SnapshotRunner::addOrbit(float pDeltaX, float pDeltaY)
+{
+    Step tMove;
+    tMove.type = StepType::eMouseMove;
+    tMove.x = 0.5f;
+    tMove.y = 0.5f;
+    mSteps.push_back(tMove);
+
+    Step tDrag = tMove;
+    tDrag.type = StepType::eMouseDrag;
+    tDrag.x = pDeltaX;
+    tDrag.y = pDeltaY;
+    mSteps.push_back(tDrag);
 }
 
 void SnapshotRunner::addClick(float pX, float pY, int pButton, int pCount)
@@ -236,6 +273,8 @@ void SnapshotRunner::update(SDL_Window* pWindow)
             case StepType::eMouseMove:
             case StepType::eMouseDown:
             case StepType::eMouseUp:
+            case StepType::eMouseDrag:
+            case StepType::eWheel:
                 pushMouse(pWindow, tStep);
                 return;
             case StepType::eShot:
@@ -297,7 +336,45 @@ void SnapshotRunner::pushMouse(SDL_Window* pWindow, const Step& pStep)
 
     SDL_Event tEvent{};
 
-    if (pStep.type == StepType::eMouseMove)
+    if (pStep.type == StepType::eMouseDrag)
+    {
+        const float tCenterX = static_cast<float>(tWidth) * 0.5f;
+        const float tCenterY = static_cast<float>(tHeight) * 0.5f;
+
+        tEvent.type = SDL_EVENT_MOUSE_BUTTON_DOWN;
+        tEvent.button.windowID = tWindowId;
+        tEvent.button.button = SDL_BUTTON_RIGHT;
+        tEvent.button.down = true;
+        tEvent.button.clicks = 1;
+        tEvent.button.x = tCenterX;
+        tEvent.button.y = tCenterY;
+        SDL_PushEvent(&tEvent);
+
+        tEvent = SDL_Event{};
+        tEvent.type = SDL_EVENT_MOUSE_MOTION;
+        tEvent.motion.windowID = tWindowId;
+        tEvent.motion.x = tCenterX;
+        tEvent.motion.y = tCenterY;
+        tEvent.motion.xrel = pStep.x;
+        tEvent.motion.yrel = pStep.y;
+        SDL_PushEvent(&tEvent);
+
+        tEvent = SDL_Event{};
+        tEvent.type = SDL_EVENT_MOUSE_BUTTON_UP;
+        tEvent.button.windowID = tWindowId;
+        tEvent.button.button = SDL_BUTTON_RIGHT;
+        tEvent.button.down = false;
+        tEvent.button.clicks = 1;
+        tEvent.button.x = tCenterX;
+        tEvent.button.y = tCenterY;
+    }
+    else if (pStep.type == StepType::eWheel)
+    {
+        tEvent.type = SDL_EVENT_MOUSE_WHEEL;
+        tEvent.wheel.windowID = tWindowId;
+        tEvent.wheel.y = pStep.y;
+    }
+    else if (pStep.type == StepType::eMouseMove)
     {
         tEvent.type = SDL_EVENT_MOUSE_MOTION;
         tEvent.motion.windowID = tWindowId;

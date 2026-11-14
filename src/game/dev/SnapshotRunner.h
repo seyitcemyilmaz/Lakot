@@ -33,6 +33,8 @@ private:
         eMouseMove,
         eMouseDown,
         eMouseUp,
+        eMouseDrag,
+        eWheel,
         eShot
     };
 
@@ -46,6 +48,7 @@ private:
         std::string text;
     };
 
+    void addOrbit(float pDeltaX, float pDeltaY);
     void addClick(float pX, float pY, int pButton, int pCount);
     bool parseLine(const std::string& pLine);
     void pushKey(SDL_Window* pWindow, const std::string& pName);

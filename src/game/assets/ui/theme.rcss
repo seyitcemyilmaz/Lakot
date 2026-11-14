@@ -347,7 +347,7 @@ body
     position: absolute;
     background-color: rgba(33, 33, 41, 0);
     border-width: 1px;
-    border-color: #40404c;
+    border-color: #6A6A7A;
     border-radius: 4dp;
     cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s;

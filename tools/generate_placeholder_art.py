@@ -141,9 +141,9 @@ def paper_doll():
     d.polygon(pts(*leg), fill=body, outline=edge)
     d.polygon(pts(*mirror(*leg)), fill=body, outline=edge)
 
-    foot = [(cx - 36, 176), (cx - 4, 176), (cx - 4, 186), (cx - 36, 186)]
+    foot = [(cx - 36, 176), (cx - 4, 176), (cx - 4, 184), (cx - 36, 184)]
     d.rectangle(pts(foot[0], foot[2]), fill=edge)
-    d.rectangle(pts((cx + 4, 176), (cx + 36, 186)), fill=edge)
+    d.rectangle(pts((cx + 4, 176), (cx + 36, 184)), fill=edge)
 
     for name, left, top, width, height in layout["reserved"]:
         d.rounded_rectangle(pts((left, top), (left + width, top + height)), radius=4 * k, outline=reserve, width=k)
