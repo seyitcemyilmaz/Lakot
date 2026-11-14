@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/Panel.h
     gui/PanelLoader.h gui/PanelLoader.cpp
     gui/AttachmentPanel.h gui/AttachmentPanel.cpp
+    dev/SnapshotRunner.h dev/SnapshotRunner.cpp
     gui/EffectsPanel.h gui/EffectsPanel.cpp
 
     gui/rml/backend/RmlUi_Renderer_GL3.h gui/rml/backend/RmlUi_Renderer_GL3.cpp

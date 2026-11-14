@@ -8,6 +8,7 @@
 
 #include "Engine.h"
 #include "FileManager.h"
+#include "dev/SnapshotRunner.h"
 
 #if defined(SDL_PLATFORM_WINDOWS)
 #include <windows.h>
@@ -79,7 +80,17 @@ SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, tSamples > 0 ? 1 : 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, tSamples);
 
-        tWindow = SDL_CreateWindow("Lakot Online", 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+#if defined(LAKOT_DEV_TOOLS)
+        if (lakot::SnapshotRunner::isRequested())
+        {
+            tWindow = SDL_CreateWindow("Lakot Snapshot", lakot::SnapshotRunner::getRequestedWidth(), lakot::SnapshotRunner::getRequestedHeight(),
+                                       SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_NOT_FOCUSABLE);
+        }
+        else
+#endif
+        {
+            tWindow = SDL_CreateWindow("Lakot Online", 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+        }
 
         if (!tWindow)
         {
@@ -112,6 +123,13 @@ SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
 
     // Vsync, adaptive where the driver supports it (a late frame tears
     // instead of waiting a whole extra refresh).
+#if defined(LAKOT_DEV_TOOLS)
+    if (lakot::SnapshotRunner::isRequested())
+    {
+        SDL_GL_SetSwapInterval(0);
+    }
+    else
+#endif
     if (!SDL_GL_SetSwapInterval(-1))
     {
         SDL_GL_SetSwapInterval(1);

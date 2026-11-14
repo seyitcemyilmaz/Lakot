@@ -60,8 +60,17 @@ bool Engine::initialize()
     mLanguageSettings.load();
     mLocalization.setLanguage(mLanguageSettings.getLanguage());
 
-    mDisplaySettings.load(mWindow);
-    mDisplaySettings.apply(mWindow);
+#if defined(LAKOT_DEV_TOOLS)
+    bool tIsSnapshotRun = SnapshotRunner::isRequested();
+#else
+    bool tIsSnapshotRun = false;
+#endif
+
+    if (!tIsSnapshotRun)
+    {
+        mDisplaySettings.load(mWindow);
+        mDisplaySettings.apply(mWindow);
+    }
 
     mLastTime = SDL_GetPerformanceCounter();
 
@@ -97,6 +106,19 @@ bool Engine::initialize()
     mSceneManager.setNextScene(std::make_unique<WorldScene>(*this));
 #else
     mSceneManager.setNextScene(std::make_unique<LoginScene>(*this));
+#endif
+
+#if defined(LAKOT_DEV_TOOLS)
+    if (tIsSnapshotRun)
+    {
+        const char* tOutDir = SDL_getenv("LAKOT_SNAPSHOT_OUT");
+        mSnapshotRunner = std::make_unique<SnapshotRunner>();
+
+        if (!mSnapshotRunner->load(SDL_getenv("LAKOT_SNAPSHOT_SCRIPT"), tOutDir ? tOutDir : "snapshots"))
+        {
+            return false;
+        }
+    }
 #endif
 
     SDL_Log("Engine is initialized.");
@@ -170,6 +192,13 @@ void Engine::render()
     mGarbageCollector.executeSynchronousTasks();
 
     draw();
+
+#if defined(LAKOT_DEV_TOOLS)
+    if (mSnapshotRunner)
+    {
+        mSnapshotRunner->update(mWindow);
+    }
+#endif
 }
 
 double Engine::getInterpolationAlpha() const

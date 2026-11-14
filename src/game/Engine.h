@@ -24,6 +24,7 @@
 #include "settings/DisplaySettings.h"
 #include "settings/LanguageSettings.h"
 #include "localization/Localization.h"
+#include "dev/SnapshotRunner.h"
 
 namespace lakot
 {
@@ -120,6 +121,10 @@ private:
 
     // Exists only while NetworkManager is reconnecting.
     std::unique_ptr<ReconnectRmlController> mReconnectOverlay;
+
+#if defined(LAKOT_DEV_TOOLS)
+    std::unique_ptr<SnapshotRunner> mSnapshotRunner;
+#endif
 
     uint64_t mLastTime;
 
