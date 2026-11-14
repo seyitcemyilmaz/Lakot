@@ -11,7 +11,17 @@
   "z": 24.0,
   "yaw": -1.5707963267948966
  },
- "portals": [],
+ "portals": [
+  {
+   "x": 810.0,
+   "z": -32.0,
+   "radius": 14.0,
+   "targetMap": 102,
+   "targetX": -735.0,
+   "targetZ": 14.0,
+   "targetYaw": -1.5707963267948966
+  }
+ ],
  "objects": [
   {
    "type": "wall",

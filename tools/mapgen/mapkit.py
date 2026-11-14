@@ -367,3 +367,16 @@ def write_map(out, meta, h, ground, block, roads, objs):
         f.write(encode_json(meta))
     write_preview(out, ground, h, objs)
     print("wrote", out, "-", len(objs), "objects")
+
+
+def assert_walkable(h, block, points, label):
+    # Fails the run if any point a portal or spawn uses would be underwater or blocked.
+    step = WORLD / (HEIGHT_RES - 1)
+    cell = WORLD / BLOCK_RES
+    for px, pz in points:
+        i = int(round((px + HALF) / step))
+        j = int(round((pz + HALF) / step))
+        bi = int((px + HALF) / cell)
+        bj = int((pz + HALF) / cell)
+        if h[j, i] < WATER + 0.5 or block[bj, bi] != 0:
+            raise SystemExit("%s: (%s, %s) is not walkable ground" % (label, px, pz))

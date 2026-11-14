@@ -254,7 +254,9 @@ def main():
         "heightMax": HEIGHT_MAX,
         "waterLevel": WATER,
         "spawn": {"x": 0.0, "z": 24.0, "yaw": -math.pi / 2.0},
-        "portals": [],
+        "portals": [
+            portal(810.0, -32.0, 14.0, 102, -735.0, 14.0, -math.pi / 2.0),
+        ],
         "objects": objs,
         "safeZones": [
             safe_zone("Village Square", [[-44.0, -44.0], [44.0, -44.0], [44.0, 44.0], [-44.0, 44.0]]),
