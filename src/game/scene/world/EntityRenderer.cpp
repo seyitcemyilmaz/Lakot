@@ -19,11 +19,11 @@ namespace
     constexpr float kGroundItemLift = 0.45f;
     constexpr float kTrailBaseFraction = 0.4f;
 
-    void drawModel(ShaderProgram& pShader, const SkinnedModel& pModel, const glm::mat4& pTransform, const std::vector<glm::mat4>& pPalette)
+    void drawModel(ShaderProgram& pShader, const SkinnedModel& pModel, const glm::mat4& pTransform, const std::vector<glm::mat4>& pPalette, bool pShowHair = true)
     {
         pShader.setMat4("uModel", pTransform);
         pShader.setMat4Array("uBones", pPalette.data(), static_cast<unsigned int>(pPalette.size()));
-        pModel.draw(0);
+        pModel.draw(0, pShowHair);
     }
 }
 
@@ -133,7 +133,11 @@ void EntityRenderer::draw(ShaderProgram& pShader, const WorldEntities& pEntities
         const std::vector<glm::mat4>& tPalette = tEntity.animator->getPalette();
 
         ItemAppearance::apply(pShader, ItemLook{ nullptr, tEntity.tint, 0.0f });
-        drawModel(pShader, *tEntity.model, tTransform, tPalette);
+        bool tHasHelmet = std::any_of(tEntity.equipment.begin(), tEntity.equipment.end(), [this](const EquippedVisual& pEquipped)
+        {
+            return pEquipped.slot == EquipSlotType::eHelmet && mAppearance.find(pEquipped.item) != nullptr;
+        });
+        drawModel(pShader, *tEntity.model, tTransform, tPalette, !tHasHelmet);
 
         for (const EquippedVisual& tEquipped : tEntity.equipment)
         {

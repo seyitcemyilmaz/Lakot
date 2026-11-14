@@ -1,4 +1,4 @@
-"""Applies only the requested fixes to a GLB after backing the input up. Run: blender -b -P model_fix.py -- in.glb out.glb [--recalc-normals] [--decimate RATIO] [--apply-scale] [--origin bottom|center]"""
+"""Applies only the requested fixes to a GLB after backing the input up. Run: blender -b -P model_fix.py -- in.glb out.glb [--recalc-normals] [--decimate RATIO] [--apply-scale] [--origin bottom|center] [--trim-below Y]"""
 
 import argparse
 import datetime
@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument("--decimate", type=float)
     parser.add_argument("--apply-scale", action="store_true")
     parser.add_argument("--origin", choices=("bottom", "center"))
+    parser.add_argument("--trim-below", type=float)
     return parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
 
 
@@ -89,6 +90,19 @@ def move_origin(meshes, mode):
     bpy.context.scene.cursor.location = Vector()
 
 
+def trim_below(meshes, height):
+    for mesh in meshes:
+        select_only([mesh])
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bpy.ops.object.mode_set(mode="OBJECT")
+        for vertex in mesh.data.vertices:
+            vertex.select = (mesh.matrix_world @ vertex.co).z < height
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.delete(type="VERT")
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+
 def main():
     args = parse_args()
     check_target(args.source, args.target)
@@ -102,6 +116,8 @@ def main():
         recalc_normals(meshes)
     if args.decimate is not None:
         decimate(meshes, args.decimate)
+    if args.trim_below is not None:
+        trim_below(meshes, args.trim_below)
     if args.origin:
         move_origin(meshes, args.origin)
     select_only(meshes)

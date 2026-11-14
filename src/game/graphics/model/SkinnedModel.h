@@ -23,6 +23,7 @@ class SkinnedModel final : public Renderable
 {
 public:
     static constexpr size_t kMaxJoints = 64;
+    static constexpr const char* kHairMaterialName = "Hair";
 
     struct Bounds
     {
@@ -55,7 +56,7 @@ public:
 
     const std::vector<glm::mat4>& getBindPalette() const;
 
-    void draw(unsigned int pTextureUnit) const;
+    void draw(unsigned int pTextureUnit, bool pShowHair = true) const;
 
 private:
     SkinnedModel();
@@ -65,6 +66,7 @@ private:
     std::shared_ptr<Texture> mTexture;
 
     unsigned int mIndexCount{0};
+    unsigned int mBodyIndexCount{0};
     Bounds mBounds;
     std::vector<std::optional<Bounds>> mJointBounds;
     std::vector<glm::mat4> mBindPalette;

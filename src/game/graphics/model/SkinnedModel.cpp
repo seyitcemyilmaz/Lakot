@@ -166,6 +166,7 @@ std::unique_ptr<SkinnedModel> SkinnedModel::build(const aiScene& pScene, const s
     std::vector<glm::ivec4> tJoints;
     std::vector<glm::vec4> tWeights;
     std::vector<unsigned int> tIndices;
+    std::vector<unsigned int> tHairIndices;
 
     for (unsigned int tMeshIndex = 0; tMeshIndex < tScene->mNumMeshes; ++tMeshIndex)
     {
@@ -221,13 +222,17 @@ std::unique_ptr<SkinnedModel> SkinnedModel::build(const aiScene& pScene, const s
             }
         }
 
+        aiString tMaterialName;
+        tScene->mMaterials[tMesh->mMaterialIndex]->Get(AI_MATKEY_NAME, tMaterialName);
+        std::vector<unsigned int>& tTargetIndices = std::string(tMaterialName.C_Str()) == kHairMaterialName ? tHairIndices : tIndices;
+
         for (unsigned int tFace = 0; tFace < tMesh->mNumFaces; ++tFace)
         {
             const aiFace& tFaceData = tMesh->mFaces[tFace];
 
             for (unsigned int tCorner = 0; tCorner < tFaceData.mNumIndices; ++tCorner)
             {
-                tIndices.push_back(static_cast<unsigned int>(tBase) + tFaceData.mIndices[tCorner]);
+                tTargetIndices.push_back(static_cast<unsigned int>(tBase) + tFaceData.mIndices[tCorner]);
             }
         }
     }
@@ -310,6 +315,8 @@ std::unique_ptr<SkinnedModel> SkinnedModel::build(const aiScene& pScene, const s
         return nullptr;
     }
 
+    tModel->mBodyIndexCount = static_cast<unsigned int>(tIndices.size());
+    tIndices.insert(tIndices.end(), tHairIndices.begin(), tHairIndices.end());
     tModel->mIndexCount = static_cast<unsigned int>(tIndices.size());
 
     tModel->mVertexInformation.set("positions", tPositions);
@@ -411,7 +418,7 @@ const std::vector<glm::mat4>& SkinnedModel::getBindPalette() const
     return mBindPalette;
 }
 
-void SkinnedModel::draw(unsigned int pTextureUnit) const
+void SkinnedModel::draw(unsigned int pTextureUnit, bool pShowHair) const
 {
     if (!mIsInitialized)
     {
@@ -421,5 +428,5 @@ void SkinnedModel::draw(unsigned int pTextureUnit) const
     mTexture->bind(pTextureUnit);
 
     mVertexArrayObject.bind();
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(pShowHair ? mIndexCount : mBodyIndexCount), GL_UNSIGNED_INT, nullptr);
 }
