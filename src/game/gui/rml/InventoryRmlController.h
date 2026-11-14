@@ -58,6 +58,8 @@ public:
 private:
     // In dp; must match .inv-cell in theme.rcss.
     static constexpr uint32_t kCellSize = 32;
+    static constexpr uint32_t kDollWidth = 224;
+    static constexpr uint32_t kDollHeight = 192;
 
     enum class RequestType
     {
@@ -77,6 +79,7 @@ private:
     };
 
     static const DollSlotPosition kDollSlots[];
+    static const DollSlotPosition kDollReserved[];
     static const size_t kDollSlotCount;
 
     struct CellRow
@@ -146,6 +149,8 @@ private:
 
     Rml::String mGridWidthPx{"0px"};
     Rml::String mGridHeightPx{"0px"};
+    Rml::String mDollWidthPx{"0px"};
+    Rml::String mDollHeightPx{"0px"};
 
     std::vector<TooltipLine> mTooltipLines;
     Rml::String mTooltipName;

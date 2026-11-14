@@ -334,9 +334,6 @@ body
 {
     position: relative;
     flex-shrink: 0;
-    /* Keep in sync with DOLL_WIDTH/DOLL_HEIGHT in tools/generate_placeholder_art.py. */
-    width: 188dp;
-    height: 194dp;
     margin-bottom: 8dp;
     background-color: #1A1A20;
     border-width: 1px;
@@ -348,7 +345,7 @@ body
 .inv-doll-slot
 {
     position: absolute;
-    background-color: rgba(33, 33, 41, 230);
+    background-color: rgba(33, 33, 41, 0);
     border-width: 1px;
     border-color: #40404c;
     border-radius: 4dp;
@@ -358,6 +355,7 @@ body
 
 .inv-doll-slot:hover
 {
+    background-color: rgba(64, 64, 76, 90);
     border-color: #6A6A78;
 }
 

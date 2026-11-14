@@ -16,6 +16,7 @@ Re-run after changing an item's footprint or adding a template:
 """
 
 import os
+import re
 from PIL import Image, ImageDraw
 
 CELL = 64
@@ -81,33 +82,94 @@ def relic():
     return image
 
 
-# Must match .inv-doll in theme.rcss and kDollSlots in InventoryRmlController.
-DOLL_WIDTH, DOLL_HEIGHT = 188, 194
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DOLL_HEADER = os.path.join(ROOT, "src", "game", "gui", "rml", "InventoryRmlController.h")
+DOLL_SOURCE = os.path.join(ROOT, "src", "game", "gui", "rml", "InventoryRmlController.cpp")
 DOLL_SCALE = 2
 
 
+def read_doll_layout():
+    header = open(DOLL_HEADER, encoding="utf-8").read()
+    source = open(DOLL_SOURCE, encoding="utf-8").read()
+
+    def constant(name):
+        return int(re.search(name + r"\s*=\s*(\d+)", header).group(1))
+
+    def entries(array):
+        start = source.index(array + "[] =")
+        block = source[start:source.index("};", start)]
+        return re.findall(r"EquipSlotType::e(\w+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)", block)
+
+    cell = constant("kCellSize")
+    layout = {"width": constant("kDollWidth"), "height": constant("kDollHeight"), "slots": [], "reserved": []}
+
+    for key, array in (("slots", "kDollSlots"), ("reserved", "kDollReserved")):
+        for name, left, top, columns, rows in entries(array):
+            layout[key].append((name, int(left), int(top), int(columns) * cell, int(rows) * cell))
+
+    return layout
+
+
 def paper_doll():
+    layout = read_doll_layout()
     k = DOLL_SCALE
-    image = Image.new("RGBA", (DOLL_WIDTH * k, DOLL_HEIGHT * k), (0, 0, 0, 0))
+    image = Image.new("RGBA", (layout["width"] * k, layout["height"] * k), (0, 0, 0, 0))
     d = ImageDraw.Draw(image)
 
     body = (58, 58, 70, 255)
     edge = (82, 82, 96, 255)
+    glyph = (120, 120, 136, 150)
+    reserve = (64, 64, 76, 150)
+    cx = layout["width"] // 2
 
     def pts(*points):
         return [(x * k, y * k) for x, y in points]
 
-    d.ellipse(pts((68, 14), (120, 70)), fill=body, outline=edge, width=2 * k)            # head
-    d.rectangle(pts((86, 66), (102, 82)), fill=body, outline=edge)                       # neck
-    d.polygon(pts((50, 80), (138, 80), (130, 152), (58, 152)), fill=body, outline=edge)  # torso
-    d.polygon(pts((50, 82), (30, 94), (24, 160), (42, 158)), fill=body, outline=edge)    # left arm
-    d.polygon(pts((138, 82), (158, 94), (164, 160), (146, 158)), fill=body, outline=edge)  # right arm
-    d.polygon(pts((60, 152), (92, 152), (90, 172), (64, 172)), fill=body, outline=edge)  # left leg
-    d.polygon(pts((96, 152), (128, 152), (124, 172), (98, 172)), fill=body, outline=edge)  # right leg
-    d.rectangle(pts((62, 172), (92, 182)), fill=edge)                                    # left foot
-    d.rectangle(pts((96, 172), (126, 182)), fill=edge)                                   # right foot
+    def mirror(*points):
+        return [(2 * cx - x, y) for x, y in points]
+
+    d.ellipse(pts((cx - 22, 26), (cx + 22, 72)), fill=body, outline=edge, width=2 * k)
+    d.rectangle(pts((cx - 8, 70), (cx + 8, 84)), fill=body, outline=edge)
+
+    d.polygon(pts((cx - 44, 82), (cx + 44, 82), (cx + 36, 150), (cx - 36, 150)), fill=body, outline=edge)
+
+    arm = [(cx - 44, 84), (cx - 62, 96), (cx - 68, 150), (cx - 52, 148)]
+    d.polygon(pts(*arm), fill=body, outline=edge)
+    d.polygon(pts(*mirror(*arm)), fill=body, outline=edge)
+
+    leg = [(cx - 36, 150), (cx - 4, 150), (cx - 6, 176), (cx - 32, 176)]
+    d.polygon(pts(*leg), fill=body, outline=edge)
+    d.polygon(pts(*mirror(*leg)), fill=body, outline=edge)
+
+    foot = [(cx - 36, 176), (cx - 4, 176), (cx - 4, 186), (cx - 36, 186)]
+    d.rectangle(pts(foot[0], foot[2]), fill=edge)
+    d.rectangle(pts((cx + 4, 176), (cx + 36, 186)), fill=edge)
+
+    for name, left, top, width, height in layout["reserved"]:
+        d.rounded_rectangle(pts((left, top), (left + width, top + height)), radius=4 * k, outline=reserve, width=k)
+
+    for name, left, top, width, height in layout["slots"]:
+        draw_slot_glyph(d, name, (left + width / 2) * k, (top + height / 2) * k, k, glyph)
 
     return image
+
+
+def draw_slot_glyph(d, name, x, y, k, color):
+    u = 6 * k
+    if name == "Helmet":
+        d.pieslice([x - 3 * u, y - 3 * u, x + 3 * u, y + 3 * u], 180, 360, fill=color)
+        d.rectangle([x - 3 * u, y, x + 3 * u, y + u], fill=color)
+    elif name == "Armor":
+        d.polygon([(x - 3 * u, y - 2.5 * u), (x - 1.2 * u, y - 3 * u), (x + 1.2 * u, y - 3 * u), (x + 3 * u, y - 2.5 * u),
+                   (x + 2.4 * u, y + 3 * u), (x - 2.4 * u, y + 3 * u)], fill=color)
+    elif name == "Boots":
+        d.polygon([(x - 2 * u, y - 1.6 * u), (x - 0.4 * u, y - 1.6 * u), (x - 0.4 * u, y + 0.6 * u), (x + 2.2 * u, y + 1.4 * u),
+                   (x + 2.2 * u, y + 2.2 * u), (x - 2 * u, y + 2.2 * u)], fill=color)
+    elif name == "Weapon":
+        d.polygon([(x, y - 4 * u), (x + 0.8 * u, y - 3 * u), (x + 0.8 * u, y + 1.6 * u), (x - 0.8 * u, y + 1.6 * u),
+                   (x - 0.8 * u, y - 3 * u)], fill=color)
+        d.rectangle([x - 2 * u, y + 1.6 * u, x + 2 * u, y + 2.4 * u], fill=color)
+        d.rectangle([x - 0.5 * u, y + 2.4 * u, x + 0.5 * u, y + 4 * u], fill=color)
 
 
 ICONS = {

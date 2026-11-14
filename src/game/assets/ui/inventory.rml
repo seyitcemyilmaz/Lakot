@@ -14,7 +14,7 @@
         </div>
 
         <div class="inv-body">
-            <div class="inv-doll">
+            <div class="inv-doll" data-style-width="doll_width_px" data-style-height="doll_height_px">
                 <div class="inv-doll-slot" data-for="slot : equipment"
                      data-class-is-filled="slot.is_filled"
                      data-style-left="slot.left" data-style-top="slot.top"

@@ -53,10 +53,15 @@ namespace
 
 const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollSlots[] =
 {
-    { EquipSlotType::eHelmet, 61,   8, 2, 2 },
-    { EquipSlotType::eArmor,  61,  80, 2, 2 },
-    { EquipSlotType::eBoots,  61, 152, 2, 1 },
-    { EquipSlotType::eWeapon, 17,  72, 1, 3 },
+    { EquipSlotType::eHelmet, 80,   8, 2, 2 },
+    { EquipSlotType::eArmor,  80,  80, 2, 2 },
+    { EquipSlotType::eBoots,  80, 152, 2, 1 },
+    { EquipSlotType::eWeapon, 14,  72, 1, 3 },
+};
+
+const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollReserved[] =
+{
+    { EquipSlotType::eNone, 178, 72, 1, 3 },
 };
 
 const size_t InventoryRmlController::kDollSlotCount =
@@ -146,6 +151,8 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
 
     tConstructor.Bind("grid_width_px", &mGridWidthPx);
     tConstructor.Bind("grid_height_px", &mGridHeightPx);
+    tConstructor.Bind("doll_width_px", &mDollWidthPx);
+    tConstructor.Bind("doll_height_px", &mDollHeightPx);
 
     tConstructor.Bind("tooltip_lines", &mTooltipLines);
     tConstructor.Bind("tooltip_name", &mTooltipName);
@@ -233,6 +240,8 @@ void InventoryRmlController::rebuild()
 
     mGridWidthPx = toDp(tGrid.width * kCellSize);
     mGridHeightPx = toDp(tGrid.pageHeight * kCellSize);
+    mDollWidthPx = toDp(kDollWidth);
+    mDollHeightPx = toDp(kDollHeight);
 
     mCells.clear();
     mCells.reserve(tCellsPerPage);
