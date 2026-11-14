@@ -38,6 +38,7 @@ private:
     void executeSummon(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
     void executeItem(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
     void executeGold(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
+    void executeClearBag(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
     void executeLevel(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
     void executeHeal(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;
     void executeSetHealth(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const;

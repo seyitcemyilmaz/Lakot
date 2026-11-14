@@ -96,6 +96,7 @@ public:
 
     void setStats(const CharacterStats& pStats);
     void setItems(std::vector<ItemInstance> pItems);
+    uint32_t clearBag(bool pIsEquipmentIncluded);
 
     void setHealth(int32_t pHealth);
     void setMana(int32_t pMana);

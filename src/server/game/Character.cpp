@@ -119,6 +119,31 @@ void Character::setItems(std::vector<ItemInstance> pItems)
     refreshVitals();
 }
 
+uint32_t Character::clearBag(bool pIsEquipmentIncluded)
+{
+    std::vector<ItemInstance> tKept;
+    uint32_t tRemoved = 0;
+
+    for (const ItemInstance& tItem : mInventory.getItems())
+    {
+        if (pIsEquipmentIncluded || tItem.location == ItemLocationType::eInventory)
+        {
+            ++tRemoved;
+            continue;
+        }
+
+        tKept.push_back(tItem);
+    }
+
+    if (tRemoved > 0)
+    {
+        setItems(std::move(tKept));
+        markDirty();
+    }
+
+    return tRemoved;
+}
+
 void Character::setHealth(int32_t pHealth)
 {
     mStats.health = std::clamp(pHealth, 0, getMaxHealth());

@@ -799,9 +799,33 @@ def t_server_survived():
           "exception/assert line in server log: " + next((l for l in srv.log_lines if "xception" in l or "Assertion" in l), ""))
 
 
+def t_clearbag():
+    g = C["G"]
+    P = world_player(1, "cb")
+    time.sleep(1.5)
+    r = cmd(g, f"/item {POTION} 3 {P.name}")
+    expect(r, OK, "/item before clearbag")
+    check(poll(lambda: inv_counts(P).get(POTION, 0) >= 3, 3), "potions not given before clearbag")
+    tMark = P.mark()
+    r = cmd(g, f"/clearbag {P.name}")
+    expect(r, OK, "/clearbag other", "bag items")
+    check(P.wait(lambda x: x.HasField("inventory_update"), 4, tMark) is not None, "target got no InventoryUpdate after clearbag")
+    check(poll(lambda: inv_counts(P).get(POTION, 0) == 0, 3), f"potions left after clearbag: {inv_counts(P).get(POTION, 0)}")
+    r = cmd(g, f"/clearbag {P.name}")
+    expect(r, FAILED, "/clearbag empty bag", "nothing to clear")
+    r = cmd(g, f"/clearbag {P.name} everything")
+    expect(r, USAGE, "/clearbag bad flag")
+    r = cmd(P, "/clearbag")
+    expect(r, UNKNOWN, "/clearbag as player")
+    r = cmd(g, f"/item {POTION} 1")
+    expect(r, OK, "/item self before clearbag all")
+    r = cmd(g, "/clearbag all")
+    expect(r, OK, "/clearbag all on self", "bag and equipment")
+
+
 TESTS = [t_help_player_lists_only_player_commands, t_item_as_player_same_as_unknown, t_raw_slash_chat_not_delivered,
          t_roll_nearby_only, t_whisper_command, t_who_and_pos, t_player_throttled_gm_commands_not,
-         t_item_inventory_update, t_item_bag_full, t_gold, t_level, t_heal_sethp, t_setmp_then_mana_potion_clamps,
+         t_item_inventory_update, t_clearbag, t_item_bag_full, t_gold, t_level, t_heal_sethp, t_setmp_then_mana_potion_clamps,
          t_kill_revive, t_tp_pos_and_rejects, t_summon_tpto, t_spawn_safe_zone_and_args, t_spawn_no_respawn, t_spawn_cap,
          t_announce_reaches_everyone, t_mute_online_all_channels_and_relog, t_mute_offline_via_db,
          t_kick_closes_and_resume_fails, t_out_of_range_battery, t_gm_audit_log, t_moderator_level_1, t_server_survived]

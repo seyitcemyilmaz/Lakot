@@ -59,6 +59,7 @@ void WorldCommands::registerCommands(CommandController& pCommandController)
 
     pCommandController.registerCommand({"item", {}, 2, 1, 3, "/item <id> [count] [player]", "Give items to a player.", bind(&WorldCommands::executeItem)});
     pCommandController.registerCommand({"gold", {}, 2, 1, 2, "/gold <amount> [player]", "Add or remove gold.", bind(&WorldCommands::executeGold)});
+    pCommandController.registerCommand({"clearbag", {"clearinv"}, 2, 0, 2, "/clearbag [player] [all]", "Delete every bag item; with all, equipped items too.", bind(&WorldCommands::executeClearBag)});
     pCommandController.registerCommand({"level", {}, 2, 1, 2, "/level <1-100> [player]", "Set a player's level.", bind(&WorldCommands::executeLevel)});
     pCommandController.registerCommand({"heal", {}, 2, 0, 1, "/heal [player]", "Restore health and mana.", bind(&WorldCommands::executeHeal)});
     pCommandController.registerCommand({"sethp", {}, 2, 1, 2, "/sethp <hp> [player]", "Set current health.", bind(&WorldCommands::executeSetHealth)});
@@ -238,6 +239,40 @@ void WorldCommands::executeGold(const CommandContext& pContext, std::shared_ptr<
         pCharacter.addGold(tDelta);
 
         pReply->ok(tName + " gold changed by " + std::to_string(tDelta) + ", now " + std::to_string(pCharacter.getStats().gold) + ".");
+        return true;
+    });
+}
+
+void WorldCommands::executeClearBag(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
+{
+    size_t tCount = pContext.getArgumentCount();
+    bool tIsEquipmentIncluded = tCount > 0 && pContext.getArgument(tCount - 1) == "all";
+
+    if (tCount == 2 && !tIsEquipmentIncluded)
+    {
+        replyUsage(*pReply, "/clearbag [player] [all]");
+        return;
+    }
+
+    auto tTarget = mResolver.resolve(pContext, tCount == 1 && tIsEquipmentIncluded ? 1 : 0, *pReply);
+
+    if (!tTarget)
+    {
+        return;
+    }
+
+    mWorldController.withCharacter(tTarget->characterId,
+    [pReply, tIsEquipmentIncluded, tName = tTarget->name](Character& pCharacter)
+    {
+        uint32_t tRemoved = pCharacter.clearBag(tIsEquipmentIncluded);
+
+        if (tRemoved == 0)
+        {
+            pReply->fail(tName + " has nothing to clear.");
+            return false;
+        }
+
+        pReply->ok("Deleted " + std::to_string(tRemoved) + (tIsEquipmentIncluded ? " items (bag and equipment) from " : " bag items from ") + tName + ".");
         return true;
     });
 }
