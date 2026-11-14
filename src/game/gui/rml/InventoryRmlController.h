@@ -19,6 +19,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 class InventoryController;
 
@@ -32,7 +33,7 @@ public:
     using MoveRequestCallback = std::function<void(uint32_t pFromSlot, uint32_t pToSlot)>;
     using ItemDroppedOutsideCallback = std::function<void(const OwnedItem& pItem, float pX, float pY)>;
 
-    InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons);
+    InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons);
     ~InventoryRmlController();
 
     InventoryRmlController(const InventoryRmlController&) = delete;
@@ -127,6 +128,7 @@ private:
     };
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
     const InventoryController& mInventoryController;
     const ClassCatalog& mClassCatalog;
     ItemIconRenderer& mItemIcons;
@@ -217,7 +219,7 @@ private:
 
     Rml::String toIconPath(const ItemTemplate* pTemplate) const;
 
-    static const char* getSlotRoleName(EquipSlotType pSlot);
+    std::string getSlotRoleName(EquipSlotType pSlot) const;
 };
 
 }

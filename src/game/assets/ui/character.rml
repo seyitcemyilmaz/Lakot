@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>Character</title>
+    <title>[[character.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <!--
@@ -12,43 +12,43 @@
 <body class="character-screen">
     <div class="character-window" data-model="character">
         <div class="chat-titlebar">
-            <div class="chat-tab">Character</div>
+            <div class="chat-tab">[[character.title]]</div>
             <div class="chat-titlebar-buttons">
                 <div class="chat-icon-btn" data-event-click="close">X</div>
             </div>
         </div>
 
         <div class="char-sheet-name">{{ name }}</div>
-        <div class="char-sheet-sub">Level {{ level }} · {{ class_name }}<span data-if="path_name != ''"> · {{ path_name }}</span></div>
+        <div class="char-sheet-sub">[[character.level]] {{ level }} · {{ class_name }}<span data-if="path_name != ''"> · {{ path_name }}</span></div>
 
         <!-- Bars rather than bare numbers: a fraction is what the player
              actually reads mid-fight, and the width is data-driven. -->
-        <div class="char-bar-label">Health <span class="char-bar-value">{{ health }}</span></div>
+        <div class="char-bar-label">[[character.health]] <span class="char-bar-value">{{ health }}</span></div>
         <div class="char-bar"><div class="char-bar-fill char-bar-health" data-style-width="health_percent"></div></div>
 
-        <div class="char-bar-label">Mana <span class="char-bar-value">{{ mana }}</span></div>
+        <div class="char-bar-label">[[character.mana]] <span class="char-bar-value">{{ mana }}</span></div>
         <div class="char-bar"><div class="char-bar-fill char-bar-mana" data-style-width="mana_percent"></div></div>
 
-        <div class="char-bar-label">Experience <span class="char-bar-value">{{ experience }}</span></div>
+        <div class="char-bar-label">[[character.experience]] <span class="char-bar-value">{{ experience }}</span></div>
         <div class="char-bar"><div class="char-bar-fill char-bar-exp" data-style-width="experience_percent"></div></div>
 
-        <div class="char-sheet-section">Attributes</div>
+        <div class="char-sheet-section">[[character.attributes]]</div>
 
-        <div class="char-points" data-class-has-points="has_stat_points">Unspent points: <span class="char-points-value">{{ stat_points }}</span></div>
+        <div class="char-points" data-class-has-points="has_stat_points">[[character.unspent_points]] <span class="char-points-value">{{ stat_points }}</span></div>
 
         <div class="char-sheet-rows">
-            <div class="char-sheet-row"><span class="char-sheet-key">Strength</span><span class="char-sheet-end"><span class="char-sheet-val">{{ strength }}</span><span class="stat-plus" data-class-is-active="can_raise_strength" data-event-click="raise_stat(1)">+</span></span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Dexterity</span><span class="char-sheet-end"><span class="char-sheet-val">{{ dexterity }}</span><span class="stat-plus" data-class-is-active="can_raise_dexterity" data-event-click="raise_stat(2)">+</span></span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Intelligence</span><span class="char-sheet-end"><span class="char-sheet-val">{{ intelligence }}</span><span class="stat-plus" data-class-is-active="can_raise_intelligence" data-event-click="raise_stat(3)">+</span></span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Vitality</span><span class="char-sheet-end"><span class="char-sheet-val">{{ vitality }}</span><span class="stat-plus" data-class-is-active="can_raise_vitality" data-event-click="raise_stat(4)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.strength]]</span><span class="char-sheet-end"><span class="char-sheet-val">{{ strength }}</span><span class="stat-plus" data-class-is-active="can_raise_strength" data-event-click="raise_stat(1)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.dexterity]]</span><span class="char-sheet-end"><span class="char-sheet-val">{{ dexterity }}</span><span class="stat-plus" data-class-is-active="can_raise_dexterity" data-event-click="raise_stat(2)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.intelligence]]</span><span class="char-sheet-end"><span class="char-sheet-val">{{ intelligence }}</span><span class="stat-plus" data-class-is-active="can_raise_intelligence" data-event-click="raise_stat(3)">+</span></span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.vitality]]</span><span class="char-sheet-end"><span class="char-sheet-val">{{ vitality }}</span><span class="stat-plus" data-class-is-active="can_raise_vitality" data-event-click="raise_stat(4)">+</span></span></div>
         </div>
 
-        <div class="char-sheet-section">Combat</div>
+        <div class="char-sheet-section">[[character.combat]]</div>
 
         <div class="char-sheet-rows">
-            <div class="char-sheet-row"><span class="char-sheet-key">Attack</span><span class="char-sheet-val">{{ attack }}</span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Defense</span><span class="char-sheet-val">{{ defense }}</span></div>
-            <div class="char-sheet-row"><span class="char-sheet-key">Gold</span><span class="char-sheet-val">{{ gold }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.attack]]</span><span class="char-sheet-val">{{ attack }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.defense]]</span><span class="char-sheet-val">{{ defense }}</span></div>
+            <div class="char-sheet-row"><span class="char-sheet-key">[[character.gold]]</span><span class="char-sheet-val">{{ gold }}</span></div>
         </div>
     </div>
 </body>

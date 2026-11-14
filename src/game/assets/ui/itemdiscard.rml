@@ -1,11 +1,11 @@
 <rml>
 <head>
-    <title>Item Discard</title>
+    <title>[[itemdiscard.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="screen-center discard-screen">
     <div class="card discard-card" data-model="item_discard">
-        <div class="title">DISCARD ITEM</div>
+        <div class="title">[[itemdiscard.title]]</div>
 
         <div class="discard-item">
             <div class="discard-icon">
@@ -15,15 +15,15 @@
         </div>
 
         <div data-if="is_stack">
-            <div class="field-label">Amount (1 - {{ max_count }})</div>
+            <div class="field-label">{{ amount_label }}</div>
             <input type="text" class="field" data-value="count_text" data-event-keydown="count_keydown"/>
         </div>
 
         <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
 
-        <div class="btn-primary" data-event-click="drop">DROP ON GROUND</div>
-        <div class="btn-danger" data-event-click="destroy">DESTROY</div>
-        <div class="btn-secondary" data-event-click="cancel">CANCEL</div>
+        <div class="btn-primary" data-event-click="drop">[[itemdiscard.drop]]</div>
+        <div class="btn-danger" data-event-click="destroy">[[itemdiscard.destroy]]</div>
+        <div class="btn-secondary" data-event-click="cancel">[[itemdiscard.cancel]]</div>
     </div>
 </body>
 </rml>

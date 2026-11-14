@@ -1,13 +1,16 @@
 #include "ChatController.h"
 
+#include "../../localization/Localization.h"
+
 #include <SDL3/SDL.h>
 
 #include "../NetworkManager.h"
 
 using namespace lakot;
 
-ChatController::ChatController(NetworkManager* pNetworkManager)
+ChatController::ChatController(NetworkManager* pNetworkManager, const Localization& pLocalization)
     : mNetworkManager(pNetworkManager)
+    , mLocalization(pLocalization)
 {
 
 }
@@ -95,7 +98,7 @@ void ChatController::sendChatMessage(const std::string& pText, bool pIsGlobal)
     {
         if (mChatMessageResultCallback)
         {
-            mChatMessageResultCallback(false, "No connection to server!");
+            mChatMessageResultCallback(false, mLocalization.text("chat.no_connection"));
         }
 
         return;
@@ -117,7 +120,7 @@ void ChatController::sendCommand(const std::string& pText)
     {
         if (mCommandResultCallback)
         {
-            mCommandResultCallback(services::chat::COMMAND_FAILED, { "No connection to server!" });
+            mCommandResultCallback(services::chat::COMMAND_FAILED, { mLocalization.text("chat.no_connection") });
         }
 
         return;
@@ -199,8 +202,8 @@ void ChatController::handleDirectMessageResponse(std::shared_ptr<NetworkSession<
     // both collapse to this one code). UI copy stays English, per standing
     // preference - not Turkish, even where a request happened to be phrased
     // in Turkish.
-    std::string tMessage = tIsSuccess ? "" :
-        (tResponse.error_code() == services::chat::DIRECT_MESSAGE_DISCONNECTED ? "User is not active." : "Message could not be sent.");
+    std::string tMessage = tIsSuccess ? std::string()
+        : tResponse.error_code() == services::chat::DIRECT_MESSAGE_DISCONNECTED ? mLocalization.text("chat.user_not_active") : mLocalization.text("chat.send_failed");
 
     mDirectMessageResultCallback(tRequestId, tIsSuccess, tMessage);
 }
@@ -240,7 +243,7 @@ void ChatController::handleChatMessageResponse(std::shared_ptr<NetworkSession<co
 
     if (tMessage.empty())
     {
-        tMessage = "Message could not be sent.";
+        tMessage = mLocalization.text("chat.send_failed");
     }
 
     if (mChatMessageResultCallback)

@@ -300,7 +300,7 @@ void WorldScene::enter()
 
     mEntityRenderer = std::make_unique<EntityRenderer>(*mItemAppearance, *mAttachments);
 
-    mEntities = std::make_unique<WorldEntities>(mEngine.getAssetManager(), mEngine.getMonsterCatalog(), mEngine.getMotionLibrary(), *mItemAppearance);
+    mEntities = std::make_unique<WorldEntities>(mEngine.getAssetManager(), mEngine.getLocalization(), mEngine.getMonsterCatalog(), mEngine.getMotionLibrary(), *mItemAppearance);
     mEntities->setLocalCharacterId(mLocalCharacterId);
     mEntities->setLocal(mLocalUsername, mLocalPosition, mEngine.getFixedDeltaTime());
     mEntities->setLocalEquipment(mLocalItems);
@@ -552,7 +552,7 @@ void WorldScene::requestAutoPickup()
 
     if (tBestId == 0)
     {
-        mHud->showNotice("Nothing to pick up nearby.");
+        mHud->showNotice(mEngine.getLocalization().text("pickup.nothing_nearby"));
         return;
     }
 
@@ -572,11 +572,11 @@ void WorldScene::onPickupResult(services::world::PickupResult pResult)
 
     switch (pResult)
     {
-        case services::world::PICKUP_RESULT_NOT_OWNER: mHud->showNotice("This belongs to someone else for now."); break;
-        case services::world::PICKUP_RESULT_TOO_FAR: mHud->showNotice("Too far away to pick that up."); break;
-        case services::world::PICKUP_RESULT_INVENTORY_FULL: mHud->showNotice("Your bag is full."); break;
-        case services::world::PICKUP_RESULT_NOT_FOUND: mHud->showNotice("That item is gone."); break;
-        case services::world::PICKUP_RESULT_DEAD: mHud->showNotice("You cannot do that while dead."); break;
+        case services::world::PICKUP_RESULT_NOT_OWNER: mHud->showNotice(mEngine.getLocalization().text("pickup.not_owner")); break;
+        case services::world::PICKUP_RESULT_TOO_FAR: mHud->showNotice(mEngine.getLocalization().text("pickup.too_far")); break;
+        case services::world::PICKUP_RESULT_INVENTORY_FULL: mHud->showNotice(mEngine.getLocalization().text("pickup.bag_full")); break;
+        case services::world::PICKUP_RESULT_NOT_FOUND: mHud->showNotice(mEngine.getLocalization().text("pickup.gone")); break;
+        case services::world::PICKUP_RESULT_DEAD: mHud->showNotice(mEngine.getLocalization().text("pickup.dead")); break;
         default: break;
     }
 }
@@ -602,7 +602,7 @@ void WorldScene::updateAttack(double pDeltaTime)
     {
         if (!mHasWarnedSafeZone)
         {
-            mHud->showNotice("You cannot fight here.");
+            mHud->showNotice(mEngine.getLocalization().text("world.safe_zone_no_fight"));
             mHasWarnedSafeZone = true;
         }
 
@@ -855,9 +855,14 @@ void WorldScene::render()
         bool tShowsHealth = tEntity.type != EntityType::eNpc && tEntity.type != EntityType::eGroundItem && tId != WorldEntities::kLocalId && !tEntity.isDead
                          && (tEntity.type == EntityType::eMonster || tEntity.healthPercent < 100);
 
-        std::string tTagName = tEntity.level > 0 ? "Lv " + std::to_string(tEntity.level) + " " + tEntity.name : tEntity.name;
+        if (tEntity.tagText.empty() || tEntity.tagSourceName != tEntity.name || tEntity.tagSourceLevel != tEntity.level)
+        {
+            tEntity.tagSourceName = tEntity.name;
+            tEntity.tagSourceLevel = tEntity.level;
+            tEntity.tagText = tEntity.level > 0 ? mEngine.getLocalization().format("world.nameplate", { { "level", std::to_string(tEntity.level) }, { "name", tEntity.name } }) : tEntity.name;
+        }
 
-        renderNameplate(WorldEntities::getPosition(tEntity, tExtraSeconds) + tEntity.getHeadTopOffset(), tTagName, tEntity.speechText,
+        renderNameplate(WorldEntities::getPosition(tEntity, tExtraSeconds) + tEntity.getHeadTopOffset(), tEntity.tagText, tEntity.speechText,
                         getNameColor(tEntity), tShowsHealth ? static_cast<int>(tEntity.healthPercent) : -1);
     }
 
@@ -877,14 +882,14 @@ void WorldScene::render()
             ImGui::TextDisabled("%s", mContextMenuTarget->name.c_str());
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Chat"))
+            if (ImGui::MenuItem(mEngine.getLocalization().text("world.menu_chat").c_str()))
             {
                 mHud->openWhisper(mContextMenuTarget->id, mContextMenuTarget->name);
                 ImGui::CloseCurrentPopup();
             }
 
             ImGui::BeginDisabled();
-            ImGui::MenuItem("Trade");
+            ImGui::MenuItem(mEngine.getLocalization().text("world.menu_trade").c_str());
             ImGui::EndDisabled();
         }
 
@@ -1201,7 +1206,7 @@ void WorldScene::loadMap(uint32_t pMapId)
     MapImage tImage = MapImageFactory::create(*mMap, kMapImageSize);
     mEngine.getRmlUiLayer().registerGeneratedImage(tImageName, tImage.size, tImage.size, std::move(tImage.rgba));
 
-    mHud->setMap(tImageName, mMap->getName(), mMap->getWorldSize());
+    mHud->setMap(tImageName, mEngine.getLocalization().content("map." + std::to_string(mMap->getId()) + ".name", mMap->getName()), mMap->getWorldSize());
 
     SDL_Log("WorldScene: map %u - %s", mMap->getId(), mMap->getName().c_str());
 }

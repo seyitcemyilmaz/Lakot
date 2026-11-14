@@ -8,6 +8,7 @@
 #include <RmlUi/Core/DataModelHandle.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 using namespace lakot;
 
@@ -23,8 +24,9 @@ Rml::String CharacterSheetRmlController::toPercent(int64_t pValue, int64_t pMaxi
     return Rml::String(std::to_string(tPercent) + "%");
 }
 
-CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const ClassCatalog& pClassCatalog, const std::string& pCharacterName)
+CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const ClassCatalog& pClassCatalog, const std::string& pCharacterName)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mClassCatalog(pClassCatalog)
     , mName(pCharacterName)
 {
@@ -103,8 +105,8 @@ void CharacterSheetRmlController::setStats(const CharacterStats& pStats)
     const ClassDefinition* tClass = mClassCatalog.find(pStats.classId);
     const ClassPath* tPath = tClass ? tClass->findPath(pStats.pathId) : nullptr;
 
-    mClassName = tClass ? tClass->name : std::string();
-    mPathName = tPath ? tPath->name : std::string();
+    mClassName = tClass ? mLocalization.content("class." + tClass->key + ".name", tClass->name) : std::string();
+    mPathName = tPath ? mLocalization.content("path." + tClass->key + "." + tPath->key + ".name", tPath->name) : std::string();
     mStatPoints = std::to_string(pStats.statPoints);
 
     uint32_t tCap = mClassCatalog.getStatCap();

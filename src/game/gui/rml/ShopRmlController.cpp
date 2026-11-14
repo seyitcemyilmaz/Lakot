@@ -248,7 +248,7 @@ void ShopRmlController::rebuild()
 
         BuyRow tRow;
         tRow.templateId = static_cast<int>(tTemplateId);
-        tRow.name = tTemplate->name;
+        tRow.name = mLocalization.content("item." + std::to_string(tTemplate->templateId) + ".name", tTemplate->name);
         tRow.icon = ItemIconPath::resolve(mItemIcons, tTemplate);
         tRow.priceText = std::to_string(tTemplate->price);
         tRow.levelText = tTemplate->requiredLevel > 1
@@ -302,7 +302,7 @@ void ShopRmlController::rebuild()
         SellRow tRow;
         tRow.bagSlot = static_cast<int>(tItem.slot);
         tRow.templateId = static_cast<int>(tItem.templateId);
-        tRow.name = tTemplate->name;
+        tRow.name = mLocalization.content("item." + std::to_string(tTemplate->templateId) + ".name", tTemplate->name);
         tRow.icon = ItemIconPath::resolve(mItemIcons, tTemplate);
         tRow.count = static_cast<int>(tItem.count);
         tRow.priceText = std::to_string(static_cast<uint64_t>(tTemplate->sellPrice) * tItem.count);

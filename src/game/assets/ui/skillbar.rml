@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>Skill Bar</title>
+    <title>[[skillbar.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="skillbar-screen">

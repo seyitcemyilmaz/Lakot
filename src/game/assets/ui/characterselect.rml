@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>Character Select</title>
+    <title>[[characterselect.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <!--
@@ -19,7 +19,7 @@
 -->
 <body class="screen-center">
     <div class="card" data-model="character_select">
-        <div class="title">CHARACTERS</div>
+        <div class="title">[[characterselect.title]]</div>
         <div class="char-slots" data-if="has_kingdom">{{ kingdom_label }}</div>
 
         <!-- ===== Mode 1: pick an existing character ===== -->
@@ -31,25 +31,23 @@
                      data-class-is-selected="character.is_selected"
                      data-event-click="select(character.index)">
                     <div class="char-name">{{ character.name }}</div>
-                    <div class="char-meta">{{ character.class_name }} · Lv {{ character.level }} · {{ character.location }}</div>
+                    <div class="char-meta">{{ character.meta_text }}</div>
                 </div>
 
-                <div class="char-empty" data-if="!has_characters">
-                    No characters yet. Create one to start playing.
-                </div>
+                <div class="char-empty" data-if="!has_characters">[[characterselect.no_characters]]</div>
             </div>
 
             <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
 
             <div class="btn-primary" data-class-is-busy="is_busy || !has_selection"
-                 data-event-click="enter_world">ENTER WORLD</div>
+                 data-event-click="enter_world">[[characterselect.enter_world]]</div>
 
-            <div class="btn-secondary" data-if="has_free_slot" data-event-click="begin_create">CREATE NEW CHARACTER</div>
+            <div class="btn-secondary" data-if="has_free_slot" data-event-click="begin_create">[[characterselect.create_new]]</div>
 
             <div class="btn-danger" data-class-is-disabled="is_busy || !has_selection"
-                 data-event-click="begin_delete">DELETE CHARACTER</div>
+                 data-event-click="begin_delete">[[characterselect.delete_character]]</div>
 
-            <div class="link" data-event-click="logout">Log out</div>
+            <div class="link" data-event-click="logout">[[characterselect.log_out]]</div>
         </div>
 
         <!-- ===== Mode 3: confirm deleting the selected character ===== -->
@@ -59,15 +57,15 @@
                 <div class="char-meta">{{ delete_target_meta }}</div>
             </div>
 
-            <div class="field-label">Type the character name to delete it. This cannot be undone.</div>
+            <div class="field-label">[[characterselect.delete_prompt]]</div>
             <input type="text" class="field" data-value="delete_name_input"
                    data-event-keyup="delete_name_changed" data-event-keydown="delete_name_keydown"/>
 
             <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
 
-            <div class="btn-primary" data-event-click="cancel_delete">CANCEL</div>
+            <div class="btn-primary" data-event-click="cancel_delete">[[characterselect.cancel]]</div>
             <div class="btn-danger" data-class-is-disabled="is_busy || !delete_name_matches"
-                 data-event-click="confirm_delete">DELETE</div>
+                 data-event-click="confirm_delete">[[characterselect.delete]]</div>
         </div>
 
         <!-- ===== Mode 2: create a new character ===== -->
@@ -75,7 +73,7 @@
             <!-- Only for an account's first character: the kingdom is chosen
                  once and every later character shares it. -->
             <div data-if="!has_kingdom">
-                <div class="field-label">Choose your kingdom - every character on this account will belong to it.</div>
+                <div class="field-label">[[characterselect.choose_kingdom]]</div>
 
                 <div class="char-row" data-for="kingdom : kingdoms"
                      data-class-is-selected="kingdom.is_selected"
@@ -85,7 +83,7 @@
                 </div>
             </div>
 
-            <div class="field-label">Choose your class</div>
+            <div class="field-label">[[characterselect.choose_class]]</div>
 
             <div class="char-row" data-for="cls : classes"
                  data-class-is-selected="cls.is_selected"
@@ -94,14 +92,14 @@
                 <div class="char-meta">{{ cls.description }}</div>
             </div>
 
-            <div class="field-label">Character name</div>
+            <div class="field-label">[[characterselect.character_name]]</div>
             <input type="text" class="field" data-value="new_name" data-event-keydown="name_keydown"/>
 
             <div class="status" data-class-status-error="is_error" data-class-status-info="!is_error">{{ status_message }}</div>
 
-            <div class="btn-primary" data-class-is-busy="is_busy || !has_class" data-event-click="confirm_create">CREATE</div>
+            <div class="btn-primary" data-class-is-busy="is_busy || !has_class" data-event-click="confirm_create">[[characterselect.create]]</div>
 
-            <div class="link" data-event-click="cancel_create">Back to character list</div>
+            <div class="link" data-event-click="cancel_create">[[characterselect.back]]</div>
         </div>
     </div>
 </body>

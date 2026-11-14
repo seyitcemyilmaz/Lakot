@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>World Map</title>
+    <title>[[worldmap.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <!-- The whole current map, toggled with M. Same window chrome as the

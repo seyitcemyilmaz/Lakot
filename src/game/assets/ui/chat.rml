@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>Chat</title>
+    <title>[[chat.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="chat-window">
@@ -23,9 +23,9 @@
                  then confirm (Enter, or "OK") to switch to the normal view
                  above and unlock the message row below. -->
             <div data-if="!is_target_confirmed" class="chat-tab-edit">
-                <span class="chat-name-label">To</span>
+                <span class="chat-name-label">[[chat.to]]</span>
                 <input type="text" id="chat-name-input" class="chat-name-input" data-value="target_username" data-event-keydown="name_keydown"/>
-                <div class="chat-icon-btn chat-confirm-btn" data-event-click="confirm_target">OK</div>
+                <div class="chat-icon-btn chat-confirm-btn" data-event-click="confirm_target">[[chat.ok]]</div>
             </div>
 
             <div class="chat-titlebar-buttons">
@@ -45,7 +45,7 @@
              in first (see ChatRmlController::doConfirmTarget). -->
         <div data-if="!is_minimized &amp;&amp; is_target_confirmed" class="chat-input-row">
             <input type="text" id="chat-message-input" class="chat-input" data-value="input_text" data-event-keydown="input_keydown"/>
-            <div class="chat-send-btn" data-event-click="send">Send</div>
+            <div class="chat-send-btn" data-event-click="send">[[chat.send]]</div>
         </div>
 
         <!-- A failed send only (ChatRmlController::onSendResult) - e.g. the

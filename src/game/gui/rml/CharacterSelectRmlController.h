@@ -19,6 +19,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 // The screen between logging in and existing in the world: pick one of the
@@ -37,7 +38,7 @@ public:
     using DeleteRequestCallback = std::function<void(uint64_t pCharacterId, const std::string& pConfirmName)>;
     using LogoutCallback = std::function<void()>;
 
-    CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog);
+    CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog);
     ~CharacterSelectRmlController();
 
     CharacterSelectRmlController(const CharacterSelectRmlController&) = delete;
@@ -71,6 +72,7 @@ private:
         Rml::String name;
         Rml::String location;
         Rml::String className;
+        Rml::String metaText;
         int level = 1;
         bool isSelected = false;
     };
@@ -94,6 +96,7 @@ private:
     };
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
     const MapCatalog& mMapCatalog;
     const ClassCatalog& mClassCatalog;
 
@@ -170,6 +173,7 @@ private:
 
     std::string getMapName(uint32_t pMapId) const;
     std::string getClassName(uint32_t pClassId) const;
+    std::string getStatLabel(const std::string& pStat) const;
 };
 
 }

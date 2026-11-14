@@ -48,6 +48,9 @@ struct WorldEntity
 
     uint32_t kingdom{0};
     uint32_t level{0};
+    mutable std::string tagText;
+    mutable std::string tagSourceName;
+    mutable uint32_t tagSourceLevel{0};
     glm::vec3 tint{1.0f};
     float scale{1.0f};
     uint32_t healthPercent{100};

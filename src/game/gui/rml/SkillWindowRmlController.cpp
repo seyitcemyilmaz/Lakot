@@ -3,17 +3,18 @@
 #include <SDL3/SDL_log.h>
 
 #include <cmath>
-#include <cstdio>
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 using namespace lakot;
 
-SkillWindowRmlController::SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, const SkillCatalog& pSkillCatalog, const ClassCatalog& pClassCatalog)
+SkillWindowRmlController::SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const SkillCatalog& pSkillCatalog, const ClassCatalog& pClassCatalog)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mSkillCatalog(pSkillCatalog)
     , mClassCatalog(pClassCatalog)
 {
@@ -40,6 +41,7 @@ SkillWindowRmlController::SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, cons
         tPath.RegisterMember("id", &PathRow::id);
         tPath.RegisterMember("name", &PathRow::name);
         tPath.RegisterMember("skill_names", &PathRow::skillNames);
+        tPath.RegisterMember("warning_text", &PathRow::warningText);
         tPath.RegisterMember("is_pending", &PathRow::isPending);
         tConstructor.RegisterArray<std::vector<PathRow>>();
 
@@ -53,8 +55,7 @@ SkillWindowRmlController::SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, cons
         tSkill.RegisterMember("is_locked", &SkillRow::isLocked);
         tSkill.RegisterMember("lock_text", &SkillRow::lockText);
         tSkill.RegisterMember("can_raise", &SkillRow::canRaise);
-        tSkill.RegisterMember("mp_cost", &SkillRow::mpCost);
-        tSkill.RegisterMember("cooldown_text", &SkillRow::cooldownText);
+        tSkill.RegisterMember("stats_text", &SkillRow::statsText);
         tSkill.RegisterMember("tier_text", &SkillRow::tierText);
         tConstructor.RegisterArray<std::vector<SkillRow>>();
 
@@ -124,8 +125,8 @@ void SkillWindowRmlController::rebuild()
     const ClassDefinition* tClass = mClassCatalog.find(mStats.classId);
     const ClassPath* tPath = tClass ? tClass->findPath(mStats.pathId) : nullptr;
 
-    mClassName = tClass ? tClass->name : Rml::String();
-    mPathName = tPath ? tPath->name : Rml::String();
+    mClassName = tClass ? mLocalization.content("class." + tClass->key + ".name", tClass->name) : Rml::String();
+    mPathName = tPath ? mLocalization.content("path." + tClass->key + "." + tPath->key + ".name", tPath->name) : Rml::String();
     mHasPath = tPath != nullptr;
     mCanChoosePath = tClass && !mHasPath && mStats.level >= mClassCatalog.getPathUnlockLevel();
     mSkillPoints = 0;
@@ -152,7 +153,8 @@ void SkillWindowRmlController::rebuild()
             {
                 PathRow tRow;
                 tRow.id = static_cast<int>(tCandidate.id);
-                tRow.name = tCandidate.name;
+                tRow.name = mLocalization.content("path." + tClass->key + "." + tCandidate.key + ".name", tCandidate.name);
+                tRow.warningText = mLocalization.format("skills.path_warning", { { "name", tRow.name } });
                 tRow.isPending = mPendingPathId == tRow.id;
 
                 for (const SkillDefinition* tSkill : tClassSkills)
@@ -179,36 +181,32 @@ SkillWindowRmlController::SkillRow SkillWindowRmlController::makeSkillRow(const 
 
     SkillRow tRow;
     tRow.id = static_cast<int>(pSkill.id);
-    tRow.name = pSkill.name;
-    tRow.description = pSkill.description;
+    tRow.name = mLocalization.content("skill." + pSkill.key + ".name", pSkill.name);
+    tRow.description = mLocalization.content("skill." + pSkill.key + ".desc", pSkill.description);
     tRow.icon = "textures/skills/" + pSkill.key + ".tga";
     tRow.levelText = std::to_string(tLevel) + "/" + std::to_string(tMaxLevel);
     tRow.isLearned = tLevel > 0;
     tRow.isLocked = tIsLocked;
-    tRow.lockText = tIsLocked ? "Lv " + std::to_string(pSkill.unlockLevel) : Rml::String();
+    tRow.lockText = tIsLocked ? mLocalization.format("skills.lock_level", { { "level", std::to_string(pSkill.unlockLevel) } }) : Rml::String();
     tRow.canRaise = !tIsLocked && tLevel < tMaxLevel;
-    tRow.mpCost = static_cast<int>(pSkill.mpCost);
-    tRow.cooldownText = formatCooldown(pSkill.cooldown);
+    tRow.statsText = mLocalization.format("skills.stats", { { "mp", std::to_string(pSkill.mpCost) }, { "cooldown", formatCooldown(pSkill.cooldown) } });
 
     return tRow;
 }
 
-Rml::String SkillWindowRmlController::formatCooldown(float pSeconds)
+Rml::String SkillWindowRmlController::formatCooldown(float pSeconds) const
 {
     if (pSeconds <= 0.0f)
     {
-        return "No cooldown";
+        return mLocalization.text("skills.cooldown_none");
     }
 
     if (std::fabs(pSeconds - std::round(pSeconds)) < 0.05f)
     {
-        return std::to_string(static_cast<int>(std::lround(pSeconds))) + " s cooldown";
+        return mLocalization.format("skills.cooldown_seconds", { { "seconds", mLocalization.formatDecimal(std::round(pSeconds), 0) } });
     }
 
-    char tBuffer[32];
-    std::snprintf(tBuffer, sizeof(tBuffer), "%.1f s cooldown", pSeconds);
-
-    return tBuffer;
+    return mLocalization.format("skills.cooldown_seconds", { { "seconds", mLocalization.formatDecimal(pSeconds, 1) } });
 }
 
 void SkillWindowRmlController::onCloseClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)

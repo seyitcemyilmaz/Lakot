@@ -19,6 +19,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 // The character sheet, toggled with C. Split out of the inventory panel,
@@ -34,7 +35,7 @@ class CharacterSheetRmlController
 public:
     using AllocateStatCallback = std::function<void(services::progression::StatType pStat, uint32_t pAmount)>;
 
-    CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const ClassCatalog& pClassCatalog, const std::string& pCharacterName);
+    CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const ClassCatalog& pClassCatalog, const std::string& pCharacterName);
     ~CharacterSheetRmlController();
 
     CharacterSheetRmlController(const CharacterSheetRmlController&) = delete;
@@ -50,6 +51,7 @@ public:
 
 private:
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
     const ClassCatalog& mClassCatalog;
 
     Rml::ElementDocument* mDocument{nullptr};

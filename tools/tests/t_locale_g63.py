@@ -170,10 +170,30 @@ def check_base_content():
     NOTES.append("class/path names are not Turkish-checked (pending approval)")
 
 
+def check_hardcoded_text():
+    call = re.compile(r"(showNotice|appendSystemLine|setStatus\w*|setError)\(\s*\"([^\"]+)\"")
+    tag = re.compile(r"<[^>]*>")
+    markup = re.compile(r"\[\[[^\]]*\]\]|\{\{.*?\}\}")
+    attribute = re.compile(r"\s(placeholder|title|alt|value|label)\s*=\s*\"[^\"]*[A-Za-z]")
+    for path in source_files("*.cpp") + source_files("*.h"):
+        source = path.read_text(encoding="utf-8", errors="replace")
+        for match in call.finditer(source):
+            fail(f"{path.relative_to(ROOT)}: literal text in {match.group(1)}(\"{match.group(2)}\")")
+    for path in sorted((GAME / "assets" / "ui").glob("*.rml")):
+        source = re.sub(r"<!--.*?-->", "", path.read_text(encoding="utf-8"), flags=re.S)
+        for match in attribute.finditer(source):
+            fail(f"{path.name}: visible text in attribute {match.group(1)}")
+        for chunk in tag.sub("\x00", source).split("\x00"):
+            letters = re.sub(r"[^A-Za-zÀ-ɏ]", "", markup.sub("", chunk).replace("&amp;", "").replace("&nbsp;", ""))
+            if len(letters) > 1:
+                fail(f"{path.name}: literal text node '{chunk.strip()}'")
+
+
 def main():
     en_texts, en_content = load_language("en")
     check_en(en_texts)
     check_used_keys(en_texts)
+    check_hardcoded_text()
     check_base_content()
     targets = content_targets()
     for key in en_content:

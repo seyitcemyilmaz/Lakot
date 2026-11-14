@@ -9,6 +9,7 @@
 #include <RmlUi/Core/Input.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 using namespace lakot;
 
@@ -35,8 +36,9 @@ namespace
     }
 }
 
-CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog)
+CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const MapCatalog& pMapCatalog, const ClassCatalog& pClassCatalog)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mMapCatalog(pMapCatalog)
     , mClassCatalog(pClassCatalog)
 {
@@ -58,6 +60,7 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
         tRowHandle.RegisterMember("name", &CharacterRow::name);
         tRowHandle.RegisterMember("location", &CharacterRow::location);
         tRowHandle.RegisterMember("class_name", &CharacterRow::className);
+        tRowHandle.RegisterMember("meta_text", &CharacterRow::metaText);
         tRowHandle.RegisterMember("level", &CharacterRow::level);
         tRowHandle.RegisterMember("is_selected", &CharacterRow::isSelected);
         tConstructor.RegisterArray<std::vector<CharacterRow>>();
@@ -167,13 +170,13 @@ void CharacterSelectRmlController::setLogoutCallback(LogoutCallback pCallback)
 std::string CharacterSelectRmlController::getMapName(uint32_t pMapId) const
 {
     const MapData* tMap = mMapCatalog.getMap(pMapId);
-    return tMap ? tMap->getName() : std::string("Unknown");
+    return tMap ? mLocalization.content("map." + std::to_string(pMapId) + ".name", tMap->getName()) : mLocalization.text("characterselect.unknown_map");
 }
 
 std::string CharacterSelectRmlController::getClassName(uint32_t pClassId) const
 {
     const ClassDefinition* tClass = mClassCatalog.find(pClassId);
-    return tClass ? tClass->name : std::string("Classless");
+    return tClass ? mLocalization.content("class." + tClass->key + ".name", tClass->name) : mLocalization.text("characterselect.classless");
 }
 
 void CharacterSelectRmlController::setKingdom(uint32_t pKingdom)
@@ -183,7 +186,7 @@ void CharacterSelectRmlController::setKingdom(uint32_t pKingdom)
     const KingdomInfo* tKingdom = mMapCatalog.getKingdom(pKingdom);
 
     mHasKingdom = tKingdom != nullptr;
-    mKingdomLabel = tKingdom ? "Kingdom of " + tKingdom->name : "";
+    mKingdomLabel = tKingdom ? mLocalization.format("characterselect.kingdom_of", { { "name", mLocalization.content("kingdom." + std::to_string(tKingdom->id) + ".name", tKingdom->name) } }) : "";
 }
 
 void CharacterSelectRmlController::rebuildKingdomRows()
@@ -194,8 +197,8 @@ void CharacterSelectRmlController::rebuildKingdomRows()
     {
         KingdomRow tRow;
         tRow.id = static_cast<int>(tKingdom.id);
-        tRow.name = tKingdom.name;
-        tRow.description = tKingdom.description;
+        tRow.name = mLocalization.content("kingdom." + std::to_string(tKingdom.id) + ".name", tKingdom.name);
+        tRow.description = mLocalization.content("kingdom." + std::to_string(tKingdom.id) + ".desc", tKingdom.description);
         tRow.color = tKingdom.color;
         tRow.isSelected = (tKingdom.id == mChosenKingdom);
 
@@ -213,16 +216,16 @@ void CharacterSelectRmlController::rebuildClassRows()
 
         for (const std::string& tStat : tClass.mainStats)
         {
-            std::string tUpper = tStat;
-            std::transform(tUpper.begin(), tUpper.end(), tUpper.begin(), [](unsigned char pChar) { return static_cast<char>(std::toupper(pChar)); });
-            tMain += (tMain.empty() ? "" : " + ") + tUpper;
+            std::string tLabel = getStatLabel(tStat);
+            tMain += (tMain.empty() ? "" : " + ") + tLabel;
         }
 
         ClassRow tRow;
         tRow.id = static_cast<int>(tClass.id);
-        tRow.name = tClass.name;
-        tRow.description = tMain + " | STR " + std::to_string(tClass.startStrength) + "  DEX " + std::to_string(tClass.startDexterity)
-                         + "  INT " + std::to_string(tClass.startIntelligence) + "  VIT " + std::to_string(tClass.startVitality);
+        tRow.name = mLocalization.content("class." + tClass.key + ".name", tClass.name);
+        tRow.description = mLocalization.format("characterselect.class_stats",
+            { { "main", tMain }, { "str", std::to_string(tClass.startStrength) }, { "dex", std::to_string(tClass.startDexterity) },
+              { "int", std::to_string(tClass.startIntelligence) }, { "vit", std::to_string(tClass.startVitality) } });
         tRow.isSelected = (tClass.id == mChosenClass);
 
         mClassRows.push_back(std::move(tRow));
@@ -271,6 +274,34 @@ void CharacterSelectRmlController::onChooseKingdomClicked(Rml::DataModelHandle /
     dirtyAll();
 }
 
+std::string CharacterSelectRmlController::getStatLabel(const std::string& pStat) const
+{
+    if (pStat == "str")
+    {
+        return mLocalization.text("characterselect.stat.str");
+    }
+
+    if (pStat == "dex")
+    {
+        return mLocalization.text("characterselect.stat.dex");
+    }
+
+    if (pStat == "int")
+    {
+        return mLocalization.text("characterselect.stat.int");
+    }
+
+    if (pStat == "vit")
+    {
+        return mLocalization.text("characterselect.stat.vit");
+    }
+
+    std::string tUpper = pStat;
+    std::transform(tUpper.begin(), tUpper.end(), tUpper.begin(), [](unsigned char pChar) { return static_cast<char>(std::toupper(pChar)); });
+
+    return tUpper;
+}
+
 void CharacterSelectRmlController::setCharacters(const std::vector<AuthController::CharacterSummary>& pCharacters, uint32_t pMaxSlots, uint32_t pKingdom)
 {
     setKingdom(pKingdom);
@@ -281,7 +312,7 @@ void CharacterSelectRmlController::setCharacters(const std::vector<AuthControlle
     mHasCharacters = !mCharacters.empty();
     mHasFreeSlot = mCharacters.size() < pMaxSlots;
 
-    mSlotsLabel = std::to_string(mCharacters.size()) + " / " + std::to_string(pMaxSlots) + " slots used";
+    mSlotsLabel = mLocalization.format("characterselect.slots_used", { { "used", std::to_string(mCharacters.size()) }, { "max", std::to_string(pMaxSlots) } });
 
     // Preselecting the only character makes the common case (one character,
     // played every session) a single click instead of two.
@@ -304,6 +335,7 @@ void CharacterSelectRmlController::rebuildRows()
         tRow.location = getMapName(mCharacters[tIndex].mapId);
         tRow.className = getClassName(mCharacters[tIndex].classId);
         tRow.level = static_cast<int>(mCharacters[tIndex].level);
+        tRow.metaText = mLocalization.format("characterselect.row_meta", { { "class", tRow.className }, { "level", std::to_string(tRow.level) }, { "location", tRow.location } });
         tRow.isSelected = (static_cast<int>(tIndex) == mSelectedIndex);
 
         mRows.push_back(std::move(tRow));
@@ -343,7 +375,7 @@ void CharacterSelectRmlController::onEnterWorldClicked(Rml::DataModelHandle /*pH
     }
 
     setBusy(true);
-    setStatus("Entering world...", false);
+    setStatus(mLocalization.text("characterselect.status.entering"), false);
 
     if (mEnterWorldRequestCallback)
     {
@@ -404,13 +436,13 @@ void CharacterSelectRmlController::doConfirmCreate()
 
     if (!mHasKingdom && !MapCatalog::isValidKingdom(mChosenKingdom))
     {
-        setStatus("Choose a kingdom first.", true);
+        setStatus(mLocalization.text("characterselect.status.need_kingdom"), true);
         return;
     }
 
     if (!mClassCatalog.find(mChosenClass))
     {
-        setStatus("Choose a class first.", true);
+        setStatus(mLocalization.text("characterselect.status.need_class"), true);
         return;
     }
 
@@ -419,12 +451,12 @@ void CharacterSelectRmlController::doConfirmCreate()
     // trip - the server still enforces it, this is not the check that counts.
     if (tName.size() < 3 || tName.size() > 50)
     {
-        setStatus("Names must be 3-50 characters.", true);
+        setStatus(mLocalization.text("characterselect.status.name_length"), true);
         return;
     }
 
     setBusy(true);
-    setStatus("Creating...", false);
+    setStatus(mLocalization.text("characterselect.status.creating"), false);
 
     if (mCreateRequestCallback)
     {
@@ -456,7 +488,7 @@ void CharacterSelectRmlController::onBeginDeleteClicked(Rml::DataModelHandle /*p
 
     mDeleteTargetId = tCharacter.characterId;
     mDeleteTargetName = tCharacter.name;
-    mDeleteTargetMeta = getClassName(tCharacter.classId) + " - Lv " + std::to_string(tCharacter.level) + " - " + getMapName(tCharacter.mapId);
+    mDeleteTargetMeta = mLocalization.format("characterselect.delete_meta", { { "class", getClassName(tCharacter.classId) }, { "level", std::to_string(tCharacter.level) }, { "location", getMapName(tCharacter.mapId) } });
     mDeleteNameInput.clear();
     mDeleteNameMatches = false;
     mIsDeleting = true;
@@ -526,7 +558,7 @@ void CharacterSelectRmlController::doConfirmDelete()
     std::string tConfirmName = trimmed(mDeleteNameInput);
 
     setBusy(true);
-    setStatus("Deleting...", false);
+    setStatus(mLocalization.text("characterselect.status.deleting"), false);
 
     if (mDeleteRequestCallback)
     {
@@ -563,7 +595,7 @@ void CharacterSelectRmlController::onDeleteResult(bool pIsSuccess, const std::st
 
     mHasCharacters = !mCharacters.empty();
     mHasFreeSlot = mCharacters.size() < mMaxSlots;
-    mSlotsLabel = std::to_string(mCharacters.size()) + " / " + std::to_string(mMaxSlots) + " slots used";
+    mSlotsLabel = mLocalization.format("characterselect.slots_used", { { "used", std::to_string(mCharacters.size()) }, { "max", std::to_string(mMaxSlots) } });
 
     mSelectedIndex = mCharacters.empty() ? -1 : 0;
     mDeleteTargetId = 0;
@@ -572,7 +604,7 @@ void CharacterSelectRmlController::onDeleteResult(bool pIsSuccess, const std::st
     mDeleteNameMatches = false;
 
     rebuildRows();
-    setStatus("Character deleted.", false);
+    setStatus(mLocalization.text("characterselect.status.deleted"), false);
 }
 
 void CharacterSelectRmlController::onLogoutClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
@@ -606,14 +638,14 @@ void CharacterSelectRmlController::onCreateResult(bool pIsSuccess, const std::st
 
     mHasCharacters = true;
     mHasFreeSlot = mCharacters.size() < mMaxSlots;
-    mSlotsLabel = std::to_string(mCharacters.size()) + " / " + std::to_string(mMaxSlots) + " slots used";
+    mSlotsLabel = mLocalization.format("characterselect.slots_used", { { "used", std::to_string(mCharacters.size()) }, { "max", std::to_string(mMaxSlots) } });
 
     mSelectedIndex = static_cast<int>(mCharacters.size()) - 1;
     mIsCreating = false;
     mNewName.clear();
 
     rebuildRows();
-    setStatus("Character created.", false);
+    setStatus(mLocalization.text("characterselect.status.created"), false);
 }
 
 void CharacterSelectRmlController::onEnterWorldFailed(const std::string& pMessage)

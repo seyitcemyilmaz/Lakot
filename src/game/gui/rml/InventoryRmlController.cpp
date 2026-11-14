@@ -10,6 +10,7 @@
 #include <RmlUi/Core/DataStructHandle.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 #include "../../network/controller/InventoryController.h"
 
@@ -61,15 +62,15 @@ const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollSlot
 const size_t InventoryRmlController::kDollSlotCount =
     sizeof(InventoryRmlController::kDollSlots) / sizeof(InventoryRmlController::kDollSlots[0]);
 
-const char* InventoryRmlController::getSlotRoleName(EquipSlotType pSlot)
+std::string InventoryRmlController::getSlotRoleName(EquipSlotType pSlot) const
 {
     switch (pSlot)
     {
-        case EquipSlotType::eWeapon: return "Weapon";
-        case EquipSlotType::eArmor:  return "Armor";
-        case EquipSlotType::eHelmet: return "Helmet";
-        case EquipSlotType::eBoots:  return "Boots";
-        default:                     return "";
+        case EquipSlotType::eWeapon: return mLocalization.text("inventory.slot.weapon");
+        case EquipSlotType::eArmor:  return mLocalization.text("inventory.slot.armor");
+        case EquipSlotType::eHelmet: return mLocalization.text("inventory.slot.helmet");
+        case EquipSlotType::eBoots:  return mLocalization.text("inventory.slot.boots");
+        default:                     return std::string();
     }
 }
 
@@ -78,8 +79,9 @@ Rml::String InventoryRmlController::toIconPath(const ItemTemplate* pTemplate) co
     return Rml::String(ItemIconPath::resolve(mItemIcons, pTemplate));
 }
 
-InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons)
+InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mInventoryController(pInventoryController)
     , mClassCatalog(pClassCatalog)
     , mItemIcons(pItemIcons)
@@ -339,29 +341,29 @@ void InventoryRmlController::showTooltip(const ItemTemplate* pTemplate, uint32_t
 
     if (!pTemplate)
     {
-        mTooltipName = "Unknown item";
+        mTooltipName = mLocalization.text("inventory.unknown_item");
         mTooltipHint = "";
     }
     else
     {
-        mTooltipName = pTemplate->name;
+        mTooltipName = mLocalization.content("item." + std::to_string(pTemplate->templateId) + ".name", pTemplate->name);
 
         if (pCount > 1)
         {
-            mTooltipLines.push_back({ Rml::String("Quantity: " + std::to_string(pCount)) });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.quantity", { { "count", std::to_string(pCount) } }) });
         }
 
         if (pTemplate->bonusAttack != 0)
-            mTooltipLines.push_back({ Rml::String("+" + std::to_string(pTemplate->bonusAttack) + " Attack") });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_attack", { { "value", std::to_string(pTemplate->bonusAttack) } }) });
         if (pTemplate->bonusDefense != 0)
-            mTooltipLines.push_back({ Rml::String("+" + std::to_string(pTemplate->bonusDefense) + " Defense") });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_defense", { { "value", std::to_string(pTemplate->bonusDefense) } }) });
         if (pTemplate->bonusMaxHealth != 0)
-            mTooltipLines.push_back({ Rml::String("+" + std::to_string(pTemplate->bonusMaxHealth) + " Max Health") });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_max_health", { { "value", std::to_string(pTemplate->bonusMaxHealth) } }) });
         if (pTemplate->bonusMaxMana != 0)
-            mTooltipLines.push_back({ Rml::String("+" + std::to_string(pTemplate->bonusMaxMana) + " Max Mana") });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_max_mana", { { "value", std::to_string(pTemplate->bonusMaxMana) } }) });
 
         if (pTemplate->requiredLevel > 1)
-            mTooltipLines.push_back({ Rml::String("Requires level " + std::to_string(pTemplate->requiredLevel)) });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.requires_level", { { "level", std::to_string(pTemplate->requiredLevel) } }) });
 
         if (!pTemplate->allowedClasses.empty())
         {
@@ -370,19 +372,19 @@ void InventoryRmlController::showTooltip(const ItemTemplate* pTemplate, uint32_t
             for (uint32_t tClassId : pTemplate->allowedClasses)
             {
                 const ClassDefinition* tClass = mClassCatalog.find(tClassId);
-                tClasses += (tClasses.empty() ? "" : ", ") + (tClass ? tClass->name : std::string("?"));
+                tClasses += (tClasses.empty() ? "" : ", ") + (tClass ? mLocalization.content("class." + tClass->key + ".name", tClass->name) : std::string("?"));
             }
 
-            mTooltipLines.push_back({ Rml::String("Class: " + tClasses) });
+            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.classes", { { "classes", tClasses } }) });
         }
 
         if (pIsEquipped)
         {
-            mTooltipHint = "Right-click to unequip";
+            mTooltipHint = mLocalization.text("inventory.hint.unequip");
         }
         else if (isEquippable(pTemplate))
         {
-            mTooltipHint = "Right-click to equip";
+            mTooltipHint = mLocalization.text("inventory.hint.equip");
         }
         else
         {
@@ -403,7 +405,7 @@ void InventoryRmlController::showEmptySlotTooltip(EquipSlotType pSlot)
 {
     mTooltipLines.clear();
     mTooltipName = getSlotRoleName(pSlot);
-    mTooltipHint = "Empty";
+    mTooltipHint = mLocalization.text("inventory.hint.empty");
 
     mHasTooltip = true;
     dirtyAll();
@@ -767,10 +769,10 @@ void InventoryRmlController::onActionResult(bool pIsSuccess)
     {
         switch (mLastRequest)
         {
-            case RequestType::eEquip:   mStatusText = "You cannot equip that right now."; break;
-            case RequestType::eUnequip: mStatusText = "There is no room for it there."; break;
-            case RequestType::eMove:    mStatusText = "There is no room for it there."; break;
-            default:                    mStatusText = "That did not work."; break;
+            case RequestType::eEquip:   mStatusText = mLocalization.text("inventory.status.cannot_equip"); break;
+            case RequestType::eUnequip: mStatusText = mLocalization.text("inventory.status.no_room"); break;
+            case RequestType::eMove:    mStatusText = mLocalization.text("inventory.status.no_room"); break;
+            default:                    mStatusText = mLocalization.text("inventory.status.failed"); break;
         }
 
         mHasStatusMessage = true;

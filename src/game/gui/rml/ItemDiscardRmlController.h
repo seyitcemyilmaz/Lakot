@@ -13,6 +13,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 class ItemDiscardRmlController
@@ -20,7 +21,7 @@ class ItemDiscardRmlController
 public:
     using ConfirmCallback = std::function<void(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)>;
 
-    explicit ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer);
+    explicit ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization);
     ~ItemDiscardRmlController();
 
     ItemDiscardRmlController(const ItemDiscardRmlController&) = delete;
@@ -34,6 +35,7 @@ public:
 
 private:
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
 
     Rml::ElementDocument* mDocument{nullptr};
     Rml::DataModelHandle mModelHandle;
@@ -47,6 +49,7 @@ private:
     Rml::String mItemName;
     bool mIsStack{false};
     int mMaxCount{0};
+    Rml::String mAmountLabel;
     Rml::String mCountText;
     Rml::String mStatusMessage;
     bool mIsError{false};

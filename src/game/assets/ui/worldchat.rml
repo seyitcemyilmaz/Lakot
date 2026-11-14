@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>World Chat</title>
+    <title>[[worldchat.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="world-chat-window">
@@ -28,7 +28,7 @@
         <div class="chat-input-row" data-if="is_open">
             <div class="chat-scope-btn" data-class-scope-global="is_global_mode" data-event-click="toggle_scope">{{ scope_label }}</div>
             <input type="text" id="chat-input" class="chat-input" data-value="input_text" data-event-keydown="input_keydown"/>
-            <div class="chat-send-btn" data-event-click="send">Send</div>
+            <div class="chat-send-btn" data-event-click="send">[[chat.send]]</div>
         </div>
     </div>
 </body>

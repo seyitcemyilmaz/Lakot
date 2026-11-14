@@ -19,6 +19,7 @@ namespace lakot
 
 class AssetManager;
 class ItemAppearance;
+class Localization;
 class MonsterCatalog;
 class MotionLibrary;
 
@@ -35,7 +36,7 @@ class WorldEntities
 public:
     static constexpr uint64_t kLocalId = std::numeric_limits<uint64_t>::max();
 
-    WorldEntities(AssetManager& pAssets, const MonsterCatalog& pMonsterCatalog, MotionLibrary& pMotions, ItemAppearance& pAppearance);
+    WorldEntities(AssetManager& pAssets, const Localization& pLocalization, const MonsterCatalog& pMonsterCatalog, MotionLibrary& pMotions, ItemAppearance& pAppearance);
 
     void setLocalCharacterId(uint64_t pCharacterId);
     const WorldEntity* getLocal() const;
@@ -72,6 +73,7 @@ private:
     static constexpr const char* kMonsterFallbackModel = "models/monsters/steppe_bandit.glb";
 
     AssetManager& mAssets;
+    const Localization& mLocalization;
     const MonsterCatalog& mMonsterCatalog;
     MotionLibrary& mMotions;
     ItemAppearance& mAppearance;

@@ -11,6 +11,7 @@
 
 #include "../../asset/AssetManager.h"
 #include "MonsterCatalog.h"
+#include "../../localization/Localization.h"
 #include "../../graphics/model/MotionLibrary.h"
 #include "../../item/ItemAppearance.h"
 
@@ -29,8 +30,9 @@ namespace
     }
 }
 
-WorldEntities::WorldEntities(AssetManager& pAssets, const MonsterCatalog& pMonsterCatalog, MotionLibrary& pMotions, ItemAppearance& pAppearance)
+WorldEntities::WorldEntities(AssetManager& pAssets, const Localization& pLocalization, const MonsterCatalog& pMonsterCatalog, MotionLibrary& pMotions, ItemAppearance& pAppearance)
     : mAssets(pAssets)
+    , mLocalization(pLocalization)
     , mMonsterCatalog(pMonsterCatalog)
     , mMotions(pMotions)
     , mAppearance(pAppearance)
@@ -231,8 +233,9 @@ void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapsho
             tGround.itemTemplateId = tEntity.templateId;
             tGround.itemCount = tEntity.count;
             tGround.gold = tEntity.gold;
-            tGround.name = tEntity.gold > 0 ? std::to_string(tEntity.gold) + " Gold"
-                         : tEntity.count > 1 ? tEntity.name + " x" + std::to_string(tEntity.count) : tEntity.name;
+            std::string tItemName = mLocalization.content("item." + std::to_string(tEntity.templateId) + ".name", tEntity.name);
+            tGround.name = tEntity.gold > 0 ? mLocalization.format("world.ground_gold", { { "amount", std::to_string(tEntity.gold) } })
+                         : tEntity.count > 1 ? mLocalization.format("world.ground_stack", { { "name", tItemName }, { "count", std::to_string(tEntity.count) } }) : tItemName;
             tGround.previousPosition = tGround.targetPosition = tGround.lastAnimatedPosition = glm::vec3(tEntity.x, tEntity.y, tEntity.z);
             tGround.interpolationElapsed = tGround.interpolationDuration;
             mEntities.insert_or_assign(tEntity.entityId, std::move(tGround));
@@ -253,7 +256,8 @@ void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapsho
             }
         }
 
-        WorldEntity& tSpawned = spawn(tEntity.entityId, tType, tEntity.name, glm::vec3(tEntity.x, tEntity.y, tEntity.z), tModel);
+        std::string tName = tType == EntityType::eMonster ? mLocalization.content("monster." + std::to_string(tEntity.templateId) + ".name", tEntity.name) : tEntity.name;
+        WorldEntity& tSpawned = spawn(tEntity.entityId, tType, tName, glm::vec3(tEntity.x, tEntity.y, tEntity.z), tModel);
         tSpawned.level = tEntity.level;
 
         if (tMonsterTemplate)

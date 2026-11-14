@@ -18,6 +18,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 class SkillWindowRmlController
@@ -26,7 +27,7 @@ public:
     using RaiseSkillCallback = std::function<void(uint32_t pSkillId)>;
     using ChoosePathCallback = std::function<void(uint32_t pPathId)>;
 
-    SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, const SkillCatalog& pSkillCatalog, const ClassCatalog& pClassCatalog);
+    SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const SkillCatalog& pSkillCatalog, const ClassCatalog& pClassCatalog);
     ~SkillWindowRmlController();
 
     SkillWindowRmlController(const SkillWindowRmlController&) = delete;
@@ -47,6 +48,7 @@ private:
         int id = 0;
         Rml::String name;
         Rml::String skillNames;
+        Rml::String warningText;
         bool isPending = false;
     };
 
@@ -61,12 +63,12 @@ private:
         bool isLocked = false;
         Rml::String lockText;
         bool canRaise = false;
-        int mpCost = 0;
-        Rml::String cooldownText;
+        Rml::String statsText;
         Rml::String tierText;
     };
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
     const SkillCatalog& mSkillCatalog;
     const ClassCatalog& mClassCatalog;
 
@@ -99,7 +101,7 @@ private:
 
     void rebuild();
     SkillRow makeSkillRow(const SkillDefinition& pSkill) const;
-    static Rml::String formatCooldown(float pSeconds);
+    Rml::String formatCooldown(float pSeconds) const;
 };
 
 }

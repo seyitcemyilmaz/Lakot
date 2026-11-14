@@ -6,6 +6,8 @@
 
 #include <SDL3/SDL.h>
 
+#include "../localization/Localization.h"
+
 namespace lakot
 {
 
@@ -23,7 +25,7 @@ struct DisplayMode
 
     bool operator==(const DisplayMode& pOther) const;
 
-    std::string getLabel() const;
+    std::string getLabel(const Localization& pLocalization) const;
 };
 
 class DisplaySettings

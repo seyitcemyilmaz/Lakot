@@ -1,31 +1,31 @@
 <rml>
 <head>
-    <title>Vitals</title>
+    <title>[[vitals.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="vitals-screen">
     <div data-model="vitals" class="vitals-root">
         <div class="vitals-panel">
             <div class="vitals-row">
-                <span class="vitals-level">Lv {{ level }}</span>
+                <span class="vitals-level">[[vitals.level]] {{ level }}</span>
                 <span class="vitals-value">{{ health }}</span>
             </div>
             <div class="char-bar vitals-bar"><div class="char-bar-fill char-bar-health" data-style-width="health_percent"></div></div>
             <div class="char-bar vitals-bar"><div class="char-bar-fill char-bar-mana" data-style-width="mana_percent"></div></div>
             <div class="char-bar vitals-bar vitals-bar-thin"><div class="char-bar-fill char-bar-exp" data-style-width="experience_percent"></div></div>
         </div>
-        <div class="vitals-safe-zone" data-if="is_safe">Safe Zone</div>
+        <div class="vitals-safe-zone" data-if="is_safe">[[vitals.safe_zone]]</div>
         <div class="vitals-notice" data-if="notice != ''">{{ notice }}</div>
         <div class="vitals-death" data-if="is_dead">
-            <div class="vitals-death-title">You died</div>
-            <div class="vitals-death-timer" data-if="!can_choose">You can revive in {{ respawn }}</div>
+            <div class="vitals-death-title">[[vitals.you_died]]</div>
+            <div class="vitals-death-timer" data-if="!can_choose">[[vitals.revive_in]] {{ respawn }}</div>
             <div class="vitals-death-buttons">
                 <div class="vitals-revive-btn" data-class-is-disabled="!can_choose"
-                     data-event-click="revive_here">Revive here</div>
+                     data-event-click="revive_here">[[vitals.revive_here]]</div>
                 <div class="vitals-revive-btn" data-class-is-disabled="!can_choose"
-                     data-event-click="revive_town">Revive in town</div>
+                     data-event-click="revive_town">[[vitals.revive_town]]</div>
             </div>
-            <div class="vitals-death-auto" data-if="auto_respawn != ''">Auto-revive in {{ auto_respawn }} s</div>
+            <div class="vitals-death-auto" data-if="auto_respawn != ''">[[vitals.auto_revive_in]] {{ auto_respawn }} [[vitals.seconds_short]]</div>
         </div>
     </div>
 </body>

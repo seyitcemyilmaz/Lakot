@@ -13,6 +13,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 // RmlUi replacement for the ImGui ChatPanel - one instance per whisper
@@ -37,7 +38,7 @@ class RmlUiLayer;
 class ChatRmlController
 {
 public:
-    ChatRmlController(RmlUiLayer& pRmlUiLayer, uint64_t pTargetPlayerId, const std::string& pTargetUsername, float pInitialLeft, float pInitialTop);
+    ChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, uint64_t pTargetPlayerId, const std::string& pTargetUsername, float pInitialLeft, float pInitialTop);
     ~ChatRmlController();
 
     ChatRmlController(const ChatRmlController&) = delete;
@@ -135,6 +136,7 @@ private:
     };
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
     uint64_t mTargetPlayerId;
 
     // Fixed for this window's whole life, derived from the id it was CREATED

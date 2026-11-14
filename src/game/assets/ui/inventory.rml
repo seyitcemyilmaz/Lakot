@@ -1,13 +1,13 @@
 <rml>
 <head>
-    <title>Inventory</title>
+    <title>[[inventory.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <body class="inventory-screen">
 <div class="inventory-root" data-model="inventory">
     <div class="inventory-window">
         <div class="chat-titlebar" data-event-mousedown="drag_start">
-            <div class="chat-tab">Inventory</div>
+            <div class="chat-tab">[[inventory.title]]</div>
             <div class="chat-titlebar-buttons">
                 <div class="chat-icon-btn" data-event-click="close">X</div>
             </div>

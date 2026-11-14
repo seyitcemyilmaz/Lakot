@@ -1,6 +1,6 @@
 <rml>
 <head>
-    <title>Minimap</title>
+    <title>[[minimap.window_title]]</title>
     <link type="text/rcss" href="theme.rcss"/>
 </head>
 <!-- Always shown in the world. North is up; the map image slides under a

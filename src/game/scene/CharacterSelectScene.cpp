@@ -27,7 +27,7 @@ void CharacterSelectScene::enter()
     tGui.clearPanels();
     PanelLoader::load(tGui, PanelContext::Login);
 
-    mController = std::make_unique<CharacterSelectRmlController>(mEngine.getRmlUiLayer(), mEngine.getMapCatalog(), mEngine.getClassCatalog());
+    mController = std::make_unique<CharacterSelectRmlController>(mEngine.getRmlUiLayer(), mEngine.getLocalization(), mEngine.getMapCatalog(), mEngine.getClassCatalog());
 
     AuthController& tAuthController = mEngine.getNetworkManager().getAuthController();
 

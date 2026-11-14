@@ -13,8 +13,9 @@
 
 using namespace lakot;
 
-WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer)
+WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
@@ -52,6 +53,7 @@ WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer)
     tConstructor.Bind("input_text", &mInputText);
     tConstructor.Bind("is_open", &mIsOpen);
     tConstructor.Bind("is_global_mode", &mIsGlobalMode);
+    mScopeButtonLabel = mLocalization.text("worldchat.scope_nearby");
     tConstructor.Bind("scope_label", &mScopeButtonLabel);
     tConstructor.Bind("status_text", &mStatusText);
     tConstructor.Bind("has_status", &mHasStatusMessage);
@@ -140,7 +142,7 @@ void WorldChatRmlController::onSendClicked(Rml::DataModelHandle /*pHandle*/, Rml
 void WorldChatRmlController::onScopeToggleClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
 {
     mIsGlobalMode = !mIsGlobalMode;
-    mScopeButtonLabel = mIsGlobalMode ? "World" : "Within Range";
+    mScopeButtonLabel = mIsGlobalMode ? mLocalization.text("worldchat.scope_world") : mLocalization.text("worldchat.scope_nearby");
 
     mModelHandle.DirtyVariable("is_global_mode");
     mModelHandle.DirtyVariable("scope_label");
@@ -364,7 +366,7 @@ void WorldChatRmlController::doSend()
     // text back to the sender, same reason as ChatRmlController::doSend()'s
     // local "You" append. Remembered by index so onSendResult() can mark THIS
     // specific line red if the server turns out to have refused it.
-    appendLine("You", tDisplayText, true, tIsGlobal);
+    appendLine(mLocalization.text("chat.you"), tDisplayText, true, tIsGlobal);
     mLastSentLineIndex = mHistory.size() - 1;
     mHasPendingSend = true;
     mInputText.clear();

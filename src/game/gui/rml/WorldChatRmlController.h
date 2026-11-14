@@ -13,6 +13,7 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 // RmlUi panel for the map-wide "say" channel - unlike ChatRmlController
@@ -64,7 +65,7 @@ public:
         eEcho
     };
 
-    explicit WorldChatRmlController(RmlUiLayer& pRmlUiLayer);
+    explicit WorldChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization);
     ~WorldChatRmlController();
 
     WorldChatRmlController(const WorldChatRmlController&) = delete;
@@ -152,6 +153,7 @@ private:
     };
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
 
     Rml::ElementDocument* mDocument{nullptr};
     Rml::DataModelHandle mModelHandle;
@@ -164,7 +166,7 @@ private:
     // across sends (a deliberate mode, not a one-shot flag) until clicked
     // again.
     bool mIsGlobalMode{false};
-    Rml::String mScopeButtonLabel{"Within Range"};
+    Rml::String mScopeButtonLabel;
 
     // Rejected-send feedback, shown under the input row. mLastSentLineIndex
     // remembers which optimistically-appended line a pending result belongs

@@ -14,8 +14,9 @@
 
 using namespace lakot;
 
-ChatRmlController::ChatRmlController(RmlUiLayer& pRmlUiLayer, uint64_t pTargetPlayerId, const std::string& pTargetUsername, float pInitialLeft, float pInitialTop)
+ChatRmlController::ChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, uint64_t pTargetPlayerId, const std::string& pTargetUsername, float pInitialLeft, float pInitialTop)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
     , mTargetPlayerId(pTargetPlayerId)
     , mDataModelName("chat_" + std::to_string(pTargetPlayerId))
     , mTargetUsername(pTargetUsername)
@@ -300,7 +301,7 @@ void ChatRmlController::doSend()
     // onSendResult() can mark THIS specific line red if it turns out to
     // have failed - see mLastSentLineIndex's own comment.
     trimHistory();
-    mHistory.push_back(ChatLine{ true, "You", Localization::escapeMarkup(tText) });
+    mHistory.push_back(ChatLine{ true, mLocalization.text("chat.you"), Localization::escapeMarkup(tText) });
     mLastSentLineIndex = mHistory.size() - 1;
     mHasPendingSentLine = true;
     mInputText.clear();
@@ -313,7 +314,7 @@ void ChatRmlController::doSend()
         mHistory[mLastSentLineIndex].isFailed = true;
         mHasPendingSentLine = false;
 
-        mStatusText = "No connection to server!";
+        mStatusText = mLocalization.text("chat.no_connection");
         mHasStatusMessage = true;
     }
 

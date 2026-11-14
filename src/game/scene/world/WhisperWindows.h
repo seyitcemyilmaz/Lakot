@@ -11,12 +11,13 @@
 namespace lakot
 {
 
+class Localization;
 class RmlUiLayer;
 
 class WhisperWindows
 {
 public:
-    explicit WhisperWindows(RmlUiLayer& pRmlUiLayer);
+    WhisperWindows(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization);
 
     void open(uint64_t pPlayerId, const std::string& pUsername);
 
@@ -33,6 +34,7 @@ private:
     static constexpr uint64_t kFirstTempChatId = 0x8000000000000000ULL;
 
     RmlUiLayer& mRmlUiLayer;
+    const Localization& mLocalization;
 
     std::unordered_map<uint64_t, std::unique_ptr<ChatRmlController>> mWindows;
     int mStaggerCount{0};

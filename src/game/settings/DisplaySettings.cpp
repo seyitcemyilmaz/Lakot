@@ -29,13 +29,13 @@ bool DisplayMode::operator==(const DisplayMode& pOther) const
     return type == DisplayModeType::eFullscreen || (width == pOther.width && height == pOther.height);
 }
 
-std::string DisplayMode::getLabel() const
+std::string DisplayMode::getLabel(const Localization& pLocalization) const
 {
     std::string tSize = std::to_string(width) + " x " + std::to_string(height);
 
     if (type == DisplayModeType::eFullscreen)
     {
-        return width > 0 ? "Fullscreen (" + tSize + ")" : "Fullscreen";
+        return width > 0 ? pLocalization.format("systemmenu.fullscreen_size", { { "size", tSize } }) : pLocalization.text("systemmenu.fullscreen");
     }
 
     return tSize;

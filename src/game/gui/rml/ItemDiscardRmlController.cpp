@@ -8,6 +8,7 @@
 #include <RmlUi/Core/Input.h>
 
 #include "RmlUiLayer.h"
+#include "../../localization/Localization.h"
 
 using namespace lakot;
 
@@ -32,8 +33,9 @@ namespace
     }
 }
 
-ItemDiscardRmlController::ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer)
+ItemDiscardRmlController::ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
@@ -53,6 +55,7 @@ ItemDiscardRmlController::ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer)
     tConstructor.Bind("item_name", &mItemName);
     tConstructor.Bind("is_stack", &mIsStack);
     tConstructor.Bind("max_count", &mMaxCount);
+    tConstructor.Bind("amount_label", &mAmountLabel);
     tConstructor.Bind("count_text", &mCountText);
     tConstructor.Bind("status_message", &mStatusMessage);
     tConstructor.Bind("is_error", &mIsError);
@@ -96,6 +99,7 @@ void ItemDiscardRmlController::open(uint32_t pBagSlot, uint32_t pTemplateId, uin
     mItemName = pName;
     mIsStack = pCount > 1;
     mMaxCount = static_cast<int>(pCount);
+    mAmountLabel = mLocalization.format("itemdiscard.amount", { { "max", std::to_string(pCount) } });
     mCountText = mIsStack ? std::to_string(pCount) : std::string("1");
     mStatusMessage.clear();
     mIsError = false;
@@ -183,7 +187,7 @@ void ItemDiscardRmlController::confirm(bool pIsDestroy)
 
         if (tParsed < 1 || tParsed > static_cast<uint32_t>(mMaxCount))
         {
-            setError("Enter a number between 1 and " + std::to_string(mMaxCount) + ".");
+            setError(mLocalization.format("itemdiscard.invalid_amount", { { "max", std::to_string(mMaxCount) } }));
             return;
         }
 
@@ -216,6 +220,7 @@ void ItemDiscardRmlController::dirtyAll()
     mModelHandle.DirtyVariable("item_name");
     mModelHandle.DirtyVariable("is_stack");
     mModelHandle.DirtyVariable("max_count");
+    mModelHandle.DirtyVariable("amount_label");
     mModelHandle.DirtyVariable("count_text");
     mModelHandle.DirtyVariable("status_message");
     mModelHandle.DirtyVariable("is_error");

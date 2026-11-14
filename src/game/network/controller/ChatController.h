@@ -11,6 +11,7 @@
 namespace lakot
 {
 
+class Localization;
 class NetworkManager;
 
 template <typename MessageType>
@@ -45,7 +46,7 @@ public:
     using CommandResultCallback = std::function<void(services::chat::CommandStatus pStatus, const std::vector<std::string>& pLines)>;
     using SystemMessageCallback = std::function<void(services::chat::SystemMessageKind pKind, const std::string& pText)>;
 
-    ChatController(NetworkManager* pNetworkManager);
+    ChatController(NetworkManager* pNetworkManager, const Localization& pLocalization);
 
     void initialize();
 
@@ -76,6 +77,7 @@ public:
 
 private:
     NetworkManager* mNetworkManager;
+    const Localization& mLocalization;
 
     DirectMessageReceivedCallback mDirectMessageReceivedCallback;
     DirectMessageResultCallback mDirectMessageResultCallback;

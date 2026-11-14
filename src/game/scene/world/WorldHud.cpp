@@ -28,16 +28,16 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mBindings(pCharacterId)
     , mMinimap(pRmlUiLayer)
     , mWorldMap(pRmlUiLayer)
-    , mWorldChat(pRmlUiLayer)
+    , mWorldChat(pRmlUiLayer, pLocalization)
     , mSkillBar(pRmlUiLayer)
     , mVitals(pRmlUiLayer)
-    , mInventory(pRmlUiLayer, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
-    , mCharacterSheet(pRmlUiLayer, pClassCatalog, pUsername)
-    , mSkillWindow(pRmlUiLayer, pSkillCatalog, pClassCatalog)
+    , mInventory(pRmlUiLayer, pLocalization, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
+    , mCharacterSheet(pRmlUiLayer, pLocalization, pClassCatalog, pUsername)
+    , mSkillWindow(pRmlUiLayer, pLocalization, pSkillCatalog, pClassCatalog)
     , mSystemMenu(pRmlUiLayer)
-    , mItemDiscard(pRmlUiLayer)
+    , mItemDiscard(pRmlUiLayer, pLocalization)
     , mShop(pRmlUiLayer, pNetworkManager.getInventoryController(), pLocalization, pItemIcons)
-    , mWhispers(pRmlUiLayer)
+    , mWhispers(pRmlUiLayer, pLocalization)
 {
     mSystemMenu.setLogoutCallback(
     [this]()
@@ -278,7 +278,7 @@ void WorldHud::connectNetwork()
     mSkillWindow.setRaiseSkillCallback(
     [this](uint32_t /*pSkillId*/)
     {
-        mWorldChat.appendSystemLine("Skill learning is coming soon.", WorldChatRmlController::SystemLineType::eInfo);
+        mWorldChat.appendSystemLine(mLocalization.text("hud.skill_learning_soon"), WorldChatRmlController::SystemLineType::eInfo);
     });
 
     mInventory.setEquipRequestCallback(
@@ -520,7 +520,7 @@ void WorldHud::refreshDisplayOptions()
 
     for (size_t tIndex = 0; tIndex < mDisplayModes.size(); ++tIndex)
     {
-        tLabels.push_back(mDisplayModes[tIndex].getLabel());
+        tLabels.push_back(mDisplayModes[tIndex].getLabel(mLocalization));
 
         if (mDisplayModes[tIndex] == mDisplaySettings.getMode())
         {
@@ -621,7 +621,7 @@ void WorldHud::onItemDroppedOutside(const OwnedItem& pItem, float pX, float pY)
         }
     }
 
-    std::string tName = tTemplate ? tTemplate->name : std::string("Unknown item");
+    std::string tName = tTemplate ? mLocalization.content("item." + std::to_string(tTemplate->templateId) + ".name", tTemplate->name) : mLocalization.text("hud.unknown_item");
 
     mItemDiscard.open(pItem.slot, pItem.templateId, pItem.count, tName, ItemIconPath::resolve(mItemIcons, tTemplate));
 }
@@ -676,11 +676,11 @@ void WorldHud::onRespawnResult(services::world::RespawnStatus pStatus)
     switch (pStatus)
     {
     case services::world::RESPAWN_STATUS_TOO_EARLY:
-        mVitals.showNotice("Not yet - wait a moment.");
+        mVitals.showNotice(mLocalization.text("hud.respawn_too_early"));
         break;
 
     case services::world::RESPAWN_STATUS_INVALID:
-        mVitals.showNotice("You cannot revive right now.");
+        mVitals.showNotice(mLocalization.text("hud.respawn_invalid"));
         break;
 
     default:
@@ -696,7 +696,7 @@ void WorldHud::onInventoryActionResult(bool pIsSuccess)
 
         if (!pIsSuccess)
         {
-            mVitals.showNotice("You cannot discard that right now.");
+            mVitals.showNotice(mLocalization.text("hud.discard_failed"));
         }
 
         return;
@@ -710,15 +710,15 @@ void WorldHud::onAllocateStatResult(services::progression::AllocateStatStatus pS
     switch (pStatus)
     {
         case services::progression::ALLOCATE_STAT_NO_POINTS:
-            mWorldChat.appendSystemLine("You have no stat points to spend.", WorldChatRmlController::SystemLineType::eWarning);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.stat.no_points"), WorldChatRmlController::SystemLineType::eWarning);
             break;
 
         case services::progression::ALLOCATE_STAT_AT_CAP:
-            mWorldChat.appendSystemLine("That attribute is already at its maximum.", WorldChatRmlController::SystemLineType::eWarning);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.stat.at_cap"), WorldChatRmlController::SystemLineType::eWarning);
             break;
 
         case services::progression::ALLOCATE_STAT_INVALID:
-            mWorldChat.appendSystemLine("That attribute cannot be raised.", WorldChatRmlController::SystemLineType::eError);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.stat.invalid"), WorldChatRmlController::SystemLineType::eError);
             break;
 
         default:
@@ -745,15 +745,15 @@ void WorldHud::onUseItemResult(services::inventory::UseItemStatus pStatus, float
             break;
 
         case services::inventory::USE_ITEM_STATUS_DEAD:
-            mVitals.showNotice("You cannot do that while dead.");
+            mVitals.showNotice(mLocalization.text("hud.use.dead"));
             break;
 
         case services::inventory::USE_ITEM_STATUS_FULL:
-            mVitals.showNotice("Nothing to restore.");
+            mVitals.showNotice(mLocalization.text("hud.use.full"));
             break;
 
         case services::inventory::USE_ITEM_STATUS_NOT_OWNED:
-            mVitals.showNotice("You have none left.");
+            mVitals.showNotice(mLocalization.text("hud.use.not_owned"));
             break;
 
         default:
@@ -777,7 +777,7 @@ void WorldHud::announcePathChoice()
     }
 
     mIsPathHintShown = true;
-    mWorldChat.appendSystemLine("Path choice is open - press K.", WorldChatRmlController::SystemLineType::eAnnounce);
+    mWorldChat.appendSystemLine(mLocalization.text("hud.path.open"), WorldChatRmlController::SystemLineType::eAnnounce);
 }
 
 void WorldHud::onChoosePathResult(services::progression::ChoosePathStatus pStatus)
@@ -785,19 +785,19 @@ void WorldHud::onChoosePathResult(services::progression::ChoosePathStatus pStatu
     switch (pStatus)
     {
         case services::progression::CHOOSE_PATH_OK:
-            mWorldChat.appendSystemLine("Your path has been chosen.", WorldChatRmlController::SystemLineType::eInfo);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.path.chosen"), WorldChatRmlController::SystemLineType::eInfo);
             break;
 
         case services::progression::CHOOSE_PATH_LEVEL_TOO_LOW:
-            mWorldChat.appendSystemLine("You are not high enough level to choose a path.", WorldChatRmlController::SystemLineType::eWarning);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.path.level_too_low"), WorldChatRmlController::SystemLineType::eWarning);
             break;
 
         case services::progression::CHOOSE_PATH_ALREADY_CHOSEN:
-            mWorldChat.appendSystemLine("You have already chosen a path.", WorldChatRmlController::SystemLineType::eWarning);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.path.already_chosen"), WorldChatRmlController::SystemLineType::eWarning);
             break;
 
         default:
-            mWorldChat.appendSystemLine("That path cannot be chosen.", WorldChatRmlController::SystemLineType::eError);
+            mWorldChat.appendSystemLine(mLocalization.text("hud.path.invalid"), WorldChatRmlController::SystemLineType::eError);
             break;
     }
 }

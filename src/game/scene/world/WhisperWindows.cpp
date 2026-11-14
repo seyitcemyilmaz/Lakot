@@ -4,8 +4,9 @@
 
 using namespace lakot;
 
-WhisperWindows::WhisperWindows(RmlUiLayer& pRmlUiLayer)
+WhisperWindows::WhisperWindows(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization)
     : mRmlUiLayer(pRmlUiLayer)
+    , mLocalization(pLocalization)
 {
 
 }
@@ -109,7 +110,7 @@ ChatRmlController& WhisperWindows::ensureWindow(uint64_t pPlayerId, const std::s
     float tTop = kBaseTop + kStaggerStep * static_cast<float>(tSlot);
     mStaggerCount++;
 
-    auto tWindow = std::make_unique<ChatRmlController>(mRmlUiLayer, pPlayerId, pUsername, tLeft, tTop);
+    auto tWindow = std::make_unique<ChatRmlController>(mRmlUiLayer, mLocalization, pPlayerId, pUsername, tLeft, tTop);
     ChatRmlController& tRef = *tWindow;
     mWindows[pPlayerId] = std::move(tWindow);
     return tRef;
