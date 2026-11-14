@@ -72,6 +72,11 @@ def main():
             shot(tHwnd, tOutDir, f"{tIndex:02d}_{tName}")
             pt.press(tCloseKey, 0.1)
             time.sleep(0.5)
+        for tIndex, tKey in enumerate(("d", "w", "a", "s"), start=20):
+            pt.focus(tHwnd)
+            pt.press(tKey, 1.2)
+            time.sleep(0.3)
+            shot(tHwnd, tOutDir, f"{tIndex:02d}_walk_{tKey}")
         pt.focus(tHwnd)
         pt.press("enter", 0.1)
         time.sleep(0.5)

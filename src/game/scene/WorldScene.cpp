@@ -433,8 +433,12 @@ void WorldScene::update(double pDeltaTime)
     mDamageNumbers.update(static_cast<float>(pDeltaTime));
     mHud->setSafeZone(mMap && mMap->isSafe(mLocalPosition.x, mLocalPosition.z));
 
-    glm::vec3 tFacing = mCamera->getFrontVector();
-    float tFacingDegrees = glm::degrees(std::atan2(tFacing.x, -tFacing.z));
+    float tFacingDegrees = 0.0f;
+
+    if (auto tLocal = mEntities->getAll().find(WorldEntities::kLocalId); tLocal != mEntities->getAll().end())
+    {
+        tFacingDegrees = 180.0f - glm::degrees(tLocal->second.facing);
+    }
 
     std::vector<glm::vec3> tOthers;
     tOthers.reserve(mEntities->getAll().size());

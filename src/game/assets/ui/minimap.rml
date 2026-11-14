@@ -17,8 +17,7 @@
                  data-style-left="player.left" data-style-top="player.top"></div>
 
             <div class="map-arrow minimap-arrow" data-style-transform="arrow_transform">
-                <div class="map-arrow-nose"></div>
-                <div class="map-arrow-body"></div>
+                <img class="map-arrow-image" src="textures/map_arrow.tga"/>
             </div>
         </div>
 
