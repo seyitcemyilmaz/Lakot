@@ -113,11 +113,7 @@ void InventoryController::sendActionResult(const std::shared_ptr<NetworkSession<
                                            uint64_t pReplyTo,
                                            bool pIsSuccess)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pIsSuccess ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+    connection::Message tResponse = makeResponse(pReplyTo, pIsSuccess ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     tResponse.mutable_response()->mutable_inventory_action_response()->set_status(
         pIsSuccess ? services::inventory::INVENTORY_ACTION_OK
@@ -220,11 +216,7 @@ void InventoryController::sendUseItemResult(const std::shared_ptr<NetworkSession
                                             services::inventory::UseItemStatus pStatus,
                                             float pCooldownSeconds)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pStatus == services::inventory::USE_ITEM_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::inventory::USE_ITEM_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     auto* tBody = tResponse.mutable_response()->mutable_use_item_response();
     tBody->set_status(pStatus);

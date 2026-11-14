@@ -34,7 +34,7 @@ ReconnectRmlController::ReconnectRmlController(RmlUiLayer& pRmlUiLayer)
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/reconnect.rml");
+    mDocument.load(mRmlUiLayer, "ui/reconnect.rml");
 
     if (mDocument)
     {
@@ -45,15 +45,12 @@ ReconnectRmlController::ReconnectRmlController(RmlUiLayer& pRmlUiLayer)
 
 ReconnectRmlController::~ReconnectRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("reconnect");
     }
 }

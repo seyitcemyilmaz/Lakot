@@ -44,10 +44,9 @@ void ShopController::sendOpenShop(uint64_t pNpcId)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_open_shop_request()->set_npc_id(pNpcId);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ShopController::sendBuy(uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity)
@@ -60,13 +59,12 @@ void ShopController::sendBuy(uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQu
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     auto* tRequest = tMessage.mutable_request()->mutable_buy_item_request();
     tRequest->set_npc_id(pNpcId);
     tRequest->set_item_id(pTemplateId);
     tRequest->set_quantity(pQuantity);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ShopController::sendSell(uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount)
@@ -79,14 +77,13 @@ void ShopController::sendSell(uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemp
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     auto* tRequest = tMessage.mutable_request()->mutable_sell_item_request();
     tRequest->set_npc_id(pNpcId);
     tRequest->set_bag_slot(pBagSlot);
     tRequest->set_template_id(pTemplateId);
     tRequest->set_count(pCount);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ShopController::setShopOpenedCallback(ShopOpenedCallback pCallback)

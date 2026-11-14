@@ -11,6 +11,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
 #include "ClassCatalog.h"
 #include "MapCatalog.h"
 
@@ -100,7 +101,7 @@ private:
     const MapCatalog& mMapCatalog;
     const ClassCatalog& mClassCatalog;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     // The authoritative list, parallel to mRows - mRows is what the UI binds

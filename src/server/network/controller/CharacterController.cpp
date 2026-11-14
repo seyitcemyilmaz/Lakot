@@ -68,11 +68,7 @@ void CharacterController::sendCharacterList(const std::shared_ptr<NetworkSession
     mRepositoryManager.getCharacterRepository().listByAccount(tAccountId,
     [pSession, pReplyTo](std::vector<CharacterRepository::CharacterRecord> pCharacters, uint32_t pKingdom)
     {
-        connection::Message tResponse;
-
-        auto* tHeader = tResponse.mutable_response()->mutable_header();
-        tHeader->set_reply_to(pReplyTo);
-        tHeader->mutable_status()->set_code(common::STATUS_OK);
+        connection::Message tResponse = makeResponse(pReplyTo, common::STATUS_OK);
 
         auto* tList = tResponse.mutable_response()->mutable_character_list_response();
         tList->set_max_slots(CharacterRepository::kMaxCharactersPerAccount);
@@ -119,11 +115,7 @@ void CharacterController::handleCharacterCreateRequest(std::shared_ptr<NetworkSe
     auto tSendResult = [pSession, tReplyTo](services::auth::CharacterCreateStatus pStatus,
                                             const CharacterRepository::CharacterRecord* pRecord)
     {
-        connection::Message tResponse;
-
-        auto* tHeader = tResponse.mutable_response()->mutable_header();
-        tHeader->set_reply_to(tReplyTo);
-        tHeader->mutable_status()->set_code(common::STATUS_OK);
+        connection::Message tResponse = makeResponse(tReplyTo, common::STATUS_OK);
 
         auto* tCreate = tResponse.mutable_response()->mutable_character_create_response();
         tCreate->set_status(pStatus);
@@ -291,11 +283,7 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
 
             tSnapshot.stats = tCharacter.getStats();
 
-            connection::Message tResponse;
-
-            auto* tHeader = tResponse.mutable_response()->mutable_header();
-            tHeader->set_reply_to(tReplyTo);
-            tHeader->mutable_status()->set_code(common::STATUS_OK);
+            connection::Message tResponse = makeResponse(tReplyTo, common::STATUS_OK);
 
             auto* tEnter = tResponse.mutable_response()->mutable_enter_world_response();
             tEnter->set_status(services::auth::ENTER_WORLD_OK);
@@ -441,11 +429,7 @@ void CharacterController::sendDeleteResult(const std::shared_ptr<NetworkSession<
                                            services::auth::DeleteCharacterStatus pStatus,
                                            uint64_t pCharacterId)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(common::STATUS_OK);
+    connection::Message tResponse = makeResponse(pReplyTo, common::STATUS_OK);
 
     auto* tDelete = tResponse.mutable_response()->mutable_delete_character_response();
     tDelete->set_status(pStatus);
@@ -459,11 +443,7 @@ void CharacterController::sendEnterWorldFailure(const std::shared_ptr<NetworkSes
                                                 common::StatusCode pStatusCode,
                                                 services::auth::EnterWorldStatus pEnterStatus)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pStatusCode);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatusCode);
     tResponse.mutable_response()->mutable_enter_world_response()->set_status(pEnterStatus);
 
     pSession->send(tResponse);

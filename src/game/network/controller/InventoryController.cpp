@@ -60,10 +60,9 @@ void InventoryController::sendEquipItem(uint32_t pBagSlot)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_equip_item_request()->set_bag_slot(pBagSlot);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void InventoryController::sendUnequipItem(EquipSlotType pEquipSlot, std::optional<uint32_t> pBagSlot)
@@ -76,7 +75,6 @@ void InventoryController::sendUnequipItem(EquipSlotType pEquipSlot, std::optiona
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     auto* tRequest = tMessage.mutable_request()->mutable_unequip_item_request();
     tRequest->set_equip_slot(static_cast<uint32_t>(pEquipSlot));
 
@@ -85,7 +83,7 @@ void InventoryController::sendUnequipItem(EquipSlotType pEquipSlot, std::optiona
         tRequest->set_bag_slot(*pBagSlot);
     }
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void InventoryController::sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot)
@@ -98,11 +96,10 @@ void InventoryController::sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_move_item_request()->set_from_slot(pFromSlot);
     tMessage.mutable_request()->mutable_move_item_request()->set_to_slot(pToSlot);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 bool InventoryController::sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount, bool pIsDestroy)
@@ -115,7 +112,6 @@ bool InventoryController::sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateI
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
 
     auto* tRequest = tMessage.mutable_request()->mutable_discard_item_request();
     tRequest->set_bag_slot(pBagSlot);
@@ -123,7 +119,7 @@ bool InventoryController::sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateI
     tRequest->set_count(pCount);
     tRequest->set_mode(pIsDestroy ? services::inventory::DISCARD_MODE_DESTROY : services::inventory::DISCARD_MODE_DROP);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 
     return true;
 }
@@ -138,10 +134,9 @@ void InventoryController::sendUseItem(uint32_t pTemplateId)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_use_item_request()->set_template_id(pTemplateId);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void InventoryController::setInventoryUpdateCallback(InventoryUpdateCallback pCallback)

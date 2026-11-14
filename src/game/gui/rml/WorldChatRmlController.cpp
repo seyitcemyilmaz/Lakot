@@ -64,7 +64,7 @@ WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer, const Lo
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/worldchat.rml");
+    mDocument.load(mRmlUiLayer, "ui/worldchat.rml");
 
     if (mDocument)
     {
@@ -74,15 +74,12 @@ WorldChatRmlController::WorldChatRmlController(RmlUiLayer& pRmlUiLayer, const Lo
 
 WorldChatRmlController::~WorldChatRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("world_chat");
     }
 }

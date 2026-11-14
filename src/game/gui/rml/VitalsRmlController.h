@@ -17,6 +17,8 @@ namespace Rml
 class ElementDocument;
 }
 
+#include "RmlDocument.h"
+
 namespace lakot
 {
 
@@ -46,7 +48,7 @@ private:
     static constexpr double kNoticeSeconds = 2.5;
 
     RmlUiLayer& mRmlUiLayer;
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModel;
 
     Rml::String mLevel{"1"};

@@ -67,20 +67,17 @@ ItemDiscardRmlController::ItemDiscardRmlController(RmlUiLayer& pRmlUiLayer, cons
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/itemdiscard.rml");
+    mDocument.load(mRmlUiLayer, "ui/itemdiscard.rml");
 }
 
 ItemDiscardRmlController::~ItemDiscardRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("item_discard");
     }
 }

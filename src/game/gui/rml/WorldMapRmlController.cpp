@@ -41,22 +41,19 @@ WorldMapRmlController::WorldMapRmlController(RmlUiLayer& pRmlUiLayer)
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/worldmap.rml");
+    mDocument.load(mRmlUiLayer, "ui/worldmap.rml");
 
     // Loaded but not shown - M toggles it.
 }
 
 WorldMapRmlController::~WorldMapRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("worldmap");
     }
 }
@@ -161,7 +158,7 @@ void WorldMapRmlController::updateDrag()
 
     // The document is the full-window body the window is centred in, so
     // moving it moves the window.
-    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument, mDocument->QuerySelector(".worldmap-window"),
+    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument.get(), mDocument->QuerySelector(".worldmap-window"),
         Rml::Vector2f(mDragStartDocLeft + (tMouseX - mDragStartMouseX), mDragStartDocTop + (tMouseY - mDragStartMouseY)));
 
     mDocument->SetProperty("left", std::to_string(tClamped.x) + "px");

@@ -124,7 +124,7 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
     rebuildKingdomRows();
     rebuildClassRows();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/characterselect.rml");
+    mDocument.load(mRmlUiLayer, "ui/characterselect.rml");
 
     if (mDocument)
     {
@@ -134,15 +134,12 @@ CharacterSelectRmlController::CharacterSelectRmlController(RmlUiLayer& pRmlUiLay
 
 CharacterSelectRmlController::~CharacterSelectRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("character_select");
     }
 }

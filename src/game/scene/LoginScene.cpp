@@ -2,6 +2,7 @@
 
 #include "../gui/PanelLoader.h"
 #include "../Engine.h"
+#include "CharacterSelectScene.h"
 
 using namespace lakot;
 
@@ -27,6 +28,11 @@ void LoginScene::enter()
 
     mLoginController = std::make_unique<LoginRmlController>(
         mEngine.getRmlUiLayer(), mEngine.getLocalization(),
+        mEngine.getNetworkManager().getAuthController(),
+        [this]()
+        {
+            mEngine.getSceneManager().setNextScene(std::make_unique<CharacterSelectScene>(mEngine));
+        },
         mNotice.empty() ? mNotice : mEngine.getLocalization().text(mNotice));
 }
 

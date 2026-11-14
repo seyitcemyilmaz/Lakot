@@ -89,6 +89,21 @@ uint64_t NetworkManager::nextRequestId()
     return mNextRequestId.fetch_add(1, std::memory_order_relaxed);
 }
 
+uint64_t NetworkManager::sendRequest(connection::Message& pMessage)
+{
+    auto tSession = mClient.getSession();
+
+    if (!tSession)
+    {
+        return 0;
+    }
+
+    uint64_t tRequestId = nextRequestId();
+    pMessage.mutable_request()->mutable_header()->set_id(tRequestId);
+    tSession->send(pMessage);
+    return tRequestId;
+}
+
 void NetworkManager::start()
 {
     std::string tHost = getServerHost();

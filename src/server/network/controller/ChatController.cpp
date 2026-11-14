@@ -262,10 +262,7 @@ void ChatController::handleDirectMessageRequest(std::shared_ptr<NetworkSession<c
     if (!RequestLimits::isValidChatText(tRequest.text())
         || tRequest.message_to().size() > RequestLimits::kMaxUsernameLength)
     {
-        connection::Message tInvalidMessage;
-        auto* tInvalidHeader = tInvalidMessage.mutable_response()->mutable_header();
-        tInvalidHeader->set_reply_to(pMessage.request().header().id());
-        tInvalidHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+        connection::Message tInvalidMessage = makeResponse(pMessage.request().header().id(), common::STATUS_INVALID_REQUEST);
         tInvalidMessage.mutable_response()->mutable_direct_message_response()
             ->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
 
@@ -273,10 +270,7 @@ void ChatController::handleDirectMessageRequest(std::shared_ptr<NetworkSession<c
         return;
     }
 
-    connection::Message tAckMessage;
-    auto* tAckHeader = tAckMessage.mutable_response()->mutable_header();
-    tAckHeader->set_reply_to(pMessage.request().header().id());
-    tAckHeader->mutable_status()->set_code(common::STATUS_OK);
+    connection::Message tAckMessage = makeResponse(pMessage.request().header().id(), common::STATUS_OK);
     auto* tAck = tAckMessage.mutable_response()->mutable_direct_message_response();
 
     switch (deliverWhisper(tSenderId, tRequest.message_to(), tRequest.text()))
@@ -288,13 +282,13 @@ void ChatController::handleDirectMessageRequest(std::shared_ptr<NetworkSession<c
             tAck->set_error_code(services::chat::DIRECT_MESSAGE_DISCONNECTED);
             break;
         case WhisperResultType::eThrottled:
-            tAckHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
-            tAckHeader->mutable_status()->set_message("You are sending messages too quickly.");
+            tAckMessage.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+            tAckMessage.mutable_response()->mutable_header()->mutable_status()->set_message("You are sending messages too quickly.");
             tAck->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
             break;
         case WhisperResultType::eMuted:
-            tAckHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
-            tAckHeader->mutable_status()->set_message(getMuteNotice(tSenderId));
+            tAckMessage.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+            tAckMessage.mutable_response()->mutable_header()->mutable_status()->set_message(getMuteNotice(tSenderId));
             tAck->set_error_code(services::chat::DIRECT_MESSAGE_ERROR);
             break;
     }
@@ -325,10 +319,7 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
     // an amplification vector rather than just an oversized packet.
     if (!RequestLimits::isValidChatText(tRequest.text()) || tRequest.text().front() == '/')
     {
-        connection::Message tInvalidMessage;
-        auto* tInvalidHeader = tInvalidMessage.mutable_response()->mutable_header();
-        tInvalidHeader->set_reply_to(pMessage.request().header().id());
-        tInvalidHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
+        connection::Message tInvalidMessage = makeResponse(pMessage.request().header().id(), common::STATUS_INVALID_REQUEST);
         tInvalidMessage.mutable_response()->mutable_chat_message_response()
             ->set_error_code(services::chat::CHAT_MESSAGE_ERROR);
 
@@ -357,11 +348,8 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
 
     if (!tThrottleMessage.empty())
     {
-        connection::Message tThrottledMessage;
-        auto* tThrottledHeader = tThrottledMessage.mutable_response()->mutable_header();
-        tThrottledHeader->set_reply_to(pMessage.request().header().id());
-        tThrottledHeader->mutable_status()->set_code(common::STATUS_INVALID_REQUEST);
-        tThrottledHeader->mutable_status()->set_message(tThrottleMessage);
+        connection::Message tThrottledMessage = makeResponse(pMessage.request().header().id(), common::STATUS_INVALID_REQUEST);
+        tThrottledMessage.mutable_response()->mutable_header()->mutable_status()->set_message(tThrottleMessage);
         tThrottledMessage.mutable_response()->mutable_chat_message_response()
             ->set_error_code(services::chat::CHAT_MESSAGE_ERROR);
 
@@ -409,10 +397,7 @@ void ChatController::handleChatMessageRequest(std::shared_ptr<NetworkSession<con
         mWorldController.sendNearby(tSenderId, tPushPacket);
     }
 
-    connection::Message tAckMessage;
-    auto* tAckHeader = tAckMessage.mutable_response()->mutable_header();
-    tAckHeader->set_reply_to(pMessage.request().header().id());
-    tAckHeader->mutable_status()->set_code(common::STATUS_OK);
+    connection::Message tAckMessage = makeResponse(pMessage.request().header().id(), common::STATUS_OK);
     tAckMessage.mutable_response()->mutable_chat_message_response()->set_error_code(services::chat::CHAT_MESSAGE_OK);
 
     pSession->send(tAckMessage);

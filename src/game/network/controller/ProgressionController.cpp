@@ -37,12 +37,11 @@ void ProgressionController::sendAllocateStat(services::progression::StatType pSt
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     auto* tRequest = tMessage.mutable_request()->mutable_allocate_stat_request();
     tRequest->set_stat(pStat);
     tRequest->set_amount(pAmount);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ProgressionController::sendChoosePath(uint32_t pPathId)
@@ -55,10 +54,9 @@ void ProgressionController::sendChoosePath(uint32_t pPathId)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_choose_path_request()->set_path_id(pPathId);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ProgressionController::setAllocateStatResultCallback(AllocateStatResultCallback pCallback)

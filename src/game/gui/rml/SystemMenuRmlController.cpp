@@ -42,20 +42,17 @@ SystemMenuRmlController::SystemMenuRmlController(RmlUiLayer& pRmlUiLayer)
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/systemmenu.rml");
+    mDocument.load(mRmlUiLayer, "ui/systemmenu.rml");
 }
 
 SystemMenuRmlController::~SystemMenuRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("system_menu");
     }
 }

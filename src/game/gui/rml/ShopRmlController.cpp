@@ -105,20 +105,17 @@ ShopRmlController::ShopRmlController(RmlUiLayer& pRmlUiLayer, const InventoryCon
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/shop.rml");
+    mDocument.load(mRmlUiLayer, "ui/shop.rml");
 }
 
 ShopRmlController::~ShopRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("shop");
     }
 }
@@ -342,7 +339,7 @@ void ShopRmlController::keepWindowOnScreen(float pMouseX, float pMouseY)
         tWantedTop = mDragStartDocTop + (pMouseY - mDragStartMouseY);
     }
 
-    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument, tWindow, Rml::Vector2f(tWantedLeft, tWantedTop));
+    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument.get(), tWindow, Rml::Vector2f(tWantedLeft, tWantedTop));
 
     if (std::abs(tClamped.x - tDocLeft) >= 0.5f || std::abs(tClamped.y - tDocTop) >= 0.5f)
     {

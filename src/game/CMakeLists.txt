@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/backend/RmlUi_Platform_SDL.h gui/rml/backend/RmlUi_Platform_SDL.cpp
     gui/rml/RmlSystemInterface.h gui/rml/RmlSystemInterface.cpp
     gui/rml/RmlUiLayer.h gui/rml/RmlUiLayer.cpp
+    gui/rml/RmlDocument.h gui/rml/RmlDocument.cpp
     gui/rml/LoginRmlController.h gui/rml/LoginRmlController.cpp
     gui/rml/CharacterSelectRmlController.h gui/rml/CharacterSelectRmlController.cpp
     gui/rml/ChatRmlController.h gui/rml/ChatRmlController.cpp
@@ -65,9 +66,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/ShopRmlController.h gui/rml/ShopRmlController.cpp
     network/StatsMessage.h
 
-    graphics/camera/CameraFactory.h graphics/camera/CameraFactory.cpp
     graphics/camera/Camera.h graphics/camera/Camera.cpp
-    graphics/camera/FPSCamera.h graphics/camera/FPSCamera.cpp
     graphics/camera/ThirdPersonCamera.h graphics/camera/ThirdPersonCamera.cpp
 
     graphics/geometry/BoxContainer.h graphics/geometry/BoxContainer.cpp

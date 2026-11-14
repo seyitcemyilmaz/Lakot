@@ -10,6 +10,8 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
+
 namespace lakot
 {
 
@@ -155,7 +157,7 @@ private:
     RmlUiLayer& mRmlUiLayer;
     const Localization& mLocalization;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     std::vector<ChatLine> mHistory;

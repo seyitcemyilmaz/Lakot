@@ -16,6 +16,8 @@ class Element;
 class Event;
 }
 
+#include "RmlDocument.h"
+
 namespace lakot
 {
 
@@ -75,7 +77,7 @@ private:
     void updateCooldown(size_t pIndex, double pDeltaTime);
 
     RmlUiLayer& mRmlUiLayer;
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
 
     std::array<Rml::Element*, kSlotCount> mSlotElements{};
     std::array<Rml::Element*, kSlotCount> mIconElements{};

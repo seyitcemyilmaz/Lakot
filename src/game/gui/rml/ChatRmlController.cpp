@@ -69,7 +69,7 @@ ChatRmlController::ChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocumentFromTemplate("ui/chat.rml", "__CHAT_MODEL__", mDataModelName);
+    mDocument.loadFromTemplate(mRmlUiLayer, "ui/chat.rml", "__CHAT_MODEL__", mDataModelName);
 
     if (mDocument)
     {
@@ -84,15 +84,12 @@ ChatRmlController::ChatRmlController(RmlUiLayer& pRmlUiLayer, const Localization
 
 ChatRmlController::~ChatRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         // mDataModelName, not a name rebuilt from mTargetPlayerId - that id
         // can have been re-pointed since construction (setTargetPlayerId).
         tContext->RemoveDataModel(mDataModelName);
@@ -237,7 +234,7 @@ void ChatRmlController::update()
     float tMouseY = 0.0f;
     SDL_GetMouseState(&tMouseX, &tMouseY);
 
-    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument, mDocument,
+    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument.get(), mDocument.get(),
         Rml::Vector2f(mDragStartDocLeft + (tMouseX - mDragStartMouseX), mDragStartDocTop + (tMouseY - mDragStartMouseY)));
 
     float tNewLeft = tClamped.x;

@@ -1,6 +1,7 @@
 #ifndef LAKOT_LOGINRMLCONTROLLER_H
 #define LAKOT_LOGINRMLCONTROLLER_H
 
+#include <functional>
 #include <string>
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -8,6 +9,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
 #include "../../network/controller/AuthController.h"
 
 namespace lakot
@@ -25,7 +27,9 @@ class Localization;
 class LoginRmlController
 {
 public:
-    LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const std::string& pNotice);
+    using LoginSucceededCallback = std::function<void()>;
+
+    LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pOnLoginSucceeded, const std::string& pNotice);
     ~LoginRmlController();
 
     LoginRmlController(const LoginRmlController&) = delete;
@@ -34,8 +38,10 @@ public:
 private:
     RmlUiLayer& mRmlUiLayer;
     const Localization& mLocalization;
+    AuthController& mAuthController;
+    LoginSucceededCallback mOnLoginSucceeded;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     Rml::String mUsername;

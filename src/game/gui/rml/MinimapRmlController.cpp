@@ -75,7 +75,7 @@ MinimapRmlController::MinimapRmlController(RmlUiLayer& pRmlUiLayer)
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/minimap.rml");
+    mDocument.load(mRmlUiLayer, "ui/minimap.rml");
 
     if (mDocument)
     {
@@ -85,15 +85,12 @@ MinimapRmlController::MinimapRmlController(RmlUiLayer& pRmlUiLayer)
 
 MinimapRmlController::~MinimapRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("minimap");
     }
 }

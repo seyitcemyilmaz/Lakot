@@ -10,6 +10,8 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
+
 namespace lakot
 {
 
@@ -38,7 +40,7 @@ public:
 private:
     RmlUiLayer& mRmlUiLayer;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     float mWorldSize{1.0f};

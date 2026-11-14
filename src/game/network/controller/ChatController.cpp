@@ -74,20 +74,12 @@ uint64_t ChatController::sendDirectMessage(const std::string& pToUsername, const
         return 0;
     }
 
-    uint64_t tRequestId = mNetworkManager->nextRequestId();
-
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request();
-    // The server echoes this back as ResponseHeader.reply_to (it already did;
-    // the client just never filled the id in, which is why every whisper
-    // response was uncorrelated).
-    tRequest->mutable_header()->set_id(tRequestId);
     tRequest->mutable_direct_message_request()->set_message_to(pToUsername);
     tRequest->mutable_direct_message_request()->set_text(pText);
 
-    tSession->send(tMessage);
-
-    return tRequestId;
+    return mNetworkManager->sendRequest(tMessage);
 }
 
 void ChatController::sendChatMessage(const std::string& pText, bool pIsGlobal)
@@ -128,10 +120,9 @@ void ChatController::sendCommand(const std::string& pText)
 
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request();
-    tRequest->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tRequest->mutable_command_request()->set_text(pText);
 
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void ChatController::setDirectMessageReceivedCallback(DirectMessageReceivedCallback pCallback)

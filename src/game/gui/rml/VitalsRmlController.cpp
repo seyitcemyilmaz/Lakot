@@ -46,7 +46,7 @@ VitalsRmlController::VitalsRmlController(RmlUiLayer& pRmlUiLayer)
     tConstructor.BindEventCallback("revive_town", &VitalsRmlController::onReviveTownClicked, this);
     mModel = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/vitals.rml");
+    mDocument.load(mRmlUiLayer, "ui/vitals.rml");
 
     if (mDocument)
     {
@@ -56,15 +56,12 @@ VitalsRmlController::VitalsRmlController(RmlUiLayer& pRmlUiLayer)
 
 VitalsRmlController::~VitalsRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("vitals");
     }
 }

@@ -11,6 +11,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
 #include "../../network/GameTypes.h"
 
 namespace lakot
@@ -76,7 +77,7 @@ private:
     const Localization& mLocalization;
     ItemIconRenderer& mItemIcons;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     bool mIsOpen{false};

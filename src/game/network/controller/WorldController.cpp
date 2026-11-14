@@ -137,9 +137,8 @@ void WorldController::sendPickup(uint64_t pEntityId)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_pickup_item_request()->set_entity_id(pEntityId);
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void WorldController::sendRespawn(services::world::RespawnChoice pChoice)
@@ -152,9 +151,8 @@ void WorldController::sendRespawn(services::world::RespawnChoice pChoice)
     }
 
     connection::Message tMessage;
-    tMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
     tMessage.mutable_request()->mutable_respawn_request()->set_choice(pChoice);
-    tSession->send(tMessage);
+    mNetworkManager->sendRequest(tMessage);
 }
 
 void WorldController::setWorldSnapshotCallback(WorldSnapshotCallback pCallback)

@@ -178,20 +178,17 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
 
     rebuild();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/inventory.rml");
+    mDocument.load(mRmlUiLayer, "ui/inventory.rml");
 }
 
 InventoryRmlController::~InventoryRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("inventory");
     }
 }
@@ -903,7 +900,7 @@ void InventoryRmlController::keepWindowOnScreen(float pMouseX, float pMouseY)
         tWantedTop = mDragStartDocTop + (pMouseY - mDragStartMouseY);
     }
 
-    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument, tWindow, Rml::Vector2f(tWantedLeft, tWantedTop));
+    Rml::Vector2f tClamped = mRmlUiLayer.clampDocumentToScreen(mDocument.get(), tWindow, Rml::Vector2f(tWantedLeft, tWantedTop));
     float tLeft = tClamped.x;
     float tTop = tClamped.y;
 

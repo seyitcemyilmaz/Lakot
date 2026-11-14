@@ -10,6 +10,8 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
+
 namespace lakot
 {
 
@@ -154,7 +156,7 @@ private:
     // initializer list sets this from it, so declaration order matters here.
     bool mIsTargetConfirmed;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     std::vector<ChatLine> mHistory;

@@ -32,12 +32,8 @@ void AuthController::sendRejection(const std::shared_ptr<NetworkSession<connecti
                                    const std::string& pMessage,
                                    bool pIsLogin)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pRequestMessage.request().header().id());
-    tHeader->mutable_status()->set_code(pStatusCode);
-    tHeader->mutable_status()->set_message(pMessage);
+    connection::Message tResponse = makeResponse(pRequestMessage.request().header().id(), pStatusCode);
+    tResponse.mutable_response()->mutable_header()->mutable_status()->set_message(pMessage);
 
     // Selecting the oneof case is load-bearing, not cosmetic: the client
     // dispatcher routes on payload_case(), so a response that sets none is
@@ -193,11 +189,7 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
     {
         mNetworkManager.abandonLogin(pSession);
 
-        connection::Message tResponse;
-
-        auto* tHeader = tResponse.mutable_response()->mutable_header();
-        tHeader->set_reply_to(pMessage.request().header().id());
-        tHeader->mutable_status()->set_code(common::STATUS_OK);
+        connection::Message tResponse = makeResponse(pMessage.request().header().id(), common::STATUS_OK);
 
         switch (pErrorType)
         {
@@ -228,7 +220,7 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
             }
             default:
             {
-                tHeader->mutable_status()->set_code(common::STATUS_UNHANDLED_STATE);
+                tResponse.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_UNHANDLED_STATE);
                 tResponse.mutable_response()->mutable_register_response()->set_register_status(services::auth::REGISTER_STATUS_SYSTEM_ERROR);
             }
         }

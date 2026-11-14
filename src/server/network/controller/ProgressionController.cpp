@@ -77,11 +77,7 @@ void ProgressionController::sendAllocateStatResult(const std::shared_ptr<Network
                                                    uint64_t pReplyTo,
                                                    services::progression::AllocateStatStatus pStatus)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pStatus == services::progression::ALLOCATE_STAT_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::progression::ALLOCATE_STAT_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     tResponse.mutable_response()->mutable_allocate_stat_response()->set_status(pStatus);
 
@@ -92,11 +88,7 @@ void ProgressionController::sendChoosePathResult(const std::shared_ptr<NetworkSe
                                                  uint64_t pReplyTo,
                                                  services::progression::ChoosePathStatus pStatus)
 {
-    connection::Message tResponse;
-
-    auto* tHeader = tResponse.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pStatus == services::progression::CHOOSE_PATH_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::progression::CHOOSE_PATH_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     tResponse.mutable_response()->mutable_choose_path_response()->set_status(pStatus);
 

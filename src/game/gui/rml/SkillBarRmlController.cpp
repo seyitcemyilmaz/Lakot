@@ -25,7 +25,7 @@ namespace
 SkillBarRmlController::SkillBarRmlController(RmlUiLayer& pRmlUiLayer)
     : mRmlUiLayer(pRmlUiLayer)
 {
-    mDocument = mRmlUiLayer.loadDocument("ui/skillbar.rml");
+    mDocument.load(mRmlUiLayer, "ui/skillbar.rml");
 
     if (mDocument)
     {
@@ -59,12 +59,7 @@ SkillBarRmlController::~SkillBarRmlController()
         }
     }
 
-    Rml::Context* tContext = mRmlUiLayer.getContext();
-
-    if (tContext && mDocument)
-    {
-        tContext->UnloadDocument(mDocument);
-    }
+    mDocument.reset();
 }
 
 void SkillBarRmlController::setSlotActivatedCallback(SlotActivatedCallback pCallback)

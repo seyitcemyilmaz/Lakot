@@ -78,22 +78,19 @@ CharacterSheetRmlController::CharacterSheetRmlController(RmlUiLayer& pRmlUiLayer
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/character.rml");
+    mDocument.load(mRmlUiLayer, "ui/character.rml");
 
     // Loaded but not shown - C toggles it.
 }
 
 CharacterSheetRmlController::~CharacterSheetRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("character");
     }
 }

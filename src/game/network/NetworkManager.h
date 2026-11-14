@@ -81,6 +81,8 @@ public:
     // Never returns 0 - the protocol uses 0 as "no correlation".
     uint64_t nextRequestId();
 
+    uint64_t sendRequest(connection::Message& pMessage);
+
 private:
     NetworkClient<connection::Message> mClient;
     MessageDispatcher<connection::Message> mDispatcher;

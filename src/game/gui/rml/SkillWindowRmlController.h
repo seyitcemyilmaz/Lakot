@@ -10,6 +10,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
 #include "ClassCatalog.h"
 #include "SkillCatalog.h"
 
@@ -72,7 +73,7 @@ private:
     const SkillCatalog& mSkillCatalog;
     const ClassCatalog& mClassCatalog;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     CharacterStats mStats;

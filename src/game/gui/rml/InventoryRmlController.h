@@ -12,6 +12,7 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "RmlDocument.h"
 #include "ClassCatalog.h"
 
 #include "../../network/GameTypes.h"
@@ -133,7 +134,7 @@ private:
     const ClassCatalog& mClassCatalog;
     ItemIconRenderer& mItemIcons;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     std::vector<OwnedItem> mOwnedItems;

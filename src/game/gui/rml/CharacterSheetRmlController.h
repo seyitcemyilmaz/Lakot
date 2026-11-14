@@ -12,6 +12,7 @@
 
 #include <connection.pb.h>
 
+#include "RmlDocument.h"
 #include "ClassCatalog.h"
 
 #include "../../network/GameTypes.h"
@@ -54,7 +55,7 @@ private:
     const Localization& mLocalization;
     const ClassCatalog& mClassCatalog;
 
-    Rml::ElementDocument* mDocument{nullptr};
+    RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
     Rml::String mName;

@@ -36,9 +36,7 @@ void AuthController::initialize()
 
 bool AuthController::sendOrReport(connection::Message& pMessage, const std::function<void()>& pOnNoConnection)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
+    if (mNetworkManager->sendRequest(pMessage) == 0)
     {
         if (pOnNoConnection)
         {
@@ -48,11 +46,6 @@ bool AuthController::sendOrReport(connection::Message& pMessage, const std::func
         return false;
     }
 
-    // Every request carries an id, which the server echoes back as
-    // ResponseHeader.reply_to - see NetworkManager::nextRequestId().
-    pMessage.mutable_request()->mutable_header()->set_id(mNetworkManager->nextRequestId());
-
-    tSession->send(pMessage);
     return true;
 }
 

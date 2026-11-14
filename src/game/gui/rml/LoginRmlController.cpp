@@ -7,15 +7,13 @@
 #include "RmlUiLayer.h"
 #include "../../localization/Localization.h"
 
-#include "../../Engine.h"
-
-#include "../../scene/CharacterSelectScene.h"
-
 using namespace lakot;
 
-LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const std::string& pNotice)
+LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pOnLoginSucceeded, const std::string& pNotice)
     : mRmlUiLayer(pRmlUiLayer)
     , mLocalization(pLocalization)
+    , mAuthController(pAuthController)
+    , mOnLoginSucceeded(std::move(pOnLoginSucceeded))
     , mStatusMessage(pNotice)
     , mIsError(!pNotice.empty())
 {
@@ -44,20 +42,20 @@ LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localizati
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/login.rml");
+    mDocument.load(mRmlUiLayer, "ui/login.rml");
 
     if (mDocument)
     {
         mDocument->Show();
     }
 
-    Engine::getInstance().getNetworkManager().getAuthController().setLoginResultCallback(
+    mAuthController.setLoginResultCallback(
     [this](bool pIsSuccess, const std::string& pMessage)
     {
         this->onLoginResult(pIsSuccess, pMessage);
     });
 
-    Engine::getInstance().getNetworkManager().getAuthController().setRegisterResultCallback(
+    mAuthController.setRegisterResultCallback(
     [this](bool pIsSuccess, const std::string& pMessage)
     {
         this->onRegisterResult(pIsSuccess, pMessage);
@@ -66,18 +64,15 @@ LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localizati
 
 LoginRmlController::~LoginRmlController()
 {
-    Engine::getInstance().getNetworkManager().getAuthController().setLoginResultCallback(nullptr);
-    Engine::getInstance().getNetworkManager().getAuthController().setRegisterResultCallback(nullptr);
+    mAuthController.setLoginResultCallback(nullptr);
+    mAuthController.setRegisterResultCallback(nullptr);
+
+    mDocument.reset();
 
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("login");
     }
 }
@@ -154,7 +149,7 @@ void LoginRmlController::doLogin()
     mIsBusy = true;
     setStatus(mLocalization.text("login.status.connecting"), false);
 
-    Engine::getInstance().getNetworkManager().getAuthController().sendLoginRequest(mUsername, mPassword);
+    mAuthController.sendLoginRequest(mUsername, mPassword);
 }
 
 void LoginRmlController::doRegister()
@@ -168,7 +163,7 @@ void LoginRmlController::doRegister()
     mIsBusy = true;
     setStatus(mLocalization.text("login.status.registering"), false);
 
-    Engine::getInstance().getNetworkManager().getAuthController().sendRegisterAccount(mUsername, mPassword, mEmail);
+    mAuthController.sendRegisterAccount(mUsername, mPassword, mEmail);
 }
 
 void LoginRmlController::onLoginResult(bool pIsSuccess, const std::string& pMessage)
@@ -178,11 +173,10 @@ void LoginRmlController::onLoginResult(bool pIsSuccess, const std::string& pMess
 
     if (pIsSuccess)
     {
-        // Straight to character select, not into the world: an account has no
-        // position of its own any more, so there is nothing to spawn until a
-        // character has been chosen.
-        Engine::getInstance().getSceneManager().setNextScene(
-            std::make_unique<CharacterSelectScene>(Engine::getInstance()));
+        if (mOnLoginSucceeded)
+        {
+            mOnLoginSucceeded();
+        }
     }
     else
     {

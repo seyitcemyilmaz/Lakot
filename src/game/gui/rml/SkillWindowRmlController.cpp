@@ -80,20 +80,17 @@ SkillWindowRmlController::SkillWindowRmlController(RmlUiLayer& pRmlUiLayer, cons
 
     mModelHandle = tConstructor.GetModelHandle();
 
-    mDocument = mRmlUiLayer.loadDocument("ui/skills.rml");
+    mDocument.load(mRmlUiLayer, "ui/skills.rml");
 }
 
 SkillWindowRmlController::~SkillWindowRmlController()
 {
+    mDocument.reset();
+
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
     if (tContext)
     {
-        if (mDocument)
-        {
-            tContext->UnloadDocument(mDocument);
-        }
-
         tContext->RemoveDataModel("skills");
     }
 }

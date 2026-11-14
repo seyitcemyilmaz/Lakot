@@ -46,8 +46,7 @@ void ThirdPersonCamera::update()
     double tCosPitch = cos(tPitchRadian);
 
     // "Front" here means the direction from the camera's eye toward the
-    // target, same as FPSCamera's look direction - x/z match FPSCamera's
-    // formula exactly (so yaw stays meaningful the same way for
+    // target - x/z use the standard yaw/pitch look formula (so yaw stays meaningful the same way for
     // sendLocalPlayerState()'s atan2 and for flattened WASD movement), but
     // the vertical sign is flipped: positive pitch here means the camera
     // sits *above* the target looking down (dragging the mouse up raises
