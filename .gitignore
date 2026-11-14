@@ -153,6 +153,7 @@ assets/*
 /art/
 data/models/
 data/motions/
+data/textures/ground/
 *.glb
 *.gltf
 *.fbx
