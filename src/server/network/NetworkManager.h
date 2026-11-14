@@ -29,7 +29,6 @@ public:
 
     void start();
     void stop();
-    void run();
 
     static std::string getRemoteAddress(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
 

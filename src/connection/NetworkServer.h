@@ -83,29 +83,6 @@ public:
         }
     }
 
-    // Blocking
-    void run(size_t pThreadCount = 1)
-    {
-        doAccept();
-
-        for (size_t i = 0; i < pThreadCount; i++)
-        {
-            mWorkerThreads.emplace_back(
-            [this]()
-            {
-                runWorker();
-            });
-        }
-
-        for (auto& tThread : mWorkerThreads)
-        {
-            if (tThread.joinable())
-            {
-                tThread.join();
-            }
-        }
-    }
-
     void stop()
     {
         if (!mContext.stopped())

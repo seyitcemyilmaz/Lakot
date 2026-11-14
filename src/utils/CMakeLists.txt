@@ -14,10 +14,6 @@ add_library(${PROJECT_NAME} STATIC
     AsynchronousTaskExecutor.h AsynchronousTaskExecutor.cpp
     SynchronousTaskExecutor.h SynchronousTaskExecutor.cpp
 
-    Timer.h Timer.cpp
-
-    BoundingBox.h BoundingBox.cpp
-
     MapData.h MapData.cpp
     MapCatalog.h MapCatalog.cpp
     MonsterCatalog.h MonsterCatalog.cpp
@@ -28,8 +24,6 @@ add_library(${PROJECT_NAME} STATIC
 
     FileManager.h FileManager.cpp
 
-    Image.h
-    Variable.h
     Type.h
     GarbageCollector.h GarbageCollector.cpp
 )

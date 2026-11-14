@@ -91,20 +91,6 @@ public:
         return mSessions.size();
     }
 
-    template <typename MessageType>
-    void broadcast(const MessageType& pMessage)
-    {
-        std::shared_lock tLock(mMutex);
-
-        for (const auto& [tId, tSession] : mSessions)
-        {
-            if (tSession)
-            {
-                tSession->send(pMessage);
-            }
-        }
-    }
-
     // ---- Character index ----
     //
     // The account index above answers "is this account already online" (which
@@ -159,10 +145,7 @@ public:
         return tIterator->second;
     }
 
-    // Every character currently IN THE WORLD - e.g. for a server-wide chat
-    // broadcast that still needs to exclude the sender, which broadcast()
-    // can't express since it has no exclusion. Players still at character
-    // select are deliberately not included.
+    // Only characters in the world; players still at character select are excluded.
     std::vector<uint64_t> getAllCharacterIds() const
     {
         std::shared_lock tLock(mMutex);
