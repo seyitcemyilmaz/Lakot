@@ -2,5 +2,13 @@
   "sources": [
     "motions/idle.glb",
     "motions/run.glb"
-  ]
+  ],
+  "clips": {
+    "Run": {
+      "events": [
+        { "time": 0.15, "type": "effect", "name": "foot_dust", "socket": "LeftFoot" },
+        { "time": 0.5, "type": "effect", "name": "foot_dust", "socket": "RightFoot" }
+      ]
+    }
+  }
 }

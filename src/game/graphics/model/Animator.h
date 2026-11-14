@@ -44,6 +44,7 @@ public:
     const std::vector<glm::mat4>& getPalette() const;
 
     glm::vec3 takeRootMotion();
+    void takeEvents(std::vector<ClipEvent>& pOut);
 
     // Where the joint currently is, in model space.
     const glm::mat4& getJointTransform(int pJoint) const;
@@ -52,6 +53,7 @@ public:
 
 private:
     const AnimationClip* findClip(const std::string& pName) const;
+    const ClipDefinition* findDefinition(const std::string& pName) const;
     void ensureUpperLayer();
 
     const SkinnedModel& mModel;

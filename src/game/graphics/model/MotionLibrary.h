@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "AnimationClip.h"
+#include "ClipDefinition.h"
 
 namespace lakot
 {
@@ -24,6 +25,10 @@ public:
     bool hasClip(const std::string& pName) const;
     const AnimationClip* getClip(const SkinnedModel& pTarget, const std::string& pName);
 
+    const ClipDefinition* findClipDefinition(const std::string& pName) const;
+    const std::unordered_map<std::string, std::string>& getRoles() const;
+    const std::string* findSkillClip(const std::string& pSkillKey) const;
+
 private:
     struct Source
     {
@@ -32,6 +37,9 @@ private:
     };
 
     AssetManager& mAssets;
+    std::unordered_map<std::string, ClipDefinition> mDefinitions;
+    std::unordered_map<std::string, std::string> mRoles;
+    std::unordered_map<std::string, std::string> mSkillClips;
     std::unordered_map<std::string, Source> mSources;
     std::unordered_map<const Skeleton*, std::unordered_map<std::string, std::unique_ptr<AnimationClip>>> mRetargeted;
 };

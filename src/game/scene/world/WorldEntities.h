@@ -31,6 +31,14 @@ struct DamageEvent
     bool isByLocal;
 };
 
+struct AnimationEvent
+{
+    uint64_t entityId;
+    ClipEventType type;
+    std::string name;
+    std::string socket;
+};
+
 class WorldEntities
 {
 public:
@@ -43,6 +51,7 @@ public:
 
     void playLocalAttack(uint32_t pCombo);
     std::vector<DamageEvent> takeDamageEvents();
+    std::vector<AnimationEvent> takeAnimationEvents();
 
     glm::vec2 takeLocalRootMotion();
 
@@ -80,6 +89,8 @@ private:
     std::unordered_map<uint64_t, WorldEntity> mEntities;
     uint64_t mLocalCharacterId{0};
     std::vector<DamageEvent> mDamageEvents;
+    std::vector<AnimationEvent> mAnimationEvents;
+    std::vector<ClipEvent> mEventScratch;
     std::unordered_set<std::string> mFallbackLogged;
 
     uint64_t toLocalId(uint64_t pEntityId) const;
@@ -89,6 +100,7 @@ private:
     WorldEntity& spawn(uint64_t pId, EntityType pType, const std::string& pName, const glm::vec3& pPosition,
                        const std::string& pModelPath = {});
     void animate(WorldEntity& pEntity, double pDeltaTime);
+    void collectAnimationEvents(WorldEntity& pEntity);
     void setModel(WorldEntity& pEntity, std::shared_ptr<SkinnedModel> pModel);
     void refreshBody(WorldEntity& pEntity);
     static void playRole(WorldEntity& pEntity, AnimationRoleType pRole, bool pIsOnce, bool pHold = false);

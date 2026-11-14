@@ -20,6 +20,10 @@ namespace
         { },
         { { "Run" } },
     }};
+
+    constexpr std::array<const char*, static_cast<size_t>(AnimationRoleType::eCount)> kRoleKeys = {
+        "idle", "walk", "run", "attack1", "attack2", "attack3", "hurt", "death", "grip"
+    };
 }
 
 AnimationRoleClips AnimationRoles::resolve(const SkinnedModel& pModel, const MotionLibrary* pLibrary)
@@ -28,6 +32,18 @@ AnimationRoleClips AnimationRoles::resolve(const SkinnedModel& pModel, const Mot
 
     for (size_t tRole = 0; tRole < kCandidates.size(); ++tRole)
     {
+        if (pLibrary)
+        {
+            const auto& tRoles = pLibrary->getRoles();
+            auto tMapped = tRoles.find(kRoleKeys[tRole]);
+
+            if (tMapped != tRoles.end() && (pLibrary->hasClip(tMapped->second) || pModel.findClip(tMapped->second)))
+            {
+                tClips[tRole].name = tMapped->second;
+                continue;
+            }
+        }
+
         for (const AnimationRoleClip& tCandidate : kCandidates[tRole])
         {
             if ((pLibrary && pLibrary->hasClip(tCandidate.name)) || pModel.findClip(tCandidate.name))

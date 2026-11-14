@@ -31,6 +31,11 @@ const AnimationClip* Animator::findClip(const std::string& pName) const
     return mModel.findClip(pName);
 }
 
+const ClipDefinition* Animator::findDefinition(const std::string& pName) const
+{
+    return mLibrary ? mLibrary->findClipDefinition(pName) : nullptr;
+}
+
 const std::string& Animator::getCurrentClipName() const
 {
     static const std::string sNone;
@@ -47,21 +52,31 @@ void Animator::play(const std::string& pClipName, float pFadeSeconds, float pSpe
         return;
     }
 
+    const ClipDefinition* tDefinition = findDefinition(pClipName);
+    float tSpeed = tDefinition ? pSpeed * tDefinition->rate : pSpeed;
+
+    if (tDefinition && pStart <= 0.0f && pEnd <= 0.0f)
+    {
+        pStart = tDefinition->start;
+        pEnd = tDefinition->end;
+    }
+
     float tStart = std::clamp(pStart, 0.0f, tClip->getDuration());
     float tEnd = pEnd > tStart ? std::min(pEnd, tClip->getDuration()) : tClip->getDuration();
-    mBase.start(tClip, tStart, std::max(tEnd - tStart, 0.001f), pSpeed, false, false, pFadeSeconds, false);
+    mBase.start(tClip, tStart, std::max(tEnd - tStart, 0.001f), tSpeed, false, false, pFadeSeconds, false, tDefinition ? &tDefinition->events : nullptr);
 }
 
 void Animator::playOnce(const std::string& pClipName, float pFadeSeconds, bool pHoldLastFrame)
 {
     const AnimationClip* tClip = findClip(pClipName);
 
-    if (!tClip)
+    if (!tClip || tClip->getDuration() <= 0.0f)
     {
         return;
     }
 
-    mBase.start(tClip, 0.0f, tClip->getDuration(), 1.0f, true, pHoldLastFrame, pFadeSeconds, false);
+    const ClipDefinition* tDefinition = findDefinition(pClipName);
+    mBase.start(tClip, 0.0f, tClip->getDuration(), 1.0f, true, pHoldLastFrame, pFadeSeconds, false, tDefinition ? &tDefinition->events : nullptr);
 }
 
 void Animator::playSegment(const std::string& pClipName, float pStart, float pEnd, float pSeconds, float pFadeSeconds)
@@ -75,7 +90,8 @@ void Animator::playSegment(const std::string& pClipName, float pStart, float pEn
 
     float tStart = std::clamp(pStart, 0.0f, tClip->getDuration());
     float tLength = std::max(std::min(pEnd, tClip->getDuration()) - tStart, 0.001f);
-    mBase.start(tClip, tStart, tLength, pSeconds > 0.0f ? tLength / pSeconds : 1.0f, true, false, pFadeSeconds, true);
+    const ClipDefinition* tDefinition = findDefinition(pClipName);
+    mBase.start(tClip, tStart, tLength, pSeconds > 0.0f ? tLength / pSeconds : 1.0f, true, false, pFadeSeconds, true, tDefinition ? &tDefinition->events : nullptr);
 }
 
 bool Animator::isBusy() const
@@ -125,6 +141,20 @@ void Animator::playUpper(const std::string& pClipName, float pFadeSeconds, float
         return;
     }
 
+    const ClipDefinition* tDefinition = findDefinition(pClipName);
+
+    if (tDefinition)
+    {
+        pSpeed *= tDefinition->rate;
+        pIsOneShot = pIsOneShot || !tDefinition->isLoop;
+
+        if (pStart <= 0.0f && pEnd <= 0.0f)
+        {
+            pStart = tDefinition->start;
+            pEnd = tDefinition->end;
+        }
+    }
+
     float tStart = std::clamp(pStart, 0.0f, tClip->getDuration());
     float tEnd = pEnd > tStart ? std::min(pEnd, tClip->getDuration()) : tClip->getDuration();
     float tLength = std::max(tEnd - tStart, 0.001f);
@@ -134,7 +164,7 @@ void Animator::playUpper(const std::string& pClipName, float pFadeSeconds, float
         mUpper->clear();
     }
 
-    mUpper->start(tClip, tStart, tLength, pSpeed, pIsOneShot, false, pFadeSeconds, false);
+    mUpper->start(tClip, tStart, tLength, pSpeed, pIsOneShot, false, pFadeSeconds, false, tDefinition ? &tDefinition->events : nullptr);
     mUpperTarget = 1.0f;
     mUpperFadeSeconds = pFadeSeconds;
 
@@ -234,6 +264,16 @@ void Animator::update(float pDeltaTime)
     }
 
     mModel.getSkeleton().computePalette(mPose, mPalette, mGlobals);
+}
+
+void Animator::takeEvents(std::vector<ClipEvent>& pOut)
+{
+    mBase.takeEvents(pOut);
+
+    if (mUpper)
+    {
+        mUpper->takeEvents(pOut);
+    }
 }
 
 glm::vec3 Animator::takeRootMotion()

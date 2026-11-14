@@ -450,6 +450,11 @@ void WorldScene::update(double pDeltaTime)
         mDamageNumbers.add(tEvent.targetId, tEvent.damage, tEvent.isAgainstLocal, tEvent.isByLocal);
     }
 
+    for (const AnimationEvent& tEvent : mEntities->takeAnimationEvents())
+    {
+        onAnimationEvent(tEvent);
+    }
+
     mDamageNumbers.update(static_cast<float>(pDeltaTime));
     mHud->setSafeZone(mMap && mMap->isSafe(mLocalPosition.x, mLocalPosition.z));
 
@@ -472,6 +477,21 @@ void WorldScene::update(double pDeltaTime)
     }
 
     mHud->update(pDeltaTime, mLocalPosition, tFacingDegrees, tOthers);
+}
+
+void WorldScene::onAnimationEvent(const AnimationEvent& pEvent)
+{
+    switch (pEvent.type)
+    {
+    case ClipEventType::eEffect:
+        mEffects->spawnAtEntity(pEvent.name, pEvent.entityId);
+        break;
+    case ClipEventType::eSound:
+        SDL_Log("Animation sound '%s' on entity %llu", pEvent.name.c_str(), static_cast<unsigned long long>(pEvent.entityId));
+        break;
+    default:
+        break;
+    }
 }
 
 void WorldScene::updatePickup()

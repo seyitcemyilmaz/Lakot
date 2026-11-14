@@ -10,6 +10,9 @@ using namespace lakot;
 
 namespace
 {
+    constexpr float kEventEpsilon = 1e-4f;
+    constexpr float kMaxEventCycles = 16.0f;
+
     float toClipTime(float pTime, float pStart, float pLength, float pSpeed, bool pIsOneShot)
     {
         float tElapsed = pTime * pSpeed;
@@ -30,8 +33,11 @@ bool AnimationLayer::isFading() const
     return (mPrevious || mHasFrozen) && mFadeElapsed < mFadeDuration;
 }
 
-void AnimationLayer::start(const AnimationClip* pClip, float pStart, float pLength, float pSpeed, bool pIsOneShot, bool pHoldLastFrame, float pFadeSeconds, bool pIsSegment)
+void AnimationLayer::start(const AnimationClip* pClip, float pStart, float pLength, float pSpeed, bool pIsOneShot, bool pHoldLastFrame, float pFadeSeconds, bool pIsSegment, const std::vector<ClipEvent>* pEvents)
 {
+    mEvents = pEvents;
+    mLastEventElapsed = -kEventEpsilon;
+    mPendingEvents.clear();
     mIsSegment = pIsSegment;
     mRootMotion = glm::vec3(0.0f);
 
@@ -68,6 +74,8 @@ void AnimationLayer::clear()
 {
     mCurrent = nullptr;
     mPrevious = nullptr;
+    mEvents = nullptr;
+    mPendingEvents.clear();
     mHasFrozen = false;
     mIsOneShot = false;
     mHoldLastFrame = false;
@@ -88,6 +96,12 @@ void AnimationLayer::update(float pDeltaTime)
         mCurrentTime += pDeltaTime;
         float tAfter = toClipTime(mCurrentTime, mCurrentStart, mCurrentLength, mCurrentSpeed, mIsOneShot);
         mCurrent->sample(tAfter, mPose);
+
+        if (mEvents && !mEvents->empty())
+        {
+            float tElapsed = mCurrentTime * mCurrentSpeed;
+            collectEvents(mLastEventElapsed, mIsOneShot ? std::min(tElapsed, mCurrentLength) : tElapsed);
+        }
 
         if (mIsSegment)
         {
@@ -144,4 +158,43 @@ bool AnimationLayer::isBusy() const
 glm::vec3 AnimationLayer::takeRootMotion()
 {
     return std::exchange(mRootMotion, glm::vec3(0.0f));
+}
+
+void AnimationLayer::collectEvents(float pBefore, float pAfter)
+{
+    if (pAfter <= pBefore || mCurrentLength <= 0.0f)
+    {
+        return;
+    }
+
+    mLastEventElapsed = pAfter;
+    pBefore = std::max(pBefore, pAfter - kMaxEventCycles * mCurrentLength);
+    int tFirstCycle = static_cast<int>(std::floor(std::max(pBefore, 0.0f) / mCurrentLength));
+    int tLastCycle = mIsOneShot ? 0 : static_cast<int>(std::floor(pAfter / mCurrentLength));
+
+    for (int tCycle = tFirstCycle; tCycle <= std::max(tFirstCycle, tLastCycle); ++tCycle)
+    {
+        for (const ClipEvent& tEvent : *mEvents)
+        {
+            float tLocal = tEvent.time - mCurrentStart;
+
+            if (tLocal < 0.0f || tLocal >= mCurrentLength)
+            {
+                continue;
+            }
+
+            float tAt = static_cast<float>(tCycle) * mCurrentLength + tLocal;
+
+            if (tAt > pBefore && tAt <= pAfter)
+            {
+                mPendingEvents.push_back(tEvent);
+            }
+        }
+    }
+}
+
+void AnimationLayer::takeEvents(std::vector<ClipEvent>& pOut)
+{
+    pOut.insert(pOut.end(), mPendingEvents.begin(), mPendingEvents.end());
+    mPendingEvents.clear();
 }

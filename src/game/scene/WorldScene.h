@@ -151,6 +151,7 @@ private:
     std::optional<glm::vec2> projectToScreen(const glm::vec3& pWorldPosition) const;
     WorldOverlay::NameToneType getNameTone(const WorldEntity& pEntity) const;
     void updateAttack(double pDeltaTime);
+    void onAnimationEvent(const AnimationEvent& pEvent);
 };
 
 }

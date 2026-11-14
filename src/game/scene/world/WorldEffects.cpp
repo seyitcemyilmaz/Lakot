@@ -124,6 +124,16 @@ void WorldEffects::spawnNearLocal(const char* pName, const glm::vec3& pPosition)
     mSystem.spawn(pName, pPosition);
 }
 
+void WorldEffects::spawnAtEntity(const std::string& pName, uint64_t pEntityId)
+{
+    auto tFound = mEntities.getAll().find(pEntityId);
+
+    if (tFound != mEntities.getAll().end())
+    {
+        spawnNearLocal(pName.c_str(), WorldEntities::getPosition(tFound->second));
+    }
+}
+
 void WorldEffects::update(double pDeltaSeconds)
 {
     mTime += pDeltaSeconds;

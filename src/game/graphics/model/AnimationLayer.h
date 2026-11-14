@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+#include "ClipDefinition.h"
 #include "Skeleton.h"
 
 namespace lakot
@@ -17,7 +18,7 @@ class AnimationLayer
 public:
     explicit AnimationLayer(const std::vector<JointPose>& pBindPose);
 
-    void start(const AnimationClip* pClip, float pStart, float pLength, float pSpeed, bool pIsOneShot, bool pHoldLastFrame, float pFadeSeconds, bool pIsSegment);
+    void start(const AnimationClip* pClip, float pStart, float pLength, float pSpeed, bool pIsOneShot, bool pHoldLastFrame, float pFadeSeconds, bool pIsSegment, const std::vector<ClipEvent>* pEvents = nullptr);
     void clear();
     void update(float pDeltaTime);
 
@@ -26,9 +27,11 @@ public:
     bool isOneShot() const;
     bool isBusy() const;
     glm::vec3 takeRootMotion();
+    void takeEvents(std::vector<ClipEvent>& pOut);
 
 private:
     bool isFading() const;
+    void collectEvents(float pBefore, float pAfter);
 
     const std::vector<JointPose>& mBindPose;
 
@@ -52,6 +55,10 @@ private:
     float mPreviousStart{0.0f};
     float mPreviousLength{0.0f};
     float mPreviousSpeed{1.0f};
+
+    const std::vector<ClipEvent>* mEvents{nullptr};
+    std::vector<ClipEvent> mPendingEvents;
+    float mLastEventElapsed{0.0f};
 
     float mFadeElapsed{0.0f};
     float mFadeDuration{0.0f};

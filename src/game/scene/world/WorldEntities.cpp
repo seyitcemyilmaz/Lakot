@@ -174,6 +174,22 @@ glm::vec2 WorldEntities::takeLocalRootMotion()
     return glm::vec2(tShift.x * tCos + tShift.z * tSin, tShift.z * tCos - tShift.x * tSin);
 }
 
+std::vector<AnimationEvent> WorldEntities::takeAnimationEvents()
+{
+    return std::exchange(mAnimationEvents, {});
+}
+
+void WorldEntities::collectAnimationEvents(WorldEntity& pEntity)
+{
+    mEventScratch.clear();
+    pEntity.animator->takeEvents(mEventScratch);
+
+    for (ClipEvent& tEvent : mEventScratch)
+    {
+        mAnimationEvents.push_back({ pEntity.id, tEvent.type, std::move(tEvent.name), std::move(tEvent.socket) });
+    }
+}
+
 std::vector<DamageEvent> WorldEntities::takeDamageEvents()
 {
     return std::exchange(mDamageEvents, {});
@@ -438,6 +454,7 @@ void WorldEntities::animate(WorldEntity& pEntity, double pDeltaTime)
     {
         pEntity.lastAnimatedPosition = getPosition(pEntity);
         pEntity.animator->update(static_cast<float>(pDeltaTime));
+        collectAnimationEvents(pEntity);
         return;
     }
 
@@ -459,6 +476,7 @@ void WorldEntities::animate(WorldEntity& pEntity, double pDeltaTime)
 
     playRole(pEntity, pEntity.movingTimer > 0.0 ? AnimationRoleType::eRun : AnimationRoleType::eIdle, false);
     pEntity.animator->update(static_cast<float>(pDeltaTime));
+    collectAnimationEvents(pEntity);
 }
 
 const std::unordered_map<uint64_t, WorldEntity>& WorldEntities::getAll() const

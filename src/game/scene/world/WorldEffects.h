@@ -28,6 +28,7 @@ public:
     void update(double pDeltaSeconds);
     void render(const Camera& pCamera, const glm::vec3& pFogColor, float pFogStart, float pFogEnd, double pExtraSeconds);
     void clear();
+    void spawnAtEntity(const std::string& pName, uint64_t pEntityId);
 
     bool reload(const std::string& pPath, std::string& pError);
 
