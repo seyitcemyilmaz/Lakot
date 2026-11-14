@@ -122,11 +122,39 @@ void RmlUiLayer::render()
     mRenderInterface->EndFrame();
 }
 
+void RmlUiLayer::reloadStyleSheets()
+{
+    if (!mContext)
+    {
+        return;
+    }
+
+    Rml::Factory::ClearStyleSheetCache();
+
+    int tCount = 0;
+    for (int tIndex = 0; tIndex < mContext->GetNumDocuments(); ++tIndex)
+    {
+        if (Rml::ElementDocument* tDocument = mContext->GetDocument(tIndex))
+        {
+            tDocument->ReloadStyleSheet();
+            ++tCount;
+        }
+    }
+
+    SDL_Log("RmlUi style sheets reloaded for %d documents", tCount);
+}
+
 bool RmlUiLayer::handleEvent(SDL_Event* pEvent)
 {
     if (!mContext)
     {
         return false;
+    }
+
+    if (pEvent->type == SDL_EVENT_KEY_DOWN && pEvent->key.key == SDLK_F6 && !pEvent->key.repeat)
+    {
+        reloadStyleSheets();
+        return true;
     }
 
     // Clear a STALE focus - an element RmlUi still considers "focused" even

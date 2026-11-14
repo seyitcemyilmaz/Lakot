@@ -76,6 +76,8 @@ public:
     Rml::Vector2f clampDocumentToScreen(Rml::ElementDocument* pDocument, Rml::Element* pWindow, Rml::Vector2f pWanted) const;
 
 private:
+    void reloadStyleSheets();
+
     static constexpr float kDesignWidth = 1920.0f;
     static constexpr float kDesignHeight = 1080.0f;
 
