@@ -81,9 +81,13 @@ def build_ground(x, z, h):
     return np.clip(c, 0, 255).astype(np.uint8)
 
 
-def build_objects(h_at):
+MAX_TREES = 3200
+COPSES_EXTRA = [(-100, 560, 120), (650, 550, 110), (-650, -150, 100), (200, 150, 90)]
+
+
+def build_objects(h_at, h):
     objs = []
-    rng = np.random.RandomState(1021)
+    rng = np.random.RandomState(1022)
 
     def clear(px, pz):
         pt_x, pt_z = np.array([[px]]), np.array([[pz]])
@@ -97,31 +101,27 @@ def build_objects(h_at):
         return HALF - max(abs(px), abs(pz)) > RIM_BLOCK + 20
 
     placed = 0
-    while placed < 130:
-        px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
-        inside = blob_distance(np.array(px), np.array(pz), COPSES) < -8.0
-        if inside and clear(px, pz) and h_at(px, pz) > 1.5:
-            objs += tree(rng, px, pz, rng.uniform(0.85, 1.35), "steppe")
-            placed += 1
-    placed = 0
-    while placed < 45:
-        px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
-        if clear(px, pz) and 1.5 < h_at(px, pz) < 40:
-            objs += tree(rng, px, pz, rng.uniform(0.8, 1.2), "steppe")
-            placed += 1
-    placed = 0
     while placed < 26:
         px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
         inside = blob_distance(np.array(px), np.array(pz), KNOLL) < -5.0
         if inside and clear(px, pz):
             objs.append(boulder(rng, px, pz))
             placed += 1
+
+    def keepout(px, pz):
+        hit = near_polylines(px, pz, [ROAD], ROAD_HALF + 14.0)
+        hit |= near_circles(px, pz, [(cx, cz, r) for (cx, cz), r in POND], 30.0)
+        hit |= near_points(px, pz, (WEST_PORTAL, WEST_ARRIVAL, EAST_PORTAL, EAST_ARRIVAL), 40.0)
+        hit |= near_objects(px, pz, objs, 12.0)
+        return hit
+
+    objs += scatter_forest(np.random.RandomState(1021), h, "steppe", COPSES + COPSES_EXTRA, keepout, MAX_TREES, sparse_chance=0.0003)
     return objs
 
 
 def main():
     x, z, h = build_height()
-    objs = build_objects(make_height_sampler(h))
+    objs = build_objects(make_height_sampler(h), h)
     ground = build_ground(x, z, h)
     block = build_block(objs)
     roads = build_roads([ROAD], [], [], 0.0)
@@ -156,6 +156,7 @@ def main():
             monster_spawn(6, 650.0, 200.0, 40.0, 2),
         ],
     }
+    check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
     write_map(OUT, meta, h, ground, block, roads, objs)
 
 

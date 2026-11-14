@@ -271,17 +271,119 @@ TREE_BIOMES = {
 TREE_VARIANTS = 3
 TREE_TRUNK_WIDTH = {"oak": 1.2, "poplar": 0.8, "birch": 0.6, "pine": 0.8, "juniper": 0.5}
 
+FOREST_MIN_SPACING = 5.0
+FOREST_CELL = 7.0
+FOREST_CORE_CHANCE = 0.9
+FOREST_EDGE_WIDTH = 55.0
+FOREST_MAX_SLOPE = 0.7
+FOREST_MIN_HEIGHT = 1.5
 
-def tree(rng, px, pz, scale, biome="village"):
+
+def pick_species(rng, biome, height):
     kinds = TREE_BIOMES[biome]
-    weights = np.array([w for _, w in kinds], dtype=float)
-    species = kinds[rng.choice(len(kinds), p=weights / weights.sum())][0]
+    high = float(smoothstep(6.0, 30.0, height))
+    weights = []
+    for name, w in kinds:
+        if name == "pine":
+            w = w * (0.3 + 2.0 * high)
+        elif name in ("oak", "poplar"):
+            w = w * (1.5 - 1.2 * high)
+        weights.append(max(w, 0.05))
+    weights = np.array(weights, dtype=float)
+    return kinds[rng.choice(len(kinds), p=weights / weights.sum())][0]
+
+
+def tree(rng, px, pz, scale, biome="village", height=6.0):
+    species = pick_species(rng, biome, height)
     variant = int(rng.randint(TREE_VARIANTS)) + 1
     s = min(1.2, max(0.8, scale))
     yaw = rng.uniform(0.0, 2.0 * math.pi)
     width = TREE_TRUNK_WIDTH[species] * s
-    return [box("tree", px, pz, width, 4.0 * s, width, TRUNK, block=False, model="nature/%s_%d" % (species, variant), yaw=yaw, scale=s),
-            box("tree_trunk", px, pz, width, 4.0 * s, width, TRUNK, hidden=True)]
+    return box("tree", px, pz, width, 4.0 * s, width, TRUNK, block=True, model="nature/%s_%d" % (species, variant), yaw=yaw, scale=s)
+
+
+def near_polylines(x, z, polylines, distance):
+    best = np.full(np.shape(x), np.inf)
+    for line in polylines:
+        best = np.minimum(best, polyline_distance(x, z, line))
+    return best < distance
+
+
+def near_objects(x, z, objs, margin):
+    hit = np.zeros(np.shape(x), dtype=bool)
+    for o in objs:
+        if o["block"] or o["type"] in ("well", "stall", "haystack"):
+            hit |= rect_mask(x, z, o["x"] - o["sx"] / 2 - margin, o["z"] - o["sz"] / 2 - margin,
+                             o["x"] + o["sx"] / 2 + margin, o["z"] + o["sz"] / 2 + margin)
+    return hit
+
+
+def near_points(x, z, points, distance):
+    hit = np.zeros(np.shape(x), dtype=bool)
+    for px, pz in points:
+        hit |= np.hypot(x - px, z - pz) < distance
+    return hit
+
+
+def near_circles(x, z, circles, margin):
+    hit = np.zeros(np.shape(x), dtype=bool)
+    for cx, cz, r in circles:
+        hit |= np.hypot(x - cx, z - cz) < r + margin
+    return hit
+
+
+def smooth_noise(x, z, seed):
+    r = np.random.RandomState(seed)
+    out = np.zeros(np.shape(x))
+    for freq in (0.0045, 0.011, 0.027):
+        a, b, c = r.uniform(0, 6.28, 3)
+        out += np.sin(x * freq + a) * np.cos(z * freq * 1.3 + b) + 0.5 * np.sin((x + z) * freq * 0.7 + c)
+    return out / 4.5
+
+
+def scatter_forest(rng, h, biome, circles, keepout, max_trees, sparse_chance=0.0, bound=860.0):
+    step = WORLD / (HEIGHT_RES - 1)
+    gy, gx = np.gradient(h)
+    slope = np.hypot(gx, gy) / step
+    n = int(2 * bound / FOREST_CELL)
+    axis = -bound + np.arange(n) * FOREST_CELL
+    cx, cz = np.meshgrid(axis, axis)
+    px = (cx + rng.uniform(0, FOREST_CELL, cx.shape)).ravel()
+    pz = (cz + rng.uniform(0, FOREST_CELL, cz.shape)).ravel()
+    roll = rng.uniform(0, 1, px.shape)
+    fd = blob_distance(px, pz, circles)
+    edge = smoothstep(0.0, -FOREST_EDGE_WIDTH, fd)
+    clump = smoothstep(-0.25, 0.2, smooth_noise(px, pz, 4101))
+    chance = FOREST_CORE_CHANCE * edge * (0.35 + 0.65 * clump) + sparse_chance * (1.0 - edge)
+    ii = np.clip(np.round((px + HALF) / step).astype(int), 0, HEIGHT_RES - 1)
+    jj = np.clip(np.round((pz + HALF) / step).astype(int), 0, HEIGHT_RES - 1)
+    ground = h[jj, ii]
+    ok = (roll < chance) & (ground > FOREST_MIN_HEIGHT) & (slope[jj, ii] < FOREST_MAX_SLOPE)
+    ok &= (HALF - np.maximum(np.abs(px), np.abs(pz))) > RIM_BLOCK + 20
+    ok &= ~keepout(px, pz)
+    idx = np.nonzero(ok)[0]
+    rng.shuffle(idx)
+    cell = FOREST_MIN_SPACING
+    taken = {}
+    kept = []
+    for i in idx:
+        gx_, gz_ = int(px[i] // cell), int(pz[i] // cell)
+        clash = False
+        for a in (gx_ - 1, gx_, gx_ + 1):
+            for b in (gz_ - 1, gz_, gz_ + 1):
+                for j in taken.get((a, b), ()):
+                    if (px[j] - px[i]) ** 2 + (pz[j] - pz[i]) ** 2 < cell * cell:
+                        clash = True
+        if not clash:
+            taken.setdefault((gx_, gz_), []).append(i)
+            kept.append(i)
+    if len(kept) > max_trees:
+        kept = [kept[i] for i in rng.permutation(len(kept))[:max_trees]]
+    objs = []
+    for i in kept:
+        shrink = 0.8 + 0.4 * float(edge[i])
+        objs.append(tree(rng, px[i], pz[i], shrink * rng.uniform(0.9, 1.35), biome, float(ground[i])))
+    return objs
 
 
 def boulder(rng, px, pz):
@@ -294,8 +396,13 @@ def boulder(rng, px, pz):
 def build_block(objs):
     x, z = grid(BLOCK_RES, cell_centred=True)
     blocked = (HALF - np.maximum(np.abs(x), np.abs(z))) < RIM_BLOCK
+    cell = WORLD / BLOCK_RES
     for o in objs:
-        if o["block"]:
+        if o["type"] == "tree":
+            ci = min(max(int((o["x"] + HALF) / cell), 0), BLOCK_RES - 1)
+            cj = min(max(int((o["z"] + HALF) / cell), 0), BLOCK_RES - 1)
+            blocked[cj, ci] = True
+        elif o["block"]:
             blocked |= rect_mask(x, z, o["x"] - o["sx"] / 2, o["z"] - o["sz"] / 2,
                                  o["x"] + o["sx"] / 2, o["z"] + o["sz"] / 2)
     return np.where(blocked, 255, 0).astype(np.uint8)
@@ -345,6 +452,7 @@ def map_directory(map_id, slug):
 
 def encode_json(meta):
     text = json.dumps(meta, indent=1)
+    text = re.sub(r'\{\s*("type": "[^"]*",[^{}]*?)\s*\}', lambda m: "{" + re.sub(r"\s+", " ", m.group(1)) + "}", text)
     return re.sub(r'("shop": )\[([^\]]*)\]',
                   lambda m: m.group(1) + "[" + ", ".join(v.strip() for v in m.group(2).split(",")) + "]", text)
 
@@ -395,3 +503,66 @@ def assert_walkable(h, block, points, label):
         bj = int((pz + HALF) / cell)
         if h[j, i] < WATER + 0.5 or block[bj, bi] != 0:
             raise SystemExit("%s: (%s, %s) is not walkable ground" % (label, px, pz))
+
+
+def walkable_cells(h, block):
+    cells = block == 0
+    step = WORLD / (HEIGHT_RES - 1)
+    cx = (-HALF + (np.arange(BLOCK_RES) + 0.5) * (WORLD / BLOCK_RES) + HALF) / step
+    ii = np.clip(np.round(cx).astype(int), 0, HEIGHT_RES - 1)
+    wet = h[np.ix_(ii, ii)] < WATER + 0.5
+    return cells & ~wet
+
+
+def flood_fill(walk, start):
+    n = walk.shape[0]
+    flat = walk.ravel()
+    seen = np.zeros(flat.shape, dtype=bool)
+    first = start[1] * n + start[0]
+    if not flat[first]:
+        return seen.reshape(walk.shape)
+    seen[first] = True
+    stack = [first]
+    while stack:
+        i = stack.pop()
+        r, c = divmod(i, n)
+        if c > 0 and flat[i - 1] and not seen[i - 1]:
+            seen[i - 1] = True
+            stack.append(i - 1)
+        if c < n - 1 and flat[i + 1] and not seen[i + 1]:
+            seen[i + 1] = True
+            stack.append(i + 1)
+        if r > 0 and flat[i - n] and not seen[i - n]:
+            seen[i - n] = True
+            stack.append(i - n)
+        if r < n - 1 and flat[i + n] and not seen[i + n]:
+            seen[i + n] = True
+            stack.append(i + n)
+    return seen.reshape(walk.shape)
+
+
+def assert_connected(h, block_before, block_after, spawn, targets, label, keep=0.97):
+    cell = WORLD / BLOCK_RES
+
+    def index(p):
+        return int((p[0] + HALF) / cell), int((p[1] + HALF) / cell)
+
+    reached_before = flood_fill(walkable_cells(h, block_before), index(spawn))
+    reached_after = flood_fill(walkable_cells(h, block_after), index(spawn))
+    for p in targets:
+        i, j = index(p)
+        if reached_before[j, i] and not reached_after[j, i]:
+            raise SystemExit("%s: (%s, %s) is cut off from the spawn" % (label, p[0], p[1]))
+    ratio = float((reached_after & reached_before).sum()) / max(1, int(reached_before.sum()))
+    if ratio < keep:
+        raise SystemExit("%s: only %.1f%% of the walkable area stays connected" % (label, ratio * 100))
+    print("%s: %.2f%% of the walkable area stays connected" % (label, ratio * 100))
+
+
+def check_map_access(h, objs, block, meta, label):
+    before = build_block([o for o in objs if o["type"] != "tree"])
+    spawn = (meta["spawn"]["x"], meta["spawn"]["z"])
+    targets = [(p["x"], p["z"]) for p in meta["portals"]]
+    targets += [(n["x"], n["z"]) for n in meta["npcs"]]
+    targets += [(m["x"], m["z"]) for m in meta["monsterSpawns"]]
+    assert_connected(h, before, block, spawn, targets, label)

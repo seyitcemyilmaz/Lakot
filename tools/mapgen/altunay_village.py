@@ -22,6 +22,10 @@ OUT = map_directory(MAP_ID, "altunay_village")
 VILLAGE_HALF = 183.0        # the stone wall's centre line, this far from the centre
 PLAZA_HALF = 38.0
 
+MAX_TREES = 5200
+FOREST_EXTRA = [(-300, -650, 170), (280, 650, 150), (780, 300, 100), (-120, 420, 90)]
+KEEP_CLEAR = [(0.0, 24.0), (810.0, -32.0), (760.0, -30.0), (-560.0, -330.0)]
+
 RIVER = [(-770, -640), (-650, -560), (-420, -420), (-200, -335), (40, -305),
          (260, -235), (390, -80), (420, 120), (470, 300), (540, 430)]
 LAKE = [((560, 470), 150), ((470, 540), 90), ((650, 400), 80), ((-780, -650), 42)]
@@ -167,7 +171,7 @@ VILLAGE_LANES = [
 ]
 
 
-def build_objects(h_at):
+def build_objects(h_at, h):
     objs = walled_square(VILLAGE_HALF)
 
     # Plaza: the well, the hall to the north, market stalls.
@@ -197,8 +201,6 @@ def build_objects(h_at):
         objs.append(box("haystack", hx, hz, 4, 3, 4, HAY))
     objs += bridge_railings(BRIDGES)
 
-    rng = np.random.RandomState(1017)
-
     def clear_of_paths(px, pz):
         pt_x, pt_z = np.array([[px]]), np.array([[pz]])
         if min(polyline_distance(pt_x, pt_z, r)[0, 0] for r in ROADS) < 14:
@@ -213,19 +215,20 @@ def build_objects(h_at):
             return False
         return HALF - max(abs(px), abs(pz)) > RIM_BLOCK + 20
 
-    placed = 0
-    while placed < 190:
-        px, pz = rng.uniform(150, 880), rng.uniform(-880, -250)
-        inside = blob_distance(np.array(px), np.array(pz), FOREST) < -8.0
-        if inside and clear_of_paths(px, pz) and h_at(px, pz) > 1.5:
-            objs += tree(rng, px, pz, rng.uniform(0.85, 1.35))
-            placed += 1
-    placed = 0
-    while placed < 70:
-        px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
-        if clear_of_paths(px, pz) and 1.5 < h_at(px, pz) < 40:
-            objs += tree(rng, px, pz, rng.uniform(0.8, 1.2))
-            placed += 1
+    def keepout(px, pz):
+        hit = near_polylines(px, pz, ROADS, ROAD_HALF + 14.0)
+        hit |= polyline_distance(px, pz, RIVER) < 30
+        hit |= near_circles(px, pz, [(cx, cz, r) for (cx, cz), r in LAKE], 30.0)
+        hit |= np.maximum(np.abs(px), np.abs(pz)) < 280
+        for x0, z0, x1, z1 in FIELDS:
+            hit |= rect_mask(px, pz, x0 - 20, z0 - 20, x1 + 20, z1 + 20)
+        hit |= near_objects(px, pz, objs, 12.0)
+        hit |= near_points(px, pz, KEEP_CLEAR, 40.0)
+        for bridge in BRIDGES:
+            hit |= bridge_mask(px, pz, bridge, 20, 40)
+        return hit
+
+    rng = np.random.RandomState(1018)
 
     placed = 0
     while placed < 34:
@@ -235,12 +238,13 @@ def build_objects(h_at):
             objs.append(boulder(rng, px, pz))
             placed += 1
 
+    objs += scatter_forest(np.random.RandomState(1017), h, "village", FOREST + FOREST_EXTRA, keepout, MAX_TREES, sparse_chance=0.0004)
     return objs
 
 
 def main():
     x, z, h = build_height()
-    objs = build_objects(make_height_sampler(h))
+    objs = build_objects(make_height_sampler(h), h)
     ground = build_ground(x, z, h)
     block = build_block(objs)
     roads = build_roads(ROADS, VILLAGE_LANES, BRIDGES, PLAZA_HALF)
@@ -284,6 +288,7 @@ def main():
             monster_spawn(7, -180.0, 760.0, 15.0, 1),
         ],
     }
+    check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
     write_map(OUT, meta, h, ground, block, roads, objs)
 
 

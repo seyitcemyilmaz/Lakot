@@ -66,7 +66,11 @@ def build_ground(x, z, h):
     return np.clip(c, 0, 255).astype(np.uint8)
 
 
-def build_objects(h_at):
+MAX_TREES = 3200
+COPSES_EXTRA = [(-100, 520, 130), (560, 420, 110), (-650, -300, 90), (350, -150, 90)]
+
+
+def build_objects(h_at, h):
     objs = []
     T = WALL_TILE
     rx, rz = RUIN
@@ -77,7 +81,7 @@ def build_objects(h_at):
     objs.append(wall_tile(rx, rz + T, math.pi / 2.0))
     objs.append(wall_tile(rx, rz + 2 * T, math.pi / 2.0))
 
-    rng = np.random.RandomState(1031)
+    rng = np.random.RandomState(1032)
 
     def clear(px, pz):
         pt_x, pt_z = np.array([[px]]), np.array([[pz]])
@@ -90,25 +94,27 @@ def build_objects(h_at):
         return HALF - max(abs(px), abs(pz)) > RIM_BLOCK + 20
 
     placed = 0
-    while placed < 110:
-        px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
-        inside = blob_distance(np.array(px), np.array(pz), COPSES) < -8.0
-        if inside and clear(px, pz) and h_at(px, pz) > 1.5:
-            objs += tree(rng, px, pz, rng.uniform(0.9, 1.4), "border")
-            placed += 1
-    placed = 0
     while placed < 60:
         px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
         inside = blob_distance(np.array(px), np.array(pz), ROCKY) < -5.0
         if inside and clear(px, pz):
             objs.append(boulder(rng, px, pz))
             placed += 1
+
+    def keepout(px, pz):
+        hit = near_polylines(px, pz, [ROAD], ROAD_HALF + 14.0)
+        hit |= near_points(px, pz, (WEST_PORTAL, WEST_ARRIVAL), 60.0)
+        hit |= rect_mask(px, pz, rx - 3 * T - 12, rz - 4 * T, rx + 7 * T + 12, rz + 4 * T)
+        hit |= near_objects(px, pz, objs, 12.0)
+        return hit
+
+    objs += scatter_forest(np.random.RandomState(1031), h, "border", COPSES + COPSES_EXTRA, keepout, MAX_TREES, sparse_chance=0.0003)
     return objs
 
 
 def main():
     x, z, h = build_height()
-    objs = build_objects(make_height_sampler(h))
+    objs = build_objects(make_height_sampler(h), h)
     ground = build_ground(x, z, h)
     block = build_block(objs)
     roads = build_roads([ROAD], [], [], 0.0)
@@ -141,6 +147,7 @@ def main():
             monster_spawn(7, -300.0, -380.0, 20.0, 1),
         ],
     }
+    check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
     write_map(OUT, meta, h, ground, block, roads, objs)
 
 
