@@ -150,6 +150,10 @@ private:
     Rml::String mGridWidthPx{"0px"};
     Rml::String mGridHeightPx{"0px"};
     Rml::String mDollWidthPx{"0px"};
+    Rml::String mReservedLeft{"0px"};
+    Rml::String mReservedTop{"0px"};
+    Rml::String mReservedWidth{"0px"};
+    Rml::String mReservedHeight{"0px"};
     Rml::String mDollHeightPx{"0px"};
 
     std::vector<TooltipLine> mTooltipLines;

@@ -119,7 +119,6 @@ def paper_doll():
     body = (58, 58, 70, 255)
     edge = (82, 82, 96, 255)
     glyph = (120, 120, 136, 150)
-    reserve = (64, 64, 76, 150)
     cx = layout["width"] // 2
 
     def pts(*points):
@@ -140,9 +139,6 @@ def paper_doll():
     leg = [(cx - 20, 112), (cx - 2, 112), (cx - 4, 178), (cx - 4, 188), (cx - 22, 188), (cx - 18, 178)]
     d.polygon(pts(*leg), fill=body, outline=edge)
     d.polygon(pts(*mirror(*leg)), fill=body, outline=edge)
-
-    for name, left, top, width, height in layout["reserved"]:
-        d.rounded_rectangle(pts((left, top), (left + width, top + height)), radius=4 * k, outline=reserve, width=k)
 
     for name, left, top, width, height in layout["reserved"] + layout["slots"]:
         draw_slot_glyph(d, name, (left + width / 2) * k, (top + height / 2) * k, k, glyph)
@@ -171,6 +167,17 @@ def draw_slot_glyph(d, name, x, y, k, color):
         d.rectangle([x - 0.5 * u, y + 2.4 * u, x + 0.5 * u, y + 4 * u], fill=color)
 
 
+SLOT_FOOTPRINTS = {"Helmet": (2, 2), "Armor": (2, 2), "Boots": (2, 1), "Weapon": (1, 3), "None": (1, 1)}
+
+
+def slot_placeholder(name):
+    k = DOLL_SCALE
+    columns, rows = SLOT_FOOTPRINTS[name]
+    image = Image.new("RGBA", (columns * 32 * k, rows * 32 * k), (0, 0, 0, 0))
+    draw_slot_glyph(ImageDraw.Draw(image), name, image.size[0] / 2, image.size[1] / 2, k, (120, 120, 136, 150))
+    return image
+
+
 ICONS = {
     "potion.tga": potion,
     "ore.tga": ore,
@@ -184,6 +191,12 @@ def main():
     for name, factory in ICONS.items():
         image = factory()
         path = os.path.join(OUT_DIR, name)
+        image.save(path)
+        print(f"{path}  {image.size[0]}x{image.size[1]}")
+
+    for name in SLOT_FOOTPRINTS:
+        image = slot_placeholder(name)
+        path = os.path.join(OUT_DIR, "slot_" + name.lower() + ".tga")
         image.save(path)
         print(f"{path}  {image.size[0]}x{image.size[1]}")
 

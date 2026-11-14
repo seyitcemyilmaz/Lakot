@@ -81,7 +81,21 @@ std::string InventoryRmlController::getSlotRoleName(EquipSlotType pSlot) const
 
 Rml::String InventoryRmlController::toIconPath(const ItemTemplate* pTemplate) const
 {
-    return Rml::String(ItemIconPath::resolve(mItemIcons, pTemplate));
+    Rml::String tPath(ItemIconPath::resolve(mItemIcons, pTemplate));
+
+    if (!tPath.empty())
+    {
+        return tPath;
+    }
+
+    switch (pTemplate ? pTemplate->equipSlot : EquipSlotType::eNone)
+    {
+        case EquipSlotType::eWeapon: return "textures/items/slot_weapon.tga";
+        case EquipSlotType::eArmor:  return "textures/items/slot_armor.tga";
+        case EquipSlotType::eHelmet: return "textures/items/slot_helmet.tga";
+        case EquipSlotType::eBoots:  return "textures/items/slot_boots.tga";
+        default:                     return "textures/items/slot_none.tga";
+    }
 }
 
 InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, const InventoryController& pInventoryController, const ClassCatalog& pClassCatalog, ItemIconRenderer& pItemIcons)
@@ -152,6 +166,10 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
     tConstructor.Bind("grid_width_px", &mGridWidthPx);
     tConstructor.Bind("grid_height_px", &mGridHeightPx);
     tConstructor.Bind("doll_width_px", &mDollWidthPx);
+    tConstructor.Bind("reserved_left", &mReservedLeft);
+    tConstructor.Bind("reserved_top", &mReservedTop);
+    tConstructor.Bind("reserved_width", &mReservedWidth);
+    tConstructor.Bind("reserved_height", &mReservedHeight);
     tConstructor.Bind("doll_height_px", &mDollHeightPx);
 
     tConstructor.Bind("tooltip_lines", &mTooltipLines);
@@ -241,6 +259,10 @@ void InventoryRmlController::rebuild()
     mGridWidthPx = toDp(tGrid.width * kCellSize);
     mGridHeightPx = toDp(tGrid.pageHeight * kCellSize);
     mDollWidthPx = toDp(kDollWidth);
+    mReservedLeft = toDp(kDollReserved[0].left);
+    mReservedTop = toDp(kDollReserved[0].top);
+    mReservedWidth = toDp(kDollReserved[0].columns * kCellSize);
+    mReservedHeight = toDp(kDollReserved[0].rows * kCellSize);
     mDollHeightPx = toDp(kDollHeight);
 
     mCells.clear();

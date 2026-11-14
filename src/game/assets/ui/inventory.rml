@@ -28,6 +28,7 @@
                         <img data-if="slot.icon != ''" data-attr-src="slot.icon"/>
                     </div>
                 </div>
+                <div class="inv-doll-slot is-reserved" data-style-left="reserved_left" data-style-top="reserved_top" data-style-width="reserved_width" data-style-height="reserved_height"></div>
             </div>
 
             <div class="inv-bag">

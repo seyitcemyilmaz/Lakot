@@ -359,6 +359,17 @@ body
     border-color: #6A6A78;
 }
 
+.inv-doll-slot.is-reserved
+{
+    cursor: default;
+}
+
+.inv-doll-slot.is-reserved:hover
+{
+    background-color: rgba(33, 33, 41, 0);
+    border-color: #6A6A7A;
+}
+
 .inv-doll-slot.is-filled
 {
     background-color: rgba(41, 41, 51, 90);
