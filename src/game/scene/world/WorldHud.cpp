@@ -488,7 +488,7 @@ void WorldHud::handleEscape()
 
 bool WorldHud::isModalOpen() const
 {
-    return mSystemMenu.isOpen() || mItemDiscard.isOpen();
+    return mSystemMenu.isOpen();
 }
 
 void WorldHud::closeWorldChat()

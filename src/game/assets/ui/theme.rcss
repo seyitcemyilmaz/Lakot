@@ -1807,16 +1807,16 @@ body
 }
 
 /* ===== Item discard (src/game/assets/ui/itemdiscard.rml) =====
-   Modal over the world: scrim dims it and the full-window body swallows
-   clicks, like the reconnect overlay. */
+   Not modal: the full-window body lets clicks through to the world; only the card takes them. */
 .discard-screen
 {
-    background-color: rgba(18, 18, 24, 160);
+    pointer-events: none;
 }
 
 .discard-card
 {
     max-width: 340dp;
+    pointer-events: auto;
 }
 
 .discard-item
@@ -1924,6 +1924,7 @@ body
 
 .skills-body
 {
+    display: block;
     flex: 1 1 auto;
     overflow-y: auto;
     margin-top: 8dp;
@@ -1931,6 +1932,7 @@ body
 
 .skills-section-title
 {
+    display: block;
     font-size: 15dp;
     font-weight: bold;
     color: #9999A8;
@@ -1939,6 +1941,7 @@ body
 
 .skills-note
 {
+    display: block;
     font-size: 15dp;
     color: #9999A8;
     margin-bottom: 6dp;
@@ -1946,6 +1949,7 @@ body
 
 .path-card
 {
+    display: block;
     margin-bottom: 8dp;
     background-color: #212129;
     border-width: 1px;
@@ -1972,18 +1976,21 @@ body
 
 .path-card-head
 {
+    display: block;
     padding: 8dp;
     cursor: pointer;
 }
 
 .path-name
 {
+    display: block;
     font-weight: bold;
     color: #EBEBF0;
 }
 
 .path-skills
 {
+    display: block;
     font-size: 15dp;
     color: #9999A8;
     margin-top: 4dp;
@@ -1991,11 +1998,13 @@ body
 
 .path-confirm
 {
+    display: block;
     padding: 0 8dp 8dp 8dp;
 }
 
 .path-warning
 {
+    display: block;
     font-size: 15dp;
     color: #FF6666;
 }
@@ -2033,6 +2042,7 @@ body
 
 .skill-icon-box
 {
+    display: block;
     flex-shrink: 0;
     width: 48dp;
     height: 48dp;
@@ -2063,22 +2073,26 @@ body
 
 .skill-info
 {
+    display: block;
     flex: 1 1 auto;
 }
 
 .skill-name
 {
+    display: block;
     font-weight: bold;
     color: #EBEBF0;
 }
 
 .skill-tier
 {
+    display: block;
     color: #D9A640;
 }
 
 .skill-description
 {
+    display: block;
     font-size: 15dp;
     color: #9999A8;
     margin-top: 4dp;
@@ -2086,6 +2100,7 @@ body
 
 .skill-stats
 {
+    display: block;
     font-size: 15dp;
     color: #8CBFF2;
     margin-top: 4dp;
@@ -2093,6 +2108,7 @@ body
 
 .skill-side
 {
+    display: block;
     flex-shrink: 0;
     width: 52dp;
     margin-left: 8dp;
@@ -2101,17 +2117,20 @@ body
 
 .skill-level
 {
+    display: block;
     color: #EBEBF0;
 }
 
 .skill-lock
 {
+    display: block;
     font-size: 15dp;
     color: #FF6666;
 }
 
 .skill-raise
 {
+    display: block;
     width: 32dp;
     height: 32dp;
     margin-top: 6dp;
