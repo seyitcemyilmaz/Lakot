@@ -38,17 +38,28 @@ public:
 
     bool save(const std::string& pPath, std::string& pError) const;
 
-    const Placement* find(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem);
+    const Placement* find(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem, const std::string& pModelPath);
 
     AttachmentRule* findRule(EquipSlotType pSlot);
+    AttachmentRule* findOverride(EquipSlotType pSlot, const std::string& pModelPath);
+    AttachmentRule* createOverride(EquipSlotType pSlot, const std::string& pModelPath);
+    void removeOverride(EquipSlotType pSlot, const std::string& pModelPath);
     void invalidate();
 
+    static glm::vec3 flipRotation(const glm::vec3& pDegrees);
+
 private:
+    using OverrideMap = std::map<std::string, AttachmentRule>;
+
     std::optional<AttachmentRule> mWeapon;
     std::optional<AttachmentRule> mHelmet;
+    OverrideMap mWeaponOverrides;
+    OverrideMap mHelmetOverrides;
     std::map<std::tuple<EquipSlotType, const SkinnedModel*, const SkinnedModel*>, std::optional<Placement>> mCache;
 
-    std::optional<Placement> compute(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem) const;
+    OverrideMap* getOverrides(EquipSlotType pSlot);
+    const AttachmentRule* resolveRule(EquipSlotType pSlot, const std::string& pModelPath) const;
+    std::optional<Placement> compute(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem, const std::string& pModelPath) const;
 };
 
 }

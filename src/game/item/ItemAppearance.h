@@ -22,6 +22,7 @@ struct ItemLook
     std::shared_ptr<SkinnedModel> model;
     glm::vec3 tint{1.0f};
     float glow{0.0f};
+    std::string modelPath;
 };
 
 // The one place that decides how an item looks, shared by the world and the inventory icons.

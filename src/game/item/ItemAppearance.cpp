@@ -32,6 +32,7 @@ const ItemLook* ItemAppearance::find(const ItemVisual& pVisual)
         if (!tTemplate->model.empty())
         {
             tLook.model = mAssets.getSkinnedModel(tTemplate->model);
+            tLook.modelPath = tTemplate->model;
         }
 
         tLook.tint = glm::vec3((tTemplate->tint >> 16) & 0xFF, (tTemplate->tint >> 8) & 0xFF, tTemplate->tint & 0xFF) / 255.0f;

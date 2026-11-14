@@ -286,7 +286,27 @@ void WorldScene::enter()
 
 #if defined(LAKOT_DEV_TOOLS)
     mAttachmentPanel = std::make_shared<AttachmentPanel>(*mAttachments, std::vector<std::string>{
-        LAKOT_SOURCE_DATA_DIR "/attachments.json", mEngine.getAssetManager().resolve("attachments.json") });
+        LAKOT_SOURCE_DATA_DIR "/attachments.json", mEngine.getAssetManager().resolve("attachments.json") },
+    [this](EquipSlotType pSlot) -> std::string
+    {
+        const WorldEntity* tLocal = mEntities ? mEntities->getLocal() : nullptr;
+
+        if (!tLocal)
+        {
+            return std::string();
+        }
+
+        for (const EquippedVisual& tEquipped : tLocal->equipment)
+        {
+            if (tEquipped.slot == pSlot)
+            {
+                const ItemLook* tLook = mItemAppearance->find(tEquipped.item);
+                return tLook ? tLook->modelPath : std::string();
+            }
+        }
+
+        return std::string();
+    });
     tGui.addPanel(mAttachmentPanel);
 #endif
 

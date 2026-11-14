@@ -4,38 +4,113 @@
 
 using namespace lakot;
 
-AttachmentPanel::AttachmentPanel(EquipmentAttachments& pAttachments, std::vector<std::string> pSavePaths)
+AttachmentPanel::AttachmentPanel(EquipmentAttachments& pAttachments, std::vector<std::string> pSavePaths, EquippedModelCallback pEquippedModel)
     : Panel("Equipment Tuning (F10)", ImGuiWindowFlags_AlwaysAutoResize)
     , mAttachments(pAttachments)
     , mSavePaths(std::move(pSavePaths))
+    , mEquippedModel(std::move(pEquippedModel))
 {
     isOpen = false;
 }
 
-void AttachmentPanel::render()
+bool AttachmentPanel::renderWeaponFields(AttachmentRule& pRule)
 {
     bool tIsChanged = false;
+    tIsChanged |= ImGui::DragFloat3("Offset", &pRule.offset.x, 0.05f);
+    tIsChanged |= ImGui::DragFloat3("Rotation", &pRule.rotationDegrees.x, 0.5f, -360.0f, 360.0f);
+    tIsChanged |= ImGui::DragFloat("Length", &pRule.length, 0.5f, 1.0f, 1000.0f);
+    tIsChanged |= ImGui::DragFloat("Grip", &pRule.grip, 0.002f, 0.0f, 1.0f);
 
-    if (AttachmentRule* tWeapon = mAttachments.findRule(EquipSlotType::eWeapon))
+    if (ImGui::Button("Flip 180"))
     {
-        ImGui::SeparatorText("Weapon");
-        ImGui::PushID("weapon");
-        tIsChanged |= ImGui::DragFloat3("Offset", &tWeapon->offset.x, 0.05f);
-        tIsChanged |= ImGui::DragFloat3("Rotation", &tWeapon->rotationDegrees.x, 0.5f, -360.0f, 360.0f);
-        tIsChanged |= ImGui::DragFloat("Length", &tWeapon->length, 0.5f, 1.0f, 1000.0f);
-        tIsChanged |= ImGui::DragFloat("Grip", &tWeapon->grip, 0.002f, 0.0f, 1.0f);
-        ImGui::PopID();
+        pRule.grip = 1.0f - pRule.grip;
+        pRule.rotationDegrees = EquipmentAttachments::flipRotation(pRule.rotationDegrees);
+        tIsChanged = true;
     }
 
-    if (AttachmentRule* tHelmet = mAttachments.findRule(EquipSlotType::eHelmet))
+    return tIsChanged;
+}
+
+bool AttachmentPanel::renderHelmetFields(AttachmentRule& pRule)
+{
+    bool tIsChanged = false;
+    tIsChanged |= ImGui::DragFloat3("Offset", &pRule.offset.x, 0.002f);
+    tIsChanged |= ImGui::DragFloat3("Rotation", &pRule.rotationDegrees.x, 0.5f, -360.0f, 360.0f);
+    tIsChanged |= ImGui::DragFloat("Width scale", &pRule.widthScale, 0.01f, 0.1f, 10.0f);
+    return tIsChanged;
+}
+
+bool AttachmentPanel::renderSlot(EquipSlotType pSlot, const char* pTitle)
+{
+    AttachmentRule* tGlobal = mAttachments.findRule(pSlot);
+
+    if (!tGlobal)
     {
-        ImGui::SeparatorText("Helmet");
-        ImGui::PushID("helmet");
-        tIsChanged |= ImGui::DragFloat3("Offset", &tHelmet->offset.x, 0.002f);
-        tIsChanged |= ImGui::DragFloat3("Rotation", &tHelmet->rotationDegrees.x, 0.5f, -360.0f, 360.0f);
-        tIsChanged |= ImGui::DragFloat("Width scale", &tHelmet->widthScale, 0.01f, 0.1f, 10.0f);
-        ImGui::PopID();
+        return false;
     }
+
+    ImGui::SeparatorText(pTitle);
+    ImGui::PushID(pTitle);
+
+    std::string tModelPath = mEquippedModel ? mEquippedModel(pSlot) : std::string();
+    AttachmentRule* tRule = tGlobal;
+    bool tIsChanged = false;
+
+    if (mIsModelMode)
+    {
+        if (tModelPath.empty())
+        {
+            ImGui::TextUnformatted("Nothing equipped");
+            ImGui::PopID();
+            return false;
+        }
+
+        ImGui::TextUnformatted(tModelPath.c_str());
+        tRule = mAttachments.findOverride(pSlot, tModelPath);
+
+        if (!tRule)
+        {
+            ImGui::TextUnformatted("No override: global rule applies");
+
+            if (ImGui::Button("Create override"))
+            {
+                mAttachments.createOverride(pSlot, tModelPath);
+                tIsChanged = true;
+            }
+
+            ImGui::PopID();
+            return tIsChanged;
+        }
+    }
+
+    tIsChanged |= pSlot == EquipSlotType::eWeapon ? renderWeaponFields(*tRule) : renderHelmetFields(*tRule);
+
+    if (mIsModelMode && ImGui::Button("Delete override"))
+    {
+        mAttachments.removeOverride(pSlot, tModelPath);
+        tIsChanged = true;
+    }
+
+    ImGui::PopID();
+    return tIsChanged;
+}
+
+void AttachmentPanel::render()
+{
+    if (ImGui::RadioButton("This model", mIsModelMode))
+    {
+        mIsModelMode = true;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::RadioButton("Global", !mIsModelMode))
+    {
+        mIsModelMode = false;
+    }
+
+    bool tIsChanged = renderSlot(EquipSlotType::eWeapon, "Weapon");
+    tIsChanged |= renderSlot(EquipSlotType::eHelmet, "Helmet");
 
     if (tIsChanged)
     {

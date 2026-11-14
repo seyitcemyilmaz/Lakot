@@ -1,5 +1,7 @@
 #include "EquipmentAttachments.h"
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 
@@ -14,42 +16,124 @@ using namespace lakot;
 
 namespace
 {
-    glm::vec3 getVector(const rapidjson::Value& pObject, const char* pName)
+    glm::vec3 getVector(const rapidjson::Value& pObject, const char* pName, const glm::vec3& pFallback)
     {
         auto tMember = pObject.FindMember(pName);
 
         if (tMember == pObject.MemberEnd() || !tMember->value.IsArray() || tMember->value.Size() != 3)
         {
-            return glm::vec3(0.0f);
+            return pFallback;
         }
 
         return glm::vec3(tMember->value[0].GetFloat(), tMember->value[1].GetFloat(), tMember->value[2].GetFloat());
     }
 
-    float getFloat(const rapidjson::Value& pObject, const char* pName)
+    float getFloat(const rapidjson::Value& pObject, const char* pName, float pFallback)
     {
         auto tMember = pObject.FindMember(pName);
-        return tMember != pObject.MemberEnd() && tMember->value.IsNumber() ? tMember->value.GetFloat() : 0.0f;
+        return tMember != pObject.MemberEnd() && tMember->value.IsNumber() ? tMember->value.GetFloat() : pFallback;
     }
 
-    std::optional<AttachmentRule> readRule(const rapidjson::Document& pDocument, const char* pName)
+    AttachmentRule readRuleValue(const rapidjson::Value& pRule, const AttachmentRule& pBase)
     {
-        auto tMember = pDocument.FindMember(pName);
+        AttachmentRule tResult;
+        tResult.joint = pRule.HasMember("joint") && pRule["joint"].IsString() ? pRule["joint"].GetString() : pBase.joint;
+        tResult.length = getFloat(pRule, "length", pBase.length);
+        tResult.grip = getFloat(pRule, "grip", pBase.grip);
+        tResult.widthScale = getFloat(pRule, "widthScale", pBase.widthScale);
+        tResult.rotationDegrees = getVector(pRule, "rotation", pBase.rotationDegrees);
+        tResult.offset = getVector(pRule, "offset", pBase.offset);
+        return tResult;
+    }
 
-        if (tMember == pDocument.MemberEnd() || !tMember->value.IsObject())
+    std::optional<AttachmentRule> readRule(const rapidjson::Value& pParent, const char* pName)
+    {
+        auto tMember = pParent.FindMember(pName);
+
+        if (tMember == pParent.MemberEnd() || !tMember->value.IsObject())
         {
             return std::nullopt;
         }
 
-        const rapidjson::Value& tRule = tMember->value;
-        AttachmentRule tResult;
-        tResult.joint = tRule.HasMember("joint") && tRule["joint"].IsString() ? tRule["joint"].GetString() : "";
-        tResult.length = getFloat(tRule, "length");
-        tResult.grip = getFloat(tRule, "grip");
-        tResult.widthScale = getFloat(tRule, "widthScale");
-        tResult.rotationDegrees = getVector(tRule, "rotation");
-        tResult.offset = getVector(tRule, "offset");
-        return tResult;
+        return readRuleValue(tMember->value, AttachmentRule());
+    }
+
+    void readOverrides(const rapidjson::Value& pDocument, const char* pSlotName, const std::optional<AttachmentRule>& pGlobal,
+                       std::map<std::string, AttachmentRule>& pTarget)
+    {
+        pTarget.clear();
+
+        auto tOverrides = pDocument.FindMember("overrides");
+
+        if (tOverrides == pDocument.MemberEnd() || !tOverrides->value.IsObject())
+        {
+            return;
+        }
+
+        auto tSlot = tOverrides->value.FindMember(pSlotName);
+
+        if (tSlot == tOverrides->value.MemberEnd() || !tSlot->value.IsObject())
+        {
+            return;
+        }
+
+        for (auto tEntry = tSlot->value.MemberBegin(); tEntry != tSlot->value.MemberEnd(); ++tEntry)
+        {
+            if (tEntry->value.IsObject())
+            {
+                pTarget[tEntry->name.GetString()] = readRuleValue(tEntry->value, pGlobal ? *pGlobal : AttachmentRule());
+            }
+        }
+    }
+
+    template <typename Writer>
+    void writeRule(Writer& pWriter, const AttachmentRule& pRule, bool pIsWeapon)
+    {
+        auto tWriteVector = [&pWriter](const char* pName, const glm::vec3& pValue)
+        {
+            pWriter.Key(pName);
+            pWriter.StartArray();
+            pWriter.Double(pValue.x);
+            pWriter.Double(pValue.y);
+            pWriter.Double(pValue.z);
+            pWriter.EndArray();
+        };
+
+        pWriter.StartObject();
+        pWriter.Key("joint");
+        pWriter.String(pRule.joint.c_str());
+
+        if (pIsWeapon)
+        {
+            pWriter.Key("length");
+            pWriter.Double(pRule.length);
+            pWriter.Key("grip");
+            pWriter.Double(pRule.grip);
+        }
+        else
+        {
+            pWriter.Key("widthScale");
+            pWriter.Double(pRule.widthScale);
+        }
+
+        tWriteVector("rotation", pRule.rotationDegrees);
+        tWriteVector("offset", pRule.offset);
+        pWriter.EndObject();
+    }
+
+    template <typename Writer>
+    void writeOverrides(Writer& pWriter, const char* pSlotName, const std::map<std::string, AttachmentRule>& pOverrides, bool pIsWeapon)
+    {
+        pWriter.Key(pSlotName);
+        pWriter.StartObject();
+
+        for (const auto& [tPath, tRule] : pOverrides)
+        {
+            pWriter.Key(tPath.c_str());
+            writeRule(pWriter, tRule, pIsWeapon);
+        }
+
+        pWriter.EndObject();
     }
 
     glm::mat4 toRotation(const glm::vec3& pDegrees)
@@ -87,6 +171,8 @@ bool EquipmentAttachments::load(const std::string& pPath, std::string& pError)
 
     mWeapon = readRule(tDocument, "weapon");
     mHelmet = readRule(tDocument, "helmet");
+    readOverrides(tDocument, "weapon", mWeapon, mWeaponOverrides);
+    readOverrides(tDocument, "helmet", mHelmet, mHelmetOverrides);
     mCache.clear();
     return true;
 }
@@ -98,43 +184,35 @@ bool EquipmentAttachments::save(const std::string& pPath, std::string& pError) c
     tWriter.SetIndent(' ', 2);
     tWriter.SetMaxDecimalPlaces(4);
 
-    auto tWriteVector = [&tWriter](const char* pName, const glm::vec3& pValue)
-    {
-        tWriter.Key(pName);
-        tWriter.StartArray();
-        tWriter.Double(pValue.x);
-        tWriter.Double(pValue.y);
-        tWriter.Double(pValue.z);
-        tWriter.EndArray();
-    };
-
     tWriter.StartObject();
 
     if (mWeapon)
     {
         tWriter.Key("weapon");
-        tWriter.StartObject();
-        tWriter.Key("joint");
-        tWriter.String(mWeapon->joint.c_str());
-        tWriter.Key("length");
-        tWriter.Double(mWeapon->length);
-        tWriter.Key("grip");
-        tWriter.Double(mWeapon->grip);
-        tWriteVector("rotation", mWeapon->rotationDegrees);
-        tWriteVector("offset", mWeapon->offset);
-        tWriter.EndObject();
+        writeRule(tWriter, *mWeapon, true);
     }
 
     if (mHelmet)
     {
         tWriter.Key("helmet");
+        writeRule(tWriter, *mHelmet, false);
+    }
+
+    if (!mWeaponOverrides.empty() || !mHelmetOverrides.empty())
+    {
+        tWriter.Key("overrides");
         tWriter.StartObject();
-        tWriter.Key("joint");
-        tWriter.String(mHelmet->joint.c_str());
-        tWriter.Key("widthScale");
-        tWriter.Double(mHelmet->widthScale);
-        tWriteVector("rotation", mHelmet->rotationDegrees);
-        tWriteVector("offset", mHelmet->offset);
+
+        if (!mWeaponOverrides.empty())
+        {
+            writeOverrides(tWriter, "weapon", mWeaponOverrides, true);
+        }
+
+        if (!mHelmetOverrides.empty())
+        {
+            writeOverrides(tWriter, "helmet", mHelmetOverrides, false);
+        }
+
         tWriter.EndObject();
     }
 
@@ -160,29 +238,100 @@ AttachmentRule* EquipmentAttachments::findRule(EquipSlotType pSlot)
     return tRule && *tRule ? &**tRule : nullptr;
 }
 
+EquipmentAttachments::OverrideMap* EquipmentAttachments::getOverrides(EquipSlotType pSlot)
+{
+    return pSlot == EquipSlotType::eWeapon ? &mWeaponOverrides
+         : pSlot == EquipSlotType::eHelmet ? &mHelmetOverrides
+         : nullptr;
+}
+
+AttachmentRule* EquipmentAttachments::findOverride(EquipSlotType pSlot, const std::string& pModelPath)
+{
+    OverrideMap* tOverrides = getOverrides(pSlot);
+
+    if (!tOverrides)
+    {
+        return nullptr;
+    }
+
+    auto tIterator = tOverrides->find(pModelPath);
+    return tIterator != tOverrides->end() ? &tIterator->second : nullptr;
+}
+
+AttachmentRule* EquipmentAttachments::createOverride(EquipSlotType pSlot, const std::string& pModelPath)
+{
+    OverrideMap* tOverrides = getOverrides(pSlot);
+    AttachmentRule* tGlobal = findRule(pSlot);
+
+    if (!tOverrides || !tGlobal || pModelPath.empty())
+    {
+        return nullptr;
+    }
+
+    mCache.clear();
+    return &tOverrides->emplace(pModelPath, *tGlobal).first->second;
+}
+
+void EquipmentAttachments::removeOverride(EquipSlotType pSlot, const std::string& pModelPath)
+{
+    if (OverrideMap* tOverrides = getOverrides(pSlot))
+    {
+        tOverrides->erase(pModelPath);
+        mCache.clear();
+    }
+}
+
+glm::vec3 EquipmentAttachments::flipRotation(const glm::vec3& pDegrees)
+{
+    glm::mat4 tFlipped = toRotation(pDegrees) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    float tPitch = std::asin(std::clamp(-tFlipped[2][1], -1.0f, 1.0f));
+    float tYaw = std::atan2(tFlipped[2][0], tFlipped[2][2]);
+    float tRoll = std::atan2(tFlipped[0][1], tFlipped[1][1]);
+    return glm::degrees(glm::vec3(tPitch, tYaw, tRoll));
+}
+
+const AttachmentRule* EquipmentAttachments::resolveRule(EquipSlotType pSlot, const std::string& pModelPath) const
+{
+    const OverrideMap* tOverrides = pSlot == EquipSlotType::eWeapon ? &mWeaponOverrides
+                                  : pSlot == EquipSlotType::eHelmet ? &mHelmetOverrides
+                                  : nullptr;
+
+    if (tOverrides)
+    {
+        auto tIterator = tOverrides->find(pModelPath);
+
+        if (tIterator != tOverrides->end())
+        {
+            return &tIterator->second;
+        }
+    }
+
+    const std::optional<AttachmentRule>& tGlobal = pSlot == EquipSlotType::eWeapon ? mWeapon : mHelmet;
+    return pSlot == EquipSlotType::eWeapon || pSlot == EquipSlotType::eHelmet ? (tGlobal ? &*tGlobal : nullptr) : nullptr;
+}
+
 void EquipmentAttachments::invalidate()
 {
     mCache.clear();
 }
 
-const EquipmentAttachments::Placement* EquipmentAttachments::find(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem)
+const EquipmentAttachments::Placement* EquipmentAttachments::find(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem, const std::string& pModelPath)
 {
     auto tKey = std::make_tuple(pSlot, &pCharacter, &pItem);
     auto tIterator = mCache.find(tKey);
 
     if (tIterator == mCache.end())
     {
-        tIterator = mCache.emplace(tKey, compute(pSlot, pCharacter, pItem)).first;
+        tIterator = mCache.emplace(tKey, compute(pSlot, pCharacter, pItem, pModelPath)).first;
     }
 
     return tIterator->second ? &*tIterator->second : nullptr;
 }
 
-std::optional<EquipmentAttachments::Placement> EquipmentAttachments::compute(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem) const
+std::optional<EquipmentAttachments::Placement> EquipmentAttachments::compute(EquipSlotType pSlot, const SkinnedModel& pCharacter, const SkinnedModel& pItem, const std::string& pModelPath) const
 {
-    const std::optional<AttachmentRule>& tRule = pSlot == EquipSlotType::eWeapon ? mWeapon
-                                               : pSlot == EquipSlotType::eHelmet ? mHelmet
-                                               : std::optional<AttachmentRule>();
+    const AttachmentRule* tRule = resolveRule(pSlot, pModelPath);
 
     if (!tRule)
     {
