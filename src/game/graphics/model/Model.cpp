@@ -22,20 +22,35 @@ Model::~Model()
     deinitialize();
 }
 
+unsigned int Model::getImportFlags()
+{
+    return aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_PreTransformVertices | aiProcess_JoinIdenticalVertices;
+}
+
 std::unique_ptr<Model> Model::load(const std::string& pPath, AssetManager& pAssets, std::string& pError)
 {
     Assimp::Importer tImporter;
 
-    // PreTransformVertices bakes node transforms into the vertices, so the
-    // file's scene graph never has to be walked at draw time.
-    const aiScene* tScene = tImporter.ReadFile(pPath,
-        aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_PreTransformVertices | aiProcess_JoinIdenticalVertices);
+    const aiScene* tScene = tImporter.ReadFile(pPath, getImportFlags());
 
-    if (!tScene || !tScene->HasMeshes())
+    if (!tScene)
     {
         pError = "cannot read " + pPath + ": " + tImporter.GetErrorString();
         return nullptr;
     }
+
+    return build(*tScene, pPath, pAssets, pError);
+}
+
+std::unique_ptr<Model> Model::build(const aiScene& pScene, const std::string& pPath, AssetManager& pAssets, std::string& pError)
+{
+    if (!pScene.HasMeshes())
+    {
+        pError = "cannot read " + pPath + ": no usable content";
+        return nullptr;
+    }
+
+    const aiScene* tScene = &pScene;
 
     std::unique_ptr<Model> tModel(new Model());
 

@@ -8,6 +8,9 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     Engine.h Engine.cpp
 
     asset/AssetManager.h asset/AssetManager.cpp
+    asset/AssetCache.hpp
+    asset/AssetPrefetcher.h asset/AssetPrefetcher.cpp
+    asset/ModelTextureSourceLoader.h asset/ModelTextureSourceLoader.cpp
 
     settings/DisplaySettings.h settings/DisplaySettings.cpp
     settings/LanguageSettings.h settings/LanguageSettings.cpp

@@ -12,6 +12,8 @@
 
 #include "../render/Renderable.h"
 
+struct aiScene;
+
 namespace lakot
 {
 
@@ -31,6 +33,8 @@ public:
         glm::vec3 getCenter() const { return (min + max) * 0.5f; }
     };
 
+    static unsigned int getImportFlags();
+    static std::unique_ptr<SkinnedModel> build(const aiScene& pScene, const std::string& pPath, AssetManager& pAssets, std::string& pError);
     static std::unique_ptr<SkinnedModel> load(const std::string& pPath, AssetManager& pAssets, std::string& pError);
 
     ~SkinnedModel() override;

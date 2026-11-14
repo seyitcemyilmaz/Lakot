@@ -10,6 +10,11 @@
 
 using namespace lakot;
 
+namespace
+{
+    constexpr double kAssetUploadBudgetSeconds = 0.002;
+}
+
 Engine& Engine::getInstance()
 {
     static Engine tInstance;
@@ -76,7 +81,7 @@ bool Engine::initialize()
 
     mShaderManager.initialize();
 
-    mAssetManager = std::make_unique<AssetManager>(std::string(SDL_GetBasePath()) + "data");
+    mAssetManager = std::make_unique<AssetManager>(std::string(SDL_GetBasePath()) + "data", mGarbageCollector);
     mMotionLibrary = std::make_unique<MotionLibrary>(*mAssetManager);
 
     if (!mMotionLibrary->load("motions.json", tMapError))
@@ -155,6 +160,11 @@ void Engine::render()
         {
             mReconnectOverlay.reset();
         }
+    }
+
+    if (mAssetManager)
+    {
+        mAssetManager->update(kAssetUploadBudgetSeconds);
     }
 
     mGarbageCollector.executeSynchronousTasks();

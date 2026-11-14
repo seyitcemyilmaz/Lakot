@@ -119,18 +119,35 @@ SkinnedModel::~SkinnedModel()
     deinitialize();
 }
 
+unsigned int SkinnedModel::getImportFlags()
+{
+    return aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights;
+}
+
 std::unique_ptr<SkinnedModel> SkinnedModel::load(const std::string& pPath, AssetManager& pAssets, std::string& pError)
 {
     Assimp::Importer tImporter;
 
-    const aiScene* tScene = tImporter.ReadFile(pPath,
-        aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights);
+    const aiScene* tScene = tImporter.ReadFile(pPath, getImportFlags());
 
-    if (!tScene || !tScene->mRootNode)
+    if (!tScene)
     {
         pError = "cannot read " + pPath + ": " + tImporter.GetErrorString();
         return nullptr;
     }
+
+    return build(*tScene, pPath, pAssets, pError);
+}
+
+std::unique_ptr<SkinnedModel> SkinnedModel::build(const aiScene& pScene, const std::string& pPath, AssetManager& pAssets, std::string& pError)
+{
+    if (!pScene.mRootNode)
+    {
+        pError = "cannot read " + pPath + ": no usable content";
+        return nullptr;
+    }
+
+    const aiScene* tScene = &pScene;
 
     std::unique_ptr<SkinnedModel> tModel(new SkinnedModel());
 

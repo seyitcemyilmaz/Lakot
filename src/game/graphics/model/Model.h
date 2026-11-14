@@ -11,6 +11,8 @@
 
 #include "../render/Renderable.h"
 
+struct aiScene;
+
 namespace lakot
 {
 
@@ -25,6 +27,8 @@ class Model final : public Renderable
 {
 public:
     // nullptr on failure, with the reason in pError.
+    static unsigned int getImportFlags();
+    static std::unique_ptr<Model> build(const aiScene& pScene, const std::string& pPath, AssetManager& pAssets, std::string& pError);
     static std::unique_ptr<Model> load(const std::string& pPath, AssetManager& pAssets, std::string& pError);
 
     ~Model() override;
