@@ -34,6 +34,7 @@ class G25Server(Server):
         json.dump({"monsters": [tpl(TOUGH, maxHealth=100000000, attack=1, aggressive=False)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
+        shutil.rmtree(tMaps / "102_altunay_steppe", ignore_errors=True)
         shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g25_copy", dirs_exist_ok=True)
         tSite, tPortal = C["site"], C["portal"]
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g25_copy", 102, 101)):

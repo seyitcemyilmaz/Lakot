@@ -39,6 +39,7 @@ class G12Server(Server):
         json.dump({"monsters": [tpl(XP_MON, maxHealth=1, attack=1, experience=100, respawnSeconds=3)]},
                   open(RUN / "data" / "monsters.json", "w", encoding="utf-8"), indent=1)
         tMaps = RUN / "data" / "maps"
+        shutil.rmtree(tMaps / "102_altunay_steppe", ignore_errors=True)
         shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g12_copy", dirs_exist_ok=True)
         tSite = C["site"]
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g12_copy", 102, 101)):

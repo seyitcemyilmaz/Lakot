@@ -33,6 +33,7 @@ class G34Server(Server):
         self.run_dir = str(RUN)
         self.log_lines = []
         tMaps = RUN / "data" / "maps"
+        shutil.rmtree(tMaps / "102_altunay_steppe", ignore_errors=True)
         tSrc = tMaps / "101_altunay_village"
         tDst = tMaps / "102_g34_copy"
         shutil.copytree(tSrc, tDst, dirs_exist_ok=True)
