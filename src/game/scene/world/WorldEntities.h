@@ -61,6 +61,7 @@ public:
 
     const std::unordered_map<uint64_t, WorldEntity>& getAll() const;
     std::optional<glm::vec3> findPosition(uint64_t pId) const;
+    std::optional<glm::vec3> findServerEntityPosition(uint64_t pEntityId) const;
 
     // pExtraSeconds: how far past the last fixed update the frame is drawn.
     static glm::vec3 getPosition(const WorldEntity& pEntity, double pExtraSeconds = 0.0);

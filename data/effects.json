@@ -1,0 +1,175 @@
+{
+  "textures": ["soft_glow", "spark", "smoke", "dust", "ring", "star", "ember", "shockwave"],
+  "effects": [
+    {
+      "name": "hit_spark",
+      "emitters": [
+        {
+          "texture": "spark", "blend": "additive", "orientation": "velocity",
+          "burst": 11, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.2, 0.35], "speed": [3.0, 6.5], "direction": [0, 1, 0], "spread": 180,
+          "gravity": -9.0, "drag": 2.0, "stretch": 0.05,
+          "shape": { "type": "point", "radius": 0.05 }, "offset": [0, 0, 0],
+          "size": [[0, 0.16], [1, 0.03]],
+          "color": [[0, [3.0, 2.4, 1.2, 1]], [0.4, [2.4, 1.1, 0.3, 0.9]], [1, [1.4, 0.35, 0.05, 0]]],
+          "rotation": [0, 0], "spin": [0, 0]
+        },
+        {
+          "texture": "dust", "blend": "alpha", "orientation": "billboard",
+          "burst": 3, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.4, 0.7], "speed": [0.3, 0.9], "direction": [0, 1, 0], "spread": 90,
+          "gravity": 0.3, "drag": 1.5, "stretch": 0,
+          "shape": { "type": "sphere", "radius": 0.1 }, "offset": [0, 0, 0],
+          "size": [[0, 0.2], [1, 0.5]],
+          "color": [[0, [0.65, 0.58, 0.48, 0.45]], [1, [0.55, 0.5, 0.42, 0]]],
+          "rotation": [0, 360], "spin": [-40, 40]
+        }
+      ]
+    },
+    {
+      "name": "hit_kill",
+      "emitters": [
+        {
+          "texture": "spark", "blend": "additive", "orientation": "velocity",
+          "burst": 16, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.3, 0.55], "speed": [4.0, 8.5], "direction": [0, 1, 0], "spread": 180,
+          "gravity": -9.0, "drag": 1.8, "stretch": 0.06,
+          "shape": { "type": "point", "radius": 0.08 }, "offset": [0, 0, 0],
+          "size": [[0, 0.24], [1, 0.04]],
+          "color": [[0, [3.2, 2.6, 1.4, 1]], [0.4, [2.6, 1.2, 0.3, 0.9]], [1, [1.5, 0.3, 0.05, 0]]],
+          "rotation": [0, 0], "spin": [0, 0]
+        },
+        {
+          "texture": "smoke", "blend": "alpha", "orientation": "billboard",
+          "burst": 5, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.8, 1.2], "speed": [0.4, 1.0], "direction": [0, 1, 0], "spread": 40,
+          "gravity": 0.8, "drag": 1.2, "stretch": 0,
+          "shape": { "type": "sphere", "radius": 0.2 }, "offset": [0, -0.1, 0],
+          "size": [[0, 0.35], [1, 1.1]],
+          "color": [[0, [0.12, 0.11, 0.1, 0.0]], [0.15, [0.14, 0.13, 0.12, 0.6]], [1, [0.2, 0.19, 0.18, 0]]],
+          "rotation": [0, 360], "spin": [-25, 25]
+        }
+      ]
+    },
+    {
+      "name": "level_up",
+      "emitters": [
+        {
+          "texture": "shockwave", "blend": "additive", "orientation": "ground",
+          "burst": 1, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [1.2, 1.2], "speed": [0, 0], "direction": [0, 1, 0], "spread": 0,
+          "gravity": 0, "drag": 0, "stretch": 0,
+          "shape": { "type": "point", "radius": 0 }, "offset": [0, 0.02, 0],
+          "size": [[0, 0.6], [0.3, 2.4], [1, 4.2]],
+          "color": [[0, [3.0, 2.4, 1.0, 1]], [0.5, [2.2, 1.6, 0.6, 0.6]], [1, [1.6, 1.1, 0.3, 0]]],
+          "rotation": [0, 360], "spin": [0, 0]
+        },
+        {
+          "texture": "ring", "blend": "additive", "orientation": "ground",
+          "burst": 1, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [1.6, 1.6], "speed": [0, 0], "direction": [0, 1, 0], "spread": 0,
+          "gravity": 0, "drag": 0, "stretch": 0,
+          "shape": { "type": "point", "radius": 0 }, "offset": [0, 0.03, 0],
+          "size": [[0, 1.0], [1, 2.2]],
+          "color": [[0, [3.0, 2.8, 2.2, 0]], [0.2, [3.0, 2.8, 2.2, 1]], [1, [1.8, 1.4, 0.6, 0]]],
+          "rotation": [0, 0], "spin": [20, 20]
+        },
+        {
+          "texture": "ember", "blend": "additive", "orientation": "billboard",
+          "burst": 0, "rate": 25, "duration": 1.6, "loop": false,
+          "lifetime": [0.9, 1.6], "speed": [1.2, 2.4], "direction": [0, 1, 0], "spread": 12,
+          "gravity": 0.2, "drag": 0.4, "stretch": 0,
+          "shape": { "type": "ring", "radius": 0.8 }, "offset": [0, 0.1, 0],
+          "size": [[0, 0.12], [0.6, 0.1], [1, 0.02]],
+          "color": [[0, [3.0, 2.2, 0.7, 1]], [0.7, [2.2, 1.4, 0.3, 0.8]], [1, [1.5, 0.8, 0.1, 0]]],
+          "rotation": [0, 360], "spin": [-60, 60]
+        },
+        {
+          "texture": "star", "blend": "additive", "orientation": "billboard",
+          "burst": 1, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [1.2, 1.2], "speed": [0, 0], "direction": [0, 1, 0], "spread": 0,
+          "gravity": 0, "drag": 0, "stretch": 0,
+          "shape": { "type": "point", "radius": 0 }, "offset": [0, 2.3, 0],
+          "size": [[0, 0.2], [0.25, 1.4], [1, 0.5]],
+          "color": [[0, [3.0, 2.6, 1.6, 0]], [0.25, [3.2, 2.8, 1.8, 1]], [1, [2.0, 1.4, 0.5, 0]]],
+          "rotation": [0, 0], "spin": [30, 30]
+        }
+      ]
+    },
+    {
+      "name": "loot_drop",
+      "emitters": [
+        {
+          "texture": "dust", "blend": "alpha", "orientation": "billboard",
+          "burst": 8, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.5, 0.9], "speed": [0.5, 1.1], "direction": [0, 0.15, 0], "spread": 90,
+          "gravity": 0, "drag": 2.0, "stretch": 0,
+          "shape": { "type": "ring", "radius": 0.15 }, "offset": [0, 0.1, 0],
+          "size": [[0, 0.18], [1, 0.5]],
+          "color": [[0, [0.65, 0.6, 0.5, 0.5]], [1, [0.55, 0.5, 0.42, 0]]],
+          "rotation": [0, 360], "spin": [-30, 30]
+        },
+        {
+          "texture": "star", "blend": "additive", "orientation": "billboard",
+          "burst": 1, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.6, 0.6], "speed": [0, 0], "direction": [0, 1, 0], "spread": 0,
+          "gravity": 0, "drag": 0, "stretch": 0,
+          "shape": { "type": "point", "radius": 0 }, "offset": [0, 0.35, 0],
+          "size": [[0, 0.1], [0.3, 0.55], [1, 0.15]],
+          "color": [[0, [1.6, 2.0, 3.0, 0]], [0.3, [1.8, 2.2, 3.2, 1]], [1, [1.0, 1.4, 2.4, 0]]],
+          "rotation": [0, 0], "spin": [0, 0]
+        }
+      ]
+    },
+    {
+      "name": "loot_drop_gold",
+      "emitters": [
+        {
+          "texture": "spark", "blend": "additive", "orientation": "velocity",
+          "burst": 10, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.4, 0.7], "speed": [1.5, 3.5], "direction": [0, 1, 0], "spread": 70,
+          "gravity": -6.0, "drag": 1.5, "stretch": 0.05,
+          "shape": { "type": "point", "radius": 0.05 }, "offset": [0, 0.2, 0],
+          "size": [[0, 0.12], [1, 0.03]],
+          "color": [[0, [3.2, 2.5, 0.8, 1]], [0.6, [2.4, 1.6, 0.3, 0.8]], [1, [1.6, 1.0, 0.1, 0]]],
+          "rotation": [0, 0], "spin": [0, 0]
+        },
+        {
+          "texture": "soft_glow", "blend": "additive", "orientation": "billboard",
+          "burst": 1, "rate": 0, "duration": 0, "loop": false,
+          "lifetime": [0.5, 0.5], "speed": [0, 0], "direction": [0, 1, 0], "spread": 0,
+          "gravity": 0, "drag": 0, "stretch": 0,
+          "shape": { "type": "point", "radius": 0 }, "offset": [0, 0.25, 0],
+          "size": [[0, 0.2], [0.3, 0.7], [1, 0.3]],
+          "color": [[0, [2.6, 1.9, 0.5, 0]], [0.3, [2.8, 2.0, 0.6, 0.8]], [1, [1.8, 1.1, 0.2, 0]]],
+          "rotation": [0, 0], "spin": [0, 0]
+        }
+      ]
+    },
+    {
+      "name": "stress_loop",
+      "emitters": [
+        {
+          "texture": "smoke", "blend": "alpha", "orientation": "billboard",
+          "burst": 0, "rate": 20, "duration": 0, "loop": true,
+          "lifetime": [1.0, 1.5], "speed": [0.4, 0.9], "direction": [0, 1, 0], "spread": 25,
+          "gravity": 0.4, "drag": 0.8, "stretch": 0,
+          "shape": { "type": "sphere", "radius": 0.15 }, "offset": [0, 0.2, 0],
+          "size": [[0, 0.3], [1, 0.9]],
+          "color": [[0, [0.2, 0.19, 0.18, 0]], [0.2, [0.22, 0.21, 0.2, 0.5]], [1, [0.3, 0.29, 0.28, 0]]],
+          "rotation": [0, 360], "spin": [-20, 20]
+        },
+        {
+          "texture": "ember", "blend": "additive", "orientation": "billboard",
+          "burst": 0, "rate": 10, "duration": 0, "loop": true,
+          "lifetime": [0.8, 1.4], "speed": [0.8, 1.8], "direction": [0, 1, 0], "spread": 35,
+          "gravity": -0.5, "drag": 0.5, "stretch": 0,
+          "shape": { "type": "point", "radius": 0.1 }, "offset": [0, 0.2, 0],
+          "size": [[0, 0.1], [1, 0.02]],
+          "color": [[0, [3.0, 1.8, 0.5, 1]], [1, [1.4, 0.5, 0.1, 0]]],
+          "rotation": [0, 360], "spin": [-45, 45]
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@
 
 #include "../Engine.h"
 #include "../gui/AttachmentPanel.h"
+#include "../gui/EffectsPanel.h"
 #include "../gui/PanelLoader.h"
 #include "../gui/MapImageFactory.h"
 
@@ -304,6 +305,14 @@ void WorldScene::enter()
     mEntities->setLocal(mLocalUsername, mLocalPosition, mEngine.getFixedDeltaTime());
     mEntities->setLocalEquipment(mLocalItems);
 
+    mEffects = std::make_unique<WorldEffects>(mEngine.getAssetManager(), tShaderManager, *mEntities, mLocalStats.level);
+
+#if defined(LAKOT_DEV_TOOLS)
+    mEffectsPanel = std::make_shared<EffectsPanel>(*mEffects, *mEntities, std::vector<std::string>{
+        LAKOT_SOURCE_DATA_DIR "/effects.json", mEngine.getAssetManager().resolve("effects.json") });
+    tGui.addPanel(mEffectsPanel);
+#endif
+
     mPicker = std::make_unique<WorldPicker>(mEngine.getWindow(), *mCamera, *mEntities);
     mAutoWalk = std::make_unique<AutoWalk>(*mEntities);
 
@@ -380,6 +389,8 @@ void WorldScene::exit()
 
     mEngine.getGuiLayer().clearPanels();
     mAttachmentPanel.reset();
+    mEffectsPanel.reset();
+    mEffects.reset();
 
     mEngine.setClearColor(glm::vec3(0.4f, 0.4f, 0.4f));
 }
@@ -412,6 +423,7 @@ void WorldScene::update(double pDeltaTime)
 
     mEntities->update(pDeltaTime);
     mEntities->setLocal(mLocalUsername, mLocalPosition, pDeltaTime);
+    mEffects->update(pDeltaTime);
 
     for (const DamageEvent& tEvent : mEntities->takeDamageEvents())
     {
@@ -836,6 +848,8 @@ void WorldScene::render()
         tBoxShader->unbind();
     }
 
+    mEffects->render(*mCamera, kSkyColor, kFogStart, WorldView::kViewDistance, tExtraSeconds);
+
     for (const auto& [tId, tEntity] : mEntities->getAll())
     {
         bool tShowsHealth = tEntity.type != EntityType::eNpc && tEntity.type != EntityType::eGroundItem && tId != WorldEntities::kLocalId && !tEntity.isDead
@@ -904,6 +918,12 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
                 if (tIsPressed && !pEvent->key.repeat)
                 {
                     requestAutoPickup();
+                }
+                return true;
+            case SDLK_F9:
+                if (tIsPressed && mEffectsPanel)
+                {
+                    mEffectsPanel->isOpen = !mEffectsPanel->isOpen;
                 }
                 return true;
             case SDLK_F10:
@@ -1053,6 +1073,7 @@ void WorldScene::onSessionResumed()
 void WorldScene::onWorldSnapshot(const WorldController::WorldSnapshot& pSnapshot)
 {
     mEntities->applySnapshot(pSnapshot);
+    mEffects->onSnapshot(pSnapshot);
 
     if (pSnapshot.selfVitals)
     {
@@ -1078,6 +1099,7 @@ void WorldScene::onWorldSnapshot(const WorldController::WorldSnapshot& pSnapshot
 void WorldScene::onMapChanged(const WorldController::MapSnapshot& pSnapshot)
 {
     mEntities->clearRemote();
+    mEffects->clear();
     mHud->clearWorldChat();
 
     if (mCamera)

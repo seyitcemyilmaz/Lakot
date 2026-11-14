@@ -29,24 +29,37 @@ Texture::~Texture()
     glDeleteTextures(1, &mId);
 }
 
-std::shared_ptr<Texture> Texture::fromFile(const std::string& pPath, std::string& pError)
+std::vector<unsigned char> Texture::readRgba(const std::string& pPath, int& pWidth, int& pHeight, std::string& pError)
 {
-    int tWidth = 0;
-    int tHeight = 0;
     int tChannels = 0;
 
     stbi_set_flip_vertically_on_load(1);
-    stbi_uc* tPixels = stbi_load(pPath.c_str(), &tWidth, &tHeight, &tChannels, 4);
+    stbi_uc* tPixels = stbi_load(pPath.c_str(), &pWidth, &pHeight, &tChannels, 4);
 
     if (!tPixels)
     {
         pError = "cannot read texture " + pPath;
+        return {};
+    }
+
+    std::vector<unsigned char> tResult(tPixels, tPixels + static_cast<size_t>(pWidth) * static_cast<size_t>(pHeight) * 4);
+    stbi_image_free(tPixels);
+    return tResult;
+}
+
+std::shared_ptr<Texture> Texture::fromFile(const std::string& pPath, std::string& pError)
+{
+    int tWidth = 0;
+    int tHeight = 0;
+
+    std::vector<unsigned char> tPixels = readRgba(pPath, tWidth, tHeight, pError);
+
+    if (tPixels.empty())
+    {
         return nullptr;
     }
 
-    std::shared_ptr<Texture> tTexture = upload(tPixels, tWidth, tHeight);
-    stbi_image_free(tPixels);
-    return tTexture;
+    return upload(tPixels.data(), tWidth, tHeight);
 }
 
 std::shared_ptr<Texture> Texture::fromMemory(const unsigned char* pData, size_t pSize, std::string& pError)

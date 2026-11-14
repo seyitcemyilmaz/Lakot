@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/Panel.h
     gui/PanelLoader.h gui/PanelLoader.cpp
     gui/AttachmentPanel.h gui/AttachmentPanel.cpp
+    gui/EffectsPanel.h gui/EffectsPanel.cpp
 
     gui/rml/backend/RmlUi_Renderer_GL3.h gui/rml/backend/RmlUi_Renderer_GL3.cpp
     gui/rml/backend/RmlUi_Platform_SDL.h gui/rml/backend/RmlUi_Platform_SDL.cpp
@@ -41,6 +42,13 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/MapImageFactory.h gui/MapImageFactory.cpp
     graphics/model/Model.h graphics/model/Model.cpp
     graphics/model/Texture.h graphics/model/Texture.cpp
+    graphics/model/TextureArray.h graphics/model/TextureArray.cpp
+    effect/EffectDefinition.h
+    effect/EffectCatalog.h effect/EffectCatalog.cpp
+    effect/EffectSystem.h effect/EffectSystem.cpp
+    effect/RollingAverage.hpp
+    effect/ParticleRenderer.h effect/ParticleRenderer.cpp
+    graphics/geometry/ParticleBatch.h graphics/geometry/ParticleBatch.cpp
     graphics/model/Skeleton.h graphics/model/Skeleton.cpp
     graphics/model/AnimationClip.h graphics/model/AnimationClip.cpp
     graphics/model/SkinnedModel.h graphics/model/SkinnedModel.cpp
@@ -95,6 +103,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/CameraBob.h scene/world/CameraBob.cpp
     scene/world/WhisperWindows.h scene/world/WhisperWindows.cpp
     scene/world/WorldHud.h scene/world/WorldHud.cpp
+    scene/world/WorldEffects.h scene/world/WorldEffects.cpp
     graphics/render/ShaderManager.h graphics/render/ShaderManager.cpp
     graphics/geometry/Terrain.h graphics/geometry/Terrain.cpp
 )

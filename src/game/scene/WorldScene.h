@@ -17,6 +17,7 @@
 #include "world/EntityRenderer.h"
 #include "../gui/Panel.h"
 #include "world/EquipmentAttachments.h"
+#include "world/WorldEffects.h"
 #include "world/WorldEntities.h"
 #include "world/WorldHud.h"
 #include "world/WorldPicker.h"
@@ -80,6 +81,8 @@ private:
     std::unique_ptr<WorldEntities> mEntities;
     std::unique_ptr<EquipmentAttachments> mAttachments;
     std::shared_ptr<Panel> mAttachmentPanel;
+    std::unique_ptr<WorldEffects> mEffects;
+    std::shared_ptr<Panel> mEffectsPanel;
     std::unique_ptr<EntityRenderer> mEntityRenderer;
     std::unique_ptr<WorldPicker> mPicker;
     std::unique_ptr<AutoWalk> mAutoWalk;

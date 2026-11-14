@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace lakot
 {
@@ -11,6 +12,7 @@ namespace lakot
 class Texture
 {
 public:
+    static std::vector<unsigned char> readRgba(const std::string& pPath, int& pWidth, int& pHeight, std::string& pError);
     static std::shared_ptr<Texture> fromFile(const std::string& pPath, std::string& pError);
     static std::shared_ptr<Texture> fromMemory(const unsigned char* pData, size_t pSize, std::string& pError);
     static std::shared_ptr<Texture> white();

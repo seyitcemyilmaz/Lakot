@@ -462,6 +462,11 @@ const std::unordered_map<uint64_t, WorldEntity>& WorldEntities::getAll() const
     return mEntities;
 }
 
+std::optional<glm::vec3> WorldEntities::findServerEntityPosition(uint64_t pEntityId) const
+{
+    return findPosition(toLocalId(pEntityId));
+}
+
 std::optional<glm::vec3> WorldEntities::findPosition(uint64_t pId) const
 {
     auto tIterator = mEntities.find(pId);
