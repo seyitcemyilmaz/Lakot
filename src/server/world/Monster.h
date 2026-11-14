@@ -3,6 +3,9 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
+
+#include <glm/glm.hpp>
 
 #include "MonsterCatalog.h"
 
@@ -33,6 +36,27 @@ inline float getMonsterLevelFactor(const MonsterTemplate& pTemplate, uint32_t pL
     return tFactor < 0.1f ? 0.1f : tFactor;
 }
 
+struct MonsterPath
+{
+    std::vector<glm::vec2> waypoints;
+    size_t nextIndex = 0;
+    MonsterStateType state = MonsterStateType::eIdle;
+    uint64_t targetId = 0;
+    glm::vec2 goal{0.0f, 0.0f};
+    double nextSearchAt = 0.0;
+
+    bool isActive() const
+    {
+        return nextIndex < waypoints.size();
+    }
+
+    void clear()
+    {
+        waypoints.clear();
+        nextIndex = 0;
+    }
+};
+
 struct Monster
 {
     uint64_t id = 0;
@@ -45,6 +69,8 @@ struct Monster
     int32_t health = 0;
     MonsterStateType state = MonsterStateType::eIdle;
     uint64_t targetId = 0;
+    MonsterPath path;
+    double stuckSince = -1.0;
     double nextAttackAt = 0.0;
     double removeAt = 0.0;
     double respawnAt = 0.0;

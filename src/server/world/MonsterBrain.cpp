@@ -1,5 +1,6 @@
 #include "MonsterBrain.h"
 #include "MovementRules.h"
+#include "Pathfinder.h"
 
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,8 @@ void MonsterBrain::place(Monster& pMonster)
     pMonster.damageBy.clear();
     pMonster.state = MonsterStateType::eIdle;
     pMonster.targetId = 0;
+    pMonster.stuckSince = -1.0;
+    pMonster.path.clear();
     pMonster.isInWorld = true;
 
     mRegistry.add(pMonster.id, pMonster.monsterTemplate->name, tState, false);
@@ -66,6 +69,8 @@ void MonsterBrain::rollStats(Monster& pMonster)
 
 void MonsterBrain::update(double pNow, float pDeltaSeconds)
 {
+    mSearchesLeft = kMaxPathSearchesPerTick;
+
     for (auto tIterator = mMonsters.begin(); tIterator != mMonsters.end();)
     {
         auto& [tId, tMonster] = *tIterator;
@@ -180,10 +185,10 @@ uint64_t MonsterBrain::findTarget(const Monster& pMonster, const PlayerState& pS
     return tBest;
 }
 
-bool MonsterBrain::moveTowards(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep)
+bool MonsterBrain::stepOnce(const PlayerState& pFrom, float pX, float pZ, float pStep, PlayerState& pNext) const
 {
-    float tDx = pX - pState.x;
-    float tDz = pZ - pState.z;
+    float tDx = pX - pFrom.x;
+    float tDz = pZ - pFrom.z;
     float tDistance = std::hypot(tDx, tDz);
 
     if (tDistance < 0.001f)
@@ -192,19 +197,156 @@ bool MonsterBrain::moveTowards(Monster& pMonster, const PlayerState& pState, flo
     }
 
     float tMove = std::min(pStep, tDistance);
-    PlayerState tNext = pState;
-    tNext.x += tDx / tDistance * tMove;
-    tNext.z += tDz / tDistance * tMove;
-    tNext.yaw = std::atan2(tDx, tDz);
+    pNext = pFrom;
+    pNext.x += tDx / tDistance * tMove;
+    pNext.z += tDz / tDistance * tMove;
+    pNext.yaw = std::atan2(tDx, tDz);
 
-    if (!mMap.isMoveAllowed(pState.x, pState.z, tNext.x, tNext.z) || mMap.isSafe(tNext.x, tNext.z))
+    if (!mMap.isMoveAllowed(pFrom.x, pFrom.z, pNext.x, pNext.z) || mMap.isSafe(pNext.x, pNext.z))
     {
         return false;
     }
 
-    tNext.y = mMap.getHeightAt(tNext.x, tNext.z) + MovementRules::kBodyHalfHeight;
+    pNext.y = mMap.getHeightAt(pNext.x, pNext.z) + MovementRules::kBodyHalfHeight;
+    return true;
+}
+
+bool MonsterBrain::stepStraight(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep)
+{
+    PlayerState tNext;
+
+    if (!stepOnce(pState, pX, pZ, pStep, tNext))
+    {
+        return false;
+    }
+
     mRegistry.setState(pMonster.id, tNext);
     return true;
+}
+
+bool MonsterBrain::followPath(Monster& pMonster, const PlayerState& pState, float pStep)
+{
+    MonsterPath& tPath = pMonster.path;
+    PlayerState tCurrent = pState;
+    float tRemaining = pStep;
+    bool tHasMoved = false;
+
+    while (tRemaining > 0.001f && tPath.isActive())
+    {
+        const glm::vec2& tWaypoint = tPath.waypoints[tPath.nextIndex];
+        float tDistance = std::hypot(tWaypoint.x - tCurrent.x, tWaypoint.y - tCurrent.z);
+        float tMove = std::min(tRemaining, tDistance);
+
+        if (tDistance >= 0.001f)
+        {
+            PlayerState tNext;
+
+            if (!stepOnce(tCurrent, tWaypoint.x, tWaypoint.y, tMove, tNext))
+            {
+                break;
+            }
+
+            tCurrent = tNext;
+            tRemaining -= tMove;
+            tHasMoved = true;
+        }
+
+        if (tMove >= tDistance - 0.001f)
+        {
+            ++tPath.nextIndex;
+        }
+    }
+
+    if (tHasMoved)
+    {
+        mRegistry.setState(pMonster.id, tCurrent);
+    }
+
+    return tHasMoved;
+}
+
+bool MonsterBrain::searchPath(Monster& pMonster, const PlayerState& pState, float pX, float pZ, double pNow)
+{
+    MonsterPath& tPath = pMonster.path;
+
+    if (mSearchesLeft <= 0)
+    {
+        return tPath.isActive();
+    }
+
+    --mSearchesLeft;
+    tPath.nextSearchAt = pNow + kPathSearchIntervalSeconds;
+    tPath.state = pMonster.state;
+    tPath.targetId = pMonster.targetId;
+    tPath.goal = glm::vec2(pX, pZ);
+    tPath.nextIndex = 0;
+
+    if (!Pathfinder::findBoundedPath(mMap, glm::vec2(pState.x, pState.z), tPath.goal, kMaxPathExpansions, tPath.waypoints))
+    {
+        tPath.clear();
+        return false;
+    }
+
+    return true;
+}
+
+bool MonsterBrain::advance(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow)
+{
+    MonsterPath& tPath = pMonster.path;
+
+    if (tPath.isActive() && (tPath.state != pMonster.state || tPath.targetId != pMonster.targetId))
+    {
+        tPath.clear();
+    }
+
+    bool tIsFollowing = tPath.isActive();
+
+    if (tIsFollowing && pNow >= tPath.nextSearchAt && glm::distance(tPath.goal, glm::vec2(pX, pZ)) > mMap.getCellSize())
+    {
+        tIsFollowing = searchPath(pMonster, pState, pX, pZ, pNow);
+    }
+
+    if (!tIsFollowing)
+    {
+        if (stepStraight(pMonster, pState, pX, pZ, pStep))
+        {
+            return true;
+        }
+
+        if (pNow < tPath.nextSearchAt || !searchPath(pMonster, pState, pX, pZ, pNow))
+        {
+            return false;
+        }
+    }
+
+    if (followPath(pMonster, pState, pStep))
+    {
+        return true;
+    }
+
+    tPath.clear();
+    return false;
+}
+
+bool MonsterBrain::moveTowards(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow)
+{
+    bool tHasMoved = advance(pMonster, pState, pX, pZ, pStep, pNow);
+
+    if (tHasMoved)
+    {
+        pMonster.stuckSince = -1.0;
+    }
+    else if (pMonster.stuckSince < 0.0)
+    {
+        pMonster.stuckSince = pNow;
+    }
+
+    return tHasMoved;
+}
+
+bool MonsterBrain::isStuckFor(const Monster& pMonster, double pNow, double pSeconds) const
+{
+    return pMonster.stuckSince >= 0.0 && pNow - pMonster.stuckSince >= pSeconds;
 }
 
 void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
@@ -251,6 +393,8 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
 
         if (tDistance <= tTemplate.attackRange + CombatSystem::kBodyRadius)
         {
+            pMonster.stuckSince = -1.0;
+
             if (pNow >= pMonster.nextAttackAt)
             {
                 pMonster.nextAttackAt = pNow + tTemplate.attackInterval;
@@ -260,13 +404,20 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
             return;
         }
 
-        moveTowards(pMonster, tState, tTarget->x, tTarget->z, tStep);
+        if (!moveTowards(pMonster, tState, tTarget->x, tTarget->z, tStep, pNow) && isStuckFor(pMonster, pNow, kChaseStuckSeconds))
+        {
+            pMonster.state = MonsterStateType::eReturn;
+            pMonster.targetId = 0;
+            pMonster.stuckSince = -1.0;
+            pMonster.path.clear();
+        }
+
         return;
     }
 
     if (pMonster.state == MonsterStateType::eReturn)
     {
-        if (tFromSpawn <= kArriveDistance || !moveTowards(pMonster, tState, pMonster.spawnX, pMonster.spawnZ, tStep))
+        if (tFromSpawn <= kArriveDistance || (!moveTowards(pMonster, tState, pMonster.spawnX, pMonster.spawnZ, tStep, pNow) && isStuckFor(pMonster, pNow, kReturnStuckSeconds)))
         {
             if (tFromSpawn > kArriveDistance)
             {
@@ -278,6 +429,8 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
             }
 
             pMonster.state = MonsterStateType::eIdle;
+            pMonster.stuckSince = -1.0;
+            pMonster.path.clear();
 
             if (pMonster.health != pMonster.stats.maxHealth)
             {

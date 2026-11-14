@@ -29,6 +29,11 @@ public:
 
 private:
     static constexpr float kArriveDistance = 0.8f;
+    static constexpr int kMaxPathSearchesPerTick = 4;
+    static constexpr int kMaxPathExpansions = 2500;
+    static constexpr double kPathSearchIntervalSeconds = 0.5;
+    static constexpr double kChaseStuckSeconds = 4.0;
+    static constexpr double kReturnStuckSeconds = 1.5;
 
     const MapData& mMap;
     WorldRegistry& mRegistry;
@@ -39,12 +44,19 @@ private:
     std::mt19937 mRandom{std::random_device{}()};
     std::vector<uint64_t> mCandidates;
     std::vector<uint64_t> mAssisted;
+    int mSearchesLeft = kMaxPathSearchesPerTick;
 
     void rollStats(Monster& pMonster);
     void spreadAggro();
     void think(Monster& pMonster, double pNow, float pDeltaSeconds);
     uint64_t findTarget(const Monster& pMonster, const PlayerState& pState);
-    bool moveTowards(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep);
+    bool moveTowards(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow);
+    bool advance(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow);
+    bool stepOnce(const PlayerState& pFrom, float pX, float pZ, float pStep, PlayerState& pNext) const;
+    bool stepStraight(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep);
+    bool followPath(Monster& pMonster, const PlayerState& pState, float pStep);
+    bool searchPath(Monster& pMonster, const PlayerState& pState, float pX, float pZ, double pNow);
+    bool isStuckFor(const Monster& pMonster, double pNow, double pSeconds) const;
 };
 
 }

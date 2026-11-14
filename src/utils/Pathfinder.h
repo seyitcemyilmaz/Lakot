@@ -29,7 +29,11 @@ public:
     // Empty if there is nowhere to go (already there, or boxed in).
     static std::vector<glm::vec2> findPath(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo);
 
+    static bool findBoundedPath(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo, int pMaxExpansions, std::vector<glm::vec2>& pPath);
+
 private:
+    static bool compute(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo, bool pIsBounded, int pMaxExpansions, std::vector<glm::vec2>& pPath);
+
     Pathfinder() = default;
     ~Pathfinder() = default;
 };

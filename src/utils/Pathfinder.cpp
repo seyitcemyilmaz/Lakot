@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
-#include <queue>
+#include <functional>
 
 using namespace lakot;
 
@@ -53,6 +53,8 @@ namespace
         std::vector<float> cost;
         std::vector<int32_t> parent;
         std::vector<uint8_t> isClosed;
+        std::vector<OpenEntry> open;
+        std::vector<glm::vec2> points;
         uint32_t current = 0;
 
         void begin(size_t pCellCount)
@@ -172,6 +174,26 @@ namespace
 
 std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo)
 {
+    std::vector<glm::vec2> tPath;
+    compute(pMap, pFrom, pTo, false, 0, tPath);
+    return tPath;
+}
+
+bool Pathfinder::findBoundedPath(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo, int pMaxExpansions, std::vector<glm::vec2>& pPath)
+{
+    if (!std::isfinite(pFrom.x) || !std::isfinite(pFrom.y) || !std::isfinite(pTo.x) || !std::isfinite(pTo.y))
+    {
+        pPath.clear();
+        return false;
+    }
+
+    return compute(pMap, pFrom, pTo, true, pMaxExpansions, pPath) && !pPath.empty();
+}
+
+bool Pathfinder::compute(const MapData& pMap, const glm::vec2& pFrom, const glm::vec2& pTo, bool pIsBounded, int pMaxExpansions, std::vector<glm::vec2>& pPath)
+{
+    pPath.clear();
+
     const int tResolution = pMap.getCellResolution();
 
     int tStartX = pMap.getCellIndex(pFrom.x);
@@ -187,7 +209,7 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
     {
         if (!snapToWalkable(pMap, tGoalX, tGoalZ, tStartX, tStartZ))
         {
-            return {};
+            return false;
         }
 
         tGoalPoint = glm::vec2(pMap.getCellCenterX(tGoalX), pMap.getCellCenterZ(tGoalZ));
@@ -208,11 +230,12 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
     {
         tBuffers.begin(static_cast<size_t>(tResolution) * tResolution);
 
-        std::priority_queue<OpenEntry, std::vector<OpenEntry>, std::greater<OpenEntry>> tOpen;
+        std::vector<OpenEntry>& tOpen = tBuffers.open;
+        tOpen.clear();
 
         tBuffers.touch(tStart);
         tBuffers.cost[tStart] = 0.0f;
-        tOpen.push({ 0.0f, tStart });
+        tOpen.push_back({ 0.0f, tStart });
 
         int32_t tBest = tStart;
         float tBestDistance = octile(tGoalX - tStartX, tGoalZ - tStartZ);
@@ -221,8 +244,9 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
 
         while (!tOpen.empty() && tExpansions < pMaxExpansions)
         {
-            int32_t tCurrent = tOpen.top().cell;
-            tOpen.pop();
+            std::pop_heap(tOpen.begin(), tOpen.end(), std::greater<OpenEntry>());
+            int32_t tCurrent = tOpen.back().cell;
+            tOpen.pop_back();
 
             if (tBuffers.isClosed[tCurrent])
             {
@@ -289,7 +313,8 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
                 tBuffers.cost[tNext] = tNewCost;
                 tBuffers.parent[tNext] = tCurrent;
 
-                tOpen.push({ tNewCost + pHeuristicFactor * octile(tGoalX - tNextX, tGoalZ - tNextZ), tNext });
+                tOpen.push_back({ tNewCost + pHeuristicFactor * octile(tGoalX - tNextX, tGoalZ - tNextZ), tNext });
+                std::push_heap(tOpen.begin(), tOpen.end(), std::greater<OpenEntry>());
             }
         }
 
@@ -301,17 +326,21 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
     // everyday trips. If that is not enough - a walk across the whole map -
     // a goal-directed search still gets there, with less regard for roads.
     int32_t tEnd = tStart;
-    bool tIsReached = search(kHeuristicFactor, kRoadAwareExpansions, tEnd)
-                      || search(1.0f, kMaxExpansions, tEnd);
+    bool tIsReached = pIsBounded ? search(1.0f, pMaxExpansions, tEnd)
+                                 : (search(kHeuristicFactor, kRoadAwareExpansions, tEnd) || search(1.0f, kMaxExpansions, tEnd));
 
+    if (pIsBounded && !tIsReached)
+    {
+        return false;
+    }
 
     if (tEnd == tStart && !tIsReached)
     {
-        return {};
+        return false;
     }
 
-    // Cells back to front, then as points.
-    std::vector<glm::vec2> tPoints;
+    std::vector<glm::vec2>& tPoints = tBuffers.points;
+    tPoints.clear();
 
     for (int32_t tCell = tEnd; tCell != -1; tCell = tBuffers.parent[tCell])
     {
@@ -324,10 +353,10 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
     {
         if (tIsReached && pMap.isPathWalkable(pFrom.x, pFrom.y, tGoalPoint.x, tGoalPoint.y, kLegSampleStep))
         {
-            return { tGoalPoint };
+            pPath.push_back(tGoalPoint);
         }
 
-        return {};
+        return tIsReached;
     }
 
     tPoints.front() = pFrom;
@@ -342,7 +371,6 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
     // costs a few checks per point rather than one per pair of points. A leg
     // the search routed along a road is only straightened along the road, so
     // smoothing does not undo the preference for roads.
-    std::vector<glm::vec2> tWaypoints;
     size_t tAnchor = 0;
 
     while (tAnchor + 1 < tPoints.size())
@@ -374,9 +402,9 @@ std::vector<glm::vec2> Pathfinder::findPath(const MapData& pMap, const glm::vec2
             ++tNext;
         }
 
-        tWaypoints.push_back(tPoints[tNext]);
+        pPath.push_back(tPoints[tNext]);
         tAnchor = tNext;
     }
 
-    return tWaypoints;
+    return tIsReached;
 }
