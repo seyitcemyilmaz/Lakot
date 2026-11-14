@@ -13,10 +13,13 @@
 
 #include "world/AutoWalk.h"
 #include "world/CameraBob.h"
+#include "world/CombatFeel.h"
 #include "world/DamageNumbers.h"
 #include "world/EntityRenderer.h"
 #include "../gui/Panel.h"
 #include "world/EquipmentAttachments.h"
+#include "../effect/TrailRenderer.h"
+#include "../effect/WeaponTrail.h"
 #include "world/WorldEffects.h"
 #include "world/WorldEntities.h"
 #include "world/WorldHud.h"
@@ -88,6 +91,9 @@ private:
     std::unique_ptr<WorldPicker> mPicker;
     std::unique_ptr<AutoWalk> mAutoWalk;
     CameraBob mCameraBob;
+    CombatFeel mFeel;
+    WeaponTrail mWeaponTrail;
+    std::unique_ptr<TrailRenderer> mTrailRenderer;
     std::unique_ptr<WorldOverlay> mOverlay;
     std::unique_ptr<WorldHud> mHud;
 
@@ -152,6 +158,9 @@ private:
     WorldOverlay::NameToneType getNameTone(const WorldEntity& pEntity) const;
     void updateAttack(double pDeltaTime);
     void onAnimationEvent(const AnimationEvent& pEvent);
+    void sampleTrails();
+    bool hasEnemyInFront() const;
+    void resetFeel();
 };
 
 }

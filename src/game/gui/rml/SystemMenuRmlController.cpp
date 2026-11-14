@@ -32,11 +32,13 @@ SystemMenuRmlController::SystemMenuRmlController(RmlUiLayer& pRmlUiLayer)
 
     tConstructor.Bind("is_settings_open", &mIsSettingsOpen);
     tConstructor.Bind("display_options", &mDisplayOptions);
+    tConstructor.Bind("is_camera_shake_enabled", &mIsCameraShakeEnabled);
 
     tConstructor.BindEventCallback("resume", &SystemMenuRmlController::onResumeClicked, this);
     tConstructor.BindEventCallback("open_settings", &SystemMenuRmlController::onOpenSettingsClicked, this);
     tConstructor.BindEventCallback("close_settings", &SystemMenuRmlController::onCloseSettingsClicked, this);
     tConstructor.BindEventCallback("select_display", &SystemMenuRmlController::onDisplaySelected, this);
+    tConstructor.BindEventCallback("toggle_camera_shake", &SystemMenuRmlController::onCameraShakeToggled, this);
     tConstructor.BindEventCallback("logout", &SystemMenuRmlController::onLogoutClicked, this);
     tConstructor.BindEventCallback("quit", &SystemMenuRmlController::onQuitClicked, this);
 
@@ -65,6 +67,17 @@ void SystemMenuRmlController::setLogoutCallback(LogoutCallback pCallback)
 void SystemMenuRmlController::setDisplaySelectCallback(DisplaySelectCallback pCallback)
 {
     mDisplaySelectCallback = std::move(pCallback);
+}
+
+void SystemMenuRmlController::setCameraShakeCallback(CameraShakeCallback pCallback)
+{
+    mCameraShakeCallback = std::move(pCallback);
+}
+
+void SystemMenuRmlController::setCameraShakeEnabled(bool pIsEnabled)
+{
+    mIsCameraShakeEnabled = pIsEnabled;
+    mModelHandle.DirtyVariable("is_camera_shake_enabled");
 }
 
 void SystemMenuRmlController::setDisplayOptions(const std::vector<std::string>& pLabels, size_t pSelected)
@@ -158,6 +171,14 @@ void SystemMenuRmlController::onOpenSettingsClicked(Rml::DataModelHandle /*pHand
 void SystemMenuRmlController::onCloseSettingsClicked(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
 {
     closeSettings();
+}
+
+void SystemMenuRmlController::onCameraShakeToggled(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
+{
+    if (mCameraShakeCallback)
+    {
+        mCameraShakeCallback(!mIsCameraShakeEnabled);
+    }
 }
 
 void SystemMenuRmlController::onDisplaySelected(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)

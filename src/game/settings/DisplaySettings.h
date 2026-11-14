@@ -41,10 +41,14 @@ public:
     const DisplayMode& getMode() const;
     void setMode(const DisplayMode& pMode);
 
+    bool isCameraShakeEnabled() const;
+    void setCameraShakeEnabled(bool pIsEnabled);
+
     static std::vector<DisplayMode> getAvailableModes(SDL_Window* pWindow);
 
 private:
     DisplayMode mMode;
+    bool mIsCameraShakeEnabled{true};
 
     static std::string getFilePath();
 };

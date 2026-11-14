@@ -21,6 +21,14 @@ namespace lakot::WorldView
 
     inline constexpr double kAttackSegmentSeconds = kAttackIntervalSeconds * 1.1;
 
+    inline constexpr double kBasicHitStopSeconds = 0.05;
+
+    inline constexpr float kBasicHitTrauma = 0.35f;
+
+    inline constexpr float kHitConeRange = 3.5f;
+
+    inline constexpr float kHitConeCosine = 0.5f;
+
     inline constexpr float kViewDistance = 360.0f;
 
     inline constexpr double kSpeechBubbleVisibleSeconds = 5.0;

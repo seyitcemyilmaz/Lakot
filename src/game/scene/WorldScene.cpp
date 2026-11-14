@@ -318,6 +318,7 @@ void WorldScene::enter()
     mEntities->setLocalEquipment(mLocalItems);
 
     mEffects = std::make_unique<WorldEffects>(mEngine.getAssetManager(), tShaderManager, *mEntities, mLocalStats.level);
+    mTrailRenderer = std::make_unique<TrailRenderer>(tShaderManager);
 
 #if defined(LAKOT_DEV_TOOLS)
     mEffectsPanel = std::make_shared<EffectsPanel>(*mEffects, *mEntities, std::vector<std::string>{
@@ -410,6 +411,7 @@ void WorldScene::exit()
     mEngine.getGuiLayer().clearPanels();
     mAttachmentPanel.reset();
     mEffectsPanel.reset();
+    mTrailRenderer.reset();
     mEffects.reset();
 
     mEngine.setClearColor(glm::vec3(0.4f, 0.4f, 0.4f));
@@ -441,7 +443,9 @@ void WorldScene::update(double pDeltaTime)
         sendLocalPlayerState();
     }
 
-    mEntities->update(pDeltaTime);
+    mFeel.setCameraShakeEnabled(mEngine.getDisplaySettings().isCameraShakeEnabled());
+    mFeel.update(pDeltaTime);
+    mEntities->update(pDeltaTime, mFeel);
     mEntities->setLocal(mLocalUsername, mLocalPosition, pDeltaTime);
     mEffects->update(pDeltaTime);
 
@@ -454,6 +458,9 @@ void WorldScene::update(double pDeltaTime)
     {
         onAnimationEvent(tEvent);
     }
+
+    sampleTrails();
+    mWeaponTrail.update(static_cast<float>(pDeltaTime));
 
     mDamageNumbers.update(static_cast<float>(pDeltaTime));
     mHud->setSafeZone(mMap && mMap->isSafe(mLocalPosition.x, mLocalPosition.z));
@@ -489,9 +496,78 @@ void WorldScene::onAnimationEvent(const AnimationEvent& pEvent)
     case ClipEventType::eSound:
         SDL_Log("Animation sound '%s' on entity %llu", pEvent.name.c_str(), static_cast<unsigned long long>(pEvent.entityId));
         break;
-    default:
+    case ClipEventType::eTrailOn:
+        mWeaponTrail.setActive(pEvent.entityId, true);
+        break;
+    case ClipEventType::eTrailOff:
+        mWeaponTrail.setActive(pEvent.entityId, false);
+        break;
+    case ClipEventType::eHit:
+        if (pEvent.entityId == WorldEntities::kLocalId && hasEnemyInFront())
+        {
+            mFeel.onHit(WorldEntities::kLocalId, WorldView::kBasicHitStopSeconds, WorldView::kBasicHitTrauma);
+        }
         break;
     }
+}
+
+void WorldScene::sampleTrails()
+{
+    mWeaponTrail.retain([this](uint64_t pId)
+    {
+        return mEntities->getAll().contains(pId);
+    });
+
+    for (const auto& [tId, tTrack] : mWeaponTrail.getTracks())
+    {
+        if (!tTrack.isActive)
+        {
+            continue;
+        }
+
+        if (auto tEdge = mEntityRenderer->findWeaponEdge(mEntities->getAll().at(tId), 0.0))
+        {
+            mWeaponTrail.addSample(tId, tEdge->tip, tEdge->base);
+        }
+    }
+}
+
+bool WorldScene::hasEnemyInFront() const
+{
+    const WorldEntity* tLocal = mEntities->getLocal();
+
+    if (!tLocal)
+    {
+        return false;
+    }
+
+    glm::vec2 tOrigin(mLocalPosition.x, mLocalPosition.z);
+    glm::vec2 tForward(std::sin(tLocal->facing), std::cos(tLocal->facing));
+
+    for (const auto& [tId, tEntity] : mEntities->getAll())
+    {
+        if (tEntity.type != EntityType::eMonster || tEntity.isDead)
+        {
+            continue;
+        }
+
+        glm::vec3 tPosition = WorldEntities::getPosition(tEntity);
+        glm::vec2 tOffset = glm::vec2(tPosition.x, tPosition.z) - tOrigin;
+        float tDistance = glm::length(tOffset);
+
+        if (tDistance <= WorldView::kHitConeRange && (tDistance < 0.001f || glm::dot(tOffset / tDistance, tForward) >= WorldView::kHitConeCosine))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void WorldScene::resetFeel()
+{
+    mFeel.clear();
+    mWeaponTrail.clear();
 }
 
 void WorldScene::updatePickup()
@@ -767,7 +843,7 @@ void WorldScene::render()
 
     glm::vec3 tLocalRenderPosition = glm::mix(mPreviousLocalPosition, mLocalPosition, static_cast<float>(tAlpha));
 
-    mCamera->setTargetPosition(tLocalRenderPosition + mCameraBob.getOffset(mCamera->getRightVector(), static_cast<float>(tAlpha)));
+    mCamera->setTargetPosition(tLocalRenderPosition + mCameraBob.getOffset(mCamera->getRightVector(), static_cast<float>(tAlpha)) + mFeel.getCameraOffset(mCamera->getRightVector()));
     mCamera->updateProjection(tWidth, tHeight);
     mCamera->update();
 
@@ -894,6 +970,7 @@ void WorldScene::render()
     }
 
     mEffects->render(*mCamera, kSkyColor, kFogStart, WorldView::kViewDistance, tExtraSeconds);
+    mTrailRenderer->render(mWeaponTrail, *mCamera);
 
     renderOverlay(tExtraSeconds);
 }
@@ -1063,6 +1140,7 @@ void WorldScene::onSessionResumed()
     mAutoWalk->stop();
 
     mEntities->clearRemote();
+    resetFeel();
 
     mIsMovingForward = false;
     mIsMovingBackward = false;
@@ -1079,6 +1157,16 @@ void WorldScene::onWorldSnapshot(const WorldController::WorldSnapshot& pSnapshot
 {
     mEntities->applySnapshot(pSnapshot);
     mEffects->onSnapshot(pSnapshot);
+
+    for (const WorldController::CombatSnapshot& tCombat : pSnapshot.combat)
+    {
+        bool tHasDamage = std::any_of(tCombat.hits.begin(), tCombat.hits.end(), [](const WorldController::HitSnapshot& pHit) { return pHit.damage > 0; });
+
+        if (tCombat.attackerId == mLocalCharacterId && tHasDamage)
+        {
+            mFeel.onHit(WorldEntities::kLocalId, WorldView::kBasicHitStopSeconds, WorldView::kBasicHitTrauma);
+        }
+    }
 
     if (pSnapshot.selfVitals)
     {
@@ -1105,6 +1193,7 @@ void WorldScene::onMapChanged(const WorldController::MapSnapshot& pSnapshot)
 {
     mEntities->clearRemote();
     mEffects->clear();
+    resetFeel();
     mHud->clearWorldChat();
 
     if (mCamera)

@@ -22,6 +22,12 @@
                  data-class-is-selected="option.is_selected"
                  data-event-click="select_display(option.index)">{{ option.label }}</div>
 
+            <div class="field-label">[[systemmenu.camera_shake]]</div>
+            <div class="btn-secondary settings-option is-selected" data-if="is_camera_shake_enabled"
+                 data-event-click="toggle_camera_shake">[[systemmenu.camera_shake_on]]</div>
+            <div class="btn-secondary settings-option" data-if="!is_camera_shake_enabled"
+                 data-event-click="toggle_camera_shake">[[systemmenu.camera_shake_off]]</div>
+
             <div class="btn-primary" data-event-click="close_settings">[[systemmenu.back]]</div>
         </div>
     </div>

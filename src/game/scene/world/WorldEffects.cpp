@@ -130,7 +130,7 @@ void WorldEffects::spawnAtEntity(const std::string& pName, uint64_t pEntityId)
 
     if (tFound != mEntities.getAll().end())
     {
-        spawnNearLocal(pName.c_str(), WorldEntities::getPosition(tFound->second));
+        spawnNearLocal(pName.c_str(), WorldEntities::getPosition(tFound->second) - glm::vec3(0.0f, WorldView::kPlayerBoxHalfExtents.y, 0.0f));
     }
 }
 

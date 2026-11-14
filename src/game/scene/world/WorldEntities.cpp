@@ -1,5 +1,7 @@
 #include "WorldEntities.h"
 
+#include "CombatFeel.h"
+
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -422,7 +424,7 @@ void WorldEntities::showSpeech(uint64_t pId, const std::string& pText)
     }
 }
 
-void WorldEntities::update(double pDeltaTime)
+void WorldEntities::update(double pDeltaTime, const CombatFeel& pFeel)
 {
     for (auto& [tId, tEntity] : mEntities)
     {
@@ -439,7 +441,10 @@ void WorldEntities::update(double pDeltaTime)
             }
         }
 
-        animate(tEntity, pDeltaTime);
+        if (pFeel.getAnimationScale(tId) > 0.0f)
+        {
+            animate(tEntity, pDeltaTime);
+        }
     }
 }
 

@@ -52,6 +52,12 @@ void DisplaySettings::load(SDL_Window* pWindow)
 
     while (std::getline(tFile, tLine))
     {
+        if (tLine.rfind("camerashake=", 0) == 0)
+        {
+            mIsCameraShakeEnabled = tLine.substr(12) != "0";
+            continue;
+        }
+
         if (tLine.rfind("display=", 0) != 0)
         {
             continue;
@@ -98,6 +104,8 @@ void DisplaySettings::save() const
     {
         tFile << "display=" << mMode.width << "x" << mMode.height << "\n";
     }
+
+    tFile << "camerashake=" << (mIsCameraShakeEnabled ? 1 : 0) << "\n";
 }
 
 void DisplaySettings::apply(SDL_Window* pWindow) const
@@ -133,6 +141,16 @@ const DisplayMode& DisplaySettings::getMode() const
 void DisplaySettings::setMode(const DisplayMode& pMode)
 {
     mMode = pMode;
+}
+
+bool DisplaySettings::isCameraShakeEnabled() const
+{
+    return mIsCameraShakeEnabled;
+}
+
+void DisplaySettings::setCameraShakeEnabled(bool pIsEnabled)
+{
+    mIsCameraShakeEnabled = pIsEnabled;
 }
 
 std::vector<DisplayMode> DisplaySettings::getAvailableModes(SDL_Window* pWindow)

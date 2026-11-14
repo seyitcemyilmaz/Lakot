@@ -53,6 +53,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     effect/EffectSystem.h effect/EffectSystem.cpp
     effect/RollingAverage.hpp
     effect/ParticleRenderer.h effect/ParticleRenderer.cpp
+    effect/WeaponTrail.h effect/WeaponTrail.cpp
+    effect/TrailRenderer.h effect/TrailRenderer.cpp
     graphics/geometry/ParticleBatch.h graphics/geometry/ParticleBatch.cpp
     graphics/model/Skeleton.h graphics/model/Skeleton.cpp
     graphics/model/AnimationClip.h graphics/model/AnimationClip.cpp
@@ -106,6 +108,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
     scene/world/CameraBob.h scene/world/CameraBob.cpp
+    scene/world/CombatFeel.h scene/world/CombatFeel.cpp
     scene/world/WhisperWindows.h scene/world/WhisperWindows.cpp
     scene/world/WorldHud.h scene/world/WorldHud.cpp
     scene/world/WorldEffects.h scene/world/WorldEffects.cpp

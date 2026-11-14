@@ -58,6 +58,16 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
         }
     });
 
+    mSystemMenu.setCameraShakeCallback(
+    [this](bool pIsEnabled)
+    {
+        mDisplaySettings.setCameraShakeEnabled(pIsEnabled);
+        mDisplaySettings.save();
+        mSystemMenu.setCameraShakeEnabled(pIsEnabled);
+    });
+
+    mSystemMenu.setCameraShakeEnabled(mDisplaySettings.isCameraShakeEnabled());
+
     mWorldChat.setLocalMessageSentCallback(
     [this](bool pIsGlobal, const std::string& pText)
     {

@@ -39,6 +39,8 @@ struct AnimationEvent
     std::string socket;
 };
 
+class CombatFeel;
+
 class WorldEntities
 {
 public:
@@ -67,7 +69,7 @@ public:
 
     void showSpeech(uint64_t pId, const std::string& pText);
 
-    void update(double pDeltaTime);
+    void update(double pDeltaTime, const CombatFeel& pFeel);
 
     const std::unordered_map<uint64_t, WorldEntity>& getAll() const;
     std::optional<glm::vec3> findPosition(uint64_t pId) const;
