@@ -53,7 +53,7 @@ void WorldEffects::onSnapshot(const WorldController::WorldSnapshot& pSnapshot)
     {
         if (pSnapshot.selfVitals->level > mLastLevel)
         {
-            mSystem.attach(kLevelUp, WorldEntities::kLocalId, glm::vec3(0.0f));
+            mSystem.attach(kLevelUp, WorldEntities::kLocalId, glm::vec3(0.0f, -WorldView::kPlayerBoxHalfExtents.y, 0.0f));
         }
 
         mLastLevel = pSnapshot.selfVitals->level;
