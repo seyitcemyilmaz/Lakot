@@ -9,6 +9,18 @@
 namespace lakot
 {
 
+enum class TextureFilterType
+{
+    eNearest,
+    eTrilinear
+};
+
+enum class TextureWrapType
+{
+    eRepeat,
+    eClamp
+};
+
 struct DecodedImage
 {
     int width{0};
@@ -21,9 +33,13 @@ class Texture
 public:
     static DecodedImage decodeFile(const std::string& pPath, std::string& pError);
     static DecodedImage decodeMemory(const unsigned char* pData, size_t pSize, std::string& pError);
-    static std::shared_ptr<Texture> fromImage(const DecodedImage& pImage);
+    static std::shared_ptr<Texture> fromImage(const DecodedImage& pImage,
+                                              TextureFilterType pFilter = TextureFilterType::eNearest,
+                                              TextureWrapType pWrap = TextureWrapType::eRepeat);
     static std::vector<unsigned char> readRgba(const std::string& pPath, int& pWidth, int& pHeight, std::string& pError);
-    static std::shared_ptr<Texture> fromFile(const std::string& pPath, std::string& pError);
+    static std::shared_ptr<Texture> fromFile(const std::string& pPath, std::string& pError,
+                                             TextureFilterType pFilter = TextureFilterType::eNearest,
+                                             TextureWrapType pWrap = TextureWrapType::eRepeat);
     static std::shared_ptr<Texture> fromMemory(const unsigned char* pData, size_t pSize, std::string& pError);
     static std::shared_ptr<Texture> white();
 
@@ -39,7 +55,7 @@ private:
 
     unsigned int mId;
 
-    static std::shared_ptr<Texture> upload(const unsigned char* pPixels, int pWidth, int pHeight);
+    static std::shared_ptr<Texture> upload(const unsigned char* pPixels, int pWidth, int pHeight, TextureFilterType pFilter, TextureWrapType pWrap);
 };
 
 }

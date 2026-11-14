@@ -1,5 +1,6 @@
 #include "Texture.h"
 
+#include <algorithm>
 #include <limits>
 
 #include <glad/glad.h>
@@ -17,6 +18,11 @@
 #endif
 
 using namespace lakot;
+
+namespace
+{
+    constexpr float kMaxAnisotropy = 8.0f;
+}
 
 Texture::Texture(unsigned int pId)
     : mId(pId)
@@ -37,12 +43,9 @@ std::vector<unsigned char> Texture::readRgba(const std::string& pPath, int& pWid
     return std::move(tImage.pixels);
 }
 
-std::shared_ptr<Texture> Texture::fromFile(const std::string& pPath, std::string& pError)
+std::shared_ptr<Texture> Texture::fromFile(const std::string& pPath, std::string& pError, TextureFilterType pFilter, TextureWrapType pWrap)
 {
-    int tWidth = 0;
-    int tHeight = 0;
-
-    return fromImage(decodeFile(pPath, pError));
+    return fromImage(decodeFile(pPath, pError), pFilter, pWrap);
 }
 
 DecodedImage Texture::decodeFile(const std::string& pPath, std::string& pError)
@@ -89,14 +92,14 @@ DecodedImage Texture::decodeMemory(const unsigned char* pData, size_t pSize, std
     return tImage;
 }
 
-std::shared_ptr<Texture> Texture::fromImage(const DecodedImage& pImage)
+std::shared_ptr<Texture> Texture::fromImage(const DecodedImage& pImage, TextureFilterType pFilter, TextureWrapType pWrap)
 {
     if (pImage.pixels.empty())
     {
         return nullptr;
     }
 
-    return upload(pImage.pixels.data(), pImage.width, pImage.height);
+    return upload(pImage.pixels.data(), pImage.width, pImage.height, pFilter, pWrap);
 }
 
 std::shared_ptr<Texture> Texture::fromMemory(const unsigned char* pData, size_t pSize, std::string& pError)
@@ -107,20 +110,45 @@ std::shared_ptr<Texture> Texture::fromMemory(const unsigned char* pData, size_t 
 std::shared_ptr<Texture> Texture::white()
 {
     const unsigned char tPixel[4] = { 255, 255, 255, 255 };
-    return upload(tPixel, 1, 1);
+    return upload(tPixel, 1, 1, TextureFilterType::eNearest, TextureWrapType::eRepeat);
 }
 
-std::shared_ptr<Texture> Texture::upload(const unsigned char* pPixels, int pWidth, int pHeight)
+std::shared_ptr<Texture> Texture::upload(const unsigned char* pPixels, int pWidth, int pHeight, TextureFilterType pFilter, TextureWrapType pWrap)
 {
     unsigned int tId = 0;
 
     glGenTextures(1, &tId);
     glBindTexture(GL_TEXTURE_2D, tId);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pWidth, pHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    if (pFilter == TextureFilterType::eTrilinear)
+    {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        float tMaxAnisotropy = 1.0f;
+
+        while (glGetError() != GL_NO_ERROR)
+        {
+        }
+
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &tMaxAnisotropy);
+
+        if (glGetError() == GL_NO_ERROR && tMaxAnisotropy > 1.0f)
+        {
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(tMaxAnisotropy, kMaxAnisotropy));
+        }
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+
+    const int tWrap = pWrap == TextureWrapType::eClamp ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, tWrap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tWrap);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return std::shared_ptr<Texture>(new Texture(tId));

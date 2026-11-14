@@ -100,6 +100,7 @@ public:
 
     uint32_t getId() const;
     const std::string& getName() const;
+    const std::string& getDirectory() const;
     uint32_t getKingdom() const;          // 0 = shared by every kingdom
 
     float getWorldSize() const;
@@ -164,6 +165,7 @@ private:
 
     uint32_t mId = 0;
     std::string mName;
+    std::string mDirectory;
     uint32_t mKingdom = 0;
 
     float mWorldSize = 0.0f;

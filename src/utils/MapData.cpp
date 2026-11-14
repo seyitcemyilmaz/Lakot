@@ -116,6 +116,7 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
 
     tMap->mId = getUint(tDocument, "id", 0);
     tMap->mName = getString(tDocument, "name");
+    tMap->mDirectory = pDirectory;
     tMap->mKingdom = getUint(tDocument, "kingdom", 0);
     tMap->mWorldSize = getFloat(tDocument, "worldSize", 0.0f);
     tMap->mWaterLevel = getFloat(tDocument, "waterLevel", 0.0f);
@@ -412,6 +413,11 @@ uint32_t MapData::getId() const
 const std::string& MapData::getName() const
 {
     return mName;
+}
+
+const std::string& MapData::getDirectory() const
+{
+    return mDirectory;
 }
 
 uint32_t MapData::getKingdom() const

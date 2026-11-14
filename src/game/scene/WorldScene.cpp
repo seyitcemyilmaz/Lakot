@@ -14,6 +14,7 @@
 #include "../gui/AttachmentPanel.h"
 #include "../gui/EffectsPanel.h"
 #include "../gui/PanelLoader.h"
+#include "../graphics/geometry/TerrainShaders.h"
 #include "../gui/MapImageFactory.h"
 
 #include "CombatRules.h"
@@ -146,38 +147,6 @@ void WorldScene::enter()
         }
     )";
 
-    std::string tTerrainVertexSource = R"(
-        layout (location = 0) in vec3 aPos;
-        layout (location = 1) in vec3 aNormal;
-        layout (location = 2) in vec3 aColor;
-
-        uniform mat4 uViewProjection;
-
-        out vec3 vWorldPosition;
-        out vec3 vNormal;
-        out vec3 vColor;
-
-        void main()
-        {
-            vWorldPosition = aPos;
-            vNormal = aNormal;
-            vColor = aColor;
-            gl_Position = uViewProjection * vec4(aPos, 1.0);
-        }
-    )";
-
-    std::string tTerrainFragmentSource = R"(
-        in vec3 vWorldPosition;
-        in vec3 vNormal;
-        in vec3 vColor;
-        out vec4 FragColor;
-    )" + tFogFunction + tLightFunction + R"(
-        void main()
-        {
-            FragColor = vec4(applyFog(applyLight(vColor, vNormal), vWorldPosition), 1.0);
-        }
-    )";
-
     std::string tModelVertexSource = R"(
         layout (location = 0) in vec3 aPos;
         layout (location = 1) in vec3 aNormal;
@@ -267,7 +236,7 @@ void WorldScene::enter()
 
     if (!tShaderManager.hasProgram("world_terrain"))
     {
-        tShaderManager.createProgram("world_terrain", tTerrainVertexSource, tTerrainFragmentSource);
+        tShaderManager.createProgram("world_terrain", TerrainShaders::vertexSource(), TerrainShaders::fragmentSource(tFogFunction + tLightFunction));
     }
 
     if (!tShaderManager.hasProgram("world_model"))
@@ -925,6 +894,11 @@ void WorldScene::render()
         tTerrainShader->bind();
         tSetWorldUniforms(tTerrainShader);
 
+        if (mTerrainMaterial)
+        {
+            mTerrainMaterial->bind(*tTerrainShader, mMap->getWorldSize());
+        }
+
         mTerrain->getVertexArrayObject().bind();
         mTerrain->drawChunksNear(mCamera->getPosition(), WorldView::kViewDistance);
 
@@ -1250,6 +1224,9 @@ void WorldScene::loadMap(uint32_t pMapId)
 
     mTerrain = std::make_unique<Terrain>(*mMap);
     mTerrain->initialize();
+
+    mTerrainMaterial = std::make_unique<TerrainMaterial>();
+    mTerrainMaterial->load(mEngine.getAssetManager().resolve("textures/ground"), mMap->getDirectory());
 
     std::vector<glm::vec3> tPositions;
     std::vector<glm::vec3> tSizes;

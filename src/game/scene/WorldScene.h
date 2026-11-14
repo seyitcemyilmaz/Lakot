@@ -31,6 +31,7 @@
 
 #include "../graphics/geometry/BoxContainer.h"
 #include "../graphics/geometry/Terrain.h"
+#include "../graphics/geometry/TerrainMaterial.h"
 #include "../graphics/model/Model.h"
 #include "../item/ItemAppearance.h"
 #include "../item/ItemIconRenderer.h"
@@ -71,6 +72,7 @@ public:
 private:
     std::unique_ptr<BoxContainer> mBoxContainer;
     std::unique_ptr<Terrain> mTerrain;
+    std::unique_ptr<TerrainMaterial> mTerrainMaterial;
     std::unique_ptr<ThirdPersonCamera> mCamera;
     std::vector<MapModelBatch> mMapModels;
 

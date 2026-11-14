@@ -115,6 +115,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/WorldEffects.h scene/world/WorldEffects.cpp
     graphics/render/ShaderManager.h graphics/render/ShaderManager.cpp
     graphics/geometry/Terrain.h graphics/geometry/Terrain.cpp
+    graphics/geometry/TerrainMaterial.h graphics/geometry/TerrainMaterial.cpp
+    graphics/geometry/TerrainShaders.h graphics/geometry/TerrainShaders.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE LakotConnection)
