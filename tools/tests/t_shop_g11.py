@@ -51,6 +51,7 @@ class G11Server(Server):
         self.run_dir = str(RUN)
         self.log_lines = []
         tMaps = RUN / "data" / "maps"
+        shutil.rmtree(tMaps / "102_altunay_steppe", ignore_errors=True)
         shutil.copytree(tMaps / "101_altunay_village", tMaps / "102_g11_copy", dirs_exist_ok=True)
         for tDir, tId, tTarget in ((tMaps / "101_altunay_village", 101, 102), (tMaps / "102_g11_copy", 102, 101)):
             tPath = tDir / "map.json"
@@ -64,7 +65,8 @@ class G11Server(Server):
                 tMeta["portals"] = [{"x": PORTAL[0], "z": PORTAL[1], "radius": 3.0, "targetMap": tTarget,
                                      "targetX": FAR[0], "targetZ": FAR[1], "targetYaw": 0.0}]
             else:
-                tMeta["portals"] = []
+                tMeta["portals"] = [{"x": PORTAL[0], "z": PORTAL[1], "radius": 3.0, "targetMap": 101,
+                                     "targetX": FAR[0], "targetZ": FAR[1], "targetYaw": 0.0}]
                 tMeta["npcs"] = []
             json.dump(tMeta, open(tPath, "w", encoding="utf-8"))
         tEnv = dict(os.environ)
@@ -121,6 +123,12 @@ def setup():
     time.sleep(1.5)
     gm("/help")
     find_npcs(c)
+    if not C["weapon"]:
+        gm("/tp 0 58")
+        time.sleep(0.5)
+        gm("/tp 0 60")
+        time.sleep(2.5)
+        find_npcs(c)
     if not C["weapon"]:
         gm("/tp -29 25")
         time.sleep(1.0)
