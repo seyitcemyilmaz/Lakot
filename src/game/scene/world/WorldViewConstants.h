@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 
+#include "CombatRules.h"
 #include "MovementRules.h"
 
 namespace lakot::WorldView
@@ -16,7 +17,7 @@ namespace lakot::WorldView
 
     inline constexpr double kMaxRemoteInterpolationSeconds = 0.5;
 
-    inline constexpr double kAttackIntervalSeconds = 0.6;
+    inline constexpr double kAttackIntervalSeconds = CombatRules::kPlayerAttackInterval + CombatRules::kClientAttackMargin;
 
     inline constexpr double kAttackSegmentSeconds = kAttackIntervalSeconds * 1.1;
 

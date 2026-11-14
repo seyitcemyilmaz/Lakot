@@ -20,6 +20,8 @@ InventoryController::InventoryController(NetworkManager& pNetworkManager,
 
 void InventoryController::initialize()
 {
+    mItemTemplateMessage = buildItemTemplateMessage();
+
     mNetworkManager.getDispatcher().registerHandler(protocol::Request::kEquipItemRequest, PacketType::Request,
         [this](std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
         {
@@ -63,6 +65,11 @@ void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession
         return;
     }
 
+    pSession->send(mItemTemplateMessage);
+}
+
+connection::Message InventoryController::buildItemTemplateMessage() const
+{
     connection::Message tMessage;
     auto* tList = tMessage.mutable_response()->mutable_item_template_list();
 
@@ -99,7 +106,7 @@ void InventoryController::sendItemTemplates(const std::shared_ptr<NetworkSession
         }
     }
 
-    pSession->send(tMessage);
+    return tMessage;
 }
 
 void InventoryController::sendActionResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,

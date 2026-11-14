@@ -252,20 +252,20 @@ bool CombatSystem::playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pComb
 
     double& tNextAttackAt = mNextAttackAt[pAttackerId];
 
-    if (pNow + kAttackIntervalTolerance < tNextAttackAt)
+    if (pNow + CombatRules::kAttackIntervalTolerance < tNextAttackAt)
     {
         return false;
     }
 
-    tNextAttackAt = std::max(tNextAttackAt, pNow) + kPlayerAttackInterval;
+    tNextAttackAt = std::max(tNextAttackAt, pNow) + CombatRules::kPlayerAttackInterval;
 
     CombatRecord tRecord;
     tRecord.attackerId = pAttackerId;
-    tRecord.combo = pCombo;
+    tRecord.combo = pCombo % CombatRules::kComboCount;
 
     float tForwardX = std::sin(pYaw);
     float tForwardZ = std::cos(pYaw);
-    float tReach = kPlayerAttackRange + kBodyRadius;
+    float tReach = CombatRules::kPlayerAttackRange + CombatRules::kBodyRadius;
 
     mRegistry.queryRadius(tState->x, tState->z, tReach, mCandidates);
 
@@ -281,7 +281,7 @@ bool CombatSystem::playerAttack(uint64_t pAttackerId, float pYaw, uint32_t pComb
         float tDz = tTargetState->z - tState->z;
         float tDistance = std::sqrt(tDx * tDx + tDz * tDz);
 
-        if (tDistance > kBodyRadius && (tDx * tForwardX + tDz * tForwardZ) / tDistance < kAttackArcCos)
+        if (tDistance > CombatRules::kBodyRadius && (tDx * tForwardX + tDz * tForwardZ) / tDistance < CombatRules::kAttackArcCos)
         {
             continue;
         }

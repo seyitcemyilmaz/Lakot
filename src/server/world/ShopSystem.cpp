@@ -68,7 +68,7 @@ bool ShopSystem::isPaced(uint64_t pCharacterId, double pNow)
         return true;
     }
 
-    if (pNow - tLast->second < kShopActionCooldownSeconds)
+    if (pNow - tLast->second < ItemRules::kShopActionCooldownSeconds)
     {
         return false;
     }
@@ -101,7 +101,7 @@ ShopStatus ShopSystem::checkAccess(uint64_t pCharacterId, const Character& pChar
     float tDx = pState.x - tNpcState->x;
     float tDz = pState.z - tNpcState->z;
 
-    if (!(tDx * tDx + tDz * tDz <= kShopRange * kShopRange))
+    if (!(tDx * tDx + tDz * tDz <= ItemRules::kShopRange * ItemRules::kShopRange))
     {
         return SHOP_STATUS_OUT_OF_RANGE;
     }

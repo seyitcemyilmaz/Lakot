@@ -14,6 +14,8 @@
 #include "../gui/PanelLoader.h"
 #include "../gui/MapImageFactory.h"
 
+#include "CombatRules.h"
+#include "ItemRules.h"
 #include "MovementRules.h"
 
 #include "LoginScene.h"
@@ -29,8 +31,6 @@ namespace
     constexpr float kSpeechBubbleLineGap = 4.0f;
 
     constexpr float kClickDragThresholdPixels = 6.0f;
-
-    constexpr double kComboWindowSeconds = 1.0;
 
     constexpr float kHealthBarWidth = 60.0f;
     constexpr float kHealthBarHeight = 5.0f;
@@ -465,7 +465,7 @@ void WorldScene::updatePickup()
         return;
     }
 
-    constexpr float kPickupReach = 2.8f;
+    constexpr float kPickupReach = ItemRules::kPickupRange - ItemRules::kClientPickupMargin;
 
     if (glm::distance(glm::vec2(tPosition->x, tPosition->z), glm::vec2(mLocalPosition.x, mLocalPosition.z)) <= kPickupReach)
     {
@@ -483,7 +483,8 @@ void WorldScene::updatePickup()
 void WorldScene::updateShop()
 {
     constexpr float kShopRequestReach = 3.0f;
-    constexpr float kShopCloseReach = 6.0f;
+    constexpr float kShopCloseReach = ItemRules::kShopRange + ItemRules::kClientShopCloseMargin;
+    static_assert(kShopRequestReach <= ItemRules::kShopRange);
 
     glm::vec2 tLocal(mLocalPosition.x, mLocalPosition.z);
 
@@ -621,9 +622,9 @@ void WorldScene::updateAttack(double pDeltaTime)
     mEntities->playLocalAttack(mCombo);
     mAutoWalk->stop();
 
-    mCombo = (mCombo + 1) % 3;
+    mCombo = (mCombo + 1) % CombatRules::kComboCount;
     mAttackCooldown = WorldView::kAttackIntervalSeconds;
-    mComboResetTimer = kComboWindowSeconds;
+    mComboResetTimer = CombatRules::kComboWindowSeconds;
     mAttackRootTimer = WorldView::kAttackIntervalSeconds;
 }
 

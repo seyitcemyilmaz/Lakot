@@ -34,14 +34,15 @@ public:
 
     void initialize() override;
 
-
-    // Sent once, when a character enters the world - the client needs names
-    // and bonuses before an InventoryUpdate's template ids mean anything.
+    // Built once in initialize(); the client needs it before any InventoryUpdate.
     void sendItemTemplates(const std::shared_ptr<NetworkSession<connection::Message>>& pSession);
 
 private:
     WorldController& mWorldController;
     const ItemCatalog& mItemCatalog;
+    connection::Message mItemTemplateMessage;
+
+    connection::Message buildItemTemplateMessage() const;
 
     void handleEquipItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleUnequipItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);

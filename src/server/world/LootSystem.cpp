@@ -176,7 +176,7 @@ services::world::PickupResult LootSystem::pickUp(Character& pPicker, const Playe
     float tDx = tItemState->x - pPickerState.x;
     float tDz = tItemState->z - pPickerState.z;
 
-    if (tDx * tDx + tDz * tDz > kPickupRange * kPickupRange)
+    if (tDx * tDx + tDz * tDz > ItemRules::kPickupRange * ItemRules::kPickupRange)
     {
         return services::world::PICKUP_RESULT_TOO_FAR;
     }

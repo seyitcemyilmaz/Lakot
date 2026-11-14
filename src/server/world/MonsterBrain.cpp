@@ -391,7 +391,7 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
 
         float tDistance = std::hypot(tTarget->x - tState.x, tTarget->z - tState.z);
 
-        if (tDistance <= tTemplate.attackRange + CombatSystem::kBodyRadius)
+        if (tDistance <= tTemplate.attackRange + CombatRules::kBodyRadius)
         {
             pMonster.stuckSince = -1.0;
 

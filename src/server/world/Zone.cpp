@@ -503,7 +503,7 @@ void Zone::pickUp(uint64_t pCharacterId, uint64_t pEntityId, uint64_t pReplyTo)
 
         if (!tIsFirst)
         {
-            if (mTime - tLastPickup->second < kPickupCooldownSeconds)
+            if (mTime - tLastPickup->second < ItemRules::kPickupCooldownSeconds)
             {
                 tSendResult(services::world::PICKUP_RESULT_NOT_FOUND);
                 return;

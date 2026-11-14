@@ -21,6 +21,8 @@ add_library(${PROJECT_NAME} STATIC
     SkillCatalog.h SkillCatalog.cpp
     Pathfinder.h Pathfinder.cpp
     MovementRules.h
+    CombatRules.h
+    ItemRules.h
 
     FileManager.h FileManager.cpp
 

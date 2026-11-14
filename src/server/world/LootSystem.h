@@ -8,6 +8,7 @@
 
 #include <connection.pb.h>
 
+#include "ItemRules.h"
 #include "MapData.h"
 #include "MonsterCatalog.h"
 #include "WorldRegistry.h"
@@ -36,7 +37,6 @@ class LootSystem
 public:
     static constexpr double kOwnerSeconds = 10.0;
     static constexpr double kDespawnSeconds = 60.0;
-    static constexpr float kPickupRange = 3.0f;
     static constexpr float kScatterRadius = 0.6f;
     static constexpr size_t kMaxGroundItems = 500;
 

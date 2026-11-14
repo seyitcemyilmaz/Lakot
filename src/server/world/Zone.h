@@ -16,6 +16,7 @@
 
 #include "NetworkSession.h"
 #include "MovementRules.h"
+#include "ItemRules.h"
 #include "MapCatalog.h"
 
 #include "WorldRegistry.h"
@@ -212,7 +213,6 @@ private:
     static constexpr double kMaxBudgetSeconds = 2.0;
     static constexpr float kMaxBudgetDistance = kMaxSpeed * static_cast<float>(kMaxBudgetSeconds) + kPositionTolerance;
 
-    static constexpr double kPickupCooldownSeconds = 0.1;
     static constexpr double kDiscardCooldownSeconds = 0.1;
     static constexpr double kPotionCooldownSeconds = 1.0;
 

@@ -154,7 +154,7 @@ void WorldEntities::playLocalAttack(uint32_t pCombo)
 
     if (tIterator != mEntities.end())
     {
-        playRole(tIterator->second, static_cast<AnimationRoleType>(static_cast<size_t>(AnimationRoleType::eAttack1) + pCombo % 3), true);
+        playRole(tIterator->second, static_cast<AnimationRoleType>(static_cast<size_t>(AnimationRoleType::eAttack1) + pCombo % CombatRules::kComboCount), true);
     }
 }
 
@@ -310,7 +310,7 @@ void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapsho
 
         if (tAttacker && tAttackerId != kLocalId)
         {
-            playRole(*tAttacker, static_cast<AnimationRoleType>(static_cast<size_t>(AnimationRoleType::eAttack1) + tEvent.combo % 3), true);
+            playRole(*tAttacker, static_cast<AnimationRoleType>(static_cast<size_t>(AnimationRoleType::eAttack1) + tEvent.combo % CombatRules::kComboCount), true);
         }
 
         for (const auto& tHit : tEvent.hits)

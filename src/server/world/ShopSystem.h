@@ -8,6 +8,7 @@
 
 #include <connection.pb.h>
 
+#include "ItemRules.h"
 #include "MapCatalog.h"
 #include "WorldRegistry.h"
 
@@ -29,8 +30,6 @@ struct ShopOpenResult
 class ShopSystem
 {
 public:
-    static constexpr float kShopRange = 5.0f;
-    static constexpr double kShopActionCooldownSeconds = 0.2;
     static constexpr size_t kMaxShopItems = 60;
 
     ShopSystem(const ItemCatalog& pItemCatalog, const WorldRegistry& pRegistry, const std::unordered_map<uint64_t, Npc>& pNpcs);

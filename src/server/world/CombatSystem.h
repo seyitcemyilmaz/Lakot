@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "CombatRules.h"
 #include "Monster.h"
 #include "MapData.h"
 #include "WorldRegistry.h"
@@ -74,11 +75,6 @@ struct CombatReward
 class CombatSystem
 {
 public:
-    static constexpr double kPlayerAttackInterval = 0.5;
-    static constexpr double kAttackIntervalTolerance = 0.1;
-    static constexpr float kPlayerAttackRange = 2.5f;
-    static constexpr float kAttackArcCos = 0.5f;
-    static constexpr float kBodyRadius = 0.5f;
     static constexpr double kPlayerRespawnSeconds = 5.0;
     static constexpr double kAutoRespawnSeconds = 60.0;
     static constexpr double kCorpseSeconds = 3.0;
