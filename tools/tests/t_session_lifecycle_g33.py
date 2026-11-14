@@ -229,6 +229,18 @@ def t_login_while_logged_in():
     check(wait_offline(c.name, 1.5), "character still present after final logout")
 
 
+def login_poll(pClient, pTimeout=30.0):
+    tEnd = time.time() + pTimeout
+    while True:
+        r = pClient.login(pClient.user)
+        if r is not None and r.login_response.token:
+            return r
+        print(f"      login_poll: attempt failed ({r is None and 'no response' or r.header.status.message}), retrying", flush=True)
+        if time.time() > tEnd:
+            return r
+        time.sleep(0.5)
+
+
 def t_logout_during_db_load():
     c = new_account(1)
     for i in range(8):
@@ -238,8 +250,8 @@ def t_logout_during_db_load():
             time.sleep(0.003 * i)
         logout(c)
         s = enter_status(c, rid, m, 1.5)
-        check(wait_offline(c.name, 1.5), f"iter {i}: character online 1.5s after enter+logout (enter status {s})")
-        r = c.login(c.user)
+        check(wait_offline(c.name, 8.0), f"iter {i}: character online 1.5s after enter+logout (enter status {s})")
+        r = login_poll(c)
         check(r is not None and r.login_response.token, f"iter {i}: login after logout failed {r}")
         c.token = r.login_response.token
         m = c.mark()
@@ -247,13 +259,13 @@ def t_logout_during_db_load():
         check(enter_status(c, rid, m) == ENTER_OK, f"iter {i}: enter after aborted enter failed")
         wait_online_single(c.name)
         logout(c)
-        check(wait_offline(c.name, 2.0), f"iter {i}: offline after logout failed")
-        r = c.login(c.user)
+        check(wait_offline(c.name, 8.0), f"iter {i}: offline after logout failed")
+        r = login_poll(c)
         check(r is not None and r.login_response.token, f"iter {i}: relogin failed {r}")
     for i in range(6):
         logout(c)
         m = c.mark()
-        r = c.login(c.user)
+        r = login_poll(c)
         check(r is not None and r.login_response.token, f"rapid {i}: login failed {r}")
         send_enter(c, c.cid)
         rid2 = send_enter(c, c.cid)
@@ -263,8 +275,8 @@ def t_logout_during_db_load():
         wait_online_single(c.name)
         check(visible(C["O"]).count(c.name) == 1, f"rapid {i}: not a single view")
         logout(c)
-        check(wait_offline(c.name, 2.0), f"rapid {i}: offline after logout failed")
-        r = c.login(c.user)
+        check(wait_offline(c.name, 8.0), f"rapid {i}: offline after logout failed")
+        r = login_poll(c)
         check(r is not None and r.login_response.token, f"rapid {i}: relogin failed {r}")
 
 

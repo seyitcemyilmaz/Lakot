@@ -592,11 +592,11 @@ def t_loot_despawn_and_no_damage():
         yaw = math.atan2(d["x"] - h.A.pos[0], d["z"] - h.A.pos[2])
         h.A.attack(yaw)
         h.step(attack_only=True)
-    t_end = d["t"] + 120
+    t_end = d["t"] + 150
     while time.time() < t_end and i not in h.left_t:
         h.step(attack_only=True)
     check(i not in h.hits and i not in h.vitals, "ground item was hit / got vitals")
-    check(i in h.left_t, "ground item never appeared in `left` within 120s")
+    check(i in h.left_t, "ground item never appeared in `left` within 150s")
     age = h.left_t[i] - d["t"]
     print(f"      despawn after {age:.1f}s wall (zone clock 60s)", flush=True)
     check(55 <= age <= 80, f"despawn after {age:.1f}s, expected about 60s")

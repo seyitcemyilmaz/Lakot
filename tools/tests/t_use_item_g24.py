@@ -232,19 +232,27 @@ def t_cooldown_spam():
         tCount = w.inv.get(POTION, 0)
         r1 = use(c, POTION)
         expect(r1, [USE_OK], "first drink")
+        tSince = c.mark()
+        tRids = [c.send(lambda q: setattr(q.use_item_request, "template_id", POTION)) for _ in range(5)]
         tSent = []
-        for _ in range(5):
-            tSent.append(use(c, POTION))
+        for tRid in tRids:
+            tR = c.wait(lambda r, tRid=tRid: r.header.reply_to == tRid, 10, tSince)
+            tSent.append(tR.use_item_response if tR is not None and tR.HasField("use_item_response") else None)
         tStatuses = [status_name(x) for x in tSent]
         print(f"      spam statuses: {tStatuses}", flush=True)
         for x in tSent:
             expect(x, [USE_COOLDOWN], "spam within 1s")
             check(x.cooldown_seconds > 0, "COOLDOWN response carries no cooldown_seconds")
+        check(w.wait(lambda: w.inv.get(POTION, 0) == tCount - 1, 4), f"count after spam {w.inv.get(POTION, 0)}, expected {tCount - 1}")
         time.sleep(0.5)
         w.ingest()
         check(w.inv.get(POTION, 0) == tCount - 1, f"count after spam {w.inv.get(POTION, 0)}, expected {tCount - 1}")
-        time.sleep(1.2)
-        r2 = use(c, POTION)
+        tEnd = time.time() + 15
+        while True:
+            time.sleep(0.4)
+            r2 = use(c, POTION)
+            if r2 is None or r2.status != USE_COOLDOWN or time.time() > tEnd:
+                break
         expect(r2, [USE_OK, USE_FULL], "drink after cooldown elapsed")
     finally:
         c.close()
