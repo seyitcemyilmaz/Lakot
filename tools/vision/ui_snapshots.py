@@ -130,6 +130,17 @@ def panel_steps(pStartIndex, pPanels):
     return tSteps
 
 
+def walk_steps(pStartIndex):
+    tSteps = []
+    for tIndex, tKey in enumerate(("d", "w", "a", "s"), start=pStartIndex):
+        tSteps += [f"keyhold {tKey} 1200", "wait 400", f"shot {tIndex:02d}_walk_{tKey}"]
+    return tSteps
+
+
+def chat_steps(pIndex):
+    return ["key enter", "wait 500", "text ui snapshot", "wait 500", f"shot {pIndex:02d}_chat_typing", "key enter", "wait 1500", f"shot {pIndex + 1:02d}_chat_sent"]
+
+
 EMPTY_PANELS = [("inventory", "i"), ("character", "c"), ("skills", "k"), ("worldmap", "m"), ("systemmenu", "esc")]
 EQUIPPED_PANELS = [("inventory_equipped", "i"), ("character_equipped", "c")]
 
@@ -160,7 +171,7 @@ def run_scripted():
     tServer = pt.start_server(tBinDir, tRunRoot)
     try:
         tUser, tPassword, _ = pt.make_account()
-        run_game(tBinDir, tRunRoot, "empty", login_steps(tUser, tPassword) + panel_steps(4, EMPTY_PANELS), tOutDir, tSize)
+        run_game(tBinDir, tRunRoot, "empty", login_steps(tUser, tPassword) + panel_steps(4, EMPTY_PANELS) + walk_steps(20) + chat_steps(30), tOutDir, tSize)
         tUser2, tPassword2, tName2 = pt.make_account()
         give_equipment(tName2)
         run_game(tBinDir, tRunRoot, "equipped", login_steps(tUser2, tPassword2) + panel_steps(10, EQUIPPED_PANELS), tOutDir, tSize)

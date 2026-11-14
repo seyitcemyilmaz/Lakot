@@ -2,6 +2,7 @@
 
 #if defined(LAKOT_DEV_TOOLS)
 
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -64,7 +65,8 @@ namespace
 bool SnapshotRunner::isRequested()
 {
     const char* tScript = SDL_getenv("LAKOT_SNAPSHOT_SCRIPT");
-    return tScript && *tScript;
+    const char* tLive = SDL_getenv("LAKOT_SNAPSHOT_LIVE");
+    return (tScript && *tScript) || (tLive && *tLive);
 }
 
 int SnapshotRunner::getRequestedWidth()
@@ -79,16 +81,30 @@ int SnapshotRunner::getRequestedHeight()
 
 bool SnapshotRunner::load(const std::string& pScriptPath, const std::string& pOutDir)
 {
-    std::ifstream tFile(pScriptPath);
+    mOutDir = pOutDir;
+    std::filesystem::create_directories(mOutDir);
+
+    const char* tLive = SDL_getenv("LAKOT_SNAPSHOT_LIVE");
+
+    if (tLive && *tLive)
+    {
+        mLiveDir = tLive;
+        std::filesystem::create_directories(mLiveDir);
+        return true;
+    }
+
+    return loadScript(pScriptPath);
+}
+
+bool SnapshotRunner::loadScript(const std::string& pPath)
+{
+    std::ifstream tFile(pPath);
 
     if (!tFile)
     {
-        SDL_Log("Snapshot script could not be opened: %s", pScriptPath.c_str());
+        SDL_Log("Snapshot script could not be opened: %s", pPath.c_str());
         return false;
     }
-
-    mOutDir = pOutDir;
-    std::filesystem::create_directories(mOutDir);
 
     std::string tLine;
 
@@ -97,6 +113,7 @@ bool SnapshotRunner::load(const std::string& pScriptPath, const std::string& pOu
         if (!parseLine(tLine))
         {
             SDL_Log("Snapshot script line ignored: %s", tLine.c_str());
+            ++mIgnoredLines;
         }
     }
 
@@ -128,11 +145,37 @@ bool SnapshotRunner::parseLine(const std::string& pLine)
         return true;
     }
 
-    if (tCommand == "key" || tCommand == "shot")
+    if (tCommand == "quit")
     {
-        tStep.type = tCommand == "key" ? StepType::eKey : StepType::eShot;
+        tStep.type = StepType::eQuit;
+        mSteps.push_back(tStep);
+        return true;
+    }
 
-        if (!(tStream >> tStep.text))
+    if (tCommand == "keyhold")
+    {
+        std::string tName;
+        int tMs = 0;
+
+        if (!(tStream >> tName >> tMs) || tMs < 0 || tMs > 60000 || resolveKey(tName) == SDLK_UNKNOWN)
+        {
+            return false;
+        }
+
+        addKeyHold(tName, tMs);
+        return true;
+    }
+
+    if (tCommand == "drag")
+    {
+        return parseDrag(tStream);
+    }
+
+    if (tCommand == "key" || tCommand == "keydown" || tCommand == "keyup" || tCommand == "shot")
+    {
+        tStep.type = tCommand == "key" ? StepType::eKey : tCommand == "keydown" ? StepType::eKeyDown : tCommand == "keyup" ? StepType::eKeyUp : StepType::eShot;
+
+        if (!(tStream >> tStep.text) || (tStep.type != StepType::eShot && resolveKey(tStep.text) == SDLK_UNKNOWN))
         {
             return false;
         }
@@ -197,6 +240,99 @@ bool SnapshotRunner::parseLine(const std::string& pLine)
     return false;
 }
 
+bool SnapshotRunner::parseDrag(std::istringstream& pStream)
+{
+    float tX1 = 0.0f;
+    float tY1 = 0.0f;
+    float tX2 = 0.0f;
+    float tY2 = 0.0f;
+    int tMs = 0;
+
+    if (!(pStream >> tX1 >> tY1 >> tX2 >> tY2 >> tMs) || tMs < 0 || tMs > 60000)
+    {
+        return false;
+    }
+
+    for (float tValue : { tX1, tY1, tX2, tY2 })
+    {
+        if (tValue < 0.0f || tValue > 1.0f)
+        {
+            return false;
+        }
+    }
+
+    std::string tButtonName;
+    int tButton = SDL_BUTTON_RIGHT;
+
+    if (pStream >> tButtonName)
+    {
+        if (tButtonName != "left" && tButtonName != "right")
+        {
+            return false;
+        }
+
+        tButton = tButtonName == "left" ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
+    }
+
+    addDrag(tX1, tY1, tX2, tY2, tMs, tButton);
+    return true;
+}
+
+void SnapshotRunner::addKeyHold(const std::string& pName, int pMs)
+{
+    Step tDown;
+    tDown.type = StepType::eKeyDown;
+    tDown.text = pName;
+    mSteps.push_back(tDown);
+
+    Step tWait;
+    tWait.type = StepType::eWaitMs;
+    tWait.number = pMs;
+    mSteps.push_back(tWait);
+
+    Step tUp = tDown;
+    tUp.type = StepType::eKeyUp;
+    mSteps.push_back(tUp);
+}
+
+void SnapshotRunner::addDrag(float pX1, float pY1, float pX2, float pY2, int pMs, int pButton)
+{
+    Step tMove;
+    tMove.type = StepType::eMouseMove;
+    tMove.x = pX1;
+    tMove.y = pY1;
+    mSteps.push_back(tMove);
+
+    Step tDown = tMove;
+    tDown.type = StepType::eMouseDown;
+    tDown.button = pButton;
+    tDown.number = 1;
+    mSteps.push_back(tDown);
+
+    const int tSegments = std::max(1, pMs / 50);
+
+    for (int tIndex = 1; tIndex <= tSegments; ++tIndex)
+    {
+        const float tFraction = static_cast<float>(tIndex) / static_cast<float>(tSegments);
+
+        Step tSegment = tMove;
+        tSegment.x = pX1 + (pX2 - pX1) * tFraction;
+        tSegment.y = pY1 + (pY2 - pY1) * tFraction;
+        mSteps.push_back(tSegment);
+
+        Step tWait;
+        tWait.type = StepType::eWaitMs;
+        tWait.number = pMs / tSegments;
+        mSteps.push_back(tWait);
+    }
+
+    Step tUp = tDown;
+    tUp.type = StepType::eMouseUp;
+    tUp.x = pX2;
+    tUp.y = pY2;
+    mSteps.push_back(tUp);
+}
+
 void SnapshotRunner::addOrbit(float pDeltaX, float pDeltaY)
 {
     Step tMove;
@@ -241,6 +377,16 @@ void SnapshotRunner::update(SDL_Window* pWindow)
         return;
     }
 
+    if (!mLiveDir.empty() && mNextStep >= mSteps.size() && mWaitFrames <= 0 && SDL_GetTicks() >= mWaitUntilMs)
+    {
+        updateLive();
+
+        if (mNextStep >= mSteps.size())
+        {
+            return;
+        }
+    }
+
     if (mWaitFrames > 0)
     {
         --mWaitFrames;
@@ -265,8 +411,18 @@ void SnapshotRunner::update(SDL_Window* pWindow)
                 mWaitFrames = tStep.number;
                 return;
             case StepType::eKey:
-                pushKey(pWindow, tStep.text);
+                pushKey(pWindow, tStep.text, KeyPhase::eTap);
                 return;
+            case StepType::eKeyDown:
+                pushKey(pWindow, tStep.text, KeyPhase::eDown);
+                return;
+            case StepType::eKeyUp:
+                pushKey(pWindow, tStep.text, KeyPhase::eUp);
+                return;
+            case StepType::eQuit:
+                mNextStep = mSteps.size();
+                mLiveDir.clear();
+                break;
             case StepType::eText:
                 pushText(pWindow, tStep.text);
                 return;
@@ -283,6 +439,11 @@ void SnapshotRunner::update(SDL_Window* pWindow)
         }
     }
 
+    if (!mLiveDir.empty())
+    {
+        return;
+    }
+
     mIsFinished = true;
 
     SDL_Event tQuit{};
@@ -290,7 +451,39 @@ void SnapshotRunner::update(SDL_Window* pWindow)
     SDL_PushEvent(&tQuit);
 }
 
-void SnapshotRunner::pushKey(SDL_Window* pWindow, const std::string& pName)
+void SnapshotRunner::updateLive()
+{
+    if (!mLiveCommandName.empty())
+    {
+        finishLiveCommand(mLiveCommandName);
+        mLiveCommandName.clear();
+    }
+
+    char tName[32];
+    std::snprintf(tName, sizeof(tName), "cmd-%04d.txt", mLiveIndex);
+    std::filesystem::path tPath = std::filesystem::path(mLiveDir) / tName;
+
+    if (!std::filesystem::exists(tPath))
+    {
+        return;
+    }
+
+    mSteps.clear();
+    mNextStep = 0;
+    mIgnoredLines = 0;
+    mLiveCommandName = tName;
+    ++mLiveIndex;
+    loadScript(tPath.string());
+}
+
+void SnapshotRunner::finishLiveCommand(const std::string& pName)
+{
+    std::string tDoneName = "done-" + pName.substr(4);
+    std::ofstream tDone(std::filesystem::path(mLiveDir) / tDoneName);
+    tDone << (mIgnoredLines == 0 ? "ok" : "ignored " + std::to_string(mIgnoredLines)) << "\n";
+}
+
+void SnapshotRunner::pushKey(SDL_Window* pWindow, const std::string& pName, KeyPhase pPhase)
 {
     SDL_Keycode tKey = resolveKey(pName);
 
@@ -305,14 +498,20 @@ void SnapshotRunner::pushKey(SDL_Window* pWindow, const std::string& pName)
     tEvent.key.key = tKey;
     SDL_Scancode tScancode = SDL_GetScancodeFromName(pName == "esc" ? "Escape" : pName == "enter" ? "Return" : pName.c_str());
     tEvent.key.scancode = tScancode != SDL_SCANCODE_UNKNOWN ? tScancode : SDL_GetScancodeFromKey(tKey, nullptr);
-    tEvent.key.down = true;
 
-    tEvent.type = SDL_EVENT_KEY_DOWN;
-    SDL_PushEvent(&tEvent);
+    if (pPhase != KeyPhase::eUp)
+    {
+        tEvent.type = SDL_EVENT_KEY_DOWN;
+        tEvent.key.down = true;
+        SDL_PushEvent(&tEvent);
+    }
 
-    tEvent.type = SDL_EVENT_KEY_UP;
-    tEvent.key.down = false;
-    SDL_PushEvent(&tEvent);
+    if (pPhase != KeyPhase::eDown)
+    {
+        tEvent.type = SDL_EVENT_KEY_UP;
+        tEvent.key.down = false;
+        SDL_PushEvent(&tEvent);
+    }
 }
 
 void SnapshotRunner::pushText(SDL_Window* pWindow, const std::string& pText)
@@ -380,6 +579,10 @@ void SnapshotRunner::pushMouse(SDL_Window* pWindow, const Step& pStep)
         tEvent.motion.windowID = tWindowId;
         tEvent.motion.x = tX;
         tEvent.motion.y = tY;
+        tEvent.motion.xrel = (pStep.x - mMouseX) * static_cast<float>(tWidth);
+        tEvent.motion.yrel = (pStep.y - mMouseY) * static_cast<float>(tHeight);
+        mMouseX = pStep.x;
+        mMouseY = pStep.y;
     }
     else
     {

@@ -114,7 +114,7 @@ bool Engine::initialize()
         const char* tOutDir = SDL_getenv("LAKOT_SNAPSHOT_OUT");
         mSnapshotRunner = std::make_unique<SnapshotRunner>();
 
-        if (!mSnapshotRunner->load(SDL_getenv("LAKOT_SNAPSHOT_SCRIPT"), tOutDir ? tOutDir : "snapshots"))
+        if (!mSnapshotRunner->load(SDL_getenv("LAKOT_SNAPSHOT_SCRIPT") ? SDL_getenv("LAKOT_SNAPSHOT_SCRIPT") : "", tOutDir ? tOutDir : "snapshots"))
         {
             return false;
         }

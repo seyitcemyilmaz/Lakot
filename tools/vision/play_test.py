@@ -19,6 +19,7 @@ from PIL import ImageGrab
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "tests"))
 import lakotnet
+from live_client import LiveClient
 
 MODEL = os.environ.get("LAKOT_VISION_MODEL", "gemini-3.5-flash-lite")
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent"
@@ -224,6 +225,28 @@ def make_account():
     return tClient.user, "pw12345", tClient.name
 
 
+def save_live_shot(pLive, pPath, pStep):
+    from PIL import Image
+    tPng = pLive.shot(f"step{pStep:02d}")
+    tImage = Image.open(tPng).convert("RGB")
+    tImage = tImage.resize((SHOT_WIDTH, int(tImage.height * SHOT_WIDTH / tImage.width)))
+    tImage.save(pPath, "JPEG", quality=75)
+
+
+def live_commands(pAction, pKind):
+    tX = min(max(float(pAction.get("x") or 0) / 1000.0, 0.0), 1.0)
+    tY = min(max(float(pAction.get("y") or 0) / 1000.0, 0.0), 1.0)
+    if pKind in ("click", "right_click"):
+        return [f"{'rclick' if pKind == 'right_click' else 'click'} {tX:.4f} {tY:.4f}", "wait 800"]
+    if pKind == "key" and pAction.get("key") in SCANCODES:
+        tKey = pAction["key"]
+        tHold = max(0.0, min(float(pAction.get("hold") or 0.15), 5.0))
+        return [f"keyhold {tKey} {int(tHold * 1000)}" if tHold >= 0.25 else f"key {tKey}", "wait 800"]
+    if pKind == "type":
+        return ["text " + str(pAction.get("text", ""))[:64].replace(chr(10), " "), "wait 500"]
+    return [f"wait {int(max(0.2, min(float(pAction.get('seconds') or 1), 5.0)) * 1000)}"]
+
+
 def build_prompt(pGoal, pUser, pPassword, pHistory, pStep, pMaxSteps):
     tLog = "\n".join(pHistory[-25:]) or "(nothing yet)"
     return f"""You are play-testing Lakot, a 3D online RPG, through screenshots of its window. You control it with keyboard and mouse.
@@ -239,7 +262,8 @@ Reply with ONE JSON object only:
 
 
 def main():
-    tGoal = " ".join(sys.argv[1:]) or "Log in, enter the world with the character, walk around, open the inventory and chat, and judge how the game looks and feels."
+    tArgs = [tArg for tArg in sys.argv[1:] if tArg != "--interactive"]
+    tGoal = " ".join(tArgs) or "Log in, enter the world with the character, walk around, open the inventory and chat, and judge how the game looks and feels."
     tMaxSteps = int(os.environ.get("LAKOT_VISION_STEPS") or 40)
     tOutDir = Path(os.environ.get("LAKOT_VISION_OUT") or tempfile.mkdtemp(prefix="lakot_vision_"))
     tOutDir.mkdir(parents=True, exist_ok=True)
@@ -248,27 +272,37 @@ def main():
 
     tServer = start_server(tBinDir, tRunRoot)
     tGame = None
+    tLive = None
+    tIsLive = "--interactive" not in sys.argv
     tHistory, tNotes = [], []
     try:
         tUser, tPassword, tCharacter = make_account()
-        tGameDir = tRunRoot / "game"
-        shutil.copytree(tBinDir, tGameDir)
-        tGame = subprocess.Popen([str(tGameDir / "LakotGame.exe")], cwd=tGameDir,
-                                 env={**os.environ, "LAKOT_SERVER_HOST": "127.0.0.1", "LAKOT_SERVER_PORT": str(PORT)},
-                                 stdout=open(tRunRoot / "game.log", "w"), stderr=subprocess.STDOUT)
-        tHwnd = None
-        tEnd = time.time() + 60
-        while time.time() < tEnd and not tHwnd:
-            time.sleep(1.0)
-            tHwnd = find_window(tGame.pid)
-        if not tHwnd:
-            raise RuntimeError("game window did not appear")
-        time.sleep(4.0)
+        if tIsLive:
+            tLive = LiveClient("main", tBinDir, tRunRoot, PORT)
+            tLive.start()
+            tLive.run(["wait 4000"])
+        else:
+            tGameDir = tRunRoot / "game"
+            shutil.copytree(tBinDir, tGameDir)
+            tGame = subprocess.Popen([str(tGameDir / "LakotGame.exe")], cwd=tGameDir,
+                                     env={**os.environ, "LAKOT_SERVER_HOST": "127.0.0.1", "LAKOT_SERVER_PORT": str(PORT)},
+                                     stdout=open(tRunRoot / "game.log", "w"), stderr=subprocess.STDOUT)
+            tHwnd = None
+            tEnd = time.time() + 60
+            while time.time() < tEnd and not tHwnd:
+                time.sleep(1.0)
+                tHwnd = find_window(tGame.pid)
+            if not tHwnd:
+                raise RuntimeError("game window did not appear")
+            time.sleep(4.0)
 
         for tStep in range(1, tMaxSteps + 1):
-            focus(tHwnd)
             tShotPath = tOutDir / f"step{tStep:02d}.jpg"
-            _, (tOriginX, tOriginY, tScale) = screenshot(tHwnd, tShotPath)
+            if tIsLive:
+                save_live_shot(tLive, tShotPath, tStep)
+            else:
+                focus(tHwnd)
+                _, (tOriginX, tOriginY, tScale) = screenshot(tHwnd, tShotPath)
             tReply = ask([tShotPath], build_prompt(tGoal, tUser, tPassword, tHistory, tStep, tMaxSteps), True, 512)
             try:
                 tAction = json.loads(tReply)
@@ -286,6 +320,9 @@ def main():
             print(tSummary, flush=True)
             if tKind == "done":
                 break
+            if tIsLive:
+                tLive.run(live_commands(tAction, tKind))
+                continue
             focus(tHwnd)
             if tKind in ("click", "right_click"):
                 tWidth, tHeight = client_rect(tHwnd)[2:]
@@ -307,6 +344,10 @@ def main():
         (tOutDir / "actions.log").write_text("\n".join(tHistory) + "\n\nNOTES\n" + "\n".join(tNotes), encoding="utf-8")
         print(f"report: {tOutDir / 'report.md'}")
     finally:
+        if tLive:
+            tLive.stop()
+            if tLive.log_path.exists():
+                shutil.copy(tLive.log_path, tOutDir / "game.log")
         if tGame and tGame.poll() is None:
             tGame.kill()
         if tServer.poll() is None:

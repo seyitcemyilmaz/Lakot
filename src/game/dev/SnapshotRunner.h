@@ -4,6 +4,7 @@
 #if defined(LAKOT_DEV_TOOLS)
 
 #include <cstdint>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,9 @@ private:
         eWaitMs,
         eWaitFrames,
         eKey,
+        eKeyDown,
+        eKeyUp,
+        eQuit,
         eText,
         eMouseMove,
         eMouseDown,
@@ -36,6 +40,13 @@ private:
         eMouseDrag,
         eWheel,
         eShot
+    };
+
+    enum class KeyPhase
+    {
+        eTap,
+        eDown,
+        eUp
     };
 
     struct Step
@@ -49,15 +60,27 @@ private:
     };
 
     void addOrbit(float pDeltaX, float pDeltaY);
+    void addKeyHold(const std::string& pName, int pMs);
+    void addDrag(float pX1, float pY1, float pX2, float pY2, int pMs, int pButton);
+    bool parseDrag(std::istringstream& pStream);
+    bool loadScript(const std::string& pPath);
+    void updateLive();
+    void finishLiveCommand(const std::string& pName);
     void addClick(float pX, float pY, int pButton, int pCount);
     bool parseLine(const std::string& pLine);
-    void pushKey(SDL_Window* pWindow, const std::string& pName);
+    void pushKey(SDL_Window* pWindow, const std::string& pName, KeyPhase pPhase);
     void pushText(SDL_Window* pWindow, const std::string& pText);
     void pushMouse(SDL_Window* pWindow, const Step& pStep);
     void saveShot(SDL_Window* pWindow, const std::string& pName);
 
     std::vector<Step> mSteps;
     std::string mOutDir;
+    std::string mLiveDir;
+    std::string mLiveCommandName;
+    int mLiveIndex{1};
+    int mIgnoredLines{0};
+    float mMouseX{0.5f};
+    float mMouseY{0.5f};
 
     size_t mNextStep{0};
     uint64_t mWaitUntilMs{0};
