@@ -22,7 +22,7 @@
                      data-event-mousedown="equip_slot_pressed(slot.index)"
                      data-event-mouseover="hover_equipped(slot.index)"
                      data-event-mouseout="unhover">
-                    <div class="inv-piece" data-if="slot.is_filled" data-class-is-dragged="slot.is_dragged"
+                    <div class="inv-piece" data-if="slot.icon != ''" data-class-is-dragged="slot.is_dragged"
                          data-style-left="slot.item_left" data-style-top="slot.item_top"
                          data-style-width="slot.item_width" data-style-height="slot.item_height">
                         <img data-if="slot.icon != ''" data-attr-src="slot.icon"/>

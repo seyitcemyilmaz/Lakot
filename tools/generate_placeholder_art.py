@@ -128,27 +128,23 @@ def paper_doll():
     def mirror(*points):
         return [(2 * cx - x, y) for x, y in points]
 
-    d.ellipse(pts((cx - 22, 26), (cx + 22, 72)), fill=body, outline=edge, width=2 * k)
-    d.rectangle(pts((cx - 8, 70), (cx + 8, 84)), fill=body, outline=edge)
+    d.ellipse(pts((cx - 14, 12), (cx + 14, 48)), fill=body, outline=edge, width=2 * k)
+    d.rectangle(pts((cx - 6, 46), (cx + 6, 58)), fill=body, outline=edge)
 
-    d.polygon(pts((cx - 44, 82), (cx + 44, 82), (cx + 36, 150), (cx - 36, 150)), fill=body, outline=edge)
+    d.polygon(pts((cx - 26, 56), (cx + 26, 56), (cx + 20, 112), (cx - 20, 112)), fill=body, outline=edge)
 
-    arm = [(cx - 44, 84), (cx - 62, 96), (cx - 68, 150), (cx - 52, 148)]
+    arm = [(cx - 26, 58), (cx - 34, 64), (cx - 36, 118), (cx - 28, 118), (cx - 24, 72)]
     d.polygon(pts(*arm), fill=body, outline=edge)
     d.polygon(pts(*mirror(*arm)), fill=body, outline=edge)
 
-    leg = [(cx - 36, 150), (cx - 4, 150), (cx - 6, 176), (cx - 32, 176)]
+    leg = [(cx - 20, 112), (cx - 2, 112), (cx - 4, 178), (cx - 4, 188), (cx - 22, 188), (cx - 18, 178)]
     d.polygon(pts(*leg), fill=body, outline=edge)
     d.polygon(pts(*mirror(*leg)), fill=body, outline=edge)
-
-    foot = [(cx - 36, 176), (cx - 4, 176), (cx - 4, 184), (cx - 36, 184)]
-    d.rectangle(pts(foot[0], foot[2]), fill=edge)
-    d.rectangle(pts((cx + 4, 176), (cx + 36, 184)), fill=edge)
 
     for name, left, top, width, height in layout["reserved"]:
         d.rounded_rectangle(pts((left, top), (left + width, top + height)), radius=4 * k, outline=reserve, width=k)
 
-    for name, left, top, width, height in layout["slots"]:
+    for name, left, top, width, height in layout["reserved"] + layout["slots"]:
         draw_slot_glyph(d, name, (left + width / 2) * k, (top + height / 2) * k, k, glyph)
 
     return image
@@ -156,7 +152,10 @@ def paper_doll():
 
 def draw_slot_glyph(d, name, x, y, k, color):
     u = 6 * k
-    if name == "Helmet":
+    if name == "None":
+        d.polygon([(x - 2 * u, y - 2.4 * u), (x + 2 * u, y - 2.4 * u), (x + 2 * u, y + 0.4 * u), (x, y + 2.8 * u),
+                   (x - 2 * u, y + 0.4 * u)], fill=color)
+    elif name == "Helmet":
         d.pieslice([x - 3 * u, y - 3 * u, x + 3 * u, y + 3 * u], 180, 360, fill=color)
         d.rectangle([x - 3 * u, y, x + 3 * u, y + u], fill=color)
     elif name == "Armor":

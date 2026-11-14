@@ -53,15 +53,15 @@ namespace
 
 const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollSlots[] =
 {
-    { EquipSlotType::eHelmet, 80,   8, 2, 2 },
-    { EquipSlotType::eArmor,  80,  80, 2, 2 },
-    { EquipSlotType::eBoots,  80, 152, 2, 1 },
-    { EquipSlotType::eWeapon, 14,  72, 1, 3 },
+    { EquipSlotType::eHelmet, 6,   8, 2, 2 },
+    { EquipSlotType::eArmor,  6,  76, 2, 2 },
+    { EquipSlotType::eBoots,  6, 148, 2, 1 },
+    { EquipSlotType::eWeapon, 154, 76, 1, 3 },
 };
 
 const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollReserved[] =
 {
-    { EquipSlotType::eNone, 178, 72, 1, 3 },
+    { EquipSlotType::eNone, 188, 76, 1, 3 },
 };
 
 const size_t InventoryRmlController::kDollSlotCount =

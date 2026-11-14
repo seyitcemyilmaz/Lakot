@@ -309,7 +309,7 @@ body
     position: absolute;
     bottom: 73dp;
     right: 12dp;
-    width: 216dp;
+    width: 248dp;
 
     display: flex;
     flex-direction: column;
@@ -361,12 +361,13 @@ body
 
 .inv-doll-slot.is-filled
 {
-    background-color: rgba(41, 41, 51, 235);
+    background-color: rgba(41, 41, 51, 90);
     border-color: #D9A640;
 }
 
 .inv-doll-slot .inv-piece
 {
+    background-color: #292933;
     margin-left: -1px;
     margin-top: -1px;
     border-color: #D9A640;

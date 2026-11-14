@@ -25,6 +25,7 @@ COLUMNS = 4
 VIEWS = ("front", "side")
 ZOOM = os.environ.get("LAKOT_SHEET_ZOOM", "3")
 ORBIT = os.environ.get("LAKOT_SHEET_ORBIT", "450")
+ONLY = {int(t) for t in os.environ.get("LAKOT_SHEET_ONLY", "").split(",") if t.strip()}
 
 
 def load_items():
@@ -106,6 +107,8 @@ def main():
         tGameDir = tRunRoot / "game"
         shutil.copytree(tBinDir, tGameDir)
         for tIndex in range(tCount):
+            if ONLY and tIndex not in ONLY:
+                continue
             tPair = [t[tIndex] for t in (tWeapons, tHelmets) if tIndex < len(t)]
             tLabel = " + ".join(t["name"] for t in tPair)
             tMissing = [t["name"] for t in tPair if not has_model(t)]
