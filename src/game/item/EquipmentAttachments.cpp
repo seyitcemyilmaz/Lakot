@@ -10,7 +10,7 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 
-#include "../../graphics/model/SkinnedModel.h"
+#include "../graphics/model/SkinnedModel.h"
 
 using namespace lakot;
 

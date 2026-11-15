@@ -9,11 +9,11 @@
 
 using namespace lakot;
 
-LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pOnLoginSucceeded, const std::string& pNotice)
+LoginRmlController::LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pLoginSucceededCallback, const std::string& pNotice)
     : mRmlUiLayer(pRmlUiLayer)
     , mLocalization(pLocalization)
     , mAuthController(pAuthController)
-    , mOnLoginSucceeded(std::move(pOnLoginSucceeded))
+    , mLoginSucceededCallback(std::move(pLoginSucceededCallback))
     , mStatusMessage(pNotice)
     , mIsError(!pNotice.empty())
 {
@@ -173,9 +173,9 @@ void LoginRmlController::onLoginResult(bool pIsSuccess, const std::string& pMess
 
     if (pIsSuccess)
     {
-        if (mOnLoginSucceeded)
+        if (mLoginSucceededCallback)
         {
-            mOnLoginSucceeded();
+            mLoginSucceededCallback();
         }
     }
     else

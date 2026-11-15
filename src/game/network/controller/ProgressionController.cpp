@@ -29,13 +29,6 @@ void ProgressionController::initialize()
 
 void ProgressionController::sendAllocateStat(services::progression::StatType pStat, uint32_t pAmount)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request()->mutable_allocate_stat_request();
     tRequest->set_stat(pStat);
@@ -46,13 +39,6 @@ void ProgressionController::sendAllocateStat(services::progression::StatType pSt
 
 void ProgressionController::sendChoosePath(uint32_t pPathId)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_choose_path_request()->set_path_id(pPathId);
 

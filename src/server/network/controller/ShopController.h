@@ -36,8 +36,6 @@ private:
     void handleBuyItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
     void handleSellItemRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage);
 
-    static void fillHeader(connection::Message& pMessage, uint64_t pReplyTo, services::shop::ShopStatus pStatus);
-
     static void sendOpenResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                                uint64_t pReplyTo,
                                uint64_t pNpcId,

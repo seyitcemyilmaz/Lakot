@@ -1,6 +1,6 @@
 #include "AttachmentPanel.h"
 
-#include "../scene/world/EquipmentAttachments.h"
+#include "../item/EquipmentAttachments.h"
 
 using namespace lakot;
 

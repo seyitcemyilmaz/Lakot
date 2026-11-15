@@ -52,13 +52,6 @@ void InventoryController::initialize()
 
 void InventoryController::sendEquipItem(uint32_t pBagSlot)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_equip_item_request()->set_bag_slot(pBagSlot);
 
@@ -67,13 +60,6 @@ void InventoryController::sendEquipItem(uint32_t pBagSlot)
 
 void InventoryController::sendUnequipItem(EquipSlotType pEquipSlot, std::optional<uint32_t> pBagSlot)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request()->mutable_unequip_item_request();
     tRequest->set_equip_slot(static_cast<uint32_t>(pEquipSlot));
@@ -88,13 +74,6 @@ void InventoryController::sendUnequipItem(EquipSlotType pEquipSlot, std::optiona
 
 void InventoryController::sendMoveItem(uint32_t pFromSlot, uint32_t pToSlot)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_move_item_request()->set_from_slot(pFromSlot);
     tMessage.mutable_request()->mutable_move_item_request()->set_to_slot(pToSlot);
@@ -126,13 +105,6 @@ bool InventoryController::sendDiscardItem(uint32_t pBagSlot, uint32_t pTemplateI
 
 void InventoryController::sendUseItem(uint32_t pTemplateId)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_use_item_request()->set_template_id(pTemplateId);
 

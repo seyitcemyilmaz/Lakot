@@ -36,13 +36,6 @@ void ShopController::initialize()
 
 void ShopController::sendOpenShop(uint64_t pNpcId)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_open_shop_request()->set_npc_id(pNpcId);
 
@@ -51,13 +44,6 @@ void ShopController::sendOpenShop(uint64_t pNpcId)
 
 void ShopController::sendBuy(uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQuantity)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request()->mutable_buy_item_request();
     tRequest->set_npc_id(pNpcId);
@@ -69,13 +55,6 @@ void ShopController::sendBuy(uint64_t pNpcId, uint32_t pTemplateId, uint32_t pQu
 
 void ShopController::sendSell(uint64_t pNpcId, uint32_t pBagSlot, uint32_t pTemplateId, uint32_t pCount)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     auto* tRequest = tMessage.mutable_request()->mutable_sell_item_request();
     tRequest->set_npc_id(pNpcId);

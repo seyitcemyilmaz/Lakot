@@ -29,7 +29,7 @@ class LoginRmlController
 public:
     using LoginSucceededCallback = std::function<void()>;
 
-    LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pOnLoginSucceeded, const std::string& pNotice);
+    LoginRmlController(RmlUiLayer& pRmlUiLayer, const Localization& pLocalization, AuthController& pAuthController, LoginSucceededCallback pLoginSucceededCallback, const std::string& pNotice);
     ~LoginRmlController();
 
     LoginRmlController(const LoginRmlController&) = delete;
@@ -39,7 +39,7 @@ private:
     RmlUiLayer& mRmlUiLayer;
     const Localization& mLocalization;
     AuthController& mAuthController;
-    LoginSucceededCallback mOnLoginSucceeded;
+    LoginSucceededCallback mLoginSucceededCallback;
 
     RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;

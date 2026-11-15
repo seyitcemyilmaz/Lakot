@@ -41,13 +41,6 @@ void ShopController::initialize()
     );
 }
 
-void ShopController::fillHeader(connection::Message& pMessage, uint64_t pReplyTo, services::shop::ShopStatus pStatus)
-{
-    auto* tHeader = pMessage.mutable_response()->mutable_header();
-    tHeader->set_reply_to(pReplyTo);
-    tHeader->mutable_status()->set_code(pStatus == services::shop::SHOP_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
-}
-
 void ShopController::sendOpenResult(const std::shared_ptr<NetworkSession<connection::Message>>& pSession,
                                     uint64_t pReplyTo,
                                     uint64_t pNpcId,
@@ -55,8 +48,7 @@ void ShopController::sendOpenResult(const std::shared_ptr<NetworkSession<connect
                                     const std::string& pTitle,
                                     const std::vector<uint32_t>& pTemplateIds)
 {
-    connection::Message tResponse;
-    fillHeader(tResponse, pReplyTo, pStatus);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::shop::SHOP_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     auto* tOut = tResponse.mutable_response()->mutable_open_shop_response();
     tOut->set_status(pStatus);
@@ -77,8 +69,7 @@ void ShopController::sendBuyResult(const std::shared_ptr<NetworkSession<connecti
                                    uint32_t pQuantity,
                                    services::shop::ShopStatus pStatus)
 {
-    connection::Message tResponse;
-    fillHeader(tResponse, pReplyTo, pStatus);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::shop::SHOP_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     auto* tOut = tResponse.mutable_response()->mutable_buy_item_response();
     tOut->set_status(pStatus);
@@ -93,8 +84,7 @@ void ShopController::sendSellResult(const std::shared_ptr<NetworkSession<connect
                                     services::shop::ShopStatus pStatus,
                                     uint64_t pGoldGained)
 {
-    connection::Message tResponse;
-    fillHeader(tResponse, pReplyTo, pStatus);
+    connection::Message tResponse = makeResponse(pReplyTo, pStatus == services::shop::SHOP_STATUS_OK ? common::STATUS_OK : common::STATUS_INVALID_REQUEST);
 
     auto* tOut = tResponse.mutable_response()->mutable_sell_item_response();
     tOut->set_status(pStatus);

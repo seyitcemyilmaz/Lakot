@@ -8,7 +8,7 @@
 
 #include <glm/glm.hpp>
 
-#include "../../network/GameTypes.h"
+#include "../network/GameTypes.h"
 
 namespace lakot
 {

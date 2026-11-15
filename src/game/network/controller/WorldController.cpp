@@ -129,13 +129,6 @@ void WorldController::sendAttack(float pYaw, uint32_t pCombo)
 
 void WorldController::sendPickup(uint64_t pEntityId)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_pickup_item_request()->set_entity_id(pEntityId);
     mNetworkManager->sendRequest(tMessage);
@@ -143,13 +136,6 @@ void WorldController::sendPickup(uint64_t pEntityId)
 
 void WorldController::sendRespawn(services::world::RespawnChoice pChoice)
 {
-    auto tSession = mNetworkManager->getClient().getSession();
-
-    if (!tSession)
-    {
-        return;
-    }
-
     connection::Message tMessage;
     tMessage.mutable_request()->mutable_respawn_request()->set_choice(pChoice);
     mNetworkManager->sendRequest(tMessage);

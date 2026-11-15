@@ -4,7 +4,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "EquipmentAttachments.h"
+#include "../../item/EquipmentAttachments.h"
 #include "WorldEntities.h"
 #include "WorldViewConstants.h"
 

@@ -91,15 +91,13 @@ void AuthController::initialize()
 
 void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
 {
-    connection::Message tResponse;
-    tResponse.mutable_response()->mutable_header()->set_reply_to(pMessage.request().header().id());
+    connection::Message tResponse = makeResponse(pMessage.request().header().id(), common::STATUS_UNAUTHORIZED);
     auto* tResume = tResponse.mutable_response()->mutable_resume_session_response();
 
     auto tResult = mNetworkManager.resumeSession(pSession, pMessage.request().resume_session_request().token());
 
     if (!tResult)
     {
-        tResponse.mutable_response()->mutable_header()->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
         tResume->set_status(services::auth::RESUME_SESSION_FAILED);
         pSession->send(tResponse);
         return;
@@ -274,10 +272,8 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     mRepositoryManager.getAccountRepository().findByUsername(tUsername, tPassword,
     [this, pSession, pMessage, tUsername, tAddress](AccountRepository::LoginResultType pResult, uint64_t pAccountId)
     {
-        connection::Message tResponse;
-
+        connection::Message tResponse = makeResponse(pMessage.request().header().id(), common::STATUS_UNAUTHORIZED);
         auto* tHeader = tResponse.mutable_response()->mutable_header();
-        tHeader->set_reply_to(pMessage.request().header().id());
 
         if (pResult == AccountRepository::LoginResultType::eDatabaseError)
         {

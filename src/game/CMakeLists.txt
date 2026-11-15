@@ -95,7 +95,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/WorldEntities.h scene/world/WorldEntities.cpp
     scene/world/EntityRenderer.h scene/world/EntityRenderer.cpp
     scene/world/AnimationRoles.h scene/world/AnimationRoles.cpp
-    scene/world/EquipmentAttachments.h scene/world/EquipmentAttachments.cpp
+    item/EquipmentAttachments.h item/EquipmentAttachments.cpp
     graphics/model/AnimationRetargeter.h graphics/model/AnimationRetargeter.cpp
     graphics/model/MotionLibrary.h graphics/model/MotionLibrary.cpp
     scene/world/DamageNumbers.h scene/world/DamageNumbers.cpp
@@ -108,7 +108,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/MapModelBatch.h scene/world/MapModelBatch.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
-    scene/world/CameraBob.h scene/world/CameraBob.cpp
+    graphics/camera/CameraBob.h graphics/camera/CameraBob.cpp
     scene/world/CombatFeel.h scene/world/CombatFeel.cpp
     scene/world/WhisperWindows.h scene/world/WhisperWindows.cpp
     scene/world/WorldHud.h scene/world/WorldHud.cpp
