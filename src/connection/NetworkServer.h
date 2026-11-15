@@ -59,7 +59,6 @@ public:
             mAcceptor.open(tEndpoint.protocol());
             mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
             mAcceptor.bind(tEndpoint);
-            mAcceptor.listen();
         }
         catch (const std::exception& tException)
         {
@@ -71,6 +70,16 @@ public:
     // Non-Blocking
     void start(size_t pThreadCount = 1)
     {
+        try
+        {
+            mAcceptor.listen();
+        }
+        catch (const std::exception& tException)
+        {
+            std::osyncstream(std::cerr) << "[NetworkServer] Dinleme Hatasi: " << tException.what() << std::endl;
+            throw;
+        }
+
         doAccept();
 
         for (size_t i = 0; i < pThreadCount; i++)
