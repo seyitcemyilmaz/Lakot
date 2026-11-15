@@ -267,6 +267,7 @@ TREE_BIOMES = {
     "village": [("oak", 5), ("poplar", 4), ("birch", 1)],
     "steppe": [("juniper", 5), ("birch", 2), ("poplar", 1)],
     "border": [("pine", 6), ("juniper", 2), ("oak", 1)],
+    "mist": [("pine", 5), ("birch", 4), ("poplar", 1)],
 }
 TREE_VARIANTS = 3
 TREE_TRUNK_WIDTH = {"oak": 1.2, "poplar": 0.8, "birch": 0.6, "pine": 0.8, "juniper": 0.5}
@@ -389,6 +390,45 @@ def scatter_forest(rng, h, biome, circles, keepout, max_trees, sparse_chance=0.0
 def boulder(rng, px, pz):
     s = rng.uniform(2.0, 5.0)
     return box("boulder", px, pz, s * rng.uniform(0.8, 1.3), s * 0.7, s, BOULDER)
+
+
+
+# ---- Terrain helpers shared by the Demirkaya and Sisvadi maps --------------------
+
+def blend_toward(h, level, weight):
+    return h * (1.0 - weight) + level * weight
+
+
+def flatten_along(h, x, z, roads, level, strength=0.55, reach=40.0, core=8.0):
+    d = np.full(x.shape, np.inf)
+    for r in roads:
+        d = np.minimum(d, polyline_distance(x, z, r))
+    return blend_toward(h, level, strength * smoothstep(reach, core, d))
+
+
+def carve_river(h, x, z, river):
+    d = polyline_distance(x, z, river)
+    h = blend_toward(h, np.minimum(h, 2.0), smoothstep(55.0, 22.0, d))
+    return blend_toward(h, WATER - 3.5, smoothstep(22.0, 4.0, d))
+
+
+def carve_ponds(h, x, z, ponds):
+    for (cx, cz), r in ponds:
+        dl = np.hypot(x - cx, z - cz)
+        h = blend_toward(h, np.minimum(h, 1.5), smoothstep(r + 40.0, r + 15.0, dl))
+        dip = smoothstep(r + 15.0, r - 10.0, dl)
+        floor = WATER - 0.6 - 4.0 * smoothstep(r - 10.0, r * 0.3, dl)
+        h = np.minimum(h, h * (1.0 - dip) + floor * dip)
+    return h
+
+
+def scatter_boulders(rng, count, blobs, clear):
+    out = []
+    while len(out) < count:
+        px, pz = rng.uniform(-850, 850), rng.uniform(-850, 850)
+        if blob_distance(np.array(px), np.array(pz), blobs) < -5.0 and clear(px, pz):
+            out.append(boulder(rng, px, pz))
+    return out
 
 
 # ---- Splat map ----------------------------------------------------------------
