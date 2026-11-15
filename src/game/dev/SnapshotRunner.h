@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -72,11 +73,13 @@ private:
     void pushText(SDL_Window* pWindow, const std::string& pText);
     void pushMouse(SDL_Window* pWindow, const Step& pStep);
     void saveShot(SDL_Window* pWindow, const std::string& pName);
+    void releaseHeldKeys(SDL_Window* pWindow);
 
     std::vector<Step> mSteps;
     std::string mOutDir;
     std::string mLiveDir;
     std::string mLiveCommandName;
+    std::set<std::string> mHeldKeys;
     int mLiveIndex{1};
     int mIgnoredLines{0};
     float mMouseX{0.5f};

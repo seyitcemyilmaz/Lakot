@@ -28,7 +28,7 @@
                  data-class-is-selected="item.is_selected"
                  data-class-is-restricted="!item.is_usable"
                  data-event-click="select_buy(item.template_id)">
-                <div class="shop-icon"><img data-if="item.icon != ''" data-attr-src="item.icon"/></div>
+                <div class="shop-icon"><img data-if="item.icon != ''" data-attr-src="item.icon" data-attr-style="item.icon_style"/></div>
                 <div class="shop-info">
                     <div class="shop-name">{{ item.name }}</div>
                     <div class="shop-sub">{{ item.level_text }}</div>
@@ -43,7 +43,7 @@
                  data-class-is-selected="item.is_pending"
                  data-event-click="sell(item.bag_slot)">
                 <div class="shop-icon">
-                    <img data-if="item.icon != ''" data-attr-src="item.icon"/>
+                    <img data-if="item.icon != ''" data-attr-src="item.icon" data-attr-style="item.icon_style"/>
                     <div class="inv-piece-count" data-if="item.count > 1">{{ item.count }}</div>
                 </div>
                 <div class="shop-info">

@@ -345,9 +345,9 @@ body
 .inv-doll-slot
 {
     position: absolute;
-    background-color: rgba(33, 33, 41, 0);
+    background-color: rgba(33, 33, 41, 120);
     border-width: 1px;
-    border-color: #6A6A7A;
+    border-color: #8A8A9C;
     border-radius: 4dp;
     cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s;
@@ -366,8 +366,8 @@ body
 
 .inv-doll-slot.is-reserved:hover
 {
-    background-color: rgba(33, 33, 41, 0);
-    border-color: #6A6A7A;
+    background-color: rgba(33, 33, 41, 120);
+    border-color: #8A8A9C;
 }
 
 .inv-doll-slot.is-filled
@@ -378,10 +378,10 @@ body
 
 .inv-doll-slot .inv-piece
 {
-    background-color: #292933;
+    background-color: transparent;
     margin-left: -1px;
     margin-top: -1px;
-    border-color: #D9A640;
+    border-color: transparent;
 }
 
 /* ---- Bag ---- */
@@ -2506,7 +2506,10 @@ body
 .settings-body
 {
     display: block;
+    width: 512dp;
+    max-height: 520dp;
     margin-top: 8dp;
+    overflow-y: auto;
 }
 
 .settings-columns
@@ -2525,5 +2528,5 @@ body
 .settings-page
 {
     display: block;
-    width: 512dp;
+    width: 488dp;
 }

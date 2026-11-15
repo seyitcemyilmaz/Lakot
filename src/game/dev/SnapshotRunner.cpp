@@ -379,6 +379,7 @@ void SnapshotRunner::update(SDL_Window* pWindow)
 
     if (!mLiveDir.empty() && mNextStep >= mSteps.size() && mWaitFrames <= 0 && SDL_GetTicks() >= mWaitUntilMs)
     {
+        releaseHeldKeys(pWindow);
         updateLive();
 
         if (mNextStep >= mSteps.size())
@@ -439,6 +440,8 @@ void SnapshotRunner::update(SDL_Window* pWindow)
         }
     }
 
+    releaseHeldKeys(pWindow);
+
     if (!mLiveDir.empty())
     {
         return;
@@ -493,6 +496,15 @@ void SnapshotRunner::pushKey(SDL_Window* pWindow, const std::string& pName, KeyP
         return;
     }
 
+    if (pPhase == KeyPhase::eDown)
+    {
+        mHeldKeys.insert(pName);
+    }
+    else
+    {
+        mHeldKeys.erase(pName);
+    }
+
     SDL_Event tEvent{};
     tEvent.key.windowID = SDL_GetWindowID(pWindow);
     tEvent.key.key = tKey;
@@ -511,6 +523,18 @@ void SnapshotRunner::pushKey(SDL_Window* pWindow, const std::string& pName, KeyP
         tEvent.type = SDL_EVENT_KEY_UP;
         tEvent.key.down = false;
         SDL_PushEvent(&tEvent);
+    }
+}
+
+void SnapshotRunner::releaseHeldKeys(SDL_Window* pWindow)
+{
+    std::set<std::string> tHeld;
+    tHeld.swap(mHeldKeys);
+
+    for (const std::string& tName : tHeld)
+    {
+        SDL_Log("snapshot released held key %s", tName.c_str());
+        pushKey(pWindow, tName, KeyPhase::eUp);
     }
 }
 

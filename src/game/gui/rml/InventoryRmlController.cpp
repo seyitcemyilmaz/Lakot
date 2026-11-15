@@ -285,11 +285,13 @@ void InventoryRmlController::rebuild()
                 uint32_t tColumns = std::min(getFootprintWidth(tTemplate), tPosition.columns);
                 uint32_t tRows = std::min(getFootprintHeight(tTemplate), tPosition.rows);
 
+                InventoryUnits::IconFit tFit = InventoryUnits::fitContain(tTemplate, tColumns * kCellSize, tRows * kCellSize);
+
                 tRow.icon = toIconPath(tTemplate);
-                tRow.itemLeft = toDp((tPosition.columns - tColumns) * kCellSize / 2);
-                tRow.itemTop = toDp((tPosition.rows - tRows) * kCellSize / 2);
-                tRow.itemWidth = toDp(tColumns * kCellSize);
-                tRow.itemHeight = toDp(tRows * kCellSize);
+                tRow.itemLeft = toDp((tPosition.columns * kCellSize - tFit.width) / 2);
+                tRow.itemTop = toDp((tPosition.rows * kCellSize - tFit.height) / 2);
+                tRow.itemWidth = toDp(tFit.width);
+                tRow.itemHeight = toDp(tFit.height);
                 tRow.isFilled = true;
                 tRow.isDragged = mDrag.isActive() && mDrag.isFromEquip() && tItem.slot == mDrag.getFromSlot();
             }

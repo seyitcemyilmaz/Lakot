@@ -9,6 +9,7 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataStructHandle.h>
 
+#include "InventoryUnits.h"
 #include "RmlUiLayer.h"
 
 #include "../../item/ItemIconPath.h"
@@ -59,6 +60,7 @@ ShopRmlController::ShopRmlController(RmlUiLayer& pRmlUiLayer, const InventoryCon
         tBuy.RegisterMember("template_id", &BuyRow::templateId);
         tBuy.RegisterMember("name", &BuyRow::name);
         tBuy.RegisterMember("icon", &BuyRow::icon);
+        tBuy.RegisterMember("icon_style", &BuyRow::iconStyle);
         tBuy.RegisterMember("price_text", &BuyRow::priceText);
         tBuy.RegisterMember("level_text", &BuyRow::levelText);
         tBuy.RegisterMember("is_affordable", &BuyRow::isAffordable);
@@ -73,6 +75,7 @@ ShopRmlController::ShopRmlController(RmlUiLayer& pRmlUiLayer, const InventoryCon
         tSell.RegisterMember("template_id", &SellRow::templateId);
         tSell.RegisterMember("name", &SellRow::name);
         tSell.RegisterMember("icon", &SellRow::icon);
+        tSell.RegisterMember("icon_style", &SellRow::iconStyle);
         tSell.RegisterMember("count", &SellRow::count);
         tSell.RegisterMember("price_text", &SellRow::priceText);
         tSell.RegisterMember("is_pending", &SellRow::isPending);
@@ -247,6 +250,7 @@ void ShopRmlController::rebuild()
         tRow.templateId = static_cast<int>(tTemplateId);
         tRow.name = mLocalization.content("item." + std::to_string(tTemplate->templateId) + ".name", tTemplate->name);
         tRow.icon = ItemIconPath::resolve(mItemIcons, tTemplate);
+        tRow.iconStyle = InventoryUnits::toFitStyle(InventoryUnits::fitContain(tTemplate, 30, 30));
         tRow.priceText = std::to_string(tTemplate->price);
         tRow.levelText = tTemplate->requiredLevel > 1
             ? mLocalization.format("shop.level_requirement", { { "level", std::to_string(tTemplate->requiredLevel) } })
@@ -301,6 +305,7 @@ void ShopRmlController::rebuild()
         tRow.templateId = static_cast<int>(tItem.templateId);
         tRow.name = mLocalization.content("item." + std::to_string(tTemplate->templateId) + ".name", tTemplate->name);
         tRow.icon = ItemIconPath::resolve(mItemIcons, tTemplate);
+        tRow.iconStyle = InventoryUnits::toFitStyle(InventoryUnits::fitContain(tTemplate, 30, 30));
         tRow.count = static_cast<int>(tItem.count);
         tRow.priceText = std::to_string(static_cast<uint64_t>(tTemplate->sellPrice) * tItem.count);
         tRow.isPending = tRow.bagSlot == mPendingSellSlot && tRow.templateId == mPendingSellTemplateId;

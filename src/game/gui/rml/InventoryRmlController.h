@@ -61,7 +61,7 @@ private:
     // In dp; must match .inv-cell in theme.rcss.
     static constexpr uint32_t kCellSize = 32;
     static constexpr uint32_t kDollWidth = 224;
-    static constexpr uint32_t kDollHeight = 200;
+    static constexpr uint32_t kDollHeight = 212;
 
     enum class RequestType
     {

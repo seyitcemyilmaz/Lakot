@@ -52,6 +52,7 @@ private:
         int templateId = 0;
         Rml::String name;
         Rml::String icon;
+        Rml::String iconStyle;
         Rml::String priceText;
         Rml::String levelText;
         bool isAffordable = true;
@@ -67,6 +68,7 @@ private:
         int templateId = 0;
         Rml::String name;
         Rml::String icon;
+        Rml::String iconStyle;
         int count = 1;
         Rml::String priceText;
         bool isPending = false;
