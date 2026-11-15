@@ -491,11 +491,11 @@
       "id": 11,
       "name": "Scorpion",
       "model": "models/monsters/steppe_bandit.glb",
-      "level": 35,
-      "maxHealth": 2940,
-      "attack": 78,
-      "defense": 16,
-      "experience": 6200,
+      "level": 38,
+      "maxHealth": 3550,
+      "attack": 86,
+      "defense": 17,
+      "experience": 7400,
       "moveSpeed": 3.6,
       "aggroRange": 9,
       "attackRange": 1.8,
@@ -504,8 +504,8 @@
       "respawnSeconds": 60,
       "aggressive": true,
       "gold": {
-        "min": 175,
-        "max": 315,
+        "min": 190,
+        "max": 342,
         "chance": 0.8
       },
       "drops": [
@@ -534,8 +534,8 @@
           "max": 1
         }
       ],
-      "minLevel": 32,
-      "maxLevel": 38,
+      "minLevel": 35,
+      "maxLevel": 41,
       "assistRange": 15
     },
     {
@@ -708,11 +708,11 @@
       "id": 15,
       "name": "Giant Spider",
       "model": "models/monsters/steppe_bandit.glb",
-      "level": 46,
-      "maxHealth": 5370,
-      "attack": 111,
-      "defense": 22,
-      "experience": 10800,
+      "level": 49,
+      "maxHealth": 6200,
+      "attack": 120,
+      "defense": 24,
+      "experience": 12300,
       "moveSpeed": 3.8,
       "aggroRange": 10,
       "attackRange": 1.8,
@@ -721,8 +721,8 @@
       "respawnSeconds": 60,
       "aggressive": true,
       "gold": {
-        "min": 230,
-        "max": 414,
+        "min": 245,
+        "max": 441,
         "chance": 0.8
       },
       "drops": [
@@ -751,8 +751,8 @@
           "max": 1
         }
       ],
-      "minLevel": 42,
-      "maxLevel": 50,
+      "minLevel": 45,
+      "maxLevel": 53,
       "assistRange": 20
     },
     {
@@ -920,6 +920,159 @@
       "maxLevel": 64,
       "boss": true,
       "lootRolls": 3
+    },
+    {
+      "id": 19,
+      "name": "Rock Giant",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 30,
+      "maxHealth": 2150,
+      "attack": 63,
+      "defense": 13,
+      "experience": 4600,
+      "moveSpeed": 3.0,
+      "aggroRange": 9,
+      "attackRange": 2.4,
+      "attackInterval": 2.0,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 150,
+        "max": 270,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 25,
+      "maxLevel": 32,
+      "assistRange": 15
+    },
+    {
+      "id": 20,
+      "name": "Eagle",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 34,
+      "maxHealth": 2800,
+      "attack": 75,
+      "defense": 15,
+      "experience": 5900,
+      "moveSpeed": 5.0,
+      "aggroRange": 12,
+      "attackRange": 1.8,
+      "attackInterval": 1.2,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 170,
+        "max": 306,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 29,
+      "maxLevel": 36,
+      "assistRange": 15
+    },
+    {
+      "id": 21,
+      "name": "Hostile Warrior",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 38,
+      "maxHealth": 3500,
+      "attack": 85,
+      "defense": 17,
+      "experience": 7200,
+      "moveSpeed": 3.6,
+      "aggroRange": 9,
+      "attackRange": 1.8,
+      "attackInterval": 1.6,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 190,
+        "max": 342,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 33,
+      "maxLevel": 40,
+      "assistRange": 15
     }
   ]
 }

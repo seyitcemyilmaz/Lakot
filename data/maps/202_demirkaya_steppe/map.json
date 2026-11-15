@@ -14986,18 +14986,40 @@
   {"type": "undergrowth", "x": 812.12, "z": 834.33, "block": false, "model": "nature/grass_1", "yaw": 1.014, "scale": 1.256},
   {"type": "undergrowth", "x": 830.76, "z": 829.8, "block": false, "model": "nature/grass_3", "yaw": 1.1067, "scale": 1.351}
  ],
- "safeZones": [],
+ "safeZones": [
+  {
+   "name": "Forge Camp",
+   "points": [
+    [
+     -770.0,
+     -30.0
+    ],
+    [
+     -700.0,
+     -30.0
+    ],
+    [
+     -700.0,
+     50.0
+    ],
+    [
+     -770.0,
+     50.0
+    ]
+   ]
+  }
+ ],
  "npcs": [],
  "monsterSpawns": [
   {
-   "monster": 6,
+   "monster": 8,
    "x": -520.0,
    "z": 120.0,
    "radius": 40.0,
    "count": 4
   },
   {
-   "monster": 6,
+   "monster": 8,
    "x": -200.0,
    "z": -200.0,
    "radius": 40.0,
@@ -15032,7 +15054,7 @@
    "count": 3
   },
   {
-   "monster": 5,
+   "monster": 7,
    "x": 350.0,
    "z": -240.0,
    "radius": 6.0,
@@ -15041,7 +15063,7 @@
   {
    "monster": 10,
    "x": -260.0,
-   "z": 420.0,
+   "z": 428.0,
    "radius": 25.0,
    "count": 3
   },

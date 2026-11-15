@@ -161,14 +161,12 @@ def main():
         "safeZones": [],
         "npcs": [],
         "monsterSpawns": [
-            monster_spawn(4, -300.0, -400.0, 40.0, 5),
-            monster_spawn(4, -480.0, 340.0, 40.0, 4),
-            monster_spawn(1, 150.0, -450.0, 40.0, 4),
-            monster_spawn(5, 520.0, 120.0, 25.0, 1),
-            monster_spawn(6, 300.0, 300.0, 50.0, 4),
-            monster_spawn(6, 600.0, -450.0, 40.0, 3),
-            monster_spawn(7, 320.0, 340.0, 20.0, 1),
-            monster_spawn(7, -300.0, -380.0, 20.0, 1),
+            monster_spawn(19, -300.0, -400.0, 40.0, 5),
+            monster_spawn(19, -480.0, 340.0, 40.0, 4),
+            monster_spawn(20, 150.0, -450.0, 40.0, 4),
+            monster_spawn(20, 300.0, 300.0, 50.0, 4),
+            monster_spawn(21, 600.0, -450.0, 40.0, 3),
+            monster_spawn(21, 520.0, 120.0, 40.0, 3),
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)

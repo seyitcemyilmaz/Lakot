@@ -15304,60 +15304,46 @@
  "npcs": [],
  "monsterSpawns": [
   {
-   "monster": 4,
+   "monster": 19,
    "x": -300.0,
    "z": -400.0,
    "radius": 40.0,
    "count": 5
   },
   {
-   "monster": 4,
+   "monster": 19,
    "x": -480.0,
    "z": 340.0,
    "radius": 40.0,
    "count": 4
   },
   {
-   "monster": 1,
+   "monster": 20,
    "x": 150.0,
    "z": -450.0,
    "radius": 40.0,
    "count": 4
   },
   {
-   "monster": 5,
-   "x": 520.0,
-   "z": 120.0,
-   "radius": 25.0,
-   "count": 1
-  },
-  {
-   "monster": 6,
+   "monster": 20,
    "x": 300.0,
    "z": 300.0,
    "radius": 50.0,
    "count": 4
   },
   {
-   "monster": 6,
+   "monster": 21,
    "x": 600.0,
    "z": -450.0,
    "radius": 40.0,
    "count": 3
   },
   {
-   "monster": 7,
-   "x": 320.0,
-   "z": 340.0,
-   "radius": 20.0,
-   "count": 1
-  },
-  {
-   "monster": 7,
-   "x": -300.0,
-   "z": -380.0,
-   "radius": 20.0,
-   "count": 1
+   "monster": 21,
+   "x": 520.0,
+   "z": 120.0,
+   "radius": 40.0,
+   "count": 3
   }
  ]
 }

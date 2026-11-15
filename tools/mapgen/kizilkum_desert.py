@@ -202,8 +202,8 @@ def main():
             monster_spawn(13, 330.0, 260.0, 45.0, 3),
             monster_spawn(13, 420.0, -400.0, 45.0, 4),
             monster_spawn(11, -520.0, -120.0, 45.0, 4),
-            monster_spawn(13, 560.0, -380.0, 25.0, 3),
-            monster_spawn(14, -470.0, -470.0, 15.0, 1),
+            monster_spawn(13, 560.0, -372.0, 25.0, 3),
+            monster_spawn(14, -470.0, -462.0, 15.0, 1),
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)

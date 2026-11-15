@@ -157,15 +157,15 @@ def main():
         "npcs": [],
         "monsterSpawns": [
             monster_spawn(15, -420.0, 120.0, 45.0, 5),
-            monster_spawn(15, -300.0, -330.0, 35.0, 4),
-            monster_spawn(15, -240.0, 370.0, 35.0, 4),
+            monster_spawn(15, -300.0, -322.0, 35.0, 4),
+            monster_spawn(15, -240.0, 378.0, 35.0, 4),
             monster_spawn(16, 0.0, -250.0, 45.0, 4),
-            monster_spawn(16, 130.0, -380.0, 40.0, 4),
+            monster_spawn(16, 130.0, -372.0, 40.0, 4),
             monster_spawn(16, 60.0, 330.0, 45.0, 4),
-            monster_spawn(17, 220.0, 100.0, 35.0, 4),
+            monster_spawn(17, 220.0, 108.0, 35.0, 4),
             monster_spawn(17, 430.0, 260.0, 45.0, 4),
             monster_spawn(17, 350.0, -220.0, 45.0, 4),
-            monster_spawn(18, 560.0, -140.0, 15.0, 1),
+            monster_spawn(18, 560.0, -132.0, 15.0, 1),
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)

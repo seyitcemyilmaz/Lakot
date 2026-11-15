@@ -17327,18 +17327,40 @@
   {"type": "undergrowth", "x": 791.0, "z": 834.22, "block": false, "model": "nature/fern_3", "yaw": 4.1452, "scale": 0.949},
   {"type": "undergrowth", "x": 826.57, "z": 831.77, "block": false, "model": "nature/grass_3", "yaw": 5.0983, "scale": 1.593}
  ],
- "safeZones": [],
+ "safeZones": [
+  {
+   "name": "Gate Camp",
+   "points": [
+    [
+     -770.0,
+     -30.0
+    ],
+    [
+     -700.0,
+     -30.0
+    ],
+    [
+     -700.0,
+     50.0
+    ],
+    [
+     -770.0,
+     50.0
+    ]
+   ]
+  }
+ ],
  "npcs": [],
  "monsterSpawns": [
   {
-   "monster": 6,
+   "monster": 8,
    "x": -600.0,
    "z": 120.0,
    "radius": 40.0,
    "count": 4
   },
   {
-   "monster": 6,
+   "monster": 8,
    "x": -250.0,
    "z": -150.0,
    "radius": 40.0,
@@ -17373,7 +17395,7 @@
    "count": 3
   },
   {
-   "monster": 5,
+   "monster": 7,
    "x": 330.0,
    "z": 300.0,
    "radius": 6.0,
@@ -17382,7 +17404,7 @@
   {
    "monster": 10,
    "x": -380.0,
-   "z": -380.0,
+   "z": -372.0,
    "radius": 25.0,
    "count": 4
   },
