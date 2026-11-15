@@ -13,6 +13,7 @@ using namespace lakot;
 namespace
 {
     constexpr double kAssetUploadBudgetSeconds = 0.002;
+    constexpr double kSlowFrameMilliseconds = 50.0;
 }
 
 Engine& Engine::getInstance()
@@ -145,6 +146,10 @@ void Engine::deinitialize()
 
 void Engine::render()
 {
+#if defined(LAKOT_DEV_TOOLS)
+    uint64_t tFrameStart = SDL_GetPerformanceCounter();
+#endif
+
     mNetworkManager.update();
 
     uint64_t tCurrentTime = SDL_GetPerformanceCounter();
@@ -198,6 +203,13 @@ void Engine::render()
     if (mSnapshotRunner)
     {
         mSnapshotRunner->update(mWindow);
+    }
+
+    double tFrameMilliseconds = static_cast<double>(SDL_GetPerformanceCounter() - tFrameStart) * 1000.0 / static_cast<double>(SDL_GetPerformanceFrequency());
+
+    if (tFrameMilliseconds >= kSlowFrameMilliseconds)
+    {
+        SDL_Log("Engine: slow frame %.1f ms (synchronous asset loads so far: %zu)", tFrameMilliseconds, mAssetManager ? mAssetManager->getSynchronousLoadCount() : 0);
     }
 #endif
 }

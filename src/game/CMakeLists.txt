@@ -113,6 +113,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     item/ItemIconPath.h item/ItemIconPath.cpp
     settings/SkillBarBindings.h settings/SkillBarBindings.cpp
     scene/world/MapModelBatch.h scene/world/MapModelBatch.cpp
+    scene/world/MapAssetPrefetcher.h scene/world/MapAssetPrefetcher.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
     scene/world/TargetController.h scene/world/TargetController.cpp

@@ -95,11 +95,14 @@ private:
     std::vector<AnimationEvent> mAnimationEvents;
     std::vector<ClipEvent> mEventScratch;
     std::unordered_set<std::string> mFallbackLogged;
+    std::unordered_set<std::string> mPrefetchedModels;
 
     uint64_t toLocalId(uint64_t pEntityId) const;
     WorldEntity* find(uint64_t pEntityId);
 
     std::shared_ptr<SkinnedModel> loadMonsterModel(const std::string& pModelPath);
+    void prefetchModels(const WorldController::WorldSnapshot& pSnapshot);
+    void prefetchOnce(const std::string& pModelPath);
     WorldEntity& spawn(uint64_t pId, EntityType pType, const std::string& pName, const glm::vec3& pPosition,
                        const std::string& pModelPath = {});
     void animate(WorldEntity& pEntity, double pDeltaTime);

@@ -257,6 +257,12 @@ void WorldScene::update(double pDeltaTime)
     mTarget->update(mLocalPosition, mIsLocalDead);
     updateAttack(pDeltaTime);
     updateLocalMovement(pDeltaTime);
+
+    if (mMap)
+    {
+        mMapPrefetcher->prefetchNearbyPortalTargets(*mMap, mLocalPosition.x, mLocalPosition.z);
+    }
+
     updatePickup();
     updateShop();
     mCameraBob.update(glm::length(glm::vec2(mLocalPosition.x - mPreviousLocalPosition.x, mLocalPosition.z - mPreviousLocalPosition.z)), pDeltaTime);
@@ -1113,6 +1119,9 @@ void WorldScene::teleportLocalPosition(const glm::vec3& pPosition)
 
 void WorldScene::loadMap(uint32_t pMapId)
 {
+    uint64_t tLoadStart = SDL_GetPerformanceCounter();
+    size_t tSynchronousLoadsBefore = mEngine.getAssetManager().getSynchronousLoadCount();
+
     const MapCatalog& tCatalog = mEngine.getMapCatalog();
 
     mMap = tCatalog.getMap(pMapId);
@@ -1122,6 +1131,14 @@ void WorldScene::loadMap(uint32_t pMapId)
         SDL_Log("WorldScene: unknown map %u, client data may be out of date", pMapId);
         mMap = tCatalog.getStartMap(0);
     }
+
+    if (!mMapPrefetcher)
+    {
+        mMapPrefetcher = std::make_unique<MapAssetPrefetcher>(mEngine.getAssetManager(), tCatalog, mEngine.getMonsterCatalog());
+    }
+
+    mMapPrefetcher->reset();
+    mMapPrefetcher->prefetchMap(mMap->getId());
 
     mTerrain = std::make_unique<Terrain>(*mMap);
     mTerrain->initialize();
@@ -1212,7 +1229,9 @@ void WorldScene::loadMap(uint32_t pMapId)
 
     mHud->setMap(tImageName, mEngine.getLocalization().content("map." + std::to_string(mMap->getId()) + ".name", mMap->getName()), mMap->getWorldSize());
 
-    SDL_Log("WorldScene: map %u - %s", mMap->getId(), mMap->getName().c_str());
+    SDL_Log("WorldScene: map %u - %s loaded in %.1f ms, %zu synchronous asset loads", mMap->getId(), mMap->getName().c_str(),
+            static_cast<double>(SDL_GetPerformanceCounter() - tLoadStart) * 1000.0 / static_cast<double>(SDL_GetPerformanceFrequency()),
+            mEngine.getAssetManager().getSynchronousLoadCount() - tSynchronousLoadsBefore);
 }
 
 void WorldScene::sendLocalPlayerState()

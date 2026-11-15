@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <glm/glm.hpp>
 
@@ -34,6 +35,8 @@ public:
     // nullptr when the item has no model, or its template has not arrived yet.
     const ItemLook* find(const ItemVisual& pVisual);
 
+    void prefetch(const ItemVisual& pVisual);
+
     static void apply(ShaderProgram& pShader, const ItemLook& pLook);
 
 private:
@@ -41,6 +44,7 @@ private:
     const InventoryController& mInventoryController;
 
     std::unordered_map<uint64_t, ItemLook> mLooks;
+    std::unordered_set<uint32_t> mPrefetchedTemplates;
 };
 
 }

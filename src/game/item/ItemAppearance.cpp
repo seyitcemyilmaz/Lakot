@@ -43,6 +43,16 @@ const ItemLook* ItemAppearance::find(const ItemVisual& pVisual)
     return tIterator->second.model ? &tIterator->second : nullptr;
 }
 
+void ItemAppearance::prefetch(const ItemVisual& pVisual)
+{
+    const ItemTemplate* tTemplate = mInventoryController.findTemplate(pVisual.templateId);
+
+    if (tTemplate && !tTemplate->model.empty() && mPrefetchedTemplates.insert(pVisual.templateId).second)
+    {
+        mAssets.prefetchSkinnedModel(tTemplate->model);
+    }
+}
+
 void ItemAppearance::apply(ShaderProgram& pShader, const ItemLook& pLook)
 {
     pShader.setVec3("uTint", pLook.tint);

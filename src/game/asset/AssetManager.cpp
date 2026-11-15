@@ -84,6 +84,11 @@ std::shared_ptr<T> AssetManager::obtain(AssetCache<T>& pCache, AssetKindType pKi
     }
     else
     {
+        mSynchronousLoadCount++;
+#if defined(LAKOT_DEV_TOOLS)
+        SDL_Log("AssetManager: synchronous load #%zu of %s", mSynchronousLoadCount, pPath.c_str());
+#endif
+
         std::string tError;
         tAsset = pLoader(tError);
         logFailure(tAsset, tError);
@@ -172,6 +177,11 @@ std::shared_ptr<SkinnedModel> AssetManager::getMotionSource(const std::string& p
         });
 }
 
+size_t AssetManager::getSynchronousLoadCount() const
+{
+    return mSynchronousLoadCount;
+}
+
 void AssetManager::prefetchModel(const std::string& pRelativePath)
 {
     prefetch(AssetKindType::eModel, pRelativePath);
@@ -191,7 +201,7 @@ void AssetManager::prefetch(AssetKindType pKind, const std::string& pRelativePat
 {
     std::string tPath = resolve(pRelativePath);
 
-    bool tIsCached = pKind == AssetKindType::eModel ? mModels.contains(tPath)
+    bool tIsCached = pKind == AssetKindType::eModel ? mModels.find(tPath) != nullptr
         : pKind == AssetKindType::eSkinnedModel ? mSkinnedModels.contains(tPath)
         : mMotionSources.contains(tPath);
 

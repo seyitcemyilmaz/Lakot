@@ -249,8 +249,54 @@ WorldEntity& WorldEntities::spawn(uint64_t pId, EntityType pType, const std::str
     return tStored;
 }
 
+void WorldEntities::prefetchOnce(const std::string& pModelPath)
+{
+    if (!pModelPath.empty() && mPrefetchedModels.insert(pModelPath).second)
+    {
+        mAssets.prefetchSkinnedModel(pModelPath);
+    }
+}
+
+void WorldEntities::prefetchModels(const WorldController::WorldSnapshot& pSnapshot)
+{
+    for (const auto& tEntity : pSnapshot.entered)
+    {
+        if (tEntity.kind == 3)
+        {
+            continue;
+        }
+
+        if (tEntity.kind == 1)
+        {
+            const MonsterTemplate* tTemplate = mMonsterCatalog.find(tEntity.templateId);
+            const std::string& tModel = tTemplate ? tTemplate->model : tEntity.model;
+
+            prefetchOnce(tModel);
+        }
+        else
+        {
+            prefetchOnce(tEntity.model.empty() ? kPlayerBodyModel : tEntity.model);
+        }
+
+        for (const EquippedVisual& tEquipped : tEntity.equipment)
+        {
+            mAppearance.prefetch(tEquipped.item);
+        }
+    }
+
+    for (const auto& tAppearance : pSnapshot.appearance)
+    {
+        for (const EquippedVisual& tEquipped : tAppearance.equipment)
+        {
+            mAppearance.prefetch(tEquipped.item);
+        }
+    }
+}
+
 void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapshot)
 {
+    prefetchModels(pSnapshot);
+
     for (const auto& tEntity : pSnapshot.entered)
     {
         if (tEntity.kind == 3)
@@ -371,6 +417,7 @@ void WorldEntities::applySnapshot(const WorldController::WorldSnapshot& pSnapsho
 void WorldEntities::clearRemote()
 {
     std::erase_if(mEntities, [](const auto& pEntry) { return pEntry.first != kLocalId; });
+    mPrefetchedModels.clear();
 }
 
 void WorldEntities::setLocal(const std::string& pName, const glm::vec3& pPosition, double pStepSeconds)

@@ -17,6 +17,7 @@
 #include "world/DamageNumbers.h"
 #include "world/EntityRenderer.h"
 #include "world/TargetController.h"
+#include "world/MapAssetPrefetcher.h"
 #include "world/MapModelBatch.h"
 #include "../gui/Panel.h"
 #include "../item/EquipmentAttachments.h"
@@ -76,6 +77,7 @@ private:
     std::unique_ptr<TerrainMaterial> mTerrainMaterial;
     std::unique_ptr<ThirdPersonCamera> mCamera;
     std::vector<MapModelBatch> mMapModels;
+    std::unique_ptr<MapAssetPrefetcher> mMapPrefetcher;
 
     int mViewportWidth{1};
     int mViewportHeight{1};

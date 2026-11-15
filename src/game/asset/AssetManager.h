@@ -2,6 +2,7 @@
 #define LAKOT_ASSET_MANAGER_H
 
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>
@@ -37,6 +38,8 @@ public:
     void prefetchMotionSource(const std::string& pRelativePath);
 
     void update(double pBudgetSeconds);
+
+    size_t getSynchronousLoadCount() const;
 
     std::shared_ptr<Model> getModel(const std::string& pRelativePath);
     std::shared_ptr<SkinnedModel> getSkinnedModel(const std::string& pRelativePath);
@@ -80,6 +83,7 @@ private:
 
     std::unordered_map<std::string, DecodedImage> mPendingImages;
     std::chrono::steady_clock::time_point mLastSweep;
+    size_t mSynchronousLoadCount{0};
 };
 
 }
