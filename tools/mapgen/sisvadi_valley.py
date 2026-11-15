@@ -225,6 +225,7 @@ def main():
         ],
     }
     check_map_access(h, objs, block, meta, "map %d" % MAP_ID)
+    add_undergrowth(objs, h, block, roads, meta, "mist", 7302)
     write_map(OUT, meta, h, ground, block, roads, objs, make_splat(h, objs))
 
 

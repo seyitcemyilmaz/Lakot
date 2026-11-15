@@ -1118,6 +1118,11 @@ void WorldScene::loadMap(uint32_t pMapId)
                 }
 
                 tBatch = tModelBatches.emplace(tObject.model, MapModelBatch(tModel, tLodModel)).first;
+
+                if (tObject.isUndergrowth())
+                {
+                    tBatch->second.setDrawDistance(WorldView::kUndergrowthDrawDistance);
+                }
             }
 
             if (tBatch->second.isValid())
@@ -1129,7 +1134,7 @@ void WorldScene::loadMap(uint32_t pMapId)
             }
         }
 
-        if (tObject.isHidden)
+        if (tObject.isHidden || tObject.isUndergrowth())
         {
             continue;
         }

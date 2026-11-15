@@ -30,6 +30,7 @@ namespace lakot::WorldView
     inline constexpr float kHitConeCosine = 0.5f;
 
     inline constexpr float kViewDistance = 360.0f;
+    inline constexpr float kUndergrowthDrawDistance = 70.0f;
 
     inline constexpr double kSpeechBubbleVisibleSeconds = 5.0;
 

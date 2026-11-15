@@ -480,4 +480,5 @@ def main():
                 generate(tName, tVariant, tLod, tOut)
 
 
-main()
+if __name__ == "__main__":
+    main()

@@ -148,6 +148,11 @@ std::optional<glm::vec3> WorldPicker::pickGround(const MapData& pMap, const glm:
 
     for (const MapObject& tObject : pMap.getObjects())
     {
+        if (tObject.isUndergrowth())
+        {
+            continue;
+        }
+
         glm::vec3 tCenter = getObjectCenter(pMap, tObject);
         glm::vec3 tHalf(tObject.sizeX * 0.5f, tObject.sizeY * 0.5f, tObject.sizeZ * 0.5f);
 

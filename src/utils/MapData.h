@@ -32,6 +32,8 @@ struct MapObject
     // Not drawn: a building's collision/picking box, whose look comes from
     // its model pieces. Still used for picking and the map picture.
     bool isHidden = false;
+
+    bool isUndergrowth() const { return type == "undergrowth"; }
 };
 
 struct MapPortal

@@ -83,6 +83,11 @@ MapImage MapImageFactory::create(const MapData& pMap, int pSize)
 
     for (const MapObject& tObject : pMap.getObjects())
     {
+        if (tObject.isUndergrowth())
+        {
+            continue;
+        }
+
         tObjects.push_back(&tObject);
     }
 

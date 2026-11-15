@@ -3,12 +3,16 @@
 #include "WorldViewConstants.h"
 #include "../../graphics/model/Model.h"
 
+#include <algorithm>
+
 using namespace lakot;
 
 namespace
 {
     constexpr float kLodDistance = 60.0f;
     constexpr float kRebuildDistance = 4.0f;
+    constexpr float kFadeBandRatio = 0.3f;
+    constexpr float kMinFadeScale = 0.05f;
 }
 
 MapModelBatch::MapModelBatch(std::shared_ptr<Model> pModel, std::shared_ptr<Model> pLodModel)
@@ -40,7 +44,9 @@ void MapModelBatch::rebuild(const glm::vec3& pCamera, float pViewDistance)
     std::vector<glm::vec3> tFarOffsets;
     std::vector<glm::vec3> tFarParams;
 
-    const float tCullDistance = pViewDistance;
+    const bool tIsLimited = mDrawDistance > 0.0f;
+    const float tCullDistance = tIsLimited ? std::min(pViewDistance, mDrawDistance * pViewDistance / WorldView::kViewDistance) : pViewDistance;
+    const float tFadeBand = tCullDistance * kFadeBandRatio;
 
     for (size_t tIndex = 0; tIndex < mOffsets.size(); ++tIndex)
     {
@@ -51,9 +57,23 @@ void MapModelBatch::rebuild(const glm::vec3& pCamera, float pViewDistance)
             continue;
         }
 
+        glm::vec3 tParams = mParams[tIndex];
+
+        if (tIsLimited)
+        {
+            float tFade = std::clamp((tCullDistance - tDistance) / tFadeBand, 0.0f, 1.0f);
+
+            if (tFade < kMinFadeScale)
+            {
+                continue;
+            }
+
+            tParams.y *= tFade;
+        }
+
         bool tIsFar = mLodModel && tDistance > kLodDistance;
         (tIsFar ? tFarOffsets : tNearOffsets).push_back(mOffsets[tIndex]);
-        (tIsFar ? tFarParams : tNearParams).push_back(mParams[tIndex]);
+        (tIsFar ? tFarParams : tNearParams).push_back(tParams);
     }
 
     mModel->setInstances(tNearOffsets, tNearParams);

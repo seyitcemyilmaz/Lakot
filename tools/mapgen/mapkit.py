@@ -389,6 +389,89 @@ def scatter_forest(rng, h, biome, circles, keepout, max_trees, sparse_chance=0.0
     return objs
 
 
+UNDERGROWTH_CELL = 7.0
+UNDERGROWTH_CLEARANCE = 3.0
+UNDERGROWTH_SPAWN_CLEAR = 14.0
+UNDERGROWTH_MAX_SLOPE = 0.75
+UNDERGROWTH_SCALE = {"grass": (1.1, 1.9), "drygrass": (1.1, 1.8), "bush": (0.8, 1.3), "drybush": (0.8, 1.3),
+                     "fern": (0.9, 1.4), "stone": (0.5, 1.8), "sandstone": (0.5, 1.8)}
+UNDERGROWTH_BIOMES = {
+    "village": {"open": 0.22, "forest": 0.60, "openKinds": [("grass", 8), ("stone", 2)],
+                "forestKinds": [("grass", 5), ("bush", 4), ("stone", 1)]},
+    "steppe": {"open": 0.48, "forest": 0.60, "openKinds": [("drygrass", 8), ("stone", 1), ("drybush", 1)],
+               "forestKinds": [("drygrass", 6), ("drybush", 3), ("stone", 1)]},
+    "border": {"open": 0.31, "forest": 0.60, "openKinds": [("grass", 5), ("drygrass", 3), ("stone", 2)],
+               "forestKinds": [("grass", 4), ("bush", 3), ("fern", 1), ("stone", 2)]},
+    "mist": {"open": 0.31, "forest": 0.60, "openKinds": [("grass", 5), ("fern", 4), ("stone", 1)],
+             "forestKinds": [("fern", 4), ("grass", 3), ("bush", 3)]},
+    "desert": {"open": 0.09, "forest": 0.44, "openKinds": [("sandstone", 5), ("drybush", 4), ("drygrass", 1)],
+               "forestKinds": [("drybush", 6), ("drygrass", 3), ("sandstone", 1)]},
+    "dark": {"open": 0.50, "forest": 0.60, "openKinds": [("bush", 4), ("fern", 4), ("grass", 2)],
+             "forestKinds": [("fern", 5), ("bush", 4), ("stone", 1)]},
+}
+
+
+def undergrowth(kind, px, pz, yaw, scale):
+    variant = 1 + int(abs(px * 7.3 + pz * 3.1)) % TREE_VARIANTS
+    return {"type": "undergrowth", "x": round(float(px), 2), "z": round(float(pz), 2), "block": False,
+            "model": "nature/%s_%d" % (kind, variant), "yaw": round(float(yaw), 4), "scale": round(float(scale), 3)}
+
+
+def undergrowth_points(meta):
+    points = [(meta["spawn"]["x"], meta["spawn"]["z"], UNDERGROWTH_SPAWN_CLEAR)]
+    for p in meta.get("portals", []):
+        points.append((p["x"], p["z"], max(p["radius"], 6.0) + UNDERGROWTH_SPAWN_CLEAR))
+    for n in meta.get("npcs", []):
+        points.append((n["x"], n["z"], 6.0))
+    return points
+
+
+def add_undergrowth(objs, h, block, roads, meta, biome, seed):
+    config = UNDERGROWTH_BIOMES[biome]
+    rng = np.random.RandomState(seed)
+    step = WORLD / (HEIGHT_RES - 1)
+    gy, gx = np.gradient(h)
+    slope = np.hypot(gx, gy) / step
+    bound = HALF - RIM_BLOCK - 6.0
+    n = int(2 * bound / UNDERGROWTH_CELL)
+    axis = -bound + np.arange(n) * UNDERGROWTH_CELL
+    cx, cz = np.meshgrid(axis, axis)
+    px = (cx + rng.uniform(0, UNDERGROWTH_CELL, cx.shape)).ravel()
+    pz = (cz + rng.uniform(0, UNDERGROWTH_CELL, cz.shape)).ravel()
+    roll = rng.uniform(0, 1, px.shape)
+    kind_roll = rng.uniform(0, 1, px.shape)
+    yaws = rng.uniform(0.0, 2.0 * math.pi, px.shape)
+    scale_roll = rng.uniform(0, 1, px.shape)
+    cell = WORLD / BLOCK_RES
+    ci = np.clip(((px + HALF) / cell).astype(int), 0, BLOCK_RES - 1)
+    cj = np.clip(((pz + HALF) / cell).astype(int), 0, BLOCK_RES - 1)
+    reach = int(math.ceil(UNDERGROWTH_CLEARANCE / cell))
+    blocked = (block > 0) | (roads > 0)
+    near = blocked.copy()
+    for dy in range(-reach, reach + 1):
+        for dx in range(-reach, reach + 1):
+            near |= np.roll(np.roll(blocked, dy, axis=0), dx, axis=1)
+    forest = tree_density(np.zeros((BLOCK_RES, BLOCK_RES)), np.zeros((BLOCK_RES, BLOCK_RES)), objs, 9.0)[cj, ci]
+    clump = 0.4 + 0.85 * smoothstep(-0.3, 0.3, smooth_noise(px, pz, seed + 17))
+    chance = (config["open"] * (1.0 - forest) + config["forest"] * forest) * clump
+    ii = np.clip(np.round((px + HALF) / step).astype(int), 0, HEIGHT_RES - 1)
+    jj = np.clip(np.round((pz + HALF) / step).astype(int), 0, HEIGHT_RES - 1)
+    ground = h[jj, ii]
+    ok = (roll < chance) & (ground > WATER + 0.4) & (slope[jj, ii] < UNDERGROWTH_MAX_SLOPE) & ~near[cj, ci]
+    for ox, oz, r in undergrowth_points(meta):
+        ok &= np.hypot(px - ox, pz - oz) > r
+    added = []
+    for i in np.nonzero(ok)[0]:
+        kinds = config["forestKinds"] if forest[i] > 0.3 else config["openKinds"]
+        weights = np.array([w for _, w in kinds], dtype=float)
+        pick = int(np.searchsorted(np.cumsum(weights) / weights.sum(), kind_roll[i], side="right"))
+        kind = kinds[min(pick, len(kinds) - 1)][0]
+        lo, hi = UNDERGROWTH_SCALE[kind]
+        added.append(undergrowth(kind, px[i], pz[i], yaws[i], lo + (hi - lo) * scale_roll[i]))
+    objs.extend(added)
+    return len(added)
+
+
 def boulder(rng, px, pz):
     s = rng.uniform(2.0, 5.0)
     return box("boulder", px, pz, s * rng.uniform(0.8, 1.3), s * 0.7, s, BOULDER)
@@ -611,6 +694,8 @@ def write_preview(out, ground, h, objs):
     px = img.load()
     scale = 1024 / WORLD
     for o in objs:
+        if o["type"] == "undergrowth":
+            continue
         col = tuple(int(v * 255) for v in o["color"])
         x0 = int((o["x"] - o["sx"] / 2 + HALF) * scale)
         x1 = int((o["x"] + o["sx"] / 2 + HALF) * scale)
