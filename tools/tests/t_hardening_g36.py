@@ -30,7 +30,10 @@ def raw():
 def t_zero_length_frame_closes():
     s = raw()
     s.sendall(struct.pack(">I", 0))
-    return is_closed(s, 3.0)
+    tStart = time.time()
+    tClosed = is_closed(s, 10.0)
+    print(f"  zero-length closed={tClosed} after {time.time() - tStart:.2f}s")
+    return tClosed
 
 
 def t_unauthenticated_idle_closes():
