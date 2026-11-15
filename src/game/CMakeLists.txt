@@ -107,6 +107,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/WorldOverlay.h scene/world/WorldOverlay.cpp
     scene/world/WorldShaders.h scene/world/WorldShaders.cpp
     gui/rml/VitalsRmlController.h gui/rml/VitalsRmlController.cpp
+    gui/rml/TargetFrameRmlController.h gui/rml/TargetFrameRmlController.cpp
     item/ItemAppearance.h item/ItemAppearance.cpp
     item/ItemIconRenderer.h item/ItemIconRenderer.cpp
     item/ItemIconPath.h item/ItemIconPath.cpp
@@ -114,6 +115,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/MapModelBatch.h scene/world/MapModelBatch.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
+    scene/world/TargetController.h scene/world/TargetController.cpp
     graphics/camera/CameraBob.h graphics/camera/CameraBob.cpp
     scene/world/CombatFeel.h scene/world/CombatFeel.cpp
     scene/world/WhisperWindows.h scene/world/WhisperWindows.cpp

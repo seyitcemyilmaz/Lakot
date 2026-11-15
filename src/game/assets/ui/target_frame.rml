@@ -1,0 +1,17 @@
+<rml>
+<head>
+    <title>[[vitals.window_title]]</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="target-screen">
+    <div data-model="target_frame" class="target-root">
+        <div class="target-panel" data-if="is_visible">
+            <div class="target-row">
+                <span class="target-name">{{ name }}</span>
+                <span class="target-level">[[vitals.level]] {{ level }}</span>
+            </div>
+            <div class="char-bar target-bar"><div class="char-bar-fill char-bar-health" data-style-width="health_percent"></div></div>
+        </div>
+    </div>
+</body>
+</rml>

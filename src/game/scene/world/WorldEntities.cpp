@@ -160,6 +160,16 @@ void WorldEntities::playLocalAttack(uint32_t pCombo)
     }
 }
 
+void WorldEntities::setLocalFacing(float pYaw)
+{
+    auto tIterator = mEntities.find(kLocalId);
+
+    if (tIterator != mEntities.end())
+    {
+        tIterator->second.facing = pYaw;
+    }
+}
+
 glm::vec2 WorldEntities::takeLocalRootMotion()
 {
     auto tIterator = mEntities.find(kLocalId);

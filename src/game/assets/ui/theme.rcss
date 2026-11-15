@@ -1617,6 +1617,60 @@ body
     height: 480dp;
 }
 
+/* ===== Target frame (src/game/assets/ui/target_frame.rml) ===== */
+
+.target-screen
+{
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.target-root
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.target-panel
+{
+    position: absolute;
+    top: 12dp;
+    left: 50%;
+    width: 220dp;
+    margin-left: -110dp;
+    padding: 6dp 8dp;
+    font-size: 13dp;
+    color: #9999A8;
+    background-color: rgba(18, 18, 24, 235);
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 4dp;
+}
+
+.target-row
+{
+    display: flex;
+    justify-content: space-between;
+}
+
+.target-name
+{
+    color: #EBEBF0;
+}
+
+.target-level
+{
+    color: #D9A640;
+}
+
+.target-bar
+{
+    height: 10dp;
+    margin-top: 4dp;
+}
+
 /* ===== Vitals (src/game/assets/ui/vitals.rml) ===== */
 
 .vitals-screen

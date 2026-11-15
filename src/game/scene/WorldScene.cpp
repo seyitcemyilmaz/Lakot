@@ -163,6 +163,7 @@ void WorldScene::enter()
 
     mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getLocalization(), mEngine.getDisplaySettings(), mEngine.getKeyBindings(),
                                       mEngine.getWindow(), mLocalUsername, mLocalStats, mEngine.getClassCatalog(), mEngine.getSkillCatalog(), mLocalItems, *mItemIcons, mLocalCharacterId);
+    mTarget = std::make_unique<TargetController>(*mEntities, *mAutoWalk, *mHud);
 
     mHud->setLocalItemsCallback(
     [this](const std::vector<OwnedItem>& pItems)
@@ -253,6 +254,7 @@ void WorldScene::update(double pDeltaTime)
         endOrbit();
     }
 
+    mTarget->update(mLocalPosition, mIsLocalDead);
     updateAttack(pDeltaTime);
     updateLocalMovement(pDeltaTime);
     updatePickup();
@@ -533,7 +535,7 @@ void WorldScene::updateAttack(double pDeltaTime)
     mComboResetTimer -= pDeltaTime;
     mAttackRootTimer -= pDeltaTime;
 
-    if (!mIsAttackHeld)
+    if (!mIsAttackHeld && !mTarget->isInRange())
     {
         mHasWarnedSafeZone = false;
         return;
@@ -546,6 +548,8 @@ void WorldScene::updateAttack(double pDeltaTime)
 
     if (mMap->isSafe(mLocalPosition.x, mLocalPosition.z))
     {
+        mTarget->clear();
+
         if (!mHasWarnedSafeZone)
         {
             mHud->showNotice(mEngine.getLocalization().text("world.safe_zone_no_fight"));
@@ -636,6 +640,7 @@ void WorldScene::updateLocalMovement(double pDeltaTime)
     if (tIsManual)
     {
         mAutoWalk->stop();
+        mTarget->clear();
     }
     else if (mAutoWalk->isActive())
     {
@@ -824,16 +829,36 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
             return mHud->handleKeyDown(pEvent->key);
         }
 
+        if (tIsPressed && !pEvent->key.repeat && pEvent->key.key == SDLK_ESCAPE && mTarget->hasTarget())
+        {
+            mTarget->clear();
+            return true;
+        }
+
         std::optional<KeyActionType> tAction = mEngine.getKeyBindings().findAction(pEvent->key.scancode);
 
         if (tAction)
         {
             switch (*tAction)
             {
-                case KeyActionType::eMoveForward:  mIsMovingForward = tIsPressed;  return true;
-                case KeyActionType::eMoveBackward: mIsMovingBackward = tIsPressed; return true;
-                case KeyActionType::eMoveLeft:     mIsMovingLeft = tIsPressed;     return true;
-                case KeyActionType::eMoveRight:    mIsMovingRight = tIsPressed;    return true;
+                case KeyActionType::eMoveForward:  mIsMovingForward = tIsPressed;  break;
+                case KeyActionType::eMoveBackward: mIsMovingBackward = tIsPressed; break;
+                case KeyActionType::eMoveLeft:     mIsMovingLeft = tIsPressed;     break;
+                case KeyActionType::eMoveRight:    mIsMovingRight = tIsPressed;    break;
+                default: break;
+            }
+
+            switch (*tAction)
+            {
+                case KeyActionType::eMoveForward:
+                case KeyActionType::eMoveBackward:
+                case KeyActionType::eMoveLeft:
+                case KeyActionType::eMoveRight:
+                    if (tIsPressed)
+                    {
+                        mTarget->clear();
+                    }
+                    return true;
                 case KeyActionType::eAttack:       mIsAttackHeld = tIsPressed;     return true;
                 case KeyActionType::eAutoPickup:
                     if (tIsPressed && !pEvent->key.repeat)
@@ -917,7 +942,17 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 
             if (auto tTarget = mPicker->pickTarget(tPixel))
             {
-                mAutoWalk->follow(tTarget->id);
+                mTarget->clear();
+
+                if (tTarget->type == EntityType::eMonster)
+                {
+                    mTarget->select(tTarget->id);
+                }
+                else
+                {
+                    mAutoWalk->follow(tTarget->id);
+                }
+
                 mPendingPickupId = tTarget->type == EntityType::eGroundItem ? tTarget->id : 0;
                 mPendingShopNpcId = tTarget->type == EntityType::eNpc ? tTarget->id : 0;
                 return true;
@@ -925,6 +960,7 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 
             mPendingPickupId = 0;
             mPendingShopNpcId = 0;
+            mTarget->clear();
 
             if (auto tGround = mPicker->pickGround(*mMap, tPixel))
             {
@@ -986,6 +1022,7 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
 void WorldScene::onSessionResumed()
 {
     mAutoWalk->stop();
+    mTarget->clear();
 
     mEntities->clearRemote();
     resetFeel();
@@ -1053,6 +1090,7 @@ void WorldScene::onMapChanged(const WorldController::MapSnapshot& pSnapshot)
     mHasSentInitialState = false;
 
     mAutoWalk->stop();
+    mTarget->clear();
     mPendingShopNpcId = 0;
     mHud->closeShop();
 

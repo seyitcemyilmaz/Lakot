@@ -17,6 +17,7 @@
 #include "../../gui/rml/WorldChatRmlController.h"
 #include "../../gui/rml/SkillBarRmlController.h"
 #include "../../gui/rml/VitalsRmlController.h"
+#include "../../gui/rml/TargetFrameRmlController.h"
 #include "../../network/controller/WorldController.h"
 #include "../../gui/rml/InventoryRmlController.h"
 #include "../../gui/rml/CharacterSheetRmlController.h"
@@ -75,6 +76,9 @@ public:
     void setSafeZone(bool pIsSafe);
     void showNotice(const std::string& pText);
 
+    void setTarget(const std::string& pName, uint32_t pLevel, uint32_t pHealthPercent);
+    void clearTarget();
+
     void requestShop(uint64_t pNpcId);
     void closeShop();
     bool isShopOpen() const;
@@ -107,6 +111,7 @@ private:
     WorldChatRmlController mWorldChat;
     SkillBarRmlController mSkillBar;
     VitalsRmlController mVitals;
+    TargetFrameRmlController mTargetFrame;
     InventoryRmlController mInventory;
     CharacterSheetRmlController mCharacterSheet;
     SkillWindowRmlController mSkillWindow;

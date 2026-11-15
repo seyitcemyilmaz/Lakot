@@ -31,6 +31,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mWorldChat(pRmlUiLayer, pLocalization)
     , mSkillBar(pRmlUiLayer)
     , mVitals(pRmlUiLayer)
+    , mTargetFrame(pRmlUiLayer)
     , mInventory(pRmlUiLayer, pLocalization, pNetworkManager.getInventoryController(), pClassCatalog, pItemIcons)
     , mCharacterSheet(pRmlUiLayer, pLocalization, pClassCatalog, pUsername)
     , mSkillWindow(pRmlUiLayer, pLocalization, pSkillCatalog, pClassCatalog)
@@ -334,6 +335,16 @@ void WorldHud::setSafeZone(bool pIsSafe)
 void WorldHud::showNotice(const std::string& pText)
 {
     mVitals.showNotice(pText);
+}
+
+void WorldHud::setTarget(const std::string& pName, uint32_t pLevel, uint32_t pHealthPercent)
+{
+    mTargetFrame.setTarget(pName, pLevel, pHealthPercent);
+}
+
+void WorldHud::clearTarget()
+{
+    mTargetFrame.clear();
 }
 
 void WorldHud::requestShop(uint64_t pNpcId)

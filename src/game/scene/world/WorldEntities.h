@@ -52,6 +52,7 @@ public:
     const WorldEntity* getLocal() const;
 
     void playLocalAttack(uint32_t pCombo);
+    void setLocalFacing(float pYaw);
     std::vector<DamageEvent> takeDamageEvents();
     std::vector<AnimationEvent> takeAnimationEvents();
 

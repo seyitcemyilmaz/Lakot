@@ -16,6 +16,7 @@
 #include "world/CombatFeel.h"
 #include "world/DamageNumbers.h"
 #include "world/EntityRenderer.h"
+#include "world/TargetController.h"
 #include "world/MapModelBatch.h"
 #include "../gui/Panel.h"
 #include "../item/EquipmentAttachments.h"
@@ -99,6 +100,7 @@ private:
     std::unique_ptr<TrailRenderer> mTrailRenderer;
     std::unique_ptr<WorldOverlay> mOverlay;
     std::unique_ptr<WorldHud> mHud;
+    std::unique_ptr<TargetController> mTarget;
 
     bool mIsMovingForward{false};
     bool mIsMovingBackward{false};
