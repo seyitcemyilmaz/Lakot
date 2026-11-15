@@ -19,6 +19,8 @@ BANDS = {
 BAND_LOW_TOLERANCE = {101: 0, 201: 0, 301: 0}
 ARRIVAL_MAX_DISTANCE = 120.0
 BOSS_HIGH_TOLERANCE = 5
+SPAWN_BLOCKED_MAX = 0.30
+EDGE_MARGIN = 4.0
 
 
 def fail(message):
@@ -130,6 +132,9 @@ def main():
             tgrid = BlockGrid(tdir, tdoc["worldSize"])
             if tgrid.blocked(portal["targetX"], portal["targetZ"]):
                 fail(f"{ptag}: arrival ({portal['targetX']},{portal['targetZ']}) is on a blocked cell of map {portal['targetMap']}")
+            thalf = tdoc["worldSize"] * 0.5
+            if max(abs(portal["targetX"]), abs(portal["targetZ"])) > thalf - EDGE_MARGIN:
+                fail(f"{ptag}: arrival is on the map edge of map {portal['targetMap']}")
             back = [p for p in tdoc.get("portals", []) if p["targetMap"] == mapId]
             if not back:
                 fail(f"{ptag}: map {portal['targetMap']} has no portal back to {mapId}")
@@ -149,6 +154,19 @@ def main():
             for k in range(8):
                 a = k * math.pi / 4
                 probes.append((spawn["x"] + spawn["radius"] * math.cos(a), spawn["z"] + spawn["radius"] * math.sin(a)))
+            samples = list(probes[1:])
+            for k in range(16):
+                a = k * math.pi / 8 + 0.1
+                samples.append((spawn["x"] + spawn["radius"] * math.cos(a), spawn["z"] + spawn["radius"] * math.sin(a)))
+            for k in range(8):
+                a = k * math.pi / 4 + 0.3
+                samples.append((spawn["x"] + spawn["radius"] * 0.5 * math.cos(a), spawn["z"] + spawn["radius"] * 0.5 * math.sin(a)))
+            half = doc["worldSize"] * 0.5
+            if any(abs(px) >= half or abs(pz) >= half for px, pz in samples):
+                fail(f"{stag}: spawn circle leaves the map")
+            ratio = sum(1 for px, pz in samples if grid.blocked(px, pz)) / len(samples)
+            if ratio > SPAWN_BLOCKED_MAX:
+                fail(f"{stag}: {ratio:.0%} of sampled spawn points are blocked (max {SPAWN_BLOCKED_MAX:.0%})")
             if any(point_in_polygon(px, pz, pts) for px, pz in probes for pts in zones):
                 fail(f"{stag}: spawn area touches a safe zone")
             if low is not None:
