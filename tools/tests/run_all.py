@@ -161,7 +161,12 @@ def t_enter_world():
 
 def t_two_players_see_each_other():
     a = S["A"]
-    S["B"] = b = make_player(1, "b")
+    S["B"] = b = make_player(2, "b")
+    ax, ay, az = a.pos
+    tExe = r"C:\Program Files\PostgreSQL\18\bin\psql.exe"
+    subprocess.run([tExe, "-h", "localhost", "-U", os.environ.get("LAKOT_DB_USER", "postgres"), "-d", "lakot_db", "-c",
+                    f"UPDATE characters SET map_id=101, pos_x={ax}, pos_y={ay}, pos_z={az + 1.0} WHERE id={b.cid}"],
+                   env={**os.environ, "PGPASSWORD": os.environ["LAKOT_DB_PASSWORD"]}, check=True, capture_output=True)
     enter_world(b)
     ok = set()
     end = time.time() + 8
@@ -611,7 +616,7 @@ TESTS = [t_register_ok, t_register_dup_username, t_register_dup_email, t_registe
          t_loot_double_pickup, t_loot_despawn_and_no_damage]
 
 
-SCRIPTS = ['t_monsters_g21', 't_monster_path_o4', 't_kill_share_o10', 't_use_item_g24', 't_hardening_g32', 't_gm_commands_g27', 't_session_lifecycle_g33', 't_hardening_g36', 't_speed_y1', 't_gm_security_g53', 't_login_pipeline_g54', 't_login_limiter_g55', 't_register_limit_g58', 't_world_entry_g34', 't_script_sandbox_g60', 't_classes_g12', 't_regen_g25', 't_starter_once_g62', 't_discard_item_g31', 't_delete_character_g30', 't_locale_g63', 't_save_retry_y3', 't_portal_g22', 't_portal_g22s3', 't_portal_g22s4']
+SCRIPTS = ['t_monsters_g21', 't_monster_path_o4', 't_kill_share_o10', 't_use_item_g24', 't_hardening_g32', 't_gm_commands_g27', 't_session_lifecycle_g33', 't_hardening_g36', 't_speed_y1', 't_gm_security_g53', 't_login_pipeline_g54', 't_login_limiter_g55', 't_register_limit_g58', 't_world_entry_g34', 't_script_sandbox_g60', 't_classes_g12', 't_regen_g25', 't_starter_once_g62', 't_discard_item_g31', 't_delete_character_g30', 't_locale_g63', 't_save_retry_y3', 't_portal_g22', 't_portal_g22s3', 't_portal_g22s4', 't_data_consistency']
 
 
 def main():
