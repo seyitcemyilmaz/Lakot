@@ -184,7 +184,7 @@ def hurt_player():
 
 def t_drink_heals_and_second_client_sees():
     c, w, v = new_looter()
-    b = make_player(2, "u")
+    b = make_player(1, "u")
     enter_world(b)
     wb = Watch(b)
     try:

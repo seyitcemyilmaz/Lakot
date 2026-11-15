@@ -161,7 +161,7 @@ def t_enter_world():
 
 def t_two_players_see_each_other():
     a = S["A"]
-    S["B"] = b = make_player(2, "b")
+    S["B"] = b = make_player(1, "b")
     enter_world(b)
     ok = set()
     end = time.time() + 8

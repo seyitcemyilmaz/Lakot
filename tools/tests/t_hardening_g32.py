@@ -40,7 +40,7 @@ def correction(s):
 
 
 def pair():
-    a, b = make_player(1, "a"), make_player(2, "b")
+    a, b = make_player(1, "a"), make_player(1, "b")
     enter_world(a)
     enter_world(b)
     time.sleep(1.5)
