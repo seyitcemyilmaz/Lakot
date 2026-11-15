@@ -157,7 +157,7 @@ bool Server::initialize()
     // builds a character from it.
     std::string tMapError;
 
-    if (!mMapCatalog.load("data", tMapError))
+    if (!mMapCatalog.load("data", tMapError, MapObjectFilterType::eWithoutUndergrowth))
     {
         std::osyncstream(std::cerr) << "[Server] Harita verisi yuklenemedi: " << tMapError << std::endl;
         return false;

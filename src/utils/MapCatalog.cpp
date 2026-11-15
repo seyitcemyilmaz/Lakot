@@ -13,7 +13,7 @@ bool MapCatalog::isValidKingdom(uint32_t pKingdom)
     return pKingdom >= 1 && pKingdom <= kKingdomCount;
 }
 
-bool MapCatalog::load(const std::string& pDataDirectory, std::string& pError)
+bool MapCatalog::load(const std::string& pDataDirectory, std::string& pError, MapObjectFilterType pObjectFilter)
 {
     namespace fs = std::filesystem;
 
@@ -85,7 +85,7 @@ bool MapCatalog::load(const std::string& pDataDirectory, std::string& pError)
             continue;
         }
 
-        std::unique_ptr<MapData> tMap = MapData::load(tEntry.path().string(), pError);
+        std::unique_ptr<MapData> tMap = MapData::load(tEntry.path().string(), pError, pObjectFilter);
 
         if (!tMap)
         {

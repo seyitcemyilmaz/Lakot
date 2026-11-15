@@ -91,7 +91,7 @@ namespace
     }
 }
 
-std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::string& pError)
+std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::string& pError, MapObjectFilterType pObjectFilter)
 {
     std::filesystem::path tDirectory(pDirectory);
 
@@ -173,7 +173,10 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
 
     if (tObjects != tDocument.MemberEnd() && tObjects->value.IsArray())
     {
-        tMap->mObjects.reserve(tObjects->value.Size());
+        if (pObjectFilter == MapObjectFilterType::eAll)
+        {
+            tMap->mObjects.reserve(tObjects->value.Size());
+        }
 
         for (const auto& tEntry : tObjects->value.GetArray())
         {
@@ -184,6 +187,12 @@ std::unique_ptr<MapData> MapData::load(const std::string& pDirectory, std::strin
 
             MapObject tObject;
             tObject.type = getString(tEntry, "type");
+
+            if (pObjectFilter == MapObjectFilterType::eWithoutUndergrowth && tObject.isUndergrowth())
+            {
+                continue;
+            }
+
             tObject.model = getString(tEntry, "model");
             tObject.yaw = getFloat(tEntry, "yaw", 0.0f);
             tObject.scale = getFloat(tEntry, "scale", 1.0f);

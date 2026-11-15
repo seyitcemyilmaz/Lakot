@@ -94,11 +94,17 @@ struct MapSpawn
 //   block.png   8-bit, square; >= 128 means the cell cannot be walked on
 //   roads.png   optional, 8-bit, same size as block.png; >= 128 marks a road
 //               that walkers prefer
+enum class MapObjectFilterType
+{
+    eAll,
+    eWithoutUndergrowth
+};
+
 class MapData
 {
 public:
     // nullptr on failure, with the reason in pError.
-    static std::unique_ptr<MapData> load(const std::string& pDirectory, std::string& pError);
+    static std::unique_ptr<MapData> load(const std::string& pDirectory, std::string& pError, MapObjectFilterType pObjectFilter = MapObjectFilterType::eAll);
 
     uint32_t getId() const;
     const std::string& getName() const;

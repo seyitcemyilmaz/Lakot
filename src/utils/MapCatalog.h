@@ -36,7 +36,7 @@ public:
     static bool isValidKingdom(uint32_t pKingdom);
 
     // false on failure, with the reason in pError.
-    bool load(const std::string& pDataDirectory, std::string& pError);
+    bool load(const std::string& pDataDirectory, std::string& pError, MapObjectFilterType pObjectFilter = MapObjectFilterType::eAll);
 
     const MapData* getMap(uint32_t pMapId) const;
     std::vector<uint32_t> getMapIds() const;
