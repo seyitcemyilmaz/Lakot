@@ -146,6 +146,25 @@ std::shared_ptr<Model> AssetManager::getModel(const std::string& pRelativePath)
         });
 }
 
+bool AssetManager::tryGetModel(const std::string& pRelativePath, std::shared_ptr<Model>& pModel)
+{
+    std::string tPath = resolve(pRelativePath);
+
+    if (const std::shared_ptr<Model>* tFound = mModels.find(tPath))
+    {
+        pModel = *tFound;
+        return true;
+    }
+
+    if (mPrefetcher.isPending(AssetKindType::eModel, tPath))
+    {
+        return false;
+    }
+
+    pModel = getModel(pRelativePath);
+    return true;
+}
+
 std::shared_ptr<SkinnedModel> AssetManager::getSkinnedModel(const std::string& pRelativePath)
 {
     std::string tPath = resolve(pRelativePath);

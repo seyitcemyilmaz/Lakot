@@ -5,27 +5,39 @@
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
 
-#include "FileManager.h"
-
 using namespace lakot;
 
-bool TerrainMaterial::load(const std::string& pTextureDirectory, const std::string& pMapDirectory)
+bool TerrainMaterial::setLayers(const TerrainLayerImages& pLayers)
 {
-    mGrass = loadLayer(FileManager::createPath(pTextureDirectory, "grass.png"));
-    mDryGrass = loadLayer(FileManager::createPath(pTextureDirectory, "dry_grass.png"));
-    mDirt = loadLayer(FileManager::createPath(pTextureDirectory, "dirt.png"));
-    mRoad = loadLayer(FileManager::createPath(pTextureDirectory, "road.png"));
-    mRock = loadLayer(FileManager::createPath(pTextureDirectory, "rock.png"));
-    mMacro = loadLayer(FileManager::createPath(pTextureDirectory, "macro.png"));
-
-    if (!(mGrass && mDryGrass && mDirt && mRoad && mRock && mMacro))
+    if (!pLayers.isComplete())
     {
-        SDL_Log("TerrainMaterial: ground textures missing in %s, using vertex colours", pTextureDirectory.c_str());
+        SDL_Log("TerrainMaterial: ground textures missing, using vertex colours");
         return false;
     }
 
-    mSplat = loadSplat(FileManager::createPath(pMapDirectory, "splat.png"));
-    return isReady();
+    mGrass = uploadLayer(pLayers.grass);
+    mDryGrass = uploadLayer(pLayers.dryGrass);
+    mDirt = uploadLayer(pLayers.dirt);
+    mRoad = uploadLayer(pLayers.road);
+    mRock = uploadLayer(pLayers.rock);
+    mMacro = uploadLayer(pLayers.macro);
+    return true;
+}
+
+void TerrainMaterial::setSplat(const DecodedImage& pSplat)
+{
+    mSplat = Texture::fromImage(pSplat, TextureFilterType::eTrilinear, TextureWrapType::eClamp);
+
+    if (mSplat)
+    {
+        return;
+    }
+
+    DecodedImage tEmpty;
+    tEmpty.width = 1;
+    tEmpty.height = 1;
+    tEmpty.pixels.assign(4, 0);
+    mSplat = Texture::fromImage(tEmpty, TextureFilterType::eNearest, TextureWrapType::eClamp);
 }
 
 bool TerrainMaterial::isReady() const
@@ -65,30 +77,7 @@ void TerrainMaterial::bind(ShaderProgram& pShader, float pWorldSize) const
     pShader.setFloat("uWorldSize", pWorldSize);
 }
 
-std::shared_ptr<Texture> TerrainMaterial::loadLayer(const std::string& pPath)
+std::shared_ptr<Texture> TerrainMaterial::uploadLayer(const DecodedImage& pImage)
 {
-    std::string tError;
-    return Texture::fromFile(pPath, tError, TextureFilterType::eTrilinear, TextureWrapType::eRepeat);
-}
-
-std::shared_ptr<Texture> TerrainMaterial::loadSplat(const std::string& pPath)
-{
-    std::string tError;
-    std::shared_ptr<Texture> tSplat;
-
-    if (FileManager::isFileExist(pPath))
-    {
-        tSplat = Texture::fromFile(pPath, tError, TextureFilterType::eTrilinear, TextureWrapType::eClamp);
-    }
-
-    if (tSplat)
-    {
-        return tSplat;
-    }
-
-    DecodedImage tEmpty;
-    tEmpty.width = 1;
-    tEmpty.height = 1;
-    tEmpty.pixels.assign(4, 0);
-    return Texture::fromImage(tEmpty, TextureFilterType::eNearest, TextureWrapType::eClamp);
+    return Texture::fromImage(pImage, TextureFilterType::eTrilinear, TextureWrapType::eRepeat);
 }

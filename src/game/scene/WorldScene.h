@@ -19,6 +19,8 @@
 #include "world/TargetController.h"
 #include "world/MapAssetPrefetcher.h"
 #include "world/MapModelBatch.h"
+#include "world/WorldMapObjects.h"
+#include "world/WorldGround.h"
 #include "../gui/Panel.h"
 #include "../item/EquipmentAttachments.h"
 #include "../effect/TrailRenderer.h"
@@ -32,8 +34,6 @@
 #include "../graphics/camera/ThirdPersonCamera.h"
 
 #include "../graphics/geometry/BoxContainer.h"
-#include "../graphics/geometry/Terrain.h"
-#include "../graphics/geometry/TerrainMaterial.h"
 #include "../graphics/model/Model.h"
 #include "../item/ItemAppearance.h"
 #include "../item/ItemIconRenderer.h"
@@ -72,11 +72,9 @@ public:
     bool onCloseRequested() override;
 
 private:
-    std::unique_ptr<BoxContainer> mBoxContainer;
-    std::unique_ptr<Terrain> mTerrain;
-    std::unique_ptr<TerrainMaterial> mTerrainMaterial;
+    std::unique_ptr<WorldMapObjects> mMapObjects;
+    std::unique_ptr<WorldGround> mGround;
     std::unique_ptr<ThirdPersonCamera> mCamera;
-    std::vector<MapModelBatch> mMapModels;
     std::unique_ptr<MapAssetPrefetcher> mMapPrefetcher;
 
     int mViewportWidth{1};
@@ -155,6 +153,7 @@ private:
 
     void teleportLocalPosition(const glm::vec3& pPosition);
 
+    std::string getMapDisplayName() const;
     void loadMap(uint32_t pMapId);
     void sendLocalPlayerState();
 

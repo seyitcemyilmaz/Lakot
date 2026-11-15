@@ -42,6 +42,7 @@ public:
     size_t getSynchronousLoadCount() const;
 
     std::shared_ptr<Model> getModel(const std::string& pRelativePath);
+    bool tryGetModel(const std::string& pRelativePath, std::shared_ptr<Model>& pModel);
     std::shared_ptr<SkinnedModel> getSkinnedModel(const std::string& pRelativePath);
     std::shared_ptr<SkinnedModel> getMotionSource(const std::string& pRelativePath);
 

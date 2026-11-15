@@ -82,6 +82,7 @@ public:
     const Localization& getLocalization() const;
 
     AssetManager& getAssetManager();
+    GarbageCollector& getGarbageCollector();
     MotionLibrary& getMotionLibrary();
 
     SDL_AppResult eventHandler(SDL_Event* pEvent);

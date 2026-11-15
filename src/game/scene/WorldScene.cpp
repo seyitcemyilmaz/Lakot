@@ -15,7 +15,6 @@
 #include "../gui/AttachmentPanel.h"
 #include "../gui/EffectsPanel.h"
 #include "../gui/PanelLoader.h"
-#include "../gui/MapImageFactory.h"
 
 #include "CombatRules.h"
 #include "ItemRules.h"
@@ -35,8 +34,6 @@ namespace
     constexpr float kFogStart = 140.0f;
 
     const glm::vec3 kSkyColor(0.64f, 0.76f, 0.88f);
-
-    const glm::vec3 kWaterColor(0.20f, 0.42f, 0.62f);
 
     const glm::vec3 kDestinationMarkerSize(1.4f, 0.15f, 1.4f);
     const glm::vec3 kDestinationMarkerColor(0.85f, 0.65f, 0.25f);
@@ -94,8 +91,7 @@ void WorldScene::enter()
 
     WorldShaders::ensurePrograms(tShaderManager);
 
-    mBoxContainer = std::make_unique<BoxContainer>();
-    mBoxContainer->initialize();
+    mMapObjects = std::make_unique<WorldMapObjects>(mEngine.getAssetManager());
 
     mItemAppearance = std::make_unique<ItemAppearance>(mEngine.getAssetManager(), mEngine.getNetworkManager().getInventoryController());
     mItemIcons = std::make_unique<ItemIconRenderer>(*mItemAppearance, mEngine.getNetworkManager().getInventoryController(),
@@ -184,6 +180,12 @@ void WorldScene::enter()
         mEntities->showSpeech(WorldEntities::kLocalId, pText);
     });
 
+    mGround = std::make_unique<WorldGround>(mEngine.getGarbageCollector(), mEngine.getRmlUiLayer(), mEngine.getAssetManager().resolve("textures/ground"),
+    [this](const std::string& pImageName)
+    {
+        mHud->setMap(pImageName, getMapDisplayName(), mMap->getWorldSize());
+    });
+
     loadMap(mInitialSpawnState ? mInitialSpawnState->mapId : tCatalog.getStartMap(1)->getId());
 
     mLocalCharacterBox = std::make_unique<BoxContainer>();
@@ -254,6 +256,8 @@ void WorldScene::update(double pDeltaTime)
         endOrbit();
     }
 
+    mGround->update();
+    mMapObjects->update();
     mTarget->update(mLocalPosition, mIsLocalDead);
     updateAttack(pDeltaTime);
     updateLocalMovement(pDeltaTime);
@@ -746,18 +750,12 @@ void WorldScene::render()
 
     ShaderProgram* tTerrainShader = tShaderManager.getProgram("world_terrain");
 
-    if (tTerrainShader && mTerrain)
+    if (tTerrainShader)
     {
         tTerrainShader->bind();
         tSetWorldUniforms(tTerrainShader);
 
-        if (mTerrainMaterial)
-        {
-            mTerrainMaterial->bind(*tTerrainShader, mMap->getWorldSize());
-        }
-
-        mTerrain->getVertexArrayObject().bind();
-        mTerrain->drawChunksNear(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance());
+        mGround->draw(*tTerrainShader, mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance());
 
         tTerrainShader->unbind();
     }
@@ -772,7 +770,7 @@ void WorldScene::render()
 
         const Frustum tFrustum(mCamera->getViewProjectionMatrix());
 
-        for (MapModelBatch& tBatch : mMapModels)
+        for (MapModelBatch& tBatch : mMapObjects->getBatches())
         {
             tBatch.update(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance(), tFrustum);
             tBatch.draw(0);
@@ -801,7 +799,7 @@ void WorldScene::render()
         tBoxShader->bind();
         tSetWorldUniforms(tBoxShader);
 
-        for (BoxContainer* tBoxes : { mBoxContainer.get(), mLocalCharacterBox.get() })
+        for (BoxContainer* tBoxes : { &mMapObjects->getBoxes(), mLocalCharacterBox.get() })
         {
             if (tBoxes && tBoxes->getInstanceCount() > 0)
             {
@@ -1117,6 +1115,11 @@ void WorldScene::teleportLocalPosition(const glm::vec3& pPosition)
     }
 }
 
+std::string WorldScene::getMapDisplayName() const
+{
+    return mEngine.getLocalization().content("map." + std::to_string(mMap->getId()) + ".name", mMap->getName());
+}
+
 void WorldScene::loadMap(uint32_t pMapId)
 {
     uint64_t tLoadStart = SDL_GetPerformanceCounter();
@@ -1134,100 +1137,17 @@ void WorldScene::loadMap(uint32_t pMapId)
 
     if (!mMapPrefetcher)
     {
-        mMapPrefetcher = std::make_unique<MapAssetPrefetcher>(mEngine.getAssetManager(), tCatalog, mEngine.getMonsterCatalog());
+        mMapPrefetcher = std::make_unique<MapAssetPrefetcher>(mEngine.getAssetManager(), tCatalog, mEngine.getMonsterCatalog(), mGround->getPreparer());
     }
 
     mMapPrefetcher->reset();
     mMapPrefetcher->prefetchMap(mMap->getId());
 
-    mTerrain = std::make_unique<Terrain>(*mMap);
-    mTerrain->initialize();
+    std::string tPlaceholderImage = mGround->setMap(*mMap);
 
-    mTerrainMaterial = std::make_unique<TerrainMaterial>();
-    mTerrainMaterial->load(mEngine.getAssetManager().resolve("textures/ground"), mMap->getDirectory());
+    mMapObjects->load(*mMap);
 
-    std::vector<glm::vec3> tPositions;
-    std::vector<glm::vec3> tSizes;
-    std::vector<glm::vec3> tColors;
-
-    tPositions.reserve(mMap->getObjects().size() + 1);
-    tSizes.reserve(tPositions.capacity());
-    tColors.reserve(tPositions.capacity());
-
-    std::unordered_map<std::string, MapModelBatch> tModelBatches;
-    AssetManager& tAssets = mEngine.getAssetManager();
-
-    for (const MapObject& tObject : mMap->getObjects())
-    {
-        if (!tObject.model.empty())
-        {
-            auto tBatch = tModelBatches.find(tObject.model);
-
-            if (tBatch == tModelBatches.end())
-            {
-                std::shared_ptr<Model> tModel = tAssets.getModel("models/" + tObject.model + ".glb");
-                std::string tLodPath = "models/" + tObject.model + "_lod1.glb";
-                std::shared_ptr<Model> tLodModel = std::filesystem::exists(tAssets.resolve(tLodPath)) ? tAssets.getModel(tLodPath) : nullptr;
-
-                if (!tModel)
-                {
-                    tModelBatches.emplace(tObject.model, MapModelBatch(nullptr, nullptr));
-                    continue;
-                }
-
-                tBatch = tModelBatches.emplace(tObject.model, MapModelBatch(tModel, tLodModel)).first;
-
-                if (tObject.isUndergrowth())
-                {
-                    tBatch->second.setDrawDistance(WorldView::kUndergrowthDrawDistance);
-                }
-            }
-
-            if (tBatch->second.isValid())
-            {
-                float tGround = mMap->getHeightAt(tObject.x, tObject.z);
-                tBatch->second.addInstance(glm::vec3(tObject.x, tGround + tObject.elevation, tObject.z),
-                                           glm::vec3(tObject.yaw, tObject.scale, tObject.stretch));
-                continue;
-            }
-        }
-
-        if (tObject.isHidden || tObject.isUndergrowth())
-        {
-            continue;
-        }
-
-        tPositions.push_back(WorldPicker::getObjectCenter(*mMap, tObject));
-        tSizes.emplace_back(tObject.sizeX, tObject.sizeY, tObject.sizeZ);
-        tColors.emplace_back(tObject.color[0], tObject.color[1], tObject.color[2]);
-    }
-
-    constexpr float kWaterThickness = 0.1f;
-    const float tWorldSize = mMap->getWorldSize();
-
-    tPositions.emplace_back(0.0f, mMap->getWaterLevel() - kWaterThickness * 0.5f, 0.0f);
-    tSizes.emplace_back(tWorldSize, kWaterThickness, tWorldSize);
-    tColors.push_back(kWaterColor);
-
-    mBoxContainer->setBoxes(tPositions, tSizes, tColors);
-
-    mMapModels.clear();
-
-    for (auto& [tName, tBatch] : tModelBatches)
-    {
-        if (tBatch.isValid())
-        {
-            mMapModels.push_back(std::move(tBatch));
-        }
-    }
-
-    constexpr int kMapImageSize = 1024;
-
-    std::string tImageName = "map-" + std::to_string(mMap->getId());
-    MapImage tImage = MapImageFactory::create(*mMap, kMapImageSize);
-    mEngine.getRmlUiLayer().registerGeneratedImage(tImageName, tImage.size, tImage.size, std::move(tImage.rgba));
-
-    mHud->setMap(tImageName, mEngine.getLocalization().content("map." + std::to_string(mMap->getId()) + ".name", mMap->getName()), mMap->getWorldSize());
+    mHud->setMap(tPlaceholderImage, getMapDisplayName(), mMap->getWorldSize());
 
     SDL_Log("WorldScene: map %u - %s loaded in %.1f ms, %zu synchronous asset loads", mMap->getId(), mMap->getName().c_str(),
             static_cast<double>(SDL_GetPerformanceCounter() - tLoadStart) * 1000.0 / static_cast<double>(SDL_GetPerformanceFrequency()),

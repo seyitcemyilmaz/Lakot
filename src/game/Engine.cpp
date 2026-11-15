@@ -299,6 +299,11 @@ MotionLibrary& Engine::getMotionLibrary()
     return *mMotionLibrary;
 }
 
+GarbageCollector& Engine::getGarbageCollector()
+{
+    return mGarbageCollector;
+}
+
 AssetManager& Engine::getAssetManager()
 {
     return *mAssetManager;

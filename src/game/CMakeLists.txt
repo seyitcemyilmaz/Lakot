@@ -114,6 +114,9 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     settings/SkillBarBindings.h settings/SkillBarBindings.cpp
     scene/world/MapModelBatch.h scene/world/MapModelBatch.cpp
     scene/world/MapAssetPrefetcher.h scene/world/MapAssetPrefetcher.cpp
+    scene/world/MapGroundPreparer.h scene/world/MapGroundPreparer.cpp
+    scene/world/WorldGround.h scene/world/WorldGround.cpp
+    scene/world/WorldMapObjects.h scene/world/WorldMapObjects.cpp
     scene/world/WorldPicker.h scene/world/WorldPicker.cpp
     scene/world/AutoWalk.h scene/world/AutoWalk.cpp
     scene/world/TargetController.h scene/world/TargetController.cpp
@@ -124,7 +127,11 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     scene/world/WorldEffects.h scene/world/WorldEffects.cpp
     graphics/render/ShaderManager.h graphics/render/ShaderManager.cpp
     graphics/geometry/Terrain.h graphics/geometry/Terrain.cpp
+    graphics/geometry/TerrainImageLoader.h graphics/geometry/TerrainImageLoader.cpp
+    graphics/geometry/TerrainLayerImages.h
     graphics/geometry/TerrainMaterial.h graphics/geometry/TerrainMaterial.cpp
+    graphics/geometry/TerrainMesh.h
+    graphics/geometry/TerrainMeshFactory.h graphics/geometry/TerrainMeshFactory.cpp
     graphics/geometry/TerrainShaders.h graphics/geometry/TerrainShaders.cpp
 )
 

@@ -49,6 +49,8 @@ public:
 
     bool request(AssetKindType pKind, const std::string& pPath, unsigned int pImportFlags);
 
+    bool isPending(AssetKindType pKind, const std::string& pPath) const;
+
     std::optional<ParsedAsset> take(AssetKindType pKind, const std::string& pPath);
     std::optional<ParsedAsset> takeAny();
 

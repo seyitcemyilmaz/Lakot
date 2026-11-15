@@ -123,6 +123,11 @@ bool AssetPrefetcher::request(AssetKindType pKind, const std::string& pPath, uns
     return true;
 }
 
+bool AssetPrefetcher::isPending(AssetKindType pKind, const std::string& pPath) const
+{
+    return mRequested.count(makeKey(pKind, pPath)) != 0;
+}
+
 std::optional<ParsedAsset> AssetPrefetcher::take(AssetKindType pKind, const std::string& pPath)
 {
     std::string tKey = makeKey(pKind, pPath);

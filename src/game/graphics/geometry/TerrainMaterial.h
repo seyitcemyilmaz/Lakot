@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../model/Texture.h"
+#include "TerrainLayerImages.h"
 #include "../render/ShaderProgram.h"
 
 namespace lakot
@@ -13,7 +14,8 @@ namespace lakot
 class TerrainMaterial
 {
 public:
-    bool load(const std::string& pTextureDirectory, const std::string& pMapDirectory);
+    bool setLayers(const TerrainLayerImages& pLayers);
+    void setSplat(const DecodedImage& pSplat);
 
     bool isReady() const;
 
@@ -30,8 +32,7 @@ private:
     std::shared_ptr<Texture> mRock;
     std::shared_ptr<Texture> mMacro;
 
-    static std::shared_ptr<Texture> loadLayer(const std::string& pPath);
-    static std::shared_ptr<Texture> loadSplat(const std::string& pPath);
+    static std::shared_ptr<Texture> uploadLayer(const DecodedImage& pImage);
 };
 
 }

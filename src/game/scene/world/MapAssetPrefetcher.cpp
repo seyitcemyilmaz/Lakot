@@ -7,14 +7,17 @@
 #include "MapCatalog.h"
 #include "MonsterCatalog.h"
 
+#include "MapGroundPreparer.h"
+
 #include "../../asset/AssetManager.h"
 
 using namespace lakot;
 
-MapAssetPrefetcher::MapAssetPrefetcher(AssetManager& pAssets, const MapCatalog& pMaps, const MonsterCatalog& pMonsters)
+MapAssetPrefetcher::MapAssetPrefetcher(AssetManager& pAssets, const MapCatalog& pMaps, const MonsterCatalog& pMonsters, MapGroundPreparer& pGround)
     : mAssets(pAssets)
     , mMaps(pMaps)
     , mMonsters(pMonsters)
+    , mGround(pGround)
 {
 
 }
@@ -26,6 +29,13 @@ void MapAssetPrefetcher::prefetchMap(uint32_t pMapId)
     if (!tMap)
     {
         return;
+    }
+
+    bool tIsGroundNew = mGroundRequested.insert(pMapId).second;
+
+    if (tIsGroundNew)
+    {
+        mGround.requestGeometry(*tMap);
     }
 
     std::chrono::steady_clock::time_point tNow = std::chrono::steady_clock::now();
@@ -74,6 +84,11 @@ void MapAssetPrefetcher::prefetchMap(uint32_t pMapId)
             mAssets.prefetchSkinnedModel(tTemplate->model);
         }
     }
+
+    if (tIsGroundNew)
+    {
+        mGround.requestImage(*tMap, kMapImageSize);
+    }
 }
 
 void MapAssetPrefetcher::prefetchNearbyPortalTargets(const MapData& pCurrent, float pX, float pZ)
@@ -92,4 +107,5 @@ void MapAssetPrefetcher::prefetchNearbyPortalTargets(const MapData& pCurrent, fl
 void MapAssetPrefetcher::reset()
 {
     mPrefetchedMaps.clear();
+    mGroundRequested.clear();
 }
