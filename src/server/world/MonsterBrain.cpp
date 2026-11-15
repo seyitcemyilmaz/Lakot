@@ -185,6 +185,37 @@ uint64_t MonsterBrain::findTarget(const Monster& pMonster, const PlayerState& pS
     return tBest;
 }
 
+uint64_t MonsterBrain::findRetarget(Monster& pMonster)
+{
+    const MonsterTemplate& tTemplate = *pMonster.monsterTemplate;
+    uint64_t tBest = 0;
+    uint32_t tBestDamage = 0;
+
+    for (auto tIterator = pMonster.damageBy.begin(); tIterator != pMonster.damageBy.end();)
+    {
+        uint64_t tId = tIterator->first;
+
+        if (mCharacters.count(tId) == 0)
+        {
+            tIterator = pMonster.damageBy.erase(tIterator);
+            continue;
+        }
+
+        const PlayerState* tOther = mRegistry.getState(tId);
+        bool tIsInRange = tOther && std::hypot(tOther->x - pMonster.spawnX, tOther->z - pMonster.spawnZ) <= tTemplate.leashRange;
+
+        if (tIsInRange && mCombat.canBeTargeted(tId) && (tBest == 0 || tIterator->second > tBestDamage || (tIterator->second == tBestDamage && tId < tBest)))
+        {
+            tBest = tId;
+            tBestDamage = tIterator->second;
+        }
+
+        ++tIterator;
+    }
+
+    return tBest;
+}
+
 bool MonsterBrain::stepOnce(const PlayerState& pFrom, float pX, float pZ, float pStep, PlayerState& pNext) const
 {
     float tDx = pX - pFrom.x;
@@ -382,10 +413,24 @@ void MonsterBrain::think(Monster& pMonster, double pNow, float pDeltaSeconds)
     {
         const PlayerState* tTarget = mRegistry.getState(pMonster.targetId);
 
-        if (!tTarget || !mCombat.canBeTargeted(pMonster.targetId) || tFromSpawn > tTemplate.leashRange)
+        if (tFromSpawn > tTemplate.leashRange)
         {
             pMonster.state = MonsterStateType::eReturn;
             pMonster.targetId = 0;
+            return;
+        }
+
+        if (!tTarget || !mCombat.canBeTargeted(pMonster.targetId))
+        {
+            pMonster.targetId = findRetarget(pMonster);
+            pMonster.path.clear();
+            pMonster.stuckSince = -1.0;
+
+            if (pMonster.targetId == 0)
+            {
+                pMonster.state = MonsterStateType::eReturn;
+            }
+
             return;
         }
 

@@ -50,6 +50,7 @@ private:
     void spreadAggro();
     void think(Monster& pMonster, double pNow, float pDeltaSeconds);
     uint64_t findTarget(const Monster& pMonster, const PlayerState& pState);
+    uint64_t findRetarget(Monster& pMonster);
     bool moveTowards(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow);
     bool advance(Monster& pMonster, const PlayerState& pState, float pX, float pZ, float pStep, double pNow);
     bool stepOnce(const PlayerState& pFrom, float pX, float pZ, float pStep, PlayerState& pNext) const;
