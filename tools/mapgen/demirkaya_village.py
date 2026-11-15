@@ -163,10 +163,11 @@ def make_splat(h, objs):
     patch = smoothstep(-0.1, 0.4, smooth_noise(x, z, 2211))
     spoil = np.maximum(smoothstep(60.0, 20.0, np.hypot(x - MINE[0], z - MINE[1])),
                        smoothstep(80.0, 30.0, np.hypot(x - QUARRY[0], z - QUARRY[1])))
+    lush = smoothstep(VILLAGE_HALF + 330.0, VILLAGE_HALF + 60.0, np.maximum(np.abs(x), np.abs(z)))
     dry = 0.02 + 0.12 * patch + 0.15 * wooded
-    dirt = 0.4 * shoulder + 0.7 * inside + 0.9 * spoil + 1.0 * wooded + 0.2 * (1.0 - patch)
+    dirt = 0.4 * shoulder + 0.7 * inside + 0.9 * spoil + 1.0 * wooded + 0.2 * (1.0 - patch) * (1.0 - 0.85 * lush)
     rock = np.maximum(np.maximum(smoothstep(18.0, -18.0, blob_distance(x, z, ROCKY)), smoothstep(26.0, 42.0, hh)),
-                      0.7 * smoothstep(-0.3, 0.3, smooth_noise(x, z, 2212)) * (1.0 - 0.7 * inside))
+                      0.7 * smoothstep(-0.3, 0.3, smooth_noise(x, z, 2212)) * (1.0 - 0.7 * inside) * (1.0 - 0.9 * lush))
     return build_splat(x, z, hh, dry, dirt, road, rock)
 
 

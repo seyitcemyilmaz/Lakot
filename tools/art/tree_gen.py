@@ -335,6 +335,7 @@ def trunk_mesh(pBuilder, pTriLimit=None):
         tBase = len(tVerts)
         tDist = 0.0
         tVs = []
+        tTile = max(math.tau * tRadii[0], 0.4)
         for tI, tP in enumerate(tPoints):
             if tI:
                 tDist += (tP - tPoints[tI - 1]).length
@@ -352,7 +353,7 @@ def trunk_mesh(pBuilder, pTriLimit=None):
                 tB1 = tBase + (tI + 1) * tSides + tN
                 tFaces.append((tA0, tA1, tB1, tB0))
                 tU0, tU1 = 0.005 + 0.49 * tS / tSides, 0.005 + 0.49 * (tS + 1) / tSides
-                tV0, tV1 = tVs[tI] / max(tDist, 1e-6), tVs[tI + 1] / max(tDist, 1e-6)
+                tV0, tV1 = tVs[tI] / tTile, tVs[tI + 1] / tTile
                 tUvs.append(((tU0, tV0), (tU1, tV0), (tU1, tV1), (tU0, tV1)))
     return tVerts, tFaces, tUvs
 

@@ -258,12 +258,12 @@ def make_splat(h, objs):
     for x0, z0, x1, z1 in FIELDS:
         fields = np.maximum(fields, smoothstep(4.0, -2.0, rect_distance(x, z, x0, z0, x1, z1)))
     patch = smoothstep(0.1, 0.5, smooth_noise(x, z, 2201))
-    dry = 0.08 + 0.4 * patch + 0.9 * fields + 0.3 * wooded
-    dirt = (0.5 * shoulder + 0.65 * inside + 0.85 * buildings + 1.0 * wooded
+    dry = 0.08 + 0.4 * patch + 0.9 * fields + 0.08 * wooded
+    dirt = (0.5 * shoulder + 0.65 * inside + 0.85 * buildings + 1.15 * wooded
             + 0.75 * shore_weight(x, z, hh, [("line", RIVER), ("circles", LAKE)]) + 0.5 * fields)
     dirt = dirt * (1.0 - 0.6 * fields)
     rock = np.maximum(smoothstep(18.0, -18.0, blob_distance(x, z, ROCKY)), smoothstep(36.0, 50.0, hh))
-    return build_splat(x, z, hh, dry, dirt, road, rock)
+    return build_splat(x, z, hh, dry, dirt, road, rock, litter_dry=0.12)
 
 
 def main():

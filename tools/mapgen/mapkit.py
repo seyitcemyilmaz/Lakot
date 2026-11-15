@@ -512,7 +512,7 @@ def patch_noise(x, z, seed):
     return out / 4.5
 
 
-def build_splat(x, z, h, dry, dirt, road, rock):
+def build_splat(x, z, h, dry, dirt, road, rock, litter_dry=0.55):
     dry = np.clip(dry, 0.0, 1.0)
     dirt = np.clip(dirt, 0.0, 1.0)
     road = np.clip(road, 0.0, 1.0)
@@ -523,7 +523,7 @@ def build_splat(x, z, h, dry, dirt, road, rock):
     moss = patch_noise(x, z, 4102)
     deep = smoothstep(0.55, 0.95, floor)
     dirt = dirt * (0.62 + 0.38 * smoothstep(-0.3, 0.3, litter)) * (1.0 - 0.45 * smoothstep(0.1, 0.5, moss) * deep)
-    dry = dry + 0.55 * deep * smoothstep(0.0, 0.5, -litter) * (1.0 - 0.5 * smoothstep(0.1, 0.5, moss))
+    dry = dry + litter_dry * deep * smoothstep(0.0, 0.5, -litter) * (1.0 - 0.5 * smoothstep(0.1, 0.5, moss))
     rest = 1.0 - rock
     road = road * rest
     rest = rest - road
