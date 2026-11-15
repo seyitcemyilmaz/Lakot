@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 
 #include "../../effect/EffectSystem.h"
+#include "../../settings/DisplaySettings.h"
 #include "../../effect/ParticleRenderer.h"
 #include "../../network/controller/WorldController.h"
 
@@ -22,7 +23,7 @@ class WorldEntities;
 class WorldEffects
 {
 public:
-    WorldEffects(AssetManager& pAssets, ShaderManager& pShaders, const WorldEntities& pEntities, uint32_t pInitialLevel);
+    WorldEffects(AssetManager& pAssets, ShaderManager& pShaders, const WorldEntities& pEntities, const DisplaySettings& pDisplaySettings, uint32_t pInitialLevel);
 
     void onSnapshot(const WorldController::WorldSnapshot& pSnapshot);
     void update(double pDeltaSeconds);
@@ -54,6 +55,7 @@ private:
     };
 
     const WorldEntities& mEntities;
+    const DisplaySettings& mDisplaySettings;
     EffectSystem mSystem;
     ParticleRenderer mRenderer;
 

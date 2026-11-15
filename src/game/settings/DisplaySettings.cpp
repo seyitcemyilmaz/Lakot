@@ -2,13 +2,18 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
+
+#include "../scene/world/WorldViewConstants.h"
 
 using namespace lakot;
 
 namespace
 {
     constexpr int kWindowedSizes[][2] = { { 1920, 1080 }, { 1600, 900 }, { 1366, 768 }, { 1280, 720 } };
+
+    constexpr float kViewDistanceScales[] = { 0.5f, 0.75f, 1.0f };
 
     const DisplayMode kFullscreen{ DisplayModeType::eFullscreen, 0, 0 };
     const DisplayMode kDefaultWindowed{ DisplayModeType::eWindowed, 1280, 720 };
@@ -55,6 +60,19 @@ void DisplaySettings::load(SDL_Window* pWindow)
         if (tLine.rfind("camerashake=", 0) == 0)
         {
             mIsCameraShakeEnabled = tLine.substr(12) != "0";
+            continue;
+        }
+
+        if (tLine.rfind("vsync=", 0) == 0)
+        {
+            mIsVsyncEnabled = tLine.substr(6) != "0";
+            continue;
+        }
+
+        if (tLine.rfind("viewdistance=", 0) == 0)
+        {
+            int tLevel = std::atoi(tLine.substr(13).c_str());
+            setViewDistanceLevel(tLevel < 0 ? 0 : static_cast<size_t>(tLevel));
             continue;
         }
 
@@ -106,6 +124,8 @@ void DisplaySettings::save() const
     }
 
     tFile << "camerashake=" << (mIsCameraShakeEnabled ? 1 : 0) << "\n";
+    tFile << "vsync=" << (mIsVsyncEnabled ? 1 : 0) << "\n";
+    tFile << "viewdistance=" << mViewDistanceLevel << "\n";
 }
 
 void DisplaySettings::apply(SDL_Window* pWindow) const
@@ -124,6 +144,22 @@ void DisplaySettings::apply(SDL_Window* pWindow) const
     }
 
     SDL_SyncWindow(pWindow);
+    applyVsync();
+}
+
+void DisplaySettings::applyVsync() const
+{
+    if (mIsVsyncEnabled)
+    {
+        if (!SDL_GL_SetSwapInterval(-1))
+        {
+            SDL_GL_SetSwapInterval(1);
+        }
+    }
+    else
+    {
+        SDL_GL_SetSwapInterval(0);
+    }
 }
 
 void DisplaySettings::change(SDL_Window* pWindow, const DisplayMode& pMode)
@@ -151,6 +187,44 @@ bool DisplaySettings::isCameraShakeEnabled() const
 void DisplaySettings::setCameraShakeEnabled(bool pIsEnabled)
 {
     mIsCameraShakeEnabled = pIsEnabled;
+}
+
+bool DisplaySettings::isVsyncEnabled() const
+{
+    return mIsVsyncEnabled;
+}
+
+void DisplaySettings::setVsyncEnabled(bool pIsEnabled)
+{
+    mIsVsyncEnabled = pIsEnabled;
+}
+
+size_t DisplaySettings::getViewDistanceLevel() const
+{
+    return mViewDistanceLevel;
+}
+
+void DisplaySettings::setViewDistanceLevel(size_t pLevel)
+{
+    if (pLevel < getViewDistanceLevelCount())
+    {
+        mViewDistanceLevel = pLevel;
+    }
+}
+
+float DisplaySettings::getViewDistance() const
+{
+    return WorldView::kViewDistance * getViewDistanceScale(mViewDistanceLevel);
+}
+
+size_t DisplaySettings::getViewDistanceLevelCount()
+{
+    return std::size(kViewDistanceScales);
+}
+
+float DisplaySettings::getViewDistanceScale(size_t pLevel)
+{
+    return kViewDistanceScales[pLevel < getViewDistanceLevelCount() ? pLevel : getViewDistanceLevelCount() - 1];
 }
 
 std::vector<DisplayMode> DisplaySettings::getAvailableModes(SDL_Window* pWindow)

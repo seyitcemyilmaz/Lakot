@@ -2461,3 +2461,69 @@ body
     cursor: default;
     pointer-events: none;
 }
+
+.settings-window
+{
+    display: block;
+    width: 560dp;
+    max-width: 560dp;
+    pointer-events: auto;
+}
+
+.settings-tabs
+{
+    display: flex;
+    flex-direction: row;
+    margin-top: 8dp;
+}
+
+.settings-tab
+{
+    display: block;
+    flex: 1 1 0;
+    padding: 8dp;
+    text-align: center;
+    background-color: #212129;
+    color: #9999A8;
+    border-width: 1px;
+    border-color: #40404c;
+    border-radius: 6dp;
+    margin-right: 4dp;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.settings-tab:hover
+{
+    color: #EBEBF0;
+}
+
+.settings-tab.is-selected
+{
+    border-color: #D9A640;
+    color: #D9A640;
+}
+
+.settings-body
+{
+    display: block;
+    margin-top: 8dp;
+}
+
+.settings-columns
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.settings-column
+{
+    display: block;
+    flex: 1 1 0;
+    margin-right: 8dp;
+}
+
+.settings-page
+{
+    display: block;
+    width: 512dp;
+}

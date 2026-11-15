@@ -35,6 +35,7 @@ public:
     void save() const;
 
     void apply(SDL_Window* pWindow) const;
+    void applyVsync() const;
 
     void change(SDL_Window* pWindow, const DisplayMode& pMode);
 
@@ -44,11 +45,23 @@ public:
     bool isCameraShakeEnabled() const;
     void setCameraShakeEnabled(bool pIsEnabled);
 
+    bool isVsyncEnabled() const;
+    void setVsyncEnabled(bool pIsEnabled);
+
+    size_t getViewDistanceLevel() const;
+    void setViewDistanceLevel(size_t pLevel);
+    float getViewDistance() const;
+
+    static size_t getViewDistanceLevelCount();
+    static float getViewDistanceScale(size_t pLevel);
+
     static std::vector<DisplayMode> getAvailableModes(SDL_Window* pWindow);
 
 private:
     DisplayMode mMode;
     bool mIsCameraShakeEnabled{true};
+    bool mIsVsyncEnabled{true};
+    size_t mViewDistanceLevel{2};
 
     static std::string getFilePath();
 };

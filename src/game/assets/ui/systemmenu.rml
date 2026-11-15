@@ -5,31 +5,12 @@
 </head>
 <body class="screen-center system-menu-screen">
     <div class="card system-menu" data-model="system_menu">
-        <div data-if="!is_settings_open">
-            <div class="title">[[systemmenu.title]]</div>
+        <div class="title">[[systemmenu.title]]</div>
 
-            <div class="btn-primary" data-event-click="resume">[[systemmenu.resume]]</div>
-            <div class="btn-secondary" data-event-click="open_settings">[[systemmenu.settings]]</div>
-            <div class="btn-secondary" data-event-click="logout">[[systemmenu.log_out]]</div>
-            <div class="btn-secondary" data-event-click="quit">[[systemmenu.quit]]</div>
-        </div>
-
-        <div data-if="is_settings_open">
-            <div class="title">[[systemmenu.settings_title]]</div>
-
-            <div class="field-label">[[systemmenu.display]]</div>
-            <div class="btn-secondary settings-option" data-for="option : display_options"
-                 data-class-is-selected="option.is_selected"
-                 data-event-click="select_display(option.index)">{{ option.label }}</div>
-
-            <div class="field-label">[[systemmenu.camera_shake]]</div>
-            <div class="btn-secondary settings-option is-selected" data-if="is_camera_shake_enabled"
-                 data-event-click="toggle_camera_shake">[[systemmenu.camera_shake_on]]</div>
-            <div class="btn-secondary settings-option" data-if="!is_camera_shake_enabled"
-                 data-event-click="toggle_camera_shake">[[systemmenu.camera_shake_off]]</div>
-
-            <div class="btn-primary" data-event-click="close_settings">[[systemmenu.back]]</div>
-        </div>
+        <div class="btn-primary" data-event-click="resume">[[systemmenu.resume]]</div>
+        <div class="btn-secondary" data-event-click="open_settings">[[systemmenu.settings]]</div>
+        <div class="btn-secondary" data-event-click="logout">[[systemmenu.log_out]]</div>
+        <div class="btn-secondary" data-event-click="quit">[[systemmenu.quit]]</div>
     </div>
 </body>
 </rml>

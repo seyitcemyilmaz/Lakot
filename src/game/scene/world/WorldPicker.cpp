@@ -115,7 +115,7 @@ std::optional<glm::vec3> WorldPicker::pickGround(const MapData& pMap, const glm:
     }
 
     constexpr float kMarchStep = 0.5f;
-    constexpr float kMaxDistance = WorldView::kViewDistance + 40.0f;
+    const float tMaxDistance = mCamera.getFar();
 
     auto isBelowGround = [&pMap, &tRay](float pDistance)
     {
@@ -126,7 +126,7 @@ std::optional<glm::vec3> WorldPicker::pickGround(const MapData& pMap, const glm:
     std::optional<float> tHitDistance;
     float tAbove = 0.0f;
 
-    for (float tDistance = kMarchStep; tDistance <= kMaxDistance; tDistance += kMarchStep)
+    for (float tDistance = kMarchStep; tDistance <= tMaxDistance; tDistance += kMarchStep)
     {
         if (!isBelowGround(tDistance))
         {

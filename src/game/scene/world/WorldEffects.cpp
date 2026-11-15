@@ -25,8 +25,9 @@ namespace
     }
 }
 
-WorldEffects::WorldEffects(AssetManager& pAssets, ShaderManager& pShaders, const WorldEntities& pEntities, uint32_t pInitialLevel)
+WorldEffects::WorldEffects(AssetManager& pAssets, ShaderManager& pShaders, const WorldEntities& pEntities, const DisplaySettings& pDisplaySettings, uint32_t pInitialLevel)
     : mEntities(pEntities)
+    , mDisplaySettings(pDisplaySettings)
     , mSystem(loadCatalog(pAssets))
     , mRenderer(pShaders, pAssets)
     , mLastLevel(pInitialLevel)
@@ -116,7 +117,7 @@ bool WorldEffects::isNearLocal(const glm::vec3& pPosition, float pDistance) cons
 
 void WorldEffects::spawnNearLocal(const char* pName, const glm::vec3& pPosition)
 {
-    if (const WorldEntity* tLocal = mEntities.getLocal(); tLocal && glm::distance(WorldEntities::getPosition(*tLocal), pPosition) > WorldView::kViewDistance)
+    if (const WorldEntity* tLocal = mEntities.getLocal(); tLocal && glm::distance(WorldEntities::getPosition(*tLocal), pPosition) > mDisplaySettings.getViewDistance())
     {
         return;
     }

@@ -11,6 +11,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    NetworkManager& pNetworkManager,
                    const Localization& pLocalization,
                    DisplaySettings& pDisplaySettings,
+                   KeyBindings& pKeyBindings,
                    SDL_Window* pWindow,
                    const std::string& pUsername,
                    const CharacterStats& pStats,
@@ -21,8 +22,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
                    uint64_t pCharacterId)
     : mNetworkManager(pNetworkManager)
     , mLocalization(pLocalization)
-    , mDisplaySettings(pDisplaySettings)
-    , mWindow(pWindow)
+    , mKeyBindings(pKeyBindings)
     , mItemIcons(pItemIcons)
     , mClassCatalog(pClassCatalog)
     , mBindings(pCharacterId)
@@ -35,6 +35,7 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
     , mCharacterSheet(pRmlUiLayer, pLocalization, pClassCatalog, pUsername)
     , mSkillWindow(pRmlUiLayer, pLocalization, pSkillCatalog, pClassCatalog)
     , mSystemMenu(pRmlUiLayer)
+    , mSettings(pRmlUiLayer, pLocalization, pDisplaySettings, pKeyBindings, pWindow)
     , mItemDiscard(pRmlUiLayer, pLocalization)
     , mShop(pRmlUiLayer, pNetworkManager.getInventoryController(), pLocalization, pItemIcons)
     , mWhispers(pRmlUiLayer, pLocalization)
@@ -48,25 +49,17 @@ WorldHud::WorldHud(RmlUiLayer& pRmlUiLayer,
         }
     });
 
-    mSystemMenu.setDisplaySelectCallback(
-    [this](size_t pIndex)
+    mSystemMenu.setSettingsCallback(
+    [this]()
     {
-        if (pIndex < mDisplayModes.size())
-        {
-            mDisplaySettings.change(mWindow, mDisplayModes[pIndex]);
-            refreshDisplayOptions();
-        }
+        mSettings.open();
     });
 
-    mSystemMenu.setCameraShakeCallback(
-    [this](bool pIsEnabled)
+    mSettings.setClosedCallback(
+    [this]()
     {
-        mDisplaySettings.setCameraShakeEnabled(pIsEnabled);
-        mDisplaySettings.save();
-        mSystemMenu.setCameraShakeEnabled(pIsEnabled);
+        mSystemMenu.open();
     });
-
-    mSystemMenu.setCameraShakeEnabled(mDisplaySettings.isCameraShakeEnabled());
 
     mWorldChat.setLocalMessageSentCallback(
     [this](bool pIsGlobal, const std::string& pText)
@@ -388,15 +381,25 @@ void WorldHud::update(double pDeltaTime, const glm::vec3& pLocalPosition, float 
 
 bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
 {
+    if (mSettings.isCapturingKey())
+    {
+        return mSettings.handleKeyDown(pEvent);
+    }
+
+    std::optional<KeyActionType> tAction = mKeyBindings.findAction(pEvent.scancode);
+
     if (!pEvent.repeat)
     {
-        switch (pEvent.scancode)
+        if (tAction)
         {
-            case SDL_SCANCODE_I: mInventory.toggle();      return true;
-            case SDL_SCANCODE_M: mWorldMap.toggle();       return true;
-            case SDL_SCANCODE_C: mCharacterSheet.toggle(); return true;
-            case SDL_SCANCODE_K: mSkillWindow.toggle();    return true;
-            default: break;
+            switch (*tAction)
+            {
+                case KeyActionType::eInventory:      mInventory.toggle();      return true;
+                case KeyActionType::eWorldMap:       mWorldMap.toggle();       return true;
+                case KeyActionType::eCharacterSheet: mCharacterSheet.toggle(); return true;
+                case KeyActionType::eSkillWindow:    mSkillWindow.toggle();    return true;
+                default: break;
+            }
         }
 
         if (pEvent.key == SDLK_ESCAPE)
@@ -408,19 +411,22 @@ bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
 
     SkillBarSlot tSlot = SkillBarSlot::eCount;
 
-    switch (pEvent.key)
+    if (tAction)
     {
-        case SDLK_1:  tSlot = SkillBarSlot::eSlot1;  break;
-        case SDLK_2:  tSlot = SkillBarSlot::eSlot2;  break;
-        case SDLK_3:  tSlot = SkillBarSlot::eSlot3;  break;
-        case SDLK_4:  tSlot = SkillBarSlot::eSlot4;  break;
-        case SDLK_5:  tSlot = SkillBarSlot::eSlot5;  break;
-        case SDLK_F1: tSlot = SkillBarSlot::eSlotF1; break;
-        case SDLK_F2: tSlot = SkillBarSlot::eSlotF2; break;
-        case SDLK_F3: tSlot = SkillBarSlot::eSlotF3; break;
-        case SDLK_F4: tSlot = SkillBarSlot::eSlotF4; break;
-        case SDLK_F5: tSlot = SkillBarSlot::eSlotF5; break;
-        default: break;
+        switch (*tAction)
+        {
+            case KeyActionType::eSkillSlot1:  tSlot = SkillBarSlot::eSlot1;  break;
+            case KeyActionType::eSkillSlot2:  tSlot = SkillBarSlot::eSlot2;  break;
+            case KeyActionType::eSkillSlot3:  tSlot = SkillBarSlot::eSlot3;  break;
+            case KeyActionType::eSkillSlot4:  tSlot = SkillBarSlot::eSlot4;  break;
+            case KeyActionType::eSkillSlot5:  tSlot = SkillBarSlot::eSlot5;  break;
+            case KeyActionType::eSkillSlotF1: tSlot = SkillBarSlot::eSlotF1; break;
+            case KeyActionType::eSkillSlotF2: tSlot = SkillBarSlot::eSlotF2; break;
+            case KeyActionType::eSkillSlotF3: tSlot = SkillBarSlot::eSlotF3; break;
+            case KeyActionType::eSkillSlotF4: tSlot = SkillBarSlot::eSlotF4; break;
+            case KeyActionType::eSkillSlotF5: tSlot = SkillBarSlot::eSlotF5; break;
+            default: break;
+        }
     }
 
     if (tSlot != SkillBarSlot::eCount)
@@ -452,8 +458,19 @@ bool WorldHud::handleKeyDown(const SDL_KeyboardEvent& pEvent)
     return false;
 }
 
+bool WorldHud::isCapturingKey() const
+{
+    return mSettings.isCapturingKey();
+}
+
 void WorldHud::handleEscape()
 {
+    if (mSettings.isOpen())
+    {
+        mSettings.close();
+        return;
+    }
+
     if (mItemDiscard.isOpen())
     {
         mItemDiscard.close();
@@ -468,15 +485,7 @@ void WorldHud::handleEscape()
 
     if (mSystemMenu.isOpen())
     {
-        if (mSystemMenu.isSettingsOpen())
-        {
-            mSystemMenu.closeSettings();
-        }
-        else
-        {
-            mSystemMenu.close();
-        }
-
+        mSystemMenu.close();
         return;
     }
 
@@ -491,14 +500,13 @@ void WorldHud::handleEscape()
 
     if (!mWhispers.minimizeOpen())
     {
-        refreshDisplayOptions();
         mSystemMenu.open();
     }
 }
 
 bool WorldHud::isModalOpen() const
 {
-    return mSystemMenu.isOpen();
+    return mSystemMenu.isOpen() || mSettings.isOpen();
 }
 
 void WorldHud::closeWorldChat()
@@ -519,26 +527,6 @@ void WorldHud::onWorldChatMessage(const std::string& pFromUsername, const std::s
 void WorldHud::clearWorldChat()
 {
     mWorldChat.clearHistory();
-}
-
-void WorldHud::refreshDisplayOptions()
-{
-    mDisplayModes = DisplaySettings::getAvailableModes(mWindow);
-
-    std::vector<std::string> tLabels;
-    size_t tSelected = 0;
-
-    for (size_t tIndex = 0; tIndex < mDisplayModes.size(); ++tIndex)
-    {
-        tLabels.push_back(mDisplayModes[tIndex].getLabel(mLocalization));
-
-        if (mDisplayModes[tIndex] == mDisplaySettings.getMode())
-        {
-            tSelected = tIndex;
-        }
-    }
-
-    mSystemMenu.setDisplayOptions(tLabels, tSelected);
 }
 
 void WorldHud::updateBagCounts(const std::vector<OwnedItem>& pItems)

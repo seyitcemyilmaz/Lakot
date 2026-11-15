@@ -24,22 +24,23 @@ void MapModelBatch::addInstance(const glm::vec3& pOffset, const glm::vec3& pPara
     mIsDirty = true;
 }
 
-void MapModelBatch::update(const glm::vec3& pCamera)
+void MapModelBatch::update(const glm::vec3& pCamera, float pViewDistance)
 {
-    if (mIsDirty || glm::distance(pCamera, mLastCamera) > kRebuildDistance)
+    if (mIsDirty || pViewDistance != mLastViewDistance || glm::distance(pCamera, mLastCamera) > kRebuildDistance)
     {
-        rebuild(pCamera);
+        rebuild(pCamera, pViewDistance);
     }
 }
 
-void MapModelBatch::rebuild(const glm::vec3& pCamera)
+void MapModelBatch::rebuild(const glm::vec3& pCamera, float pViewDistance)
 {
+    mLastViewDistance = pViewDistance;
     std::vector<glm::vec3> tNearOffsets;
     std::vector<glm::vec3> tNearParams;
     std::vector<glm::vec3> tFarOffsets;
     std::vector<glm::vec3> tFarParams;
 
-    const float tCullDistance = WorldView::kViewDistance;
+    const float tCullDistance = pViewDistance;
 
     for (size_t tIndex = 0; tIndex < mOffsets.size(); ++tIndex)
     {

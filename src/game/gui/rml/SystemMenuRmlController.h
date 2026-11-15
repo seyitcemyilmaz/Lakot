@@ -22,8 +22,7 @@ class SystemMenuRmlController
 {
 public:
     using LogoutCallback = std::function<void()>;
-    using DisplaySelectCallback = std::function<void(size_t pIndex)>;
-    using CameraShakeCallback = std::function<void(bool pIsEnabled)>;
+    using SettingsCallback = std::function<void()>;
 
     explicit SystemMenuRmlController(RmlUiLayer& pRmlUiLayer);
     ~SystemMenuRmlController();
@@ -32,19 +31,11 @@ public:
     SystemMenuRmlController& operator=(const SystemMenuRmlController&) = delete;
 
     void setLogoutCallback(LogoutCallback pCallback);
-    void setDisplaySelectCallback(DisplaySelectCallback pCallback);
-
-    void setCameraShakeCallback(CameraShakeCallback pCallback);
-    void setCameraShakeEnabled(bool pIsEnabled);
-
-    void setDisplayOptions(const std::vector<std::string>& pLabels, size_t pSelected);
+    void setSettingsCallback(SettingsCallback pCallback);
 
     void open();
     void close();
     bool isOpen() const;
-
-    bool isSettingsOpen() const;
-    void closeSettings();
 
 private:
     RmlUiLayer& mRmlUiLayer;
@@ -52,30 +43,15 @@ private:
     RmlDocument mDocument;
     Rml::DataModelHandle mModelHandle;
 
-    struct DisplayOptionRow
-    {
-        int index = 0;
-        Rml::String label;
-        bool isSelected = false;
-    };
-
     bool mIsOpen{false};
-    bool mIsSettingsOpen{false};
-    bool mIsCameraShakeEnabled{true};
-
-    std::vector<DisplayOptionRow> mDisplayOptions;
 
     LogoutCallback mLogoutCallback;
-    DisplaySelectCallback mDisplaySelectCallback;
-    CameraShakeCallback mCameraShakeCallback;
+    SettingsCallback mSettingsCallback;
 
     void onResumeClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onLogoutClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onQuitClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
     void onOpenSettingsClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
-    void onCloseSettingsClicked(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
-    void onCameraShakeToggled(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
-    void onDisplaySelected(Rml::DataModelHandle pHandle, Rml::Event& pEvent, const Rml::VariantList& pArguments);
 };
 
 }

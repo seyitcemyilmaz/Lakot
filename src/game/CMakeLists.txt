@@ -14,6 +14,8 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
 
     settings/DisplaySettings.h settings/DisplaySettings.cpp
     settings/LanguageSettings.h settings/LanguageSettings.cpp
+    settings/KeyBindings.h settings/KeyBindings.cpp
+    gui/rml/SettingsRmlController.h gui/rml/SettingsRmlController.cpp
     localization/Localization.h localization/Localization.cpp
 
     gui/GuiLayer.h

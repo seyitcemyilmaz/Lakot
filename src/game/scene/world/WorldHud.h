@@ -22,12 +22,14 @@
 #include "../../gui/rml/CharacterSheetRmlController.h"
 #include "../../gui/rml/SkillWindowRmlController.h"
 #include "../../gui/rml/SystemMenuRmlController.h"
+#include "../../gui/rml/SettingsRmlController.h"
 #include "../../gui/rml/ItemDiscardRmlController.h"
 #include "../../gui/rml/ShopRmlController.h"
 #include "../../gui/rml/MinimapRmlController.h"
 #include "../../gui/rml/WorldMapRmlController.h"
 #include "../../network/GameTypes.h"
 #include "../../settings/DisplaySettings.h"
+#include "../../settings/KeyBindings.h"
 #include "../../settings/SkillBarBindings.h"
 
 namespace lakot
@@ -49,6 +51,7 @@ public:
              NetworkManager& pNetworkManager,
              const Localization& pLocalization,
              DisplaySettings& pDisplaySettings,
+             KeyBindings& pKeyBindings,
              SDL_Window* pWindow,
              const std::string& pUsername,
              const CharacterStats& pStats,
@@ -78,6 +81,7 @@ public:
     uint64_t getShopNpcId() const;
 
     bool handleKeyDown(const SDL_KeyboardEvent& pEvent);
+    bool isCapturingKey() const;
 
     void handleEscape();
 
@@ -92,8 +96,7 @@ public:
 private:
     NetworkManager& mNetworkManager;
     const Localization& mLocalization;
-    DisplaySettings& mDisplaySettings;
-    SDL_Window* mWindow;
+    KeyBindings& mKeyBindings;
     ItemIconRenderer& mItemIcons;
     const ClassCatalog& mClassCatalog;
     SkillBarBindings mBindings;
@@ -108,11 +111,10 @@ private:
     CharacterSheetRmlController mCharacterSheet;
     SkillWindowRmlController mSkillWindow;
     SystemMenuRmlController mSystemMenu;
+    SettingsRmlController mSettings;
     ItemDiscardRmlController mItemDiscard;
     ShopRmlController mShop;
     WhisperWindows mWhispers;
-
-    std::vector<DisplayMode> mDisplayModes;
 
     CharacterStats mStats;
     std::unordered_map<uint32_t, uint32_t> mBagCounts;
@@ -125,7 +127,6 @@ private:
     bool mIsPathHintShown{false};
 
     void connectNetwork();
-    void refreshDisplayOptions();
 
     void updateBagCounts(const std::vector<OwnedItem>& pItems);
     void refreshSkillBar();

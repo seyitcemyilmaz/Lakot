@@ -70,6 +70,7 @@ bool Engine::initialize()
     {
         mDisplaySettings.load(mWindow);
         mDisplaySettings.apply(mWindow);
+        mKeyBindings.load();
     }
 
     mLastTime = SDL_GetPerformanceCounter();
@@ -299,6 +300,11 @@ const Localization& Engine::getLocalization() const
 DisplaySettings& Engine::getDisplaySettings()
 {
     return mDisplaySettings;
+}
+
+KeyBindings& Engine::getKeyBindings()
+{
+    return mKeyBindings;
 }
 
 SDL_AppResult Engine::eventHandler(SDL_Event* pEvent)

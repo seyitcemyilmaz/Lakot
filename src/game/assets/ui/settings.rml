@@ -1,0 +1,56 @@
+<rml>
+<head>
+    <title>[[settings.window_title]]</title>
+    <link type="text/rcss" href="theme.rcss"/>
+</head>
+<body class="screen-center system-menu-screen">
+    <div class="card settings-window" data-model="settings">
+        <div class="title">[[settings.title]]</div>
+
+        <div class="settings-tabs">
+            <div class="settings-tab" data-class-is-selected="is_controls_tab" data-event-click="select_tab(0)">[[settings.tab_controls]]</div>
+            <div class="settings-tab" data-class-is-selected="!is_controls_tab" data-event-click="select_tab(1)">[[settings.tab_graphics]]</div>
+        </div>
+
+        <div class="settings-body">
+            <div class="settings-page" data-if="is_controls_tab">
+                <div class="settings-columns">
+                    <div class="settings-column">
+                        <div class="btn-secondary settings-option" data-for="row : binding_rows_left"
+                             data-class-is-selected="row.is_waiting"
+                             data-event-click="begin_rebind(row.index)">{{ row.label }}: {{ row.key }}</div>
+                    </div>
+                    <div class="settings-column">
+                        <div class="btn-secondary settings-option" data-for="row : binding_rows_right"
+                             data-class-is-selected="row.is_waiting"
+                             data-event-click="begin_rebind(row.index)">{{ row.label }}: {{ row.key }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-page" data-if="!is_controls_tab">
+                <div class="field-label">[[settings.display]]</div>
+                <div class="btn-secondary settings-option" data-for="option : display_options"
+                     data-class-is-selected="option.is_selected"
+                     data-event-click="select_display(option.index)">{{ option.label }}</div>
+
+                <div class="field-label">[[settings.view_distance]]</div>
+                <div class="btn-secondary settings-option" data-for="option : view_distance_options"
+                     data-class-is-selected="option.is_selected"
+                     data-event-click="select_view_distance(option.index)">{{ option.label }}</div>
+
+                <div class="field-label">[[settings.vsync]]</div>
+                <div class="btn-secondary settings-option" data-class-is-selected="is_vsync_enabled"
+                     data-event-click="toggle_vsync"><span data-if="is_vsync_enabled">[[settings.on]]</span><span data-if="!is_vsync_enabled">[[settings.off]]</span></div>
+
+                <div class="field-label">[[settings.camera_shake]]</div>
+                <div class="btn-secondary settings-option" data-class-is-selected="is_camera_shake_enabled"
+                     data-event-click="toggle_camera_shake"><span data-if="is_camera_shake_enabled">[[settings.on]]</span><span data-if="!is_camera_shake_enabled">[[settings.off]]</span></div>
+            </div>
+        </div>
+
+        <div class="btn-secondary" data-if="is_controls_tab" data-event-click="reset_bindings">[[settings.reset_defaults]]</div>
+        <div class="btn-primary" data-event-click="close">[[settings.back]]</div>
+    </div>
+</body>
+</rml>

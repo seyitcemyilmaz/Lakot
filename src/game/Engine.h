@@ -22,6 +22,7 @@
 #include "gui/rml/ReconnectRmlController.h"
 #include "graphics/render/ShaderManager.h"
 #include "settings/DisplaySettings.h"
+#include "settings/KeyBindings.h"
 #include "settings/LanguageSettings.h"
 #include "localization/Localization.h"
 #include "dev/SnapshotRunner.h"
@@ -76,6 +77,7 @@ public:
     void setClearColor(const glm::vec3& pColor);
 
     DisplaySettings& getDisplaySettings();
+    KeyBindings& getKeyBindings();
 
     const Localization& getLocalization() const;
 
@@ -102,6 +104,7 @@ private:
     SkillCatalog mSkillCatalog;
 
     DisplaySettings mDisplaySettings;
+    KeyBindings mKeyBindings;
 
     Localization mLocalization;
     LanguageSettings mLanguageSettings;

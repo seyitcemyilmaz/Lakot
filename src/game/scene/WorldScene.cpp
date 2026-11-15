@@ -87,7 +87,6 @@ void WorldScene::enter()
         mCamera->setYaw(glm::degrees(tSpawn.yaw));
     }
 
-    mCamera->setFar(WorldView::kViewDistance + 40.0f);
     mEngine.setClearColor(kSkyColor);
 
     ShaderManager& tShaderManager = mEngine.getShaderManager();
@@ -141,7 +140,7 @@ void WorldScene::enter()
     mEntities->setLocal(mLocalUsername, mLocalPosition, mEngine.getFixedDeltaTime());
     mEntities->setLocalEquipment(mLocalItems);
 
-    mEffects = std::make_unique<WorldEffects>(mEngine.getAssetManager(), tShaderManager, *mEntities, mLocalStats.level);
+    mEffects = std::make_unique<WorldEffects>(mEngine.getAssetManager(), tShaderManager, *mEntities, mEngine.getDisplaySettings(), mLocalStats.level);
     mTrailRenderer = std::make_unique<TrailRenderer>(tShaderManager);
 
 #if defined(LAKOT_DEV_TOOLS)
@@ -161,7 +160,7 @@ void WorldScene::enter()
         mHud->openWhisper(pPlayerId, pName);
     });
 
-    mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getLocalization(), mEngine.getDisplaySettings(),
+    mHud = std::make_unique<WorldHud>(mEngine.getRmlUiLayer(), mEngine.getNetworkManager(), mEngine.getLocalization(), mEngine.getDisplaySettings(), mEngine.getKeyBindings(),
                                       mEngine.getWindow(), mLocalUsername, mLocalStats, mEngine.getClassCatalog(), mEngine.getSkillCatalog(), mLocalItems, *mItemIcons, mLocalCharacterId);
 
     mHud->setLocalItemsCallback(
@@ -267,6 +266,7 @@ void WorldScene::update(double pDeltaTime)
         sendLocalPlayerState();
     }
 
+    mCamera->setFar(mEngine.getDisplaySettings().getViewDistance() + 40.0f);
     mFeel.setCameraShakeEnabled(mEngine.getDisplaySettings().isCameraShakeEnabled());
     mFeel.update(pDeltaTime);
     mEntities->update(pDeltaTime, mFeel);
@@ -728,7 +728,7 @@ void WorldScene::render()
         pShader->setVec3("uCameraPosition", mCamera->getPosition());
         pShader->setVec3("uFogColor", kSkyColor);
         pShader->setFloat("uFogStart", kFogStart);
-        pShader->setFloat("uFogEnd", WorldView::kViewDistance);
+        pShader->setFloat("uFogEnd", mEngine.getDisplaySettings().getViewDistance());
         pShader->setVec3("uLightDirection", WorldView::kLightDirection);
     };
 
@@ -745,7 +745,7 @@ void WorldScene::render()
         }
 
         mTerrain->getVertexArrayObject().bind();
-        mTerrain->drawChunksNear(mCamera->getPosition(), WorldView::kViewDistance);
+        mTerrain->drawChunksNear(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance());
 
         tTerrainShader->unbind();
     }
@@ -760,7 +760,7 @@ void WorldScene::render()
 
         for (MapModelBatch& tBatch : mMapModels)
         {
-            tBatch.update(mCamera->getPosition());
+            tBatch.update(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance());
             tBatch.draw(0);
         }
 
@@ -799,7 +799,7 @@ void WorldScene::render()
         tBoxShader->unbind();
     }
 
-    mEffects->render(*mCamera, kSkyColor, kFogStart, WorldView::kViewDistance, tExtraSeconds);
+    mEffects->render(*mCamera, kSkyColor, kFogStart, mEngine.getDisplaySettings().getViewDistance(), tExtraSeconds);
     mTrailRenderer->render(mWeaponTrail, *mCamera);
 
     renderOverlay(tExtraSeconds);
@@ -816,19 +816,34 @@ bool WorldScene::handleEvent(SDL_Event* pEvent)
             return false;
         }
 
+        if (tIsPressed && mHud->isCapturingKey())
+        {
+            return mHud->handleKeyDown(pEvent->key);
+        }
+
+        std::optional<KeyActionType> tAction = mEngine.getKeyBindings().findAction(pEvent->key.scancode);
+
+        if (tAction)
+        {
+            switch (*tAction)
+            {
+                case KeyActionType::eMoveForward:  mIsMovingForward = tIsPressed;  return true;
+                case KeyActionType::eMoveBackward: mIsMovingBackward = tIsPressed; return true;
+                case KeyActionType::eMoveLeft:     mIsMovingLeft = tIsPressed;     return true;
+                case KeyActionType::eMoveRight:    mIsMovingRight = tIsPressed;    return true;
+                case KeyActionType::eAttack:       mIsAttackHeld = tIsPressed;     return true;
+                case KeyActionType::eAutoPickup:
+                    if (tIsPressed && !pEvent->key.repeat)
+                    {
+                        requestAutoPickup();
+                    }
+                    return true;
+                default: break;
+            }
+        }
+
         switch (pEvent->key.key)
         {
-            case SDLK_W: mIsMovingForward = tIsPressed;  return true;
-            case SDLK_S: mIsMovingBackward = tIsPressed; return true;
-            case SDLK_A: mIsMovingLeft = tIsPressed;     return true;
-            case SDLK_D: mIsMovingRight = tIsPressed;    return true;
-            case SDLK_SPACE: mIsAttackHeld = tIsPressed; return true;
-            case SDLK_Z:
-                if (tIsPressed && !pEvent->key.repeat)
-                {
-                    requestAutoPickup();
-                }
-                return true;
             case SDLK_F9:
                 if (tIsPressed && mEffectsPanel)
                 {
