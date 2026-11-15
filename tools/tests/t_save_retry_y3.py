@@ -319,7 +319,9 @@ def t_shutdown_timeout_writes_unsaved():
         check(sum(i["count"] for i in tData["items"] if i["templateId"] == POTION) == 1, f"dump items {tData['items']}")
         close_clients()
         srv.restart_in_place()
-        time.sleep(1.0)
+        tEnd = time.time() + 15
+        while time.time() < tEnd and not any("unsaved/" in l and "UYARI" in l for l in srv.log_lines):
+            time.sleep(0.3)
         check(any("unsaved/" in l and "UYARI" in l for l in srv.log_lines), "no startup warning about unsaved files")
     finally:
         close_clients()
