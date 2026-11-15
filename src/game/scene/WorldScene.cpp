@@ -10,6 +10,7 @@
 
 #include <imgui.h>
 
+#include "../graphics/camera/Frustum.h"
 #include "../Engine.h"
 #include "../gui/AttachmentPanel.h"
 #include "../gui/EffectsPanel.h"
@@ -758,9 +759,11 @@ void WorldScene::render()
         tSetWorldUniforms(tModelShader);
         tModelShader->setInt("uTexture", 0);
 
+        const Frustum tFrustum(mCamera->getViewProjectionMatrix());
+
         for (MapModelBatch& tBatch : mMapModels)
         {
-            tBatch.update(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance());
+            tBatch.update(mCamera->getPosition(), mEngine.getDisplaySettings().getViewDistance(), tFrustum);
             tBatch.draw(0);
         }
 

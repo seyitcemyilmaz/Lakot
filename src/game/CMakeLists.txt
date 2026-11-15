@@ -78,7 +78,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/ShopRmlController.h gui/rml/ShopRmlController.cpp
     network/StatsMessage.h
 
-    graphics/camera/Camera.h graphics/camera/Camera.cpp
+    graphics/camera/Camera.h graphics/camera/Frustum.h graphics/camera/Camera.cpp
     graphics/camera/ThirdPersonCamera.h graphics/camera/ThirdPersonCamera.cpp
 
     graphics/geometry/BoxContainer.h graphics/geometry/BoxContainer.cpp

@@ -44,11 +44,14 @@ public:
     // shader must already be bound.
     void draw(unsigned int pTextureUnit) const;
 
+    float getRadius() const { return mRadius; }
+
 private:
     Model();
 
     unsigned int mIndexCount{0};
     unsigned int mInstanceCount{0};
+    float mRadius{0.0f};
 
     std::shared_ptr<Texture> mTexture;
 };

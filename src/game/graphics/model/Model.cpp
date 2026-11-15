@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include <algorithm>
+
 #include "../../asset/AssetManager.h"
 
 #include <glad/glad.h>
@@ -87,6 +89,11 @@ std::unique_ptr<Model> Model::build(const aiScene& pScene, const std::string& pP
                 tIndices.push_back(tBase + tFaceData.mIndices[tCorner]);
             }
         }
+    }
+
+    for (const glm::vec3& tPosition : tPositions)
+    {
+        tModel->mRadius = std::max(tModel->mRadius, glm::length(tPosition));
     }
 
     tModel->mTexture = pAssets.getModelTexture(*tScene, pPath, pError);
