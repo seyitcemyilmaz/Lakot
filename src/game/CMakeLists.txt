@@ -37,6 +37,9 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     gui/rml/WorldChatRmlController.h gui/rml/WorldChatRmlController.cpp
     gui/rml/SkillBarRmlController.h gui/rml/SkillBarRmlController.cpp
     gui/rml/InventoryRmlController.h gui/rml/InventoryRmlController.cpp
+    gui/rml/ItemTooltip.h gui/rml/ItemTooltip.cpp
+    gui/rml/InventoryDragController.h gui/rml/InventoryDragController.cpp
+    gui/rml/InventoryUnits.h
     gui/rml/CharacterSheetRmlController.h gui/rml/CharacterSheetRmlController.cpp
     gui/rml/SkillWindowRmlController.h gui/rml/SkillWindowRmlController.cpp
     gui/rml/ItemDiscardRmlController.h gui/rml/ItemDiscardRmlController.cpp
@@ -100,6 +103,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
     graphics/model/MotionLibrary.h graphics/model/MotionLibrary.cpp
     scene/world/DamageNumbers.h scene/world/DamageNumbers.cpp
     scene/world/WorldOverlay.h scene/world/WorldOverlay.cpp
+    scene/world/WorldShaders.h scene/world/WorldShaders.cpp
     gui/rml/VitalsRmlController.h gui/rml/VitalsRmlController.cpp
     item/ItemAppearance.h item/ItemAppearance.cpp
     item/ItemIconRenderer.h item/ItemIconRenderer.cpp

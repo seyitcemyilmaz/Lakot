@@ -9,6 +9,7 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataStructHandle.h>
 
+#include "InventoryUnits.h"
 #include "RmlUiLayer.h"
 #include "../../localization/Localization.h"
 
@@ -18,32 +19,15 @@
 #include "../../item/ItemIconRenderer.h"
 
 using namespace lakot;
+using InventoryUnits::getFootprintHeight;
+using InventoryUnits::getFootprintWidth;
+using InventoryUnits::toDp;
+using InventoryUnits::toPixels;
 
 namespace
 {
-    Rml::String toPixels(int pValue)
-    {
-        return Rml::String(std::to_string(pValue) + "px");
-    }
-
-    Rml::String toDp(uint32_t pValue)
-    {
-        return Rml::String(std::to_string(pValue) + "dp");
-    }
-
     constexpr int kRightMouseButton = 1;
     constexpr uint64_t kStatusDurationMs = 3000;
-    constexpr float kScreenMargin = 4.0f;
-
-    uint32_t getFootprintWidth(const ItemTemplate* pTemplate)
-    {
-        return pTemplate && pTemplate->width > 0 ? pTemplate->width : 1;
-    }
-
-    uint32_t getFootprintHeight(const ItemTemplate* pTemplate)
-    {
-        return pTemplate && pTemplate->height > 0 ? pTemplate->height : 1;
-    }
 
     bool isEquippable(const ItemTemplate* pTemplate)
     {
@@ -66,18 +50,6 @@ const InventoryRmlController::DollSlotPosition InventoryRmlController::kDollRese
 
 const size_t InventoryRmlController::kDollSlotCount =
     sizeof(InventoryRmlController::kDollSlots) / sizeof(InventoryRmlController::kDollSlots[0]);
-
-std::string InventoryRmlController::getSlotRoleName(EquipSlotType pSlot) const
-{
-    switch (pSlot)
-    {
-        case EquipSlotType::eWeapon: return mLocalization.text("inventory.slot.weapon");
-        case EquipSlotType::eArmor:  return mLocalization.text("inventory.slot.armor");
-        case EquipSlotType::eHelmet: return mLocalization.text("inventory.slot.helmet");
-        case EquipSlotType::eBoots:  return mLocalization.text("inventory.slot.boots");
-        default:                     return std::string();
-    }
-}
 
 Rml::String InventoryRmlController::toIconPath(const ItemTemplate* pTemplate) const
 {
@@ -104,6 +76,8 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
     , mInventoryController(pInventoryController)
     , mClassCatalog(pClassCatalog)
     , mItemIcons(pItemIcons)
+    , mTooltip(mRmlUiLayer, mLocalization, mClassCatalog, mDocument)
+    , mDrag(mRmlUiLayer, mDocument, kCellSize)
 {
     Rml::Context* tContext = mRmlUiLayer.getContext();
 
@@ -151,10 +125,6 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
         tEquip.RegisterMember("is_dragged", &EquipRow::isDragged);
         tConstructor.RegisterArray<std::vector<EquipRow>>();
 
-        auto tLine = tConstructor.RegisterStruct<TooltipLine>();
-        tLine.RegisterMember("text", &TooltipLine::text);
-        tConstructor.RegisterArray<std::vector<TooltipLine>>();
-
         sTypesRegistered = true;
     }
 
@@ -172,22 +142,12 @@ InventoryRmlController::InventoryRmlController(RmlUiLayer& pRmlUiLayer, const Lo
     tConstructor.Bind("reserved_height", &mReservedHeight);
     tConstructor.Bind("doll_height_px", &mDollHeightPx);
 
-    tConstructor.Bind("tooltip_lines", &mTooltipLines);
-    tConstructor.Bind("tooltip_name", &mTooltipName);
-    tConstructor.Bind("tooltip_hint", &mTooltipHint);
-    tConstructor.Bind("tooltip_left", &mTooltipLeft);
-    tConstructor.Bind("tooltip_top", &mTooltipTop);
-    tConstructor.Bind("has_tooltip", &mHasTooltip);
+    mTooltip.bind(tConstructor);
 
     tConstructor.Bind("status_text", &mStatusText);
     tConstructor.Bind("has_status", &mHasStatusMessage);
 
-    tConstructor.Bind("drag_ghost_icon", &mDragGhostIcon);
-    tConstructor.Bind("drag_ghost_left", &mDragGhostLeft);
-    tConstructor.Bind("drag_ghost_top", &mDragGhostTop);
-    tConstructor.Bind("drag_ghost_width", &mDragGhostWidth);
-    tConstructor.Bind("drag_ghost_height", &mDragGhostHeight);
-    tConstructor.Bind("has_drag_ghost", &mHasDragGhost);
+    mDrag.bind(tConstructor);
 
     tConstructor.BindEventCallback("piece_pressed", &InventoryRmlController::onPiecePressed, this);
     tConstructor.BindEventCallback("equip_slot_pressed", &InventoryRmlController::onEquipSlotPressed, this);
@@ -331,7 +291,7 @@ void InventoryRmlController::rebuild()
                 tRow.itemWidth = toDp(tColumns * kCellSize);
                 tRow.itemHeight = toDp(tRows * kCellSize);
                 tRow.isFilled = true;
-                tRow.isDragged = mIsDraggingItem && mDraggedFromEquip && tItem.slot == mDraggedFromSlot;
+                tRow.isDragged = mDrag.isActive() && mDrag.isFromEquip() && tItem.slot == mDrag.getFromSlot();
             }
 
             continue;
@@ -355,7 +315,7 @@ void InventoryRmlController::rebuild()
         tRow.icon = toIconPath(tTemplate);
         tRow.count = std::to_string(tItem.count);
         tRow.hasCount = (tItem.count > 1);
-        tRow.isDragged = mIsDraggingItem && !mDraggedFromEquip && tItem.slot == mDraggedFromSlot;
+        tRow.isDragged = mDrag.isActive() && !mDrag.isFromEquip() && tItem.slot == mDrag.getFromSlot();
 
         mPieces.push_back(std::move(tRow));
     }
@@ -363,143 +323,9 @@ void InventoryRmlController::rebuild()
     dirtyAll();
 }
 
-void InventoryRmlController::showTooltip(const ItemTemplate* pTemplate, uint32_t pCount, bool pIsEquipped)
-{
-    mTooltipLines.clear();
-
-    if (!pTemplate)
-    {
-        mTooltipName = mLocalization.text("inventory.unknown_item");
-        mTooltipHint = "";
-    }
-    else
-    {
-        mTooltipName = mLocalization.content("item." + std::to_string(pTemplate->templateId) + ".name", pTemplate->name);
-
-        if (pCount > 1)
-        {
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.quantity", { { "count", std::to_string(pCount) } }) });
-        }
-
-        if (pTemplate->bonusAttack != 0)
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_attack", { { "value", std::to_string(pTemplate->bonusAttack) } }) });
-        if (pTemplate->bonusDefense != 0)
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_defense", { { "value", std::to_string(pTemplate->bonusDefense) } }) });
-        if (pTemplate->bonusMaxHealth != 0)
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_max_health", { { "value", std::to_string(pTemplate->bonusMaxHealth) } }) });
-        if (pTemplate->bonusMaxMana != 0)
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.bonus_max_mana", { { "value", std::to_string(pTemplate->bonusMaxMana) } }) });
-
-        if (pTemplate->requiredLevel > 1)
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.requires_level", { { "level", std::to_string(pTemplate->requiredLevel) } }) });
-
-        if (!pTemplate->allowedClasses.empty())
-        {
-            std::string tClasses;
-
-            for (uint32_t tClassId : pTemplate->allowedClasses)
-            {
-                const ClassDefinition* tClass = mClassCatalog.find(tClassId);
-                tClasses += (tClasses.empty() ? "" : ", ") + (tClass ? mLocalization.content("class." + tClass->key + ".name", tClass->name) : std::string("?"));
-            }
-
-            mTooltipLines.push_back({ mLocalization.format("inventory.tooltip.classes", { { "classes", tClasses } }) });
-        }
-
-        if (pIsEquipped)
-        {
-            mTooltipHint = mLocalization.text("inventory.hint.unequip");
-        }
-        else if (isEquippable(pTemplate))
-        {
-            mTooltipHint = mLocalization.text("inventory.hint.equip");
-        }
-        else
-        {
-            mTooltipHint = "";
-        }
-    }
-
-    mHasTooltip = true;
-    dirtyAll();
-
-    float tMouseX = 0.0f;
-    float tMouseY = 0.0f;
-    SDL_GetMouseState(&tMouseX, &tMouseY);
-    positionTooltip(tMouseX, tMouseY);
-}
-
-void InventoryRmlController::showEmptySlotTooltip(EquipSlotType pSlot)
-{
-    mTooltipLines.clear();
-    mTooltipName = getSlotRoleName(pSlot);
-    mTooltipHint = mLocalization.text("inventory.hint.empty");
-
-    mHasTooltip = true;
-    dirtyAll();
-
-    float tMouseX = 0.0f;
-    float tMouseY = 0.0f;
-    SDL_GetMouseState(&tMouseX, &tMouseY);
-    positionTooltip(tMouseX, tMouseY);
-}
-
-void InventoryRmlController::hideTooltip()
-{
-    if (!mHasTooltip)
-    {
-        return;
-    }
-
-    mHasTooltip = false;
-    dirtyAll();
-}
-
-void InventoryRmlController::positionTooltip(float pMouseX, float pMouseY)
-{
-    if (!mDocument)
-    {
-        return;
-    }
-
-    Rml::Vector2i tScreen = mRmlUiLayer.getContext()->GetDimensions();
-
-    float tWidth = 200.0f;
-    float tHeight = 0.0f;
-
-    if (Rml::Element* tTooltip = mDocument->QuerySelector(".inv-tooltip"))
-    {
-        tWidth = std::max(tWidth, tTooltip->GetOffsetWidth());
-        tHeight = tTooltip->GetOffsetHeight();
-    }
-
-    float tLeft = pMouseX + 18.0f;
-    float tTop = pMouseY + 8.0f;
-
-    if (tLeft + tWidth > tScreen.x - kScreenMargin)
-    {
-        tLeft = pMouseX - 12.0f - tWidth;
-    }
-
-    tTop = std::min(tTop, tScreen.y - kScreenMargin - tHeight);
-    tTop = std::max(tTop, kScreenMargin);
-    tLeft = std::max(tLeft, kScreenMargin);
-
-    Rml::String tNewLeft = toPixels(static_cast<int>(tLeft - mDocument->GetAbsoluteLeft()));
-    Rml::String tNewTop = toPixels(static_cast<int>(tTop - mDocument->GetAbsoluteTop()));
-
-    if (tNewLeft != mTooltipLeft || tNewTop != mTooltipTop)
-    {
-        mTooltipLeft = tNewLeft;
-        mTooltipTop = tNewTop;
-        mModelHandle.DirtyVariable("tooltip_left");
-        mModelHandle.DirtyVariable("tooltip_top");
-    }
-}
-
 void InventoryRmlController::onHoverPiece(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
 {
-    if (pArguments.empty() || mIsDraggingItem)
+    if (pArguments.empty() || mDrag.isActive())
     {
         return;
     }
@@ -510,7 +336,7 @@ void InventoryRmlController::onHoverPiece(Rml::DataModelHandle /*pHandle*/, Rml:
     {
         if (tItem.location == ItemLocationType::eInventory && static_cast<int>(tItem.slot) == tSlot)
         {
-            showTooltip(mInventoryController.findTemplate(tItem.templateId), tItem.count, false);
+            mTooltip.showItem(mInventoryController.findTemplate(tItem.templateId), tItem.count, false);
             return;
         }
     }
@@ -518,7 +344,7 @@ void InventoryRmlController::onHoverPiece(Rml::DataModelHandle /*pHandle*/, Rml:
 
 void InventoryRmlController::onHoverEquipped(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
 {
-    if (pArguments.empty() || mIsDraggingItem)
+    if (pArguments.empty() || mDrag.isActive())
     {
         return;
     }
@@ -529,25 +355,25 @@ void InventoryRmlController::onHoverEquipped(Rml::DataModelHandle /*pHandle*/, R
     {
         if (tItem.location == ItemLocationType::eEquipped && static_cast<int>(tItem.slot) == tSlot)
         {
-            showTooltip(mInventoryController.findTemplate(tItem.templateId), tItem.count, true);
+            mTooltip.showItem(mInventoryController.findTemplate(tItem.templateId), tItem.count, true);
             return;
         }
     }
 
     if (tSlot > 0 && tSlot < static_cast<int>(EquipSlotType::eCount))
     {
-        showEmptySlotTooltip(static_cast<EquipSlotType>(tSlot));
+        mTooltip.showEmptySlot(static_cast<EquipSlotType>(tSlot));
     }
 }
 
 void InventoryRmlController::onUnhover(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& /*pArguments*/)
 {
-    hideTooltip();
+    mTooltip.hide();
 }
 
 void InventoryRmlController::onPiecePressed(Rml::DataModelHandle /*pHandle*/, Rml::Event& pEvent, const Rml::VariantList& pArguments)
 {
-    if (pArguments.empty() || mIsDraggingItem)
+    if (pArguments.empty() || mDrag.isActive())
     {
         return;
     }
@@ -566,7 +392,7 @@ void InventoryRmlController::onPiecePressed(Rml::DataModelHandle /*pHandle*/, Rm
         {
             if (isEquippable(mInventoryController.findTemplate(tItem.templateId)) && mEquipRequestCallback)
             {
-                hideTooltip();
+                mTooltip.hide();
                 request(RequestType::eEquip);
                 mEquipRequestCallback(tItem.slot);
             }
@@ -582,7 +408,7 @@ void InventoryRmlController::onPiecePressed(Rml::DataModelHandle /*pHandle*/, Rm
 
 void InventoryRmlController::onEquipSlotPressed(Rml::DataModelHandle /*pHandle*/, Rml::Event& pEvent, const Rml::VariantList& pArguments)
 {
-    if (pArguments.empty() || mIsDraggingItem)
+    if (pArguments.empty() || mDrag.isActive())
     {
         return;
     }
@@ -601,7 +427,7 @@ void InventoryRmlController::onEquipSlotPressed(Rml::DataModelHandle /*pHandle*/
         {
             if (mUnequipRequestCallback)
             {
-                hideTooltip();
+                mTooltip.hide();
                 request(RequestType::eUnequip);
                 mUnequipRequestCallback(static_cast<EquipSlotType>(tSlot), std::nullopt);
             }
@@ -619,42 +445,17 @@ void InventoryRmlController::startItemDrag(const OwnedItem& pItem, bool pIsFromE
 {
     const ItemTemplate* tTemplate = mInventoryController.findTemplate(pItem.templateId);
 
-    float tScale = mRmlUiLayer.getScale();
-    float tGhostWidth = getFootprintWidth(tTemplate) * kCellSize * tScale;
-    float tGhostHeight = getFootprintHeight(tTemplate) * kCellSize * tScale;
+    mDrag.begin(pItem.slot, pIsFromEquip, toIconPath(tTemplate), getFootprintWidth(tTemplate), getFootprintHeight(tTemplate), pEvent);
 
-    mIsDraggingItem = true;
-    mDraggedFromEquip = pIsFromEquip;
-    mDraggedFromSlot = pItem.slot;
-    mDragGhostIcon = toIconPath(tTemplate);
-    mDragGhostWidth = toDp(getFootprintWidth(tTemplate) * kCellSize);
-    mDragGhostHeight = toDp(getFootprintHeight(tTemplate) * kCellSize);
-    mHasDragGhost = true;
-
-    float tMouseX = static_cast<float>(pEvent.GetParameter<int>("mouse_x", 0));
-    float tMouseY = static_cast<float>(pEvent.GetParameter<int>("mouse_y", 0));
-
-    mDragGrabOffsetX = 0.0f;
-    mDragGrabOffsetY = 0.0f;
-
-    if (Rml::Element* tElement = pEvent.GetCurrentElement())
-    {
-        mDragGrabOffsetX = std::clamp(tMouseX - tElement->GetAbsoluteLeft(), 0.0f, tGhostWidth - 1.0f);
-        mDragGrabOffsetY = std::clamp(tMouseY - tElement->GetAbsoluteTop(), 0.0f, tGhostHeight - 1.0f);
-    }
-
-    mDragGhostLeft = toPixels(static_cast<int>(tMouseX - mDragGrabOffsetX - mDocument->GetAbsoluteLeft()));
-    mDragGhostTop = toPixels(static_cast<int>(tMouseY - mDragGrabOffsetY - mDocument->GetAbsoluteTop()));
-
-    mHasTooltip = false;
+    mTooltip.forget();
     rebuild();
 }
 
 void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
 {
     float tCell = kCellSize * mRmlUiLayer.getScale();
-    float tAnchorX = pMouseX - mDragGrabOffsetX + tCell * 0.5f;
-    float tAnchorY = pMouseY - mDragGrabOffsetY + tCell * 0.5f;
+    float tAnchorX = pMouseX - mDrag.getGrabOffsetX() + tCell * 0.5f;
+    float tAnchorY = pMouseY - mDrag.getGrabOffsetY() + tCell * 0.5f;
 
     Rml::Element* tGrid = mDocument->QuerySelector(".inv-grid");
 
@@ -669,26 +470,26 @@ void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
         {
             uint32_t tTargetSlot = mCurrentPage * tGridInfo.getCellsPerPage() + tRow * tGridInfo.width + tColumn;
 
-            if (mDraggedFromEquip)
+            if (mDrag.isFromEquip())
             {
                 if (mUnequipRequestCallback)
                 {
                     request(RequestType::eUnequip);
-                    mUnequipRequestCallback(static_cast<EquipSlotType>(mDraggedFromSlot), tTargetSlot);
+                    mUnequipRequestCallback(static_cast<EquipSlotType>(mDrag.getFromSlot()), tTargetSlot);
                 }
             }
-            else if (tTargetSlot != mDraggedFromSlot && mMoveRequestCallback)
+            else if (tTargetSlot != mDrag.getFromSlot() && mMoveRequestCallback)
             {
                 request(RequestType::eMove);
-                mMoveRequestCallback(mDraggedFromSlot, tTargetSlot);
+                mMoveRequestCallback(mDrag.getFromSlot(), tTargetSlot);
             }
         }
     }
-    else if (!mDraggedFromEquip && !isInside(".inventory-window", pMouseX, pMouseY) && mItemDroppedOutsideCallback)
+    else if (!mDrag.isFromEquip() && !isInside(".inventory-window", pMouseX, pMouseY) && mItemDroppedOutsideCallback)
     {
         for (const OwnedItem& tItem : mOwnedItems)
         {
-            if (tItem.location != ItemLocationType::eInventory || tItem.slot != mDraggedFromSlot)
+            if (tItem.location != ItemLocationType::eInventory || tItem.slot != mDrag.getFromSlot())
             {
                 continue;
             }
@@ -698,16 +499,16 @@ void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
             break;
         }
     }
-    else if (!mDraggedFromEquip && isInside(".inv-doll", pMouseX, pMouseY) && mEquipRequestCallback)
+    else if (!mDrag.isFromEquip() && isInside(".inv-doll", pMouseX, pMouseY) && mEquipRequestCallback)
     {
         for (const OwnedItem& tItem : mOwnedItems)
         {
-            if (tItem.location == ItemLocationType::eInventory && tItem.slot == mDraggedFromSlot)
+            if (tItem.location == ItemLocationType::eInventory && tItem.slot == mDrag.getFromSlot())
             {
                 if (isEquippable(mInventoryController.findTemplate(tItem.templateId)))
                 {
                     request(RequestType::eEquip);
-                    mEquipRequestCallback(mDraggedFromSlot);
+                    mEquipRequestCallback(mDrag.getFromSlot());
                 }
 
                 break;
@@ -720,13 +521,12 @@ void InventoryRmlController::finishItemDrag(float pMouseX, float pMouseY)
 
 void InventoryRmlController::cancelItemDrag()
 {
-    if (!mIsDraggingItem)
+    if (!mDrag.isActive())
     {
         return;
     }
 
-    mIsDraggingItem = false;
-    mHasDragGhost = false;
+    mDrag.end();
 
     rebuild();
 }
@@ -741,7 +541,7 @@ void InventoryRmlController::onSetPageClicked(Rml::DataModelHandle /*pHandle*/, 
 
 void InventoryRmlController::onPageHovered(Rml::DataModelHandle /*pHandle*/, Rml::Event& /*pEvent*/, const Rml::VariantList& pArguments)
 {
-    if (mIsDraggingItem && !pArguments.empty())
+    if (mDrag.isActive() && !pArguments.empty())
     {
         setPage(static_cast<uint32_t>(std::max(pArguments[0].Get<int>(0), 0)));
     }
@@ -756,7 +556,7 @@ void InventoryRmlController::setPage(uint32_t pPage)
 
     mCurrentPage = pPage;
 
-    mHasTooltip = false;
+    mTooltip.forget();
     rebuild();
 }
 
@@ -824,7 +624,7 @@ void InventoryRmlController::toggle()
 
     mHasStatusMessage = false;
     mStatusText.clear();
-    mHasTooltip = false;
+    mTooltip.forget();
 
     rebuild();
 
@@ -844,7 +644,7 @@ void InventoryRmlController::close()
 
     mIsOpen = false;
     mIsDragging = false;
-    mHasTooltip = false;
+    mTooltip.forget();
 
     cancelItemDrag();
 
@@ -877,20 +677,11 @@ void InventoryRmlController::update()
 
     keepWindowOnScreen(tMouseX, tMouseY);
 
-    if (mIsDraggingItem)
+    if (mDrag.isActive())
     {
         if (tIsLeftHeld)
         {
-            Rml::String tLeft = toPixels(static_cast<int>(tMouseX - mDragGrabOffsetX - mDocument->GetAbsoluteLeft()));
-            Rml::String tTop = toPixels(static_cast<int>(tMouseY - mDragGrabOffsetY - mDocument->GetAbsoluteTop()));
-
-            if (tLeft != mDragGhostLeft || tTop != mDragGhostTop)
-            {
-                mDragGhostLeft = tLeft;
-                mDragGhostTop = tTop;
-                mModelHandle.DirtyVariable("drag_ghost_left");
-                mModelHandle.DirtyVariable("drag_ghost_top");
-            }
+            mDrag.follow(tMouseX, tMouseY);
         }
         else
         {
@@ -898,10 +689,7 @@ void InventoryRmlController::update()
         }
     }
 
-    if (mHasTooltip)
-    {
-        positionTooltip(tMouseX, tMouseY);
-    }
+    mTooltip.update(tMouseX, tMouseY);
 
     if (mHasStatusMessage && SDL_GetTicks() >= mStatusHideTime)
     {

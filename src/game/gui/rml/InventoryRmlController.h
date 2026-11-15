@@ -12,6 +12,8 @@
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "InventoryDragController.h"
+#include "ItemTooltip.h"
 #include "RmlDocument.h"
 #include "ClassCatalog.h"
 
@@ -126,11 +128,6 @@ private:
         bool isDragged = false;
     };
 
-    struct TooltipLine
-    {
-        Rml::String text;
-    };
-
     RmlUiLayer& mRmlUiLayer;
     const Localization& mLocalization;
     const InventoryController& mInventoryController;
@@ -138,6 +135,8 @@ private:
     ItemIconRenderer& mItemIcons;
 
     RmlDocument mDocument;
+    ItemTooltip mTooltip;
+    InventoryDragController mDrag;
     Rml::DataModelHandle mModelHandle;
 
     std::vector<OwnedItem> mOwnedItems;
@@ -156,13 +155,6 @@ private:
     Rml::String mReservedHeight{"0px"};
     Rml::String mDollHeightPx{"0px"};
 
-    std::vector<TooltipLine> mTooltipLines;
-    Rml::String mTooltipName;
-    Rml::String mTooltipHint;
-    Rml::String mTooltipLeft{"0px"};
-    Rml::String mTooltipTop{"0px"};
-    bool mHasTooltip{false};
-
     Rml::String mStatusText;
     bool mHasStatusMessage{false};
     uint64_t mStatusHideTime{0};
@@ -177,20 +169,6 @@ private:
     float mDragStartMouseY{0.0f};
     float mDragStartDocLeft{0.0f};
     float mDragStartDocTop{0.0f};
-
-    bool mIsDraggingItem{false};
-    uint32_t mDraggedFromSlot{0};
-    bool mDraggedFromEquip{false};
-
-    float mDragGrabOffsetX{0.0f};
-    float mDragGrabOffsetY{0.0f};
-
-    Rml::String mDragGhostIcon;
-    Rml::String mDragGhostLeft{"0px"};
-    Rml::String mDragGhostTop{"0px"};
-    Rml::String mDragGhostWidth{"0px"};
-    Rml::String mDragGhostHeight{"0px"};
-    bool mHasDragGhost{false};
 
     EquipRequestCallback mEquipRequestCallback;
     UnequipRequestCallback mUnequipRequestCallback;
@@ -209,15 +187,10 @@ private:
 
     void rebuild();
 
-    void showTooltip(const ItemTemplate* pTemplate, uint32_t pCount, bool pIsEquipped);
-    void showEmptySlotTooltip(EquipSlotType pSlot);
-    void hideTooltip();
-
     void startItemDrag(const OwnedItem& pItem, bool pIsFromEquip, Rml::Event& pEvent);
     void finishItemDrag(float pMouseX, float pMouseY);
     void cancelItemDrag();
 
-    void positionTooltip(float pMouseX, float pMouseY);
     void keepWindowOnScreen(float pMouseX, float pMouseY);
 
     void setPage(uint32_t pPage);
@@ -228,8 +201,6 @@ private:
     void dirtyAll();
 
     Rml::String toIconPath(const ItemTemplate* pTemplate) const;
-
-    std::string getSlotRoleName(EquipSlotType pSlot) const;
 };
 
 }
