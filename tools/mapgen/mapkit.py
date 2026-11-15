@@ -268,6 +268,8 @@ TREE_BIOMES = {
     "steppe": [("juniper", 5), ("birch", 2), ("poplar", 1)],
     "border": [("pine", 6), ("juniper", 2), ("oak", 1)],
     "mist": [("pine", 5), ("birch", 4), ("poplar", 1)],
+    "desert": [("juniper", 6), ("poplar", 1)],
+    "dark": [("pine", 6), ("oak", 3), ("juniper", 1)],
 }
 TREE_VARIANTS = 3
 TREE_TRUNK_WIDTH = {"oak": 1.2, "poplar": 0.8, "birch": 0.6, "pine": 0.8, "juniper": 0.5}

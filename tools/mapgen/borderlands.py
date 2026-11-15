@@ -19,7 +19,8 @@ OUT = map_directory(MAP_ID, "borderlands")
 
 ROAD = [(-800, 0), (-620, -40), (-400, -20), (-200, 60), (0, 40), (240, -60), (480, -40), (650, -20), (800, 0)]
 SOUTH_ROAD = [(0, 40), (30, 300), (-20, 560), (0, 800)]
-ROADS = [ROAD, SOUTH_ROAD]
+NORTH_ROAD = [(0, 40), (-30, -300), (20, -560), (0, -800)]
+ROADS = [ROAD, SOUTH_ROAD, NORTH_ROAD]
 ROCKY = [(300, 300, 200), (500, 120, 130), (-300, -400, 170), (-500, 350, 140)]
 COPSES = [(-450, 260, 150), (150, -450, 140), (600, -450, 110)]
 RUIN = (-120.0, -110.0)
@@ -33,7 +34,9 @@ EAST_PORTAL = (800.0, 0.0)
 EAST_ARRIVAL = (735.0, -14.0)
 SOUTH_PORTAL = (0.0, 800.0)
 SOUTH_ARRIVAL = (14.0, 735.0)
-GATES = (WEST_PORTAL, WEST_ARRIVAL, EAST_PORTAL, EAST_ARRIVAL, SOUTH_PORTAL, SOUTH_ARRIVAL)
+NORTH_PORTAL = (0.0, -800.0)
+NORTH_ARRIVAL = (-14.0, -735.0)
+GATES = (WEST_PORTAL, WEST_ARRIVAL, EAST_PORTAL, EAST_ARRIVAL, SOUTH_PORTAL, SOUTH_ARRIVAL, NORTH_PORTAL, NORTH_ARRIVAL)
 PORTAL_RADIUS = 14.0
 
 GRASS = np.array([96, 118, 78])
@@ -152,6 +155,7 @@ def main():
             portal(WEST_PORTAL[0], WEST_PORTAL[1], PORTAL_RADIUS, 102, 735.0, -14.0, math.pi / 2.0),
             portal(EAST_PORTAL[0], EAST_PORTAL[1], PORTAL_RADIUS, 202, 735.0, -14.0, math.pi / 2.0),
             portal(SOUTH_PORTAL[0], SOUTH_PORTAL[1], PORTAL_RADIUS, 302, 735.0, -14.0, math.pi / 2.0),
+            portal(NORTH_PORTAL[0], NORTH_PORTAL[1], PORTAL_RADIUS, 402, 14.0, 735.0, 0.0),
         ],
         "objects": objs,
         "safeZones": [],

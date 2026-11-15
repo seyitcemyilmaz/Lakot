@@ -486,6 +486,440 @@
       "minLevel": 24,
       "maxLevel": 30,
       "assistRange": 15
+    },
+    {
+      "id": 11,
+      "name": "Scorpion",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 35,
+      "maxHealth": 2940,
+      "attack": 78,
+      "defense": 16,
+      "experience": 6200,
+      "moveSpeed": 3.6,
+      "aggroRange": 9,
+      "attackRange": 1.8,
+      "attackInterval": 1.6,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 175,
+        "max": 315,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 32,
+      "maxLevel": 38,
+      "assistRange": 15
+    },
+    {
+      "id": 12,
+      "name": "Desert Beast",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 40,
+      "maxHealth": 3950,
+      "attack": 92,
+      "defense": 18,
+      "experience": 8200,
+      "moveSpeed": 3.5,
+      "aggroRange": 9,
+      "attackRange": 2.2,
+      "attackInterval": 1.8,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 200,
+        "max": 360,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 36,
+      "maxLevel": 44,
+      "assistRange": 15
+    },
+    {
+      "id": 13,
+      "name": "Sand Djinn",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 45,
+      "maxHealth": 5110,
+      "attack": 107,
+      "defense": 21,
+      "experience": 10300,
+      "moveSpeed": 3.2,
+      "aggroRange": 11,
+      "attackRange": 7.0,
+      "attackInterval": 2.2,
+      "leashRange": 40,
+      "respawnSeconds": 90,
+      "aggressive": true,
+      "gold": {
+        "min": 225,
+        "max": 405,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 42,
+      "maxLevel": 48,
+      "assistRange": 15
+    },
+    {
+      "id": 14,
+      "name": "Shahmaran",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 50,
+      "maxHealth": 32230,
+      "attack": 166,
+      "defense": 31,
+      "experience": 76500,
+      "moveSpeed": 3.2,
+      "aggroRange": 14,
+      "attackRange": 2.8,
+      "attackInterval": 2.2,
+      "leashRange": 60,
+      "respawnSeconds": 1800,
+      "aggressive": true,
+      "gold": {
+        "min": 3750,
+        "max": 6750,
+        "chance": 1.0
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "min": 3,
+          "max": 5,
+          "guaranteed": true
+        },
+        {
+          "itemId": 7,
+          "chance": 0.5,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 1006,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 3003,
+          "min": 1,
+          "max": 1,
+          "guaranteed": true
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 46,
+      "maxLevel": 52,
+      "boss": true,
+      "lootRolls": 3
+    },
+    {
+      "id": 15,
+      "name": "Giant Spider",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 46,
+      "maxHealth": 5370,
+      "attack": 111,
+      "defense": 22,
+      "experience": 10800,
+      "moveSpeed": 3.8,
+      "aggroRange": 10,
+      "attackRange": 1.8,
+      "attackInterval": 1.4,
+      "leashRange": 40,
+      "respawnSeconds": 60,
+      "aggressive": true,
+      "gold": {
+        "min": 230,
+        "max": 414,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 42,
+      "maxLevel": 50,
+      "assistRange": 20
+    },
+    {
+      "id": 16,
+      "name": "Dark Tree Spirit",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 52,
+      "maxHealth": 7030,
+      "attack": 130,
+      "defense": 25,
+      "experience": 13800,
+      "moveSpeed": 3.0,
+      "aggroRange": 10,
+      "attackRange": 2.4,
+      "attackInterval": 2.0,
+      "leashRange": 40,
+      "respawnSeconds": 90,
+      "aggressive": true,
+      "gold": {
+        "min": 260,
+        "max": 468,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 48,
+      "maxLevel": 56,
+      "assistRange": 15
+    },
+    {
+      "id": 17,
+      "name": "Ala Kari",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 56,
+      "maxHealth": 8270,
+      "attack": 143,
+      "defense": 28,
+      "experience": 16000,
+      "moveSpeed": 3.2,
+      "aggroRange": 11,
+      "attackRange": 6.0,
+      "attackInterval": 2.2,
+      "leashRange": 40,
+      "respawnSeconds": 90,
+      "aggressive": true,
+      "gold": {
+        "min": 280,
+        "max": 504,
+        "chance": 0.8
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 7,
+          "chance": 0.3,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.05,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 52,
+      "maxLevel": 60,
+      "assistRange": 15
+    },
+    {
+      "id": 18,
+      "name": "Erlik's Servant",
+      "model": "models/monsters/steppe_bandit.glb",
+      "level": 60,
+      "maxHealth": 48130,
+      "attack": 211,
+      "defense": 39,
+      "experience": 110200,
+      "moveSpeed": 3.2,
+      "aggroRange": 14,
+      "attackRange": 3.0,
+      "attackInterval": 2.2,
+      "leashRange": 60,
+      "respawnSeconds": 1800,
+      "aggressive": true,
+      "gold": {
+        "min": 4500,
+        "max": 8100,
+        "chance": 1.0
+      },
+      "drops": [
+        {
+          "itemId": 4,
+          "min": 3,
+          "max": 5,
+          "guaranteed": true
+        },
+        {
+          "itemId": 7,
+          "chance": 0.5,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "itemId": 1005,
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 1006,
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": 3003,
+          "min": 1,
+          "max": 1,
+          "guaranteed": true
+        },
+        {
+          "itemId": 2003,
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "minLevel": 56,
+      "maxLevel": 64,
+      "boss": true,
+      "lootRolls": 3
     }
   ]
 }
