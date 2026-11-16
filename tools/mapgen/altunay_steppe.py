@@ -158,7 +158,7 @@ def main():
         "safeZones": [
             safe_zone("Gate Camp", [[-770.0, -30.0], [-700.0, -30.0], [-700.0, 50.0], [-770.0, 50.0]]),
         ],
-        "npcs": [],
+        "npcs": gate_camp_npcs(),
         "monsterSpawns": [
             monster_spawn(8, -520.0, 120.0, 40.0, 4),
             monster_spawn(8, -200.0, -150.0, 40.0, 3),

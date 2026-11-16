@@ -657,6 +657,15 @@ def npc(name, role, model, x, z, yaw, shop=None):
     return record
 
 
+def gate_camp_npcs():
+    return [
+        npc("Weaponsmith", "weaponsmith", "models/warrior/armor_l30.glb", -722.0, -2.0, math.pi / 2.0,
+            shop=[1004, 1005, 1006, 1007, 1008, 1009, 4, 7]),
+        npc("Armorsmith", "armorsmith", "models/warrior/armor_l50.glb", -722.0, 30.0, math.pi / 2.0,
+            shop=[2003, 2004, 2005, 3003, 3004, 3005]),
+    ]
+
+
 def monster_spawn(monster, x, z, radius, count):
     return {"monster": monster, "x": x, "z": z, "radius": radius, "count": count}
 

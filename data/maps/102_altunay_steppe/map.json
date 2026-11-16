@@ -12715,8 +12715,6 @@
   {"type": "undergrowth", "x": 750.33, "z": -8.37, "block": false, "model": "nature/drygrass_1", "yaw": 2.9288, "scale": 1.296},
   {"type": "undergrowth", "x": 751.13, "z": -5.61, "block": false, "model": "nature/drygrass_3", "yaw": 2.0363, "scale": 1.644},
   {"type": "undergrowth", "x": -728.72, "z": 0.56, "block": false, "model": "nature/drygrass_2", "yaw": 5.0836, "scale": 1.188},
-  {"type": "undergrowth", "x": -721.6, "z": -2.73, "block": false, "model": "nature/stone_3", "yaw": 4.6881, "scale": 1.645},
-  {"type": "undergrowth", "x": -717.51, "z": 0.25, "block": false, "model": "nature/drybush_3", "yaw": 5.7158, "scale": 1.175},
   {"type": "undergrowth", "x": -707.85, "z": -1.6, "block": false, "model": "nature/drybush_1", "yaw": 3.5795, "scale": 1.245},
   {"type": "undergrowth", "x": -699.58, "z": 0.74, "block": false, "model": "nature/drygrass_2", "yaw": 0.9351, "scale": 1.233},
   {"type": "undergrowth", "x": -663.14, "z": -2.3, "block": false, "model": "nature/drygrass_1", "yaw": 6.1886, "scale": 1.45},
@@ -23178,7 +23176,26 @@
    ]
   }
  ],
- "npcs": [],
+ "npcs": [
+  {
+   "name": "Weaponsmith",
+   "role": "weaponsmith",
+   "shop": [1004, 1005, 1006, 1007, 1008, 1009, 4, 7],
+   "model": "models/warrior/armor_l30.glb",
+   "x": -722.0,
+   "z": -2.0,
+   "yaw": 1.5707963267948966
+  },
+  {
+   "name": "Armorsmith",
+   "role": "armorsmith",
+   "shop": [2003, 2004, 2005, 3003, 3004, 3005],
+   "model": "models/warrior/armor_l50.glb",
+   "x": -722.0,
+   "z": 30.0,
+   "yaw": 1.5707963267948966
+  }
+ ],
  "monsterSpawns": [
   {
    "monster": 8,
