@@ -2,9 +2,9 @@
   "weapon": {
     "joint": "RightHand",
     "length": 100.0,
-    "grip": 0.1099,
+    "grip": 0.1098,
     "rotation": [
-      2.1099,
+      2.1098,
       177.5399,
       106.47
     ],
@@ -24,99 +24,200 @@
     ],
     "offset": [
       0.0,
-      -0.01,
-      -0.02
+      -0.0099,
+      -0.0199
     ]
   },
   "overrides": {
-    "helmet": {
-      "models/helmets/helmet_l01.glb": {
-        "offset": [
-          0,
-          0.01,
-          -0.02
-        ]
-      },
-      "models/helmets/helmet_l30.glb": {
-        "widthScale": 1.4,
-        "offset": [
-          -0.02,
-          0.0,
-          -0.02
-        ]
-      },
-      "models/helmets/helmet_l50.glb": {
-        "offset": [
-          0,
-          0.07,
-          -0.02
-        ]
-      },
-      "models/helmets/helmet_l60.glb": {
-        "widthScale": 1.25,
-        "offset": [
-          0,
-          0.13,
-          -0.02
-        ]
-      },
-      "models/helmets/helmet_l70.glb": {
-        "widthScale": 1.25,
-        "offset": [
-          0,
-          0.14,
-          0
-        ]
-      },
-      "models/helmets/helmet_l40.glb": {
-        "offset": [
-          0,
-          0.005,
-          -0.02
-        ]
-      }
-    },
     "weapon": {
       "models/weapons/sword_l20.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
         ]
       },
       "models/weapons/sword_l30.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
         ]
       },
       "models/weapons/sword_l40.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
         ]
       },
       "models/weapons/sword_l50.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
         ]
       },
       "models/weapons/sword_l60.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
         ]
       },
       "models/weapons/sword_l70.glb": {
+        "joint": "RightHand",
+        "length": 100.0,
+        "grip": 0.1098,
         "rotation": [
-          -2.1099,
-          -2.4601,
+          -2.1098,
+          -2.46,
           -106.47
+        ],
+        "offset": [
+          0.541,
+          6.526,
+          2.5009
+        ]
+      }
+    },
+    "helmet": {
+      "models/helmets/helmet_l01.glb": {
+        "joint": "Head",
+        "widthScale": 1.25,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          0.0,
+          0.0099,
+          -0.0199
+        ]
+      },
+      "models/helmets/helmet_l20.glb": {
+        "joint": "Head",
+        "widthScale": 1.3099,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          -0.004,
+          0.026,
+          0.016
+        ]
+      },
+      "models/helmets/helmet_l30.glb": {
+        "joint": "Head",
+        "widthScale": 1.3999,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          -0.0199,
+          0.0,
+          -0.0199
+        ]
+      },
+      "models/helmets/helmet_l40.glb": {
+        "joint": "Head",
+        "widthScale": 1.25,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          0.0,
+          0.0049,
+          -0.0199
+        ]
+      },
+      "models/helmets/helmet_l50.glb": {
+        "joint": "Head",
+        "widthScale": 1.25,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          0.0,
+          0.07,
+          -0.0199
+        ]
+      },
+      "models/helmets/helmet_l60.glb": {
+        "joint": "Head",
+        "widthScale": 1.25,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          0.0,
+          0.1299,
+          -0.0199
+        ]
+      },
+      "models/helmets/helmet_l70.glb": {
+        "joint": "Head",
+        "widthScale": 1.25,
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset": [
+          0.0,
+          0.14,
+          0.0
         ]
       }
     }
