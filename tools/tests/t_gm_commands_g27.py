@@ -540,6 +540,45 @@ def t_tp_pos_and_rejects():
     check(math.hypot(px2 - px, pz2 - pz) < 1.0, f"rejected /tp moved the GM {px},{pz} -> {px2},{pz2}")
 
 
+def find_water_point(pMapDir):
+    import numpy as np
+    from PIL import Image
+    tDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "maps", pMapDir)
+    tMeta = json.load(open(os.path.join(tDir, "map.json"), encoding="utf-8"))
+    tRaw = np.array(Image.open(os.path.join(tDir, "height.png")), dtype=np.float32)
+    tH = tMeta["heightMin"] + tRaw / 65535.0 * (tMeta["heightMax"] - tMeta["heightMin"])
+    tSize, tRes = float(tMeta["worldSize"]), tRaw.shape[0]
+    for tI in range(2, tRes - 2):
+        for tJ in range(2, tRes - 2):
+            if tH[tI, tJ] < tMeta["waterLevel"] - 1 and tH[tI + 1, tJ] < tMeta["waterLevel"] - 1 and tH[tI, tJ + 1] < tMeta["waterLevel"] - 1:
+                return (round(tJ * tSize / (tRes - 1) - tSize / 2), round(tI * tSize / (tRes - 1) - tSize / 2))
+    return None
+
+
+def t_tp_cross_map():
+    g = C["G"]
+    ox, oz = C["OUT"]
+    tBack = (int(ox), int(oz))
+    for t in ("/tp 999 0 0", "/tp 0 0 0 0", "/tp 102 5000 0", "/tp 102 abc 0", "/tp 102 1 nan", "/tp 0 5 5"):
+        r = cmd(g, t)
+        check(r.ok and r.status in (USAGE, FAILED), f"{t} not rejected: {r}")
+    expect(cmd(g, "/tp 999 0 0"), FAILED, "/tp unknown map", "does not exist")
+    expect(cmd(g, "/tp 102 5000 0"), FAILED, "/tp out of bounds", "outside")
+    tWater = find_water_point("102_altunay_steppe")
+    check(tWater, "found no water point on map 102")
+    expect(cmd(g, f"/tp 102 {tWater[0]} {tWater[1]}"), FAILED, "/tp blocked", "not walkable")
+    check(get_pos(g)[0] == 101, "rejected cross-map /tp moved the GM off map 101")
+    expect(cmd(g, "/tp 102 -735 14"), OK, "/tp 102")
+    time.sleep(1.0)
+    tMap, px, pz = get_pos(g)
+    check(tMap == 102 and math.hypot(px + 735, pz - 14) < 8.0, f"/pos after cross-map tp: {tMap} {px},{pz}")
+    expect(cmd(g, f"/tp 101 {tBack[0]} {tBack[1]}"), OK, "/tp back to 101")
+    time.sleep(1.0)
+    tMap, px, pz = get_pos(g)
+    check(tMap == 101 and math.hypot(px - tBack[0], pz - tBack[1]) < 8.0, f"/pos after tp back: {tMap} {px},{pz}")
+    g.pos = (px, nav().y_at(px, pz), pz)
+
+
 def t_summon_tpto():
     g, P1, P2 = C["G"], C["P1"], C["P2"]
     ox, oz = C["OUT"]
@@ -826,7 +865,7 @@ def t_clearbag():
 TESTS = [t_help_player_lists_only_player_commands, t_item_as_player_same_as_unknown, t_raw_slash_chat_not_delivered,
          t_roll_nearby_only, t_whisper_command, t_who_and_pos, t_player_throttled_gm_commands_not,
          t_item_inventory_update, t_clearbag, t_item_bag_full, t_gold, t_level, t_heal_sethp, t_setmp_then_mana_potion_clamps,
-         t_kill_revive, t_tp_pos_and_rejects, t_summon_tpto, t_spawn_safe_zone_and_args, t_spawn_no_respawn, t_spawn_cap,
+         t_kill_revive, t_tp_pos_and_rejects, t_tp_cross_map, t_summon_tpto, t_spawn_safe_zone_and_args, t_spawn_no_respawn, t_spawn_cap,
          t_announce_reaches_everyone, t_mute_online_all_channels_and_relog, t_mute_offline_via_db,
          t_kick_closes_and_resume_fails, t_out_of_range_battery, t_gm_audit_log, t_moderator_level_1, t_server_survived]
 

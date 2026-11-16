@@ -3,6 +3,8 @@
 #include <limits>
 #include <string>
 
+#include "MapCatalog.h"
+#include "MapData.h"
 #include "MonsterCatalog.h"
 
 #include "../game/ItemCatalog.h"
@@ -53,7 +55,7 @@ CommandController::Handler WorldCommands::bind(Method pMethod) const
 
 void WorldCommands::registerCommands(CommandController& pCommandController)
 {
-    pCommandController.registerCommand({"tp", {"teleport"}, 1, 2, 2, "/tp <x> <z>", "Teleport to coordinates on this map.", bind(&WorldCommands::executeTeleport)});
+    pCommandController.registerCommand({"tp", {"teleport"}, 1, 2, 3, "/tp [map] <x> <z>", "Teleport to coordinates on this or another map.", bind(&WorldCommands::executeTeleport)});
     pCommandController.registerCommand({"tpto", {}, 1, 1, 1, "/tpto <player>", "Teleport to a player.", bind(&WorldCommands::executeTeleportToPlayer)});
     pCommandController.registerCommand({"summon", {}, 1, 1, 1, "/summon <player>", "Bring a player to you.", bind(&WorldCommands::executeSummon)});
 
@@ -71,12 +73,16 @@ void WorldCommands::registerCommands(CommandController& pCommandController)
 
 void WorldCommands::executeTeleport(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const
 {
-    auto tX = pContext.getNumber(0, -kMaxCoordinate, kMaxCoordinate);
-    auto tZ = pContext.getNumber(1, -kMaxCoordinate, kMaxCoordinate);
+    const size_t tArgumentCount = pContext.getArgumentCount();
+    const size_t tCoordinateIndex = tArgumentCount == 3 ? 1 : 0;
 
-    if (!tX || !tZ)
+    auto tMapId = tArgumentCount == 3 ? pContext.getInteger(0, 1, kMaxUint32) : std::nullopt;
+    auto tX = pContext.getNumber(tCoordinateIndex, -kMaxCoordinate, kMaxCoordinate);
+    auto tZ = pContext.getNumber(tCoordinateIndex + 1, -kMaxCoordinate, kMaxCoordinate);
+
+    if (!tX || !tZ || (tArgumentCount == 3 && !tMapId))
     {
-        replyUsage(*pReply, "/tp <x> <z>");
+        replyUsage(*pReply, "/tp [map] <x> <z>");
         return;
     }
 
@@ -90,7 +96,31 @@ void WorldCommands::executeTeleport(const CommandContext& pContext, std::shared_
         return;
     }
 
-    tZone->teleport(pContext.characterId, tZone->getMapId(), static_cast<float>(*tX), static_cast<float>(*tZ), makeFinisher(pReply));
+    const uint32_t tTargetMapId = tMapId ? static_cast<uint32_t>(*tMapId) : tZone->getMapId();
+    const MapData* tMap = mWorldController.getMapCatalog().getMap(tTargetMapId);
+
+    if (!tMap)
+    {
+        pReply->fail("Map " + std::to_string(tTargetMapId) + " does not exist.");
+        return;
+    }
+
+    const float tTargetX = static_cast<float>(*tX);
+    const float tTargetZ = static_cast<float>(*tZ);
+
+    if (!tMap->isInside(tTargetX, tTargetZ))
+    {
+        pReply->fail("Destination is outside map " + std::to_string(tTargetMapId) + ".");
+        return;
+    }
+
+    if (!tMap->isWalkable(tTargetX, tTargetZ))
+    {
+        pReply->fail("Destination is not walkable.");
+        return;
+    }
+
+    tZone->teleport(pContext.characterId, tTargetMapId, tTargetX, tTargetZ, makeFinisher(pReply));
 }
 
 void WorldCommands::executeTeleportToPlayer(const CommandContext& pContext, std::shared_ptr<CommandReply> pReply) const

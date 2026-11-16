@@ -72,6 +72,7 @@ public:
     std::optional<uint64_t> findOnlineCharacterIdByAccount(uint64_t pAccountId);
     size_t getOnlineCount();
     Zone* findCharacterZone(uint64_t pCharacterId);
+    const MapCatalog& getMapCatalog() const { return mMapCatalog; }
 
     // Resolves a whisper's "message_to" name to an online character id -
     // nullopt if nobody by that name is currently logged in.
