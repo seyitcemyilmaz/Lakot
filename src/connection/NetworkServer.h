@@ -57,12 +57,16 @@ public:
             boost::asio::ip::tcp::endpoint tEndpoint(tAddress, pPort);
 
             mAcceptor.open(tEndpoint.protocol());
+#if defined(_WIN32)
+            mAcceptor.set_option(boost::asio::detail::socket_option::boolean<SOL_SOCKET, SO_EXCLUSIVEADDRUSE>(true));
+#else
             mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+#endif
             mAcceptor.bind(tEndpoint);
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[NetworkServer] Baslatma Hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[NetworkServer] Startup error: " << tException.what() << std::endl;
             throw;
         }
     }
@@ -76,7 +80,7 @@ public:
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[NetworkServer] Dinleme Hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[NetworkServer] Listen error: " << tException.what() << std::endl;
             throw;
         }
 
@@ -131,11 +135,11 @@ private:
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[NetworkServer] Isleyici istisnasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[NetworkServer] Handler error: " << tException.what() << std::endl;
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[NetworkServer] Isleyici bilinmeyen istisna" << std::endl;
+                std::osyncstream(std::cerr) << "[NetworkServer] Handler unknown error" << std::endl;
             }
         }
     }
@@ -152,7 +156,7 @@ private:
 
             if (pErrorCode)
             {
-                std::osyncstream(std::cerr) << "[NetworkServer] Kabul hatasi: " << pErrorCode.message() << std::endl;
+                std::osyncstream(std::cerr) << "[NetworkServer] Accept error: " << pErrorCode.message() << std::endl;
 
                 mAcceptRetryTimer.expires_after(kAcceptRetryDelay);
                 mAcceptRetryTimer.async_wait(
@@ -255,11 +259,11 @@ private:
                 }
                 catch (const std::exception& tException)
                 {
-                    std::osyncstream(std::cerr) << "[NetworkServer] Baglanti hatasi: " << tException.what() << std::endl;
+                    std::osyncstream(std::cerr) << "[NetworkServer] Connection error: " << tException.what() << std::endl;
                 }
                 catch (...)
                 {
-                    std::osyncstream(std::cerr) << "[NetworkServer] Baglanti bilinmeyen hata" << std::endl;
+                    std::osyncstream(std::cerr) << "[NetworkServer] Connection unknown error" << std::endl;
                 }
             }
 
