@@ -1,6 +1,7 @@
 #include "Server.h"
 
 #include "world/ShopSystem.h"
+#include "diagnostics/CrashHandler.h"
 
 #include <atomic>
 #include <charconv>
@@ -339,6 +340,8 @@ void Server::run()
 
     std::thread([]()
     {
+        CrashHandler::attachThread("stdin");
+
         std::string tCommand;
 
         while (std::cin >> tCommand)

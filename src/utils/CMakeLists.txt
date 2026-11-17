@@ -28,7 +28,47 @@ add_library(${PROJECT_NAME} STATIC
 
     Type.h
     GarbageCollector.h GarbageCollector.cpp
+
+    CrashTrigger.h CrashTrigger.cpp
+    diagnostics/CrashClassifier.h diagnostics/CrashClassifier.cpp
+    diagnostics/CrashHandler.h
+    diagnostics/ErrorReport.h diagnostics/ErrorReport.cpp
+    diagnostics/LogRing.h diagnostics/LogRing.cpp
+    diagnostics/LogTee.h diagnostics/LogTee.cpp
+    diagnostics/ThreadName.h diagnostics/ThreadName.cpp
 )
+
+### Diagnostics: crash handler, reports, build commit - start
+if (WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE
+        diagnostics/CrashHandler.cpp
+        diagnostics/CrashReportWriter.h diagnostics/CrashReportWriter.cpp
+        diagnostics/ErrorReportWorker.h diagnostics/ErrorReportWorker.cpp
+        diagnostics/ExceptionTrace.h diagnostics/ExceptionTrace.cpp
+        diagnostics/StackSymbolizer.h diagnostics/StackSymbolizer.cpp
+    )
+    target_link_libraries(${PROJECT_NAME} PUBLIC dbghelp)
+else()
+    target_sources(${PROJECT_NAME} PRIVATE diagnostics/CrashHandlerPosix.cpp)
+endif()
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE LAKOT_SOURCE_ROOT="${CMAKE_SOURCE_DIR}")
+
+set(LAKOT_BUILD_INFO_HEADER ${CMAKE_BINARY_DIR}/generated/LakotBuildInfo.h)
+set(LAKOT_BUILD_INFO_ARGUMENTS
+    -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+    -DOUTPUT_FILE=${LAKOT_BUILD_INFO_HEADER}
+    -P ${CMAKE_SOURCE_DIR}/cmake/LakotBuildInfo.cmake)
+
+execute_process(COMMAND ${CMAKE_COMMAND} ${LAKOT_BUILD_INFO_ARGUMENTS})
+
+add_custom_target(LakotBuildInfo
+    COMMAND ${CMAKE_COMMAND} ${LAKOT_BUILD_INFO_ARGUMENTS}
+    BYPRODUCTS ${LAKOT_BUILD_INFO_HEADER}
+    VERBATIM)
+add_dependencies(${PROJECT_NAME} LakotBuildInfo)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/generated)
+### Diagnostics - end
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

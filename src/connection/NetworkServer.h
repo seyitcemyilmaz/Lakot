@@ -17,6 +17,9 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "diagnostics/CrashHandler.h"
+#include "diagnostics/ErrorReport.h"
+
 #include <boost/asio.hpp>
 
 #include "NetworkSession.h"
@@ -89,8 +92,9 @@ public:
         for (size_t i = 0; i < pThreadCount; i++)
         {
             mWorkerThreads.emplace_back(
-            [this]()
+            [this, i]()
             {
+                CrashHandler::attachThread("net-" + std::to_string(i));
                 runWorker();
             });
         }
@@ -135,11 +139,11 @@ private:
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[NetworkServer] Handler error: " << tException.what() << std::endl;
+                ErrorReport::report("network handler", tException);
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[NetworkServer] Handler unknown error" << std::endl;
+                ErrorReport::reportUnknown("network handler");
             }
         }
     }

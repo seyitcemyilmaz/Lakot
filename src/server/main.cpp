@@ -1,5 +1,8 @@
+#include "CrashTrigger.h"
 #include "Server.h"
 #include "TimerResolution.h"
+#include "diagnostics/CrashHandler.h"
+#include "diagnostics/ErrorReport.h"
 
 #include <exception>
 #include <iostream>
@@ -30,6 +33,9 @@ namespace
 
 int main()
 {
+    lakot::CrashHandler::install("LakotServer");
+    lakot::CrashTrigger::runIfRequested();
+
 #if defined(_WIN32)
     SetConsoleCtrlHandler(onConsoleCtrlEvent, TRUE);
 #endif
@@ -49,7 +55,7 @@ int main()
     }
     catch (const std::exception& tException)
     {
-        std::cerr << "[Server] Critical error: " << tException.what() << std::endl;
+        lakot::ErrorReport::report("server main", tException);
         return 1;
     }
 

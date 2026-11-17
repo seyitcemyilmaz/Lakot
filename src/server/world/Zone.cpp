@@ -2,6 +2,8 @@
 
 #include "../game/ItemCatalog.h"
 #include "StatsMessage.h"
+#include "diagnostics/CrashHandler.h"
+#include "diagnostics/ErrorReport.h"
 
 #include <algorithm>
 #include <cmath>
@@ -128,6 +130,8 @@ void Zone::start(SendFunction pSend, TransferFunction pTransfer, PersistFunction
 
     mThread = std::thread([this, pScriptDirectory]()
     {
+        CrashHandler::attachThread("zone-" + std::to_string(mMap.getId()));
+
         // Constructed here rather than in the constructor: the Lua state must
         // be created and used by one thread only, and this is that thread.
         mScriptEngine = std::make_unique<ScriptEngine>();
@@ -145,11 +149,11 @@ void Zone::start(SendFunction pSend, TransferFunction pTransfer, PersistFunction
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Handler error: " << tException.what() << std::endl;
+                ErrorReport::report("zone loop", tException);
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Handler unknown error" << std::endl;
+                ErrorReport::reportUnknown("zone loop");
             }
         }
     });

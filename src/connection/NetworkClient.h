@@ -11,6 +11,7 @@
 #include <string>
 
 #include "NetworkSession.h"
+#include "diagnostics/CrashHandler.h"
 #include "ThreadSafeQueue.hpp"
 
 namespace lakot
@@ -31,6 +32,7 @@ public:
         mIOThread = std::thread(
         [this]()
         {
+            CrashHandler::attachThread("net-client");
             mIOContext.run();
         });
     }

@@ -33,6 +33,9 @@ def rand_name(prefix="t"):
 
 
 class Server:
+    pump_thread = None
+    started_at = 0
+
     def __init__(self, bin_dir=None):
         self.bin_dir = resolve_bin(bin_dir)
         self.proc = None
@@ -43,10 +46,13 @@ class Server:
             raise RuntimeError("LAKOT_DB_PASSWORD is not set in the environment; the server requires it")
         run_dir = pathlib.Path(os.environ["LAKOT_TEST_RUN_DIR"]) if os.environ.get("LAKOT_TEST_RUN_DIR") else HERE / ".run"
         shutil.rmtree(run_dir, ignore_errors=True)
-        shutil.copytree(self.bin_dir, run_dir, dirs_exist_ok=True)
+        shutil.copytree(self.bin_dir, run_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns("crashes"))
         self.run_dir = str(run_dir)
+        tEnv = {**os.environ, "LAKOT_SERVER_PORT": str(PORT), "LAKOT_SERVER_BIND": "127.0.0.1", "LAKOT_MAX_CONNECTIONS_PER_IP": "0"}
+        if not tEnv.get("LAKOT_CRASH_DIR") and not tEnv.get("LAKOT_TEST_LOG_DIR"):
+            tEnv["LAKOT_CRASH_DIR"] = str(HERE / ".run-crashes")
         self.proc = subprocess.Popen([os.path.join(self.run_dir, "LakotServer.exe")], cwd=self.run_dir,
-                                     env={**os.environ, "LAKOT_SERVER_PORT": str(PORT), "LAKOT_SERVER_BIND": "127.0.0.1", "LAKOT_MAX_CONNECTIONS_PER_IP": "0"},
+                                     env=tEnv,
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      text=True, errors="replace")
         threading.Thread(target=self._pump, daemon=True).start()
@@ -64,18 +70,51 @@ class Server:
         raise RuntimeError("server did not open port\n" + "\n".join(self.log_lines[-20:]))
 
     def _pump(self):
+        self.pump_thread = threading.current_thread()
+        self.started_at = time.time()
         tDir = os.environ.get("LAKOT_TEST_LOG_DIR")
         tFile = None
         if tDir:
             os.makedirs(tDir, exist_ok=True)
             tFile = open(os.path.join(tDir, time.strftime("server-%H%M%S-") + str(self.proc.pid) + ".log"),
                          "w", encoding="utf-8", buffering=1)
+        tSawCrash = False
         for line in self.proc.stdout:
             self.log_lines.append(line.rstrip())
             if tFile:
                 tFile.write(line)
+            if line.startswith("CRASH ") or line.startswith("ERROR "):
+                tSawCrash = tSawCrash or line.startswith("CRASH ")
+                print(line.rstrip(), flush=True)
+        try:
+            tCode = self.proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            tCode = None
+        if tCode not in (None, 0, 1) and not tSawCrash:
+            tReport = self._newest_crash_line() or "CRASH LakotServer unreported exit=0x%08X at ?:0 in ? (thread unnamed:0)" % (tCode & 0xFFFFFFFF)
+            print(tReport, flush=True)
+            if tFile:
+                tFile.write(tReport + "\n")
         if tFile:
             tFile.close()
+
+    def _newest_crash_line(self):
+        tNewest = None
+        tBases = [os.environ.get("LAKOT_CRASH_DIR"), os.path.join(os.environ.get("LAKOT_TEST_LOG_DIR") or "", "crashes"),
+                  str(HERE / ".run-crashes"), os.path.join(getattr(self, "run_dir", ""), "crashes")]
+        for tBase in [b for b in tBases if b]:
+            try:
+                for tName in os.listdir(tBase):
+                    tSummary = os.path.join(tBase, tName, "summary.txt")
+                    if os.path.isfile(tSummary) and os.path.getmtime(tSummary) >= self.started_at - 1:
+                        if tNewest is None or os.path.getmtime(tSummary) > os.path.getmtime(tNewest):
+                            tNewest = tSummary
+            except OSError:
+                pass
+        if tNewest:
+            with open(tNewest, encoding="utf-8", errors="replace") as tFile:
+                return tFile.readline().rstrip()
+        return None
 
     def stop(self):
         if not self.proc:
@@ -90,6 +129,8 @@ class Server:
             self.proc.wait(timeout=15)
         except subprocess.TimeoutExpired:
             self.proc.kill()
+        if self.pump_thread:
+            self.pump_thread.join(timeout=10)
 
 
 class Client:

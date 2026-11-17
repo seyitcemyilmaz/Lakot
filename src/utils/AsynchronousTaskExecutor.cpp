@@ -3,6 +3,9 @@
 #include <iostream>
 #include <syncstream>
 
+#include "diagnostics/CrashHandler.h"
+#include "diagnostics/ErrorReport.h"
+
 using namespace lakot;
 
 AsynchronousTaskExecutor::~AsynchronousTaskExecutor()
@@ -63,6 +66,8 @@ void AsynchronousTaskExecutor::addTask(Task&& pTask)
 
 void AsynchronousTaskExecutor::execute()
 {
+    CrashHandler::attachThread("task-executor");
+
     Task tCurrentTask;
 
     while (getNextTask(tCurrentTask))
@@ -78,12 +83,12 @@ void AsynchronousTaskExecutor::execute()
             catch (const std::exception& tException)
             {
                 tIsExecuted = false;
-                std::osyncstream(std::cerr) << "[AsyncTask] Task error: " << tException.what() << std::endl;
+                ErrorReport::report("async task", tException);
             }
             catch (...)
             {
                 tIsExecuted = false;
-                std::osyncstream(std::cerr) << "[AsyncTask] Task unknown error" << std::endl;
+                ErrorReport::reportUnknown("async task");
             }
         }
 
@@ -95,7 +100,7 @@ void AsynchronousTaskExecutor::execute()
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[AsyncTask] Task unknown error" << std::endl;
+                ErrorReport::reportUnknown("async completion");
             }
         }
     }

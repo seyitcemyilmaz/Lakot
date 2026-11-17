@@ -5,6 +5,9 @@
 #include <thread>
 #include <syncstream>
 
+#include "diagnostics/CrashHandler.h"
+#include "diagnostics/ErrorReport.h"
+
 using namespace lakot;
 
 namespace
@@ -41,8 +44,9 @@ void DatabaseManager::initialize(const DatabaseConfig& pConfig)
         auto tWorker = std::make_unique<Worker>();
         Worker* tWorkerPtr = tWorker.get();
 
-        tWorker->thread = std::thread([tWorkerPtr]()
+        tWorker->thread = std::thread([tWorkerPtr, tIndex]()
         {
+            CrashHandler::attachThread("db-" + std::to_string(tIndex));
             tWorkerPtr->context.run();
         });
 
@@ -120,11 +124,11 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " query error: " << tException.what() << std::endl;
+                ErrorReport::report("database query", tException);
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " query error: unknown error" << std::endl;
+                ErrorReport::reportUnknown("database query");
             }
         }
         else

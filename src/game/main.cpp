@@ -6,9 +6,27 @@
 #include <SDL3/SDL_main.h>
 #include <glad/glad.h>
 
+#include "CrashTrigger.h"
 #include "Engine.h"
 #include "FileManager.h"
 #include "dev/SnapshotRunner.h"
+#include "diagnostics/CrashHandler.h"
+
+namespace
+{
+    SDL_LogOutputFunction sPreviousLogOutput = nullptr;
+    void* sPreviousLogUserData = nullptr;
+
+    void onSdlLog(void*, int pCategory, SDL_LogPriority pPriority, const char* pMessage)
+    {
+        if (sPreviousLogOutput)
+        {
+            sPreviousLogOutput(sPreviousLogUserData, pCategory, pPriority, pMessage);
+        }
+
+        lakot::CrashHandler::recordLog(std::string(pMessage) + "\n");
+    }
+}
 
 #if defined(SDL_PLATFORM_WINDOWS)
 #include <windows.h>
@@ -41,6 +59,10 @@ namespace
 
 SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
 {
+    lakot::CrashHandler::install("LakotGame");
+    SDL_GetLogOutputFunction(&sPreviousLogOutput, &sPreviousLogUserData);
+    SDL_SetLogOutputFunction(onSdlLog, nullptr);
+
     lakot::Engine& tEngine = lakot::Engine::getInstance();
     *pEngine = &tEngine;
 
@@ -160,6 +182,8 @@ SDL_AppResult SDL_AppInit(void** pEngine, int argc, char* argv[])
     {
         return SDL_APP_FAILURE;
     }
+
+    lakot::CrashTrigger::runIfRequested();
 
     return SDL_APP_CONTINUE;
 }

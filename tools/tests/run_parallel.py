@@ -30,7 +30,7 @@ def run_pooled(pName):
 
 
 def run(pName, pSlot):
-    tEnv = {**os.environ, "LAKOT_TEST_PORT": str(BASE_PORT + pSlot), "LAKOT_TEST_RUN_DIR": str(HERE / f".run_p{pSlot}")}
+    tEnv = {**os.environ, "LAKOT_TEST_PORT": str(BASE_PORT + pSlot), "LAKOT_TEST_RUN_DIR": str(HERE / f".run_p{pSlot}"), "LAKOT_TEST_LOG_DIR": str(LOG_DIR)}
     if pName == "run_all":
         tEnv["LAKOT_CORE_ONLY"] = "1"
     tLog = LOG_DIR / f"{pName}.log"
@@ -55,8 +55,13 @@ def main():
         tResults.append(run(tName, 0))
     tFailed = [r for r in tResults if r[1] != 0]
     for tName, _, _ in tFailed:
+        tLines = (LOG_DIR / f"{tName}.log").read_text(encoding="utf-8", errors="replace").splitlines()
         print(f"\n--- {tName} (tail) ---")
-        print("\n".join((LOG_DIR / f"{tName}.log").read_text(encoding="utf-8", errors="replace").splitlines()[-30:]))
+        print("\n".join([l for l in tLines if l.startswith(("CRASH ", "ERROR "))][:5]))
+        print("\n".join(tLines[-30:]))
+    tCrashRoot = LOG_DIR / "crashes"
+    for tSummary in sorted(tCrashRoot.glob("*/summary.txt")) if tCrashRoot.is_dir() else []:
+        print(f"crash report: {tSummary.parent}: {tSummary.read_text(encoding='utf-8', errors='replace').splitlines()[0]}")
     print(f"\n{len(tResults) - len(tFailed)}/{len(tResults)} scripts passed in {time.time() - tStart:.0f}s, logs in {LOG_DIR}")
     sys.exit(1 if tFailed else 0)
 

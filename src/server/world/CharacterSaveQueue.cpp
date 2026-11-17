@@ -6,6 +6,7 @@
 #include <syncstream>
 
 #include "UnsavedSnapshotWriter.h"
+#include "diagnostics/CrashHandler.h"
 
 using namespace lakot;
 
@@ -28,6 +29,7 @@ CharacterSaveQueue::CharacterSaveQueue(CharacterRepository& pRepository)
 {
     mThread = std::thread([this]()
     {
+        CrashHandler::attachThread("save-queue");
         mContext.run();
     });
 }
