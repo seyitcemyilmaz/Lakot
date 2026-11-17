@@ -165,8 +165,8 @@ ShopStatus ShopSystem::buy(uint64_t pCharacterId, Character& pCharacter, const P
 
     if (tLeftOver != 0)
     {
-        std::osyncstream(std::cerr) << "[Shop] canGiveItem ile giveItem ayristi: karakter " << pCharacterId
-                                    << " esya " << pTemplateId << " artan " << tLeftOver << std::endl;
+        std::osyncstream(std::cerr) << "[Shop] canGiveItem and giveItem disagree: character " << pCharacterId
+                                    << " item " << pTemplateId << " left over " << tLeftOver << std::endl;
 
         pCharacter.takeItem(pTemplateId, pQuantity - tLeftOver);
         pCharacter.addGold(static_cast<int64_t>(tCost));

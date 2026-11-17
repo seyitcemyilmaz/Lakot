@@ -49,7 +49,7 @@ int main()
     }
     catch (const std::exception& tException)
     {
-        std::cerr << "[Server] Kritik hata: " << tException.what() << std::endl;
+        std::cerr << "[Server] Critical error: " << tException.what() << std::endl;
         return 1;
     }
 

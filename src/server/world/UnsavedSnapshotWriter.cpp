@@ -55,7 +55,7 @@ std::optional<std::filesystem::path> UnsavedSnapshotWriter::write(const Characte
 
     if (tError)
     {
-        std::osyncstream(std::cerr) << "[SaveQueue] unsaved dizini olusturulamadi: " << tError.message() << std::endl;
+        std::osyncstream(std::cerr) << "[SaveQueue] could not create unsaved directory: " << tError.message() << std::endl;
         return std::nullopt;
     }
 
@@ -68,7 +68,7 @@ std::optional<std::filesystem::path> UnsavedSnapshotWriter::write(const Characte
 
     if (!tFile)
     {
-        std::osyncstream(std::cerr) << "[SaveQueue] Dosya yazilamadi: " << tPath.string() << std::endl;
+        std::osyncstream(std::cerr) << "[SaveQueue] Could not write file: " << tPath.string() << std::endl;
         return std::nullopt;
     }
 

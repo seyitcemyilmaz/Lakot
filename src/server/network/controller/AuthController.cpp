@@ -119,8 +119,8 @@ void AuthController::handleResumeSessionRequest(std::shared_ptr<NetworkSession<c
         mWorldController.resumeCharacter(tResult->characterId);
     }
 
-    std::osyncstream(std::cout) << "[Server] Oturum surduruldu (hesap: " << tResult->accountId
-              << ", karakter: " << tResult->characterId << ")" << std::endl;
+    std::osyncstream(std::cout) << "[Server] Session resumed (account: " << tResult->accountId
+              << ", character: " << tResult->characterId << ")" << std::endl;
 }
 
 void AuthController::handleLogoutRequest(std::shared_ptr<NetworkSession<connection::Message>> pSession, const connection::Message& pMessage)
@@ -176,7 +176,7 @@ void AuthController::handleRegisterRequest(std::shared_ptr<NetworkSession<connec
     {
         mNetworkManager.abandonLogin(pSession);
 
-        std::osyncstream(std::cout) << "[Server] Cok fazla kayit denemesi: " << tAddress << std::endl;
+        std::osyncstream(std::cout) << "[Server] Too many registration attempts: " << tAddress << std::endl;
 
         sendRejection(pSession, pMessage, common::STATUS_ERROR, "Too many registration attempts. Try again later.", false);
         return;
@@ -262,7 +262,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
     {
         mNetworkManager.abandonLogin(pSession);
 
-        std::osyncstream(std::cout) << "[Server] Cok fazla basarisiz giris denemesi: " << tAddress << std::endl;
+        std::osyncstream(std::cout) << "[Server] Too many failed login attempts: " << tAddress << std::endl;
 
         sendRejection(pSession, pMessage, common::STATUS_UNAUTHORIZED,
                       "Too many failed attempts. Try again later.", true);
@@ -277,7 +277,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
         if (pResult == AccountRepository::LoginResultType::eDatabaseError)
         {
-            std::osyncstream(std::cerr) << "[Server] Giris veritabani hatasi: " << tUsername << std::endl;
+            std::osyncstream(std::cerr) << "[Server] Login database error: " << tUsername << std::endl;
 
             mAttemptLimiter.release(tAddress, tUsername);
             mNetworkManager.abandonLogin(pSession);
@@ -289,7 +289,7 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
 
         if (pResult != AccountRepository::LoginResultType::eSuccess)
         {
-            std::osyncstream(std::cout) << "[Server] Giris basarisiz: " << tUsername << std::endl;
+            std::osyncstream(std::cout) << "[Server] Login failed: " << tUsername << std::endl;
 
             mAttemptLimiter.recordFailure(tAddress, tUsername);
             mNetworkManager.abandonLogin(pSession);
@@ -297,15 +297,15 @@ void AuthController::handleLoginRequest(std::shared_ptr<NetworkSession<connectio
             tHeader->mutable_status()->set_code(common::STATUS_UNAUTHORIZED);
             tHeader->mutable_status()->set_message("Invalid username or password.");
 
-            // Oneof case'i kLoginResponse yapmak icin bos bir login_response set ediliyor;
-            // yoksa client'taki dispatcher payload_case()==0 gorup cevabi eslestiremiyor.
+            // An empty login_response is set so the oneof case becomes kLoginResponse;
+            // otherwise the client dispatcher sees payload_case()==0 and cannot match the reply.
             tResponse.mutable_response()->mutable_login_response();
 
             pSession->send(tResponse);
             return;
         }
 
-        std::osyncstream(std::cout) << "[Server] Giris Istegi: " << tUsername << " (Hesap: " << pAccountId << ")" << std::endl;
+        std::osyncstream(std::cout) << "[Server] Login request: " << tUsername << " (Account: " << pAccountId << ")" << std::endl;
 
         mAttemptLimiter.recordSuccess(tAddress, tUsername);
 

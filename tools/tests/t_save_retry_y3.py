@@ -137,7 +137,7 @@ class Y3Server(Server):
     def start(self, timeout=60):
         super().start(timeout)
         tEnd = time.time() + timeout
-        while time.time() < tEnd and not any("Sinif verisi yuklendi" in l for l in self.log_lines):
+        while time.time() < tEnd and not any("Class data loaded" in l for l in self.log_lines):
             time.sleep(0.2)
         time.sleep(1.5)
 
@@ -248,17 +248,17 @@ def t_permanent_error_gives_up():
     finally:
         remove_trigger()
     log = "\n".join(S["srv"].log_lines)
-    check("kalici olarak basarisiz" in log, "no permanent-failure ERROR line in server log")
+    check("failed permanently" in log, "no permanent-failure ERROR line in server log")
 
 
 def t_log_has_no_unrecovered_failures():
     log = S["srv"].log_lines
     tFailed, tClosed = {}, {}
     for l in log:
-        m = re.search(r"Karakter kaydi basarisiz, tekrar denenecek \(id: (\d+)", l)
+        m = re.search(r"Character save failed, will retry \(id: (\d+)", l)
         if m:
             tFailed[m.group(1)] = tFailed.get(m.group(1), 0) + 1
-        m = re.search(r"toparlandi \(id: (\d+)|vazgecildi \(id: (\d+)", l)
+        m = re.search(r"recovered \(id: (\d+)|giving up \(id: (\d+)", l)
         if m:
             k = m.group(1) or m.group(2)
             tClosed[k] = tClosed.get(k, 0) + 1
@@ -266,7 +266,7 @@ def t_log_has_no_unrecovered_failures():
     for k, n in tFailed.items():
         check(tClosed.get(k, 0) >= n, f"character {k}: {n} failure lines but {tClosed.get(k, 0)} recovery lines")
         check(n <= 2, f"character {k}: {n} failure lines, expected one per outage")
-    check(not any("Karakter kaydi hatasi (baglanti)" in l for l in log), "per-attempt connection error spam in log")
+    check(not any("character save transient error (connection)" in l for l in log), "per-attempt connection error spam in log")
 
 
 def stop_with_pending(pSrv, pUnblockAfter):
@@ -311,7 +311,7 @@ def t_shutdown_timeout_writes_unsaved():
         print(f"      server exit after {tElapsed:.1f}s", flush=True)
         check(tElapsed < 25, f"exit took {tElapsed:.1f}s")
         log = "\n".join(srv.log_lines)
-        check(f"Kaydedilemedi (id: {c.cid}" in log, "no unsaved ERROR line for the character")
+        check(f"Could not save (id: {c.cid}" in log, "no unsaved ERROR line for the character")
         tFiles = glob.glob(os.path.join(srv.run_dir, "unsaved", f"{c.cid}-*.json"))
         check(len(tFiles) == 1, f"expected one unsaved file, got {tFiles}")
         tData = json.load(open(tFiles[0], encoding="utf-8"))
@@ -320,9 +320,9 @@ def t_shutdown_timeout_writes_unsaved():
         close_clients()
         srv.restart_in_place()
         tEnd = time.time() + 15
-        while time.time() < tEnd and not any("unsaved/" in l and "UYARI" in l for l in srv.log_lines):
+        while time.time() < tEnd and not any("unsaved/" in l and "WARNING" in l for l in srv.log_lines):
             time.sleep(0.3)
-        check(any("unsaved/" in l and "UYARI" in l for l in srv.log_lines), "no startup warning about unsaved files")
+        check(any("unsaved/" in l and "WARNING" in l for l in srv.log_lines), "no startup warning about unsaved files")
     finally:
         close_clients()
         srv.request_exit()

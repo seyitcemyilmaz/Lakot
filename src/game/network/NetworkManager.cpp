@@ -188,7 +188,7 @@ void NetworkManager::dispatchMessage(const connection::Message& pMessage)
     }
     else
     {
-        SDL_Log("[NetworkManager] Mesaj islenemedi: Session yok.");
+        SDL_Log("[NetworkManager] Message could not be handled: no session.");
     }
 }
 
@@ -219,7 +219,7 @@ void NetworkManager::onConnectionStatusChanged(bool pIsConnected)
 {
     if (!pIsConnected)
     {
-        SDL_Log("[NetworkManager] Baglanti koptu, tekrar deneniyor...");
+        SDL_Log("[NetworkManager] Connection lost, retrying...");
         mDeferredMessages.clear();
 
         if (mIsReconnecting)

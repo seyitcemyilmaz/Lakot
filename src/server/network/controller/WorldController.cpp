@@ -35,8 +35,8 @@ void WorldController::initialize()
 {
     if (const size_t tUnsavedFiles = UnsavedSnapshotWriter::countFiles(); tUnsavedFiles > 0)
     {
-        std::osyncstream(std::cerr) << "[World] UYARI: unsaved/ dizininde " << tUnsavedFiles
-                                    << " kaydedilememis karakter dosyasi var; otomatik geri yuklenmez, elle incelenmeli." << std::endl;
+        std::osyncstream(std::cerr) << "[World] WARNING: unsaved/ directory holds " << tUnsavedFiles
+                                    << " unsaved character files; they are not restored automatically and need manual review." << std::endl;
     }
 
     // One zone per map in the catalog. Built here rather than in the
@@ -228,7 +228,7 @@ void WorldController::enterWorld(const CharacterSnapshot& pCharacter,
 
     if (!tZone)
     {
-        std::osyncstream(std::cerr) << "[World] Bilinmeyen harita id: " << pMapId << std::endl;
+        std::osyncstream(std::cerr) << "[World] Unknown map id: " << pMapId << std::endl;
         return;
     }
 
@@ -435,7 +435,7 @@ void WorldController::transferCharacter(uint32_t pSourceMapId,
 
     if (tIterator == mCharacterZone.end() || tIterator->second != pSourceMapId)
     {
-        std::osyncstream(std::cout) << "[World] Gecis dusuruldu (karakter artik kaynak haritada degil): " << pCharacterId << std::endl;
+        std::osyncstream(std::cout) << "[World] Transition dropped (character is no longer on the source map): " << pCharacterId << std::endl;
         return;
     }
 

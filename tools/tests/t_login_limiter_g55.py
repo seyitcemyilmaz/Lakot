@@ -83,7 +83,7 @@ def wrong(pUser, pPw=BAD):
 
 
 def db_failures(pUser=None):
-    tTag = "Giris basarisiz: " + (pUser or "")
+    tTag = "Login failed: " + (pUser or "")
     return sum(1 for l in C["srv"].log_lines if tTag in l)
 
 

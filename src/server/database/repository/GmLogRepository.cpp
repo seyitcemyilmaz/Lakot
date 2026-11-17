@@ -36,7 +36,7 @@ void GmLogRepository::initializeTable()
 
         tWork.commit();
 
-        std::osyncstream(std::cout) << "[GmLogRepo] Tablo hazir/kontrol edildi." << std::endl;
+        std::osyncstream(std::cout) << "[GmLogRepo] Table ready/checked." << std::endl;
     }, kSchemaAffinityKey);
 }
 
@@ -59,7 +59,7 @@ void GmLogRepository::record(Entry pEntry)
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[GmLogRepo] Kayit hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[GmLogRepo] log write error: " << tException.what() << std::endl;
         }
     });
 }

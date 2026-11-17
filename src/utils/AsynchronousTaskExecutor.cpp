@@ -78,12 +78,12 @@ void AsynchronousTaskExecutor::execute()
             catch (const std::exception& tException)
             {
                 tIsExecuted = false;
-                std::osyncstream(std::cerr) << "[AsyncTask] Gorev istisna: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[AsyncTask] Task error: " << tException.what() << std::endl;
             }
             catch (...)
             {
                 tIsExecuted = false;
-                std::osyncstream(std::cerr) << "[AsyncTask] Gorev bilinmeyen istisna" << std::endl;
+                std::osyncstream(std::cerr) << "[AsyncTask] Task unknown error" << std::endl;
             }
         }
 
@@ -95,7 +95,7 @@ void AsynchronousTaskExecutor::execute()
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[AsyncTask] Gorev bilinmeyen istisna" << std::endl;
+                std::osyncstream(std::cerr) << "[AsyncTask] Task unknown error" << std::endl;
             }
         }
     }

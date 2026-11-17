@@ -34,7 +34,7 @@ Zone::Zone(const MapData& pMap, const MapCatalog& pMapCatalog, const ItemCatalog
     {
         if (!mMapCatalog.getMap(tPortal.targetMapId))
         {
-            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Bilinmeyen portal hedefi: " << tPortal.targetMapId << std::endl;
+            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Unknown portal target: " << tPortal.targetMapId << std::endl;
         }
     }
 }
@@ -63,7 +63,7 @@ void Zone::spawnWorldEntities()
 
         if (!tTemplate)
         {
-            std::cout << "[Zone] Bilinmeyen canavar sablonu: " << tSpawn.monsterId << std::endl;
+            std::cout << "[Zone] Unknown monster template: " << tSpawn.monsterId << std::endl;
             continue;
         }
 
@@ -145,11 +145,11 @@ void Zone::start(SendFunction pSend, TransferFunction pTransfer, PersistFunction
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Isleyici istisnasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Handler error: " << tException.what() << std::endl;
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Isleyici bilinmeyen istisna" << std::endl;
+                std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Handler unknown error" << std::endl;
             }
         }
     });
@@ -462,7 +462,7 @@ void Zone::scheduleTick()
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Tick istisnasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Zone " << mMap.getId() << "] Tick error: " << tException.what() << std::endl;
         }
 
         scheduleTick();

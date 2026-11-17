@@ -65,7 +65,7 @@ void ItemRepository::initializeTable()
 
         tWork.commit();
 
-        std::osyncstream(std::cout) << "[ItemRepo] Tablolar hazir/kontrol edildi." << std::endl;
+        std::osyncstream(std::cout) << "[ItemRepo] Tables ready/checked." << std::endl;
     }, kSchemaAffinityKey);
 }
 
@@ -111,7 +111,7 @@ void ItemRepository::syncTemplates(std::vector<ItemTemplate> pTemplates, SyncCal
         catch (const std::exception& tException)
         {
             tIsSuccess = false;
-            std::osyncstream(std::cerr) << "[ItemRepo] Sablon esitleme hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[ItemRepo] template sync error: " << tException.what() << std::endl;
         }
 
         if (pCallback)

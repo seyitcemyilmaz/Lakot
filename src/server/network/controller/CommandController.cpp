@@ -55,7 +55,7 @@ bool CommandController::registerCommand(CommandSpec pSpec)
     {
         if (mIndex.contains(tName))
         {
-            std::osyncstream(std::cerr) << "[Command] Komut adi zaten kayitli: " << tName << std::endl;
+            std::osyncstream(std::cerr) << "[Command] Command name is already registered: " << tName << std::endl;
             return false;
         }
     }
@@ -119,8 +119,8 @@ void CommandController::handleCommandRequest(std::shared_ptr<NetworkSession<conn
     {
         if (tSpec)
         {
-            std::osyncstream(std::cout) << "[Security] Yetkisiz komut denemesi: karakter " << tCharacterId
-                                        << " hesap " << tAccess->accountId << " /" << tContext.name << std::endl;
+            std::osyncstream(std::cout) << "[Security] Unauthorized command attempt: character " << tCharacterId
+                                        << " account " << tAccess->accountId << " /" << tContext.name << std::endl;
 
             if (mDeniedLogLimiter.tryConsume(tCharacterId))
             {
@@ -162,7 +162,7 @@ void CommandController::handleCommandRequest(std::shared_ptr<NetworkSession<conn
     }
     catch (const std::exception& tException)
     {
-        std::osyncstream(std::cerr) << "[Command] /" << tContext.name << " istisna: " << tException.what() << std::endl;
+        std::osyncstream(std::cerr) << "[Command] /" << tContext.name << " error: " << tException.what() << std::endl;
         tReply->fail("Command failed.");
     }
 }
@@ -177,8 +177,8 @@ void CommandController::attachAudit(const CommandSpec& pSpec, const CommandConte
     tEntry.command = pSpec.name;
     tEntry.arguments = pContext.argumentText.substr(0, kMaxAuditArgumentLength);
 
-    std::osyncstream(std::cout) << "[GM] hesap " << tEntry.accountId << " karakter " << tEntry.characterId
-                                << " (" << tEntry.characterName << ") seviye " << tEntry.gmLevel
+    std::osyncstream(std::cout) << "[GM] account " << tEntry.accountId << " character " << tEntry.characterId
+                                << " (" << tEntry.characterName << ") level " << tEntry.gmLevel
                                 << " /" << tEntry.command << " " << tEntry.arguments << std::endl;
 
     GmLogRepository& tRepository = mRepositoryManager.getGmLogRepository();
@@ -190,8 +190,8 @@ void CommandController::attachAudit(const CommandSpec& pSpec, const CommandConte
         tCompleted.target = pTarget;
         tCompleted.result = pResult.substr(0, kMaxAuditArgumentLength);
 
-        std::osyncstream(std::cout) << "[GM] sonuc: karakter " << tCompleted.characterId << " /" << tCompleted.command
-                                    << " hedef '" << tCompleted.target << "' -> " << tCompleted.result << std::endl;
+        std::osyncstream(std::cout) << "[GM] result: character " << tCompleted.characterId << " /" << tCompleted.command
+                                    << " target '" << tCompleted.target << "' -> " << tCompleted.result << std::endl;
 
         tRepository.record(std::move(tCompleted));
     });

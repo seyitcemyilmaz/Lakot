@@ -33,11 +33,11 @@ void SynchronousTaskExecutor::execute()
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[SyncTask] Gorev istisnasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[SyncTask] Task error: " << tException.what() << std::endl;
         }
         catch (...)
         {
-            std::osyncstream(std::cerr) << "[SyncTask] Gorev bilinmeyen istisna" << std::endl;
+            std::osyncstream(std::cerr) << "[SyncTask] Task unknown error" << std::endl;
         }
 
         tProcessQueue.pop();

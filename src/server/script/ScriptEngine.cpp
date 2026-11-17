@@ -181,7 +181,7 @@ bool ScriptEngine::loadDirectory(const std::string& pDirectory)
 
     if (!std::filesystem::is_directory(pDirectory, tErrorCode))
     {
-        std::osyncstream(std::cerr) << "[Script] Klasor bulunamadi: " << pDirectory << std::endl;
+        std::osyncstream(std::cerr) << "[Script] Directory not found: " << pDirectory << std::endl;
         return false;
     }
 
@@ -216,13 +216,13 @@ bool ScriptEngine::loadDirectory(const std::string& pDirectory)
         if (!tResult.valid())
         {
             sol::error tError = tResult;
-            std::osyncstream(std::cerr) << "[Script] Yuklenemedi " << tPath.filename().string()
+            std::osyncstream(std::cerr) << "[Script] Failed to load " << tPath.filename().string()
                       << ": " << tError.what() << std::endl;
             tAllLoaded = false;
         }
     }
 
-    std::osyncstream(std::cout) << "[Script] " << tPaths.size() << " dosya islendi: " << pDirectory << std::endl;
+    std::osyncstream(std::cout) << "[Script] " << tPaths.size() << " files processed: " << pDirectory << std::endl;
 
     return tAllLoaded;
 }
@@ -247,7 +247,7 @@ void ScriptEngine::callCharacterHook(const char* pName, Character& pCharacter, T
         if (!tResult.valid())
         {
             sol::error tError = tResult;
-            std::osyncstream(std::cerr) << "[Script] " << pName << " handler hatasi: " << tError.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Script] " << pName << " handler error: " << tError.what() << std::endl;
 
             // Deliberately no break: the next handler still runs. One broken
             // quest must not silently disable every other piece of content

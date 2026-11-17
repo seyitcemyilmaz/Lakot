@@ -108,7 +108,7 @@ def new_user(pPrefix="g54"):
 
 
 def db_failures(pUser):
-    return sum(1 for l in C["srv"].log_lines if "Giris basarisiz: " + pUser in l)
+    return sum(1 for l in C["srv"].log_lines if "Login failed: " + pUser in l)
 
 
 def t_baseline_login_and_register():

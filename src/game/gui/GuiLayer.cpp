@@ -81,8 +81,8 @@ void GuiLayer::end()
                 ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
             }
 
-            // Pencereyi başlat
-            // Not: Tam ekran pencerelerde padding'i kaldırmak isteyebilirsin
+            // Begin the window
+            // Note: you may want to remove padding on full-screen windows
             if (tPanel->isFullScreen) ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
             if (ImGui::Begin(tPanel->name.c_str(), &tPanel->isOpen, tPanel->windowFlags))

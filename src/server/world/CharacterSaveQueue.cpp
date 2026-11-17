@@ -70,7 +70,7 @@ void CharacterSaveQueue::submit(CharacterRepository::CharacterSave pSave)
 
         if (mIsStopped)
         {
-            std::osyncstream(std::cerr) << "[SaveQueue] Kapali kuyruga kayit geldi, atlandi: " << tCharacterId << std::endl;
+            std::osyncstream(std::cerr) << "[SaveQueue] Save arrived on a closed queue, skipped: " << tCharacterId << std::endl;
             return;
         }
 
@@ -147,12 +147,12 @@ void CharacterSaveQueue::onSaveResult(uint64_t pCharacterId, CharacterRepository
         {
             if (pResult == SaveResult::eCharacterGone)
             {
-                std::osyncstream(std::cout) << "[SaveQueue] Karakter artik yok, kayit atlandi: " << pCharacterId << std::endl;
+                std::osyncstream(std::cout) << "[SaveQueue] Character no longer exists, save skipped: " << pCharacterId << std::endl;
             }
             else if (tEntry.attempt > 0)
             {
-                std::osyncstream(std::cout) << "[SaveQueue] Karakter kaydi toparlandi (id: " << pCharacterId
-                                            << ", basarisiz deneme: " << tEntry.attempt << ")" << std::endl;
+                std::osyncstream(std::cout) << "[SaveQueue] Character save recovered (id: " << pCharacterId
+                                            << ", failed attempts: " << tEntry.attempt << ")" << std::endl;
             }
 
             tEntry.attempt = 0;
@@ -187,9 +187,9 @@ void CharacterSaveQueue::onSaveResult(uint64_t pCharacterId, CharacterRepository
             }
             else if (tEntry.permanentFailures >= kMaxPermanentFailures)
             {
-                std::osyncstream(std::cerr) << "[SaveQueue] HATA: Karakter kaydi kalici olarak basarisiz, vazgecildi (id: " << pCharacterId
-                                            << ", seviye: " << tEntry.latest.stats.level << ", altin: " << tEntry.latest.stats.gold
-                                            << ", esya: " << tEntry.latest.items.size() << ")" << std::endl;
+                std::osyncstream(std::cerr) << "[SaveQueue] ERROR: Character save failed permanently, giving up (id: " << pCharacterId
+                                            << ", level: " << tEntry.latest.stats.level << ", gold: " << tEntry.latest.stats.gold
+                                            << ", items: " << tEntry.latest.items.size() << ")" << std::endl;
 
                 tSettled = std::move(tEntry.waiters);
                 tIsSaved = true;
@@ -291,8 +291,8 @@ void CharacterSaveQueue::logFailure(uint64_t pCharacterId, const Entry& pEntry)
     {
         mLastSummaryAt = tNow;
 
-        std::osyncstream(std::cerr) << "[SaveQueue] Karakter kaydi basarisiz, tekrar denenecek (id: " << pCharacterId
-                                    << ", sira: " << pEntry.sequence << ")" << std::endl;
+        std::osyncstream(std::cerr) << "[SaveQueue] Character save failed, will retry (id: " << pCharacterId
+                                    << ", sequence: " << pEntry.sequence << ")" << std::endl;
         return;
     }
 
@@ -300,7 +300,7 @@ void CharacterSaveQueue::logFailure(uint64_t pCharacterId, const Entry& pEntry)
     {
         mLastSummaryAt = tNow;
 
-        std::osyncstream(std::cerr) << "[SaveQueue] Kaydedilemeyen karakter sayisi: " << mEntries.size() << std::endl;
+        std::osyncstream(std::cerr) << "[SaveQueue] Unsaved character count: " << mEntries.size() << std::endl;
     }
 }
 
@@ -370,12 +370,12 @@ void CharacterSaveQueue::reportUnsaved(const std::vector<CharacterRepository::Ch
     {
         std::optional<std::filesystem::path> tPath = UnsavedSnapshotWriter::write(tSave);
 
-        std::osyncstream(std::cerr) << "[SaveQueue] HATA: Kaydedilemedi (id: " << tSave.characterId
-                                    << ", harita: " << tSave.mapId << ", seviye: " << tSave.stats.level
-                                    << ", deneyim: " << tSave.stats.experience << ", altin: " << tSave.stats.gold
-                                    << ", esya: " << tSave.items.size()
-                                    << ", dosya: " << (tPath ? tPath->string() : std::string("yazilamadi")) << ")" << std::endl;
+        std::osyncstream(std::cerr) << "[SaveQueue] ERROR: Could not save (id: " << tSave.characterId
+                                    << ", map: " << tSave.mapId << ", level: " << tSave.stats.level
+                                    << ", experience: " << tSave.stats.experience << ", gold: " << tSave.stats.gold
+                                    << ", items: " << tSave.items.size()
+                                    << ", file: " << (tPath ? tPath->string() : std::string("not written")) << ")" << std::endl;
     }
 
-    std::osyncstream(std::cerr) << "[SaveQueue] HATA: Kapanista kaydedilemeyen karakter sayisi: " << pUnsaved.size() << std::endl;
+    std::osyncstream(std::cerr) << "[SaveQueue] ERROR: Unsaved character count at shutdown: " << pUnsaved.size() << std::endl;
 }

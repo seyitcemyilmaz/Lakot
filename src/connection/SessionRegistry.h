@@ -62,8 +62,8 @@ public:
 
         if (tIterator->second != pSession)
         {
-            // Demek ki bu ID'ye sahip başka (yeni) bir session gelmiş.
-            // Dokunma! (Race condition önlendi)
+            // So another (newer) session with this ID has arrived.
+            // Leave it alone! (race condition avoided)
             return false;
         }
 

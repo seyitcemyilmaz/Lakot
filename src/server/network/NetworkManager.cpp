@@ -38,14 +38,14 @@ NetworkManager::NetworkManager(uint16_t pPort)
     {
         if (pSession && pSession->tryLogUnknownPacket())
         {
-            std::osyncstream(std::cerr) << "[Security] Bilinmeyen Paket ID: " << pCaseId << " IP: " << getRemoteAddress(pSession) << std::endl;
+            std::osyncstream(std::cerr) << "[Security] Unknown Packet ID: " << pCaseId << " IP: " << getRemoteAddress(pSession) << std::endl;
         }
     });
 
     mNetworkServer.setOnClientConnect(
     [this](std::shared_ptr<NetworkSession<connection::Message>> pSession)
     {
-        std::osyncstream(std::cout) << "[Network] Yeni Baglanti: " << getRemoteAddress(pSession) << std::endl;
+        std::osyncstream(std::cout) << "[Network] New connection: " << getRemoteAddress(pSession) << std::endl;
 
         pSession->setOnErrorFunction(
         [this](std::shared_ptr<NetworkSession<connection::Message>> pS, const boost::system::error_code&)
@@ -142,7 +142,7 @@ void NetworkManager::onSessionError(const SessionPtr& pSession)
 
     if (!mSessionRegistry.remove(tAccountId, pSession))
     {
-        std::osyncstream(std::cout) << "[Network] Eski oturum kapandi (yeni oturum aktif): " << tAccountId << std::endl;
+        std::osyncstream(std::cout) << "[Network] Old session closed (new session active): " << tAccountId << std::endl;
         detachSession(pSession);
         return;
     }
@@ -156,11 +156,11 @@ void NetworkManager::onSessionError(const SessionPtr& pSession)
 
     if (mSessionResumeManager.hold(tAccountId))
     {
-        std::osyncstream(std::cout) << "[Network] Baglanti koptu, oturum bekletiliyor (hesap): " << tAccountId << std::endl;
+        std::osyncstream(std::cout) << "[Network] Connection lost, session held (account): " << tAccountId << std::endl;
         return;
     }
 
-    std::osyncstream(std::cout) << "[Network] Kullanici Dustu (hesap): " << tAccountId << std::endl;
+    std::osyncstream(std::cout) << "[Network] User dropped (account): " << tAccountId << std::endl;
 
     releaseCharacter(tCharacterId);
 }
@@ -213,7 +213,7 @@ std::optional<std::string> NetworkManager::beginSession(const SessionPtr& pSessi
 
     if (tOldSession && tOldSession != pSession)
     {
-        std::osyncstream(std::cout) << "[Server] Cakisan oturum. Eski baglanti kapatiliyor." << std::endl;
+        std::osyncstream(std::cout) << "[Server] Duplicate session. Closing the old connection." << std::endl;
 
         if (uint64_t tOldCharacterId = tOldSession->getCharacterId(); tOldCharacterId != 0)
         {
@@ -361,7 +361,7 @@ void NetworkManager::endSession(const SessionPtr& pSession)
 
     detachSession(pSession);
 
-    std::osyncstream(std::cout) << "[Server] Cikis yapildi (hesap: " << tAccountId << ")" << std::endl;
+    std::osyncstream(std::cout) << "[Server] Logged out (account: " << tAccountId << ")" << std::endl;
 }
 
 void NetworkManager::endDetachedCharacter(uint64_t pAccountId, uint64_t pCharacterId)
@@ -381,5 +381,5 @@ void NetworkManager::endDetachedCharacter(uint64_t pAccountId, uint64_t pCharact
         releaseCharacter(tHeldCharacterId);
     }
 
-    std::osyncstream(std::cout) << "[Server] Bekleyen oturum sonlandirildi (hesap: " << pAccountId << ")" << std::endl;
+    std::osyncstream(std::cout) << "[Server] Held session ended (account: " << pAccountId << ")" << std::endl;
 }

@@ -27,14 +27,14 @@ void DatabaseManager::initialize(const DatabaseConfig& pConfig)
 {
     mConfig = pConfig;
 
-    std::osyncstream(std::cout) << "[Database] Veritabani kontrol ediliyor..." << std::endl;
+    std::osyncstream(std::cout) << "[Database] Checking the database..." << std::endl;
     ensureDatabaseExists(pConfig);
 
     unsigned int tPoolSize = pConfig.poolSize > 0
         ? pConfig.poolSize
         : std::clamp(std::thread::hardware_concurrency(), 2u, 8u);
 
-    std::osyncstream(std::cout) << "[Database] Connection pool boyutu: " << tPoolSize << std::endl;
+    std::osyncstream(std::cout) << "[Database] Connection pool size: " << tPoolSize << std::endl;
 
     for (unsigned int tIndex = 0; tIndex < tPoolSize; ++tIndex)
     {
@@ -58,12 +58,12 @@ void DatabaseManager::initialize(const DatabaseConfig& pConfig)
 
                 if (tWorkerPtr->connection->is_open())
                 {
-                    std::osyncstream(std::cout) << "[Database] Worker #" << tIndex << " baglanti BASARILI: " << tWorkerPtr->connection->dbname() << std::endl;
+                    std::osyncstream(std::cout) << "[Database] Worker #" << tIndex << " connection OK: " << tWorkerPtr->connection->dbname() << std::endl;
                 }
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[Database] Worker #" << tIndex << " Kritik Baslatma Hatasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[Database] Worker #" << tIndex << " critical startup error: " << tException.what() << std::endl;
             }
         });
 
@@ -75,7 +75,7 @@ void DatabaseManager::executeAsync(DatabaseTask pTask)
 {
     if (mWorkers.empty())
     {
-        std::osyncstream(std::cerr) << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
+        std::osyncstream(std::cerr) << "[Database] Error: pool is not ready, query was not run." << std::endl;
         return;
     }
 
@@ -92,7 +92,7 @@ void DatabaseManager::executeAsync(DatabaseTask pTask, uint64_t pAffinityKey, Dr
 {
     if (mWorkers.empty())
     {
-        std::osyncstream(std::cerr) << "[Database] Hata: Havuz hazir degil, sorgu calistirilamadi." << std::endl;
+        std::osyncstream(std::cerr) << "[Database] Error: pool is not ready, query was not run." << std::endl;
 
         if (pOnDropped)
         {
@@ -120,11 +120,11 @@ void DatabaseManager::postToWorker(size_t pWorkerIndex, DatabaseTask pTask, Drop
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " query error: " << tException.what() << std::endl;
             }
             catch (...)
             {
-                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " Sorgu Hatasi: bilinmeyen istisna" << std::endl;
+                std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " query error: unknown error" << std::endl;
             }
         }
         else
@@ -148,7 +148,7 @@ bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
         }
         catch (const pqxx::broken_connection& tException)
         {
-            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " baglanti kopmus: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " connection lost: " << tException.what() << std::endl;
             pWorker.connection.reset();
         }
     }
@@ -168,7 +168,7 @@ bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
         {
             pWorker.hasConnectFailed = false;
             pWorker.hasLoggedOutage = false;
-            std::osyncstream(std::cout) << "[Database] Worker #" << pWorkerIndex << " yeniden baglandi." << std::endl;
+            std::osyncstream(std::cout) << "[Database] Worker #" << pWorkerIndex << " reconnected." << std::endl;
             return true;
         }
     }
@@ -180,7 +180,7 @@ bool DatabaseManager::ensureConnection(Worker& pWorker, size_t pWorkerIndex)
         {
             pWorker.hasLoggedOutage = true;
             pWorker.lastOutageLogAt = tFailedAt;
-            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " yeniden baglanma hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Database] Worker #" << pWorkerIndex << " reconnect error: " << tException.what() << std::endl;
         }
     }
 
@@ -201,9 +201,9 @@ void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)
 
         if (tRes.empty())
         {
-            std::osyncstream(std::cout) << "[Database] Olusturuluyor: " << pConfig.name << std::endl;
+            std::osyncstream(std::cout) << "[Database] Creating: " << pConfig.name << std::endl;
             tNtx.exec("CREATE DATABASE " + tNtx.quote_name(pConfig.name));
-            std::osyncstream(std::cout) << "[Database] Olusturuldu." << std::endl;
+            std::osyncstream(std::cout) << "[Database] Created." << std::endl;
         }
     }
     catch (const std::exception& tException)
@@ -211,7 +211,7 @@ void DatabaseManager::ensureDatabaseExists(const DatabaseConfig& pConfig)
         std::string tErr = tException.what();
         if (tErr.find("already exists") == std::string::npos)
         {
-            std::osyncstream(std::cerr) << "[Database] CreateDB Uyarisi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[Database] CreateDB warning: " << tException.what() << std::endl;
         }
     }
 }

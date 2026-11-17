@@ -134,7 +134,7 @@ public:
             // dropped rather than allowed to consume the server.
             if (self->mWriteQueueBytes + packet->size() > kMaxWriteQueueBytes)
             {
-                std::osyncstream(std::cerr) << "[Session] Yazma kuyrugu doldu, baglanti kapatiliyor. Account: "
+                std::osyncstream(std::cerr) << "[Session] Write queue full, closing connection. Account: "
                           << self->mAccountId.load() << std::endl;
 
                 self->mPendingWrites.fetch_sub(1);
@@ -350,7 +350,7 @@ private:
                 return;
             }
 
-            std::osyncstream(std::cerr) << "[Session] Kimlik dogrulama zaman asimi, baglanti kapatiliyor." << std::endl;
+            std::osyncstream(std::cerr) << "[Session] Authentication timed out, closing connection." << std::endl;
             self->onDisconnect(boost::asio::error::timed_out);
         }));
     }
@@ -405,7 +405,7 @@ private:
                 }
                 catch (const std::exception& tException)
                 {
-                    std::osyncstream(std::cerr) << "[Session] Gelen paket icin bellek ayrilamadi:" << tException.what() << std::endl;
+                    std::osyncstream(std::cerr) << "[Session] Could not allocate memory for the incoming packet: " << tException.what() << std::endl;
                     self->onDisconnect(boost::asio::error::no_memory);
                     return;
                 }
@@ -432,7 +432,7 @@ private:
             {
                 if (!self->consumeIncomingToken())
                 {
-                    std::osyncstream(std::cerr) << "[Session] Paket hizi siniri asildi, baglanti kapatiliyor. Account: "
+                    std::osyncstream(std::cerr) << "[Session] Packet rate limit exceeded, closing connection. Account: "
                                                 << self->mAccountId.load() << std::endl;
                     self->onDisconnect(boost::asio::error::operation_aborted);
                     return;
@@ -444,7 +444,7 @@ private:
                 {
                     if (!tMessage.ParseFromArray(self->mIncomingBody.data(), (int)self->mIncomingBody.size()))
                     {
-                        std::osyncstream(std::cerr) << "[Session] Gecersiz paket govdesi, baglanti kapatiliyor" << std::endl;
+                        std::osyncstream(std::cerr) << "[Session] Invalid packet body, closing connection" << std::endl;
                         self->onDisconnect(boost::asio::error::invalid_argument);
                         return;
                     }
@@ -453,13 +453,13 @@ private:
                 }
                 catch (const std::exception& tException)
                 {
-                    std::osyncstream(std::cerr) << "[Session] Isleyici istisnasi, baglanti kapatiliyor: " << tException.what() << std::endl;
+                    std::osyncstream(std::cerr) << "[Session] Handler error, closing connection: " << tException.what() << std::endl;
                     self->onDisconnect(boost::asio::error::operation_aborted);
                     return;
                 }
                 catch (...)
                 {
-                    std::osyncstream(std::cerr) << "[Session] Isleyici bilinmeyen istisna, baglanti kapatiliyor" << std::endl;
+                    std::osyncstream(std::cerr) << "[Session] Handler unknown error, closing connection" << std::endl;
                     self->onDisconnect(boost::asio::error::operation_aborted);
                     return;
                 }

@@ -154,7 +154,7 @@ void CharacterRepository::initializeTable()
 
         tWork.commit();
 
-        std::osyncstream(std::cout) << "[CharacterRepo] Tablo hazir/kontrol edildi." << std::endl;
+        std::osyncstream(std::cout) << "[CharacterRepo] Table ready/checked." << std::endl;
     }, kSchemaAffinityKey);
 }
 
@@ -192,7 +192,7 @@ void CharacterRepository::listByAccount(uint64_t pAccountId, ListCallback pCallb
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[CharacterRepo] Liste hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] list error: " << tException.what() << std::endl;
         }
 
         if (pCallback)
@@ -313,7 +313,7 @@ void CharacterRepository::createCharacter(uint64_t pAccountId, const std::string
             }
             catch (const std::exception& tException)
             {
-                std::osyncstream(std::cerr) << "[CharacterRepo] Olusturma hatasi: " << tException.what() << std::endl;
+                std::osyncstream(std::cerr) << "[CharacterRepo] create error: " << tException.what() << std::endl;
                 return CreateResult::eDatabaseError;
             }
         }();
@@ -366,7 +366,7 @@ void CharacterRepository::loadOwnedCharacter(uint64_t pAccountId, uint64_t pChar
         catch (const std::exception& tException)
         {
             tOutcome = LoadResult::eDatabaseError;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter yukleme hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character load error: " << tException.what() << std::endl;
         }
 
         if (pCallback)
@@ -422,44 +422,44 @@ void CharacterRepository::saveCharacter(CharacterSave pSave, SaveCallback pCallb
         catch (const pqxx::broken_connection& tException)
         {
             tResult = SaveResult::eTransient;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata (baglanti): " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save transient error (connection): " << tException.what() << std::endl;
         }
         catch (const pqxx::in_doubt_error& tException)
         {
             tResult = SaveResult::eTransient;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata (belirsiz): " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save transient error (unclassified): " << tException.what() << std::endl;
         }
         catch (const pqxx::sql_error& tException)
         {
             const bool tIsTransient = isTransientSqlState(tException.sqlstate());
             tResult = tIsTransient ? SaveResult::eTransient : SaveResult::ePermanent;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi " << (tIsTransient ? "gecici" : "kalici") << " hata ("
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save " << (tIsTransient ? "transient" : "permanent") << " error ("
                                         << tException.sqlstate() << "): " << tException.what() << std::endl;
         }
         catch (const pqxx::conversion_error& tException)
         {
             tResult = SaveResult::ePermanent;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save permanent error: " << tException.what() << std::endl;
         }
         catch (const pqxx::usage_error& tException)
         {
             tResult = SaveResult::ePermanent;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save permanent error: " << tException.what() << std::endl;
         }
         catch (const pqxx::argument_error& tException)
         {
             tResult = SaveResult::ePermanent;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save permanent error: " << tException.what() << std::endl;
         }
         catch (const pqxx::range_error& tException)
         {
             tResult = SaveResult::ePermanent;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi kalici hata: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save permanent error: " << tException.what() << std::endl;
         }
         catch (const std::exception& tException)
         {
             tResult = SaveResult::eTransient;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter kaydi gecici hata: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character save transient error: " << tException.what() << std::endl;
         }
 
         if (pCallback)
@@ -506,7 +506,7 @@ void CharacterRepository::deleteCharacter(uint64_t pAccountId, uint64_t pCharact
         catch (const std::exception& tException)
         {
             tOutcome = DeleteResult::eDatabaseError;
-            std::osyncstream(std::cerr) << "[CharacterRepo] Karakter silme hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[CharacterRepo] character delete error: " << tException.what() << std::endl;
         }
 
         if (pCallback)

@@ -83,11 +83,11 @@ Server::Server()
 
 bool Server::initialize()
 {
-    std::osyncstream(std::cout) << "--- Lakot Game Server Baslatiliyor ---" << std::endl;
+    std::osyncstream(std::cout) << "--- Lakot Game Server Starting ---" << std::endl;
 
     if (!mServerPort)
     {
-        std::osyncstream(std::cerr) << "[Server] LAKOT_SERVER_PORT gecersiz (1-65535 arasi sayi olmali)." << std::endl;
+        std::osyncstream(std::cerr) << "[Server] LAKOT_SERVER_PORT is invalid (must be a number from 1 to 65535)." << std::endl;
         return false;
     }
 
@@ -95,13 +95,13 @@ bool Server::initialize()
 
     if (!tDatabaseConfig.isPortValid())
     {
-        std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PORT gecersiz (1-65535 arasi sayi olmali)." << std::endl;
+        std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PORT is invalid (must be a number from 1 to 65535)." << std::endl;
         return false;
     }
 
     if (tDatabaseConfig.password.empty())
     {
-        std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PASSWORD ortam degiskeni tanimli degil." << std::endl;
+        std::osyncstream(std::cerr) << "[Server] LAKOT_DB_PASSWORD environment variable is not set." << std::endl;
         return false;
     }
 
@@ -121,7 +121,7 @@ bool Server::initialize()
 
     if (!mItemCatalog.load("data", tItemError))
     {
-        std::osyncstream(std::cerr) << "[Server] Esya katalogu yuklenemedi: " << tItemError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Item catalog could not be loaded: " << tItemError << std::endl;
         return false;
     }
 
@@ -137,7 +137,7 @@ bool Server::initialize()
 
         if (tFuture.wait_for(kStartupQueryTimeout) != std::future_status::ready)
         {
-            std::osyncstream(std::cerr) << "[Server] Esya sablonlari zaman asimi: veritabani yanit vermiyor." << std::endl;
+            std::osyncstream(std::cerr) << "[Server] Item templates timed out: the database is not responding." << std::endl;
             return false;
         }
 
@@ -145,12 +145,12 @@ bool Server::initialize()
 
         if (!tIsSynced)
         {
-            std::osyncstream(std::cerr) << "[Server] Esya sablonlari veritabanina yazilamadi." << std::endl;
+            std::osyncstream(std::cerr) << "[Server] Item templates could not be written to the database." << std::endl;
             return false;
         }
 
-        std::osyncstream(std::cout) << "[Server] Esya katalogu yuklendi: " << mItemCatalog.size() << " sablon, "
-                                    << tRemoved << " eski esya silindi." << std::endl;
+        std::osyncstream(std::cout) << "[Server] Item catalog loaded: " << mItemCatalog.size() << " templates, "
+                                    << tRemoved << " stale items removed." << std::endl;
     }
 
     // After the catalog is loaded, before any controller starts a zone or
@@ -159,16 +159,16 @@ bool Server::initialize()
 
     if (!mMapCatalog.load("data", tMapError, MapObjectFilterType::eWithoutUndergrowth))
     {
-        std::osyncstream(std::cerr) << "[Server] Harita verisi yuklenemedi: " << tMapError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Map data could not be loaded: " << tMapError << std::endl;
         return false;
     }
 
-    std::osyncstream(std::cout) << "[Server] Harita verisi yuklendi: " << mMapCatalog.getMapIds().size() << " harita, "
-              << mMapCatalog.getKingdoms().size() << " krallik." << std::endl;
+    std::osyncstream(std::cout) << "[Server] Map data loaded: " << mMapCatalog.getMapIds().size() << " maps, "
+              << mMapCatalog.getKingdoms().size() << " kingdoms." << std::endl;
 
     if (!mMonsterCatalog.load("data", tMapError))
     {
-        std::osyncstream(std::cerr) << "[Server] Canavar verisi yuklenemedi: " << tMapError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Monster data could not be loaded: " << tMapError << std::endl;
         return false;
     }
 
@@ -178,7 +178,7 @@ bool Server::initialize()
         {
             if (!mItemCatalog.find(tDrop.itemId))
             {
-                std::osyncstream(std::cerr) << "[Server] Canavar " << tMonsterId << " bilinmeyen esya dusuruyor: " << tDrop.itemId << std::endl;
+                std::osyncstream(std::cerr) << "[Server] Monster " << tMonsterId << " drops an unknown item: " << tDrop.itemId << std::endl;
             }
         }
     }
@@ -187,17 +187,17 @@ bool Server::initialize()
 
     if (!mClassCatalog.load("data", tClassError))
     {
-        std::osyncstream(std::cerr) << "[Server] Sinif verisi yuklenemedi: " << tClassError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Class data could not be loaded: " << tClassError << std::endl;
         return false;
     }
 
-    std::osyncstream(std::cout) << "[Server] Sinif verisi yuklendi: " << mClassCatalog.getAll().size() << " sinif." << std::endl;
+    std::osyncstream(std::cout) << "[Server] Class data loaded: " << mClassCatalog.getAll().size() << " classes." << std::endl;
 
     std::string tSkillError;
 
     if (!mSkillCatalog.load("data", mClassCatalog, tSkillError))
     {
-        std::osyncstream(std::cerr) << "[Server] Beceri verisi yuklenemedi: " << tSkillError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Skill data could not be loaded: " << tSkillError << std::endl;
         return false;
     }
 
@@ -207,7 +207,7 @@ bool Server::initialize()
         {
             if (!mClassCatalog.find(tClassId))
             {
-                std::osyncstream(std::cerr) << "[Server] Esya " << tItem.templateId << " bilinmeyen sinifa kisitli: " << tClassId << std::endl;
+                std::osyncstream(std::cerr) << "[Server] Item " << tItem.templateId << " is restricted to an unknown class: " << tClassId << std::endl;
                 return false;
             }
         }
@@ -217,7 +217,7 @@ bool Server::initialize()
 
     if (!ShopSystem::validateStock(mMapCatalog, mItemCatalog, tShopError))
     {
-        std::osyncstream(std::cerr) << "[Server] Dukkan verisi gecersiz: " << tShopError << std::endl;
+        std::osyncstream(std::cerr) << "[Server] Shop data is invalid: " << tShopError << std::endl;
         return false;
     }
 
@@ -303,7 +303,7 @@ void Server::grantConfiguredGmAccount()
             }
             else
             {
-                std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT gecersiz seviye, girdi atlandi: " << tEntry << std::endl;
+                std::osyncstream(std::cerr) << "[Security] WARNING: LAKOT_GM_ACCOUNT has an invalid level, entry skipped: " << tEntry << std::endl;
                 continue;
             }
         }
@@ -313,15 +313,15 @@ void Server::grantConfiguredGmAccount()
             continue;
         }
 
-        std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT tanimli, '" << tName
-                                    << "' hesabi GM seviye " << tLevel << " olarak ayarlaniyor." << std::endl;
+        std::osyncstream(std::cerr) << "[Security] WARNING: LAKOT_GM_ACCOUNT is set, '" << tName
+                                    << "' account is being set to GM level " << tLevel << "." << std::endl;
 
         mRepositoryManager->getAccountRepository().grantGmLevel(tName, tLevel,
         [tName](bool pIsFound)
         {
             if (!pIsFound)
             {
-                std::osyncstream(std::cerr) << "[Security] UYARI: LAKOT_GM_ACCOUNT hesabi bulunamadi: " << tName << std::endl;
+                std::osyncstream(std::cerr) << "[Security] WARNING: LAKOT_GM_ACCOUNT account not found: " << tName << std::endl;
             }
         });
     }
@@ -354,13 +354,13 @@ void Server::run()
             }
             else
             {
-                std::osyncstream(std::cout) << "[Error] Bilinmeyen komut." << std::endl;
+                std::osyncstream(std::cout) << "[Error] Unknown command." << std::endl;
             }
         }
 
         if (!gShutdownRequested)
         {
-            std::osyncstream(std::cout) << "[Server] Konsol girdisi yok - kapatma sinyali bekleniyor (Ctrl+C)." << std::endl;
+            std::osyncstream(std::cout) << "[Server] No console input - waiting for the shutdown signal (Ctrl+C)." << std::endl;
         }
     }).detach();
 
@@ -375,5 +375,5 @@ void Server::run()
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
-    std::osyncstream(std::cout) << "[Server] Kapatma istegi alindi." << std::endl;
+    std::osyncstream(std::cout) << "[Server] Shutdown requested." << std::endl;
 }

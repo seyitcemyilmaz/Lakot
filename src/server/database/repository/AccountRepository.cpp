@@ -85,7 +85,7 @@ void AccountRepository::initializeTable()
 
         tWork.commit();
 
-        std::osyncstream(std::cout) << "[AccountRepo] Tablo hazir/kontrol edildi." << std::endl;
+        std::osyncstream(std::cout) << "[AccountRepo] Table ready/checked." << std::endl;
     }, kSchemaAffinityKey);
 }
 
@@ -191,7 +191,7 @@ void AccountRepository::findByUsername(const std::string& pUsername, const std::
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[AccountRepo] Login Hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[AccountRepo] login error: " << tException.what() << std::endl;
 
             if (pCallback)
             {
@@ -247,7 +247,7 @@ void AccountRepository::grantGmLevel(const std::string& pUsername, uint32_t pLev
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[AccountRepo] GM yetkisi hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[AccountRepo] GM grant error: " << tException.what() << std::endl;
         }
 
         if (pCallback)
@@ -319,7 +319,7 @@ void AccountRepository::muteByCharacterName(const std::string& pCharacterName, u
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[AccountRepo] Susturma hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[AccountRepo] mute error: " << tException.what() << std::endl;
             tOutcome = MuteOutcome();
             tOutcome.result = MuteResultType::eDatabaseError;
         }

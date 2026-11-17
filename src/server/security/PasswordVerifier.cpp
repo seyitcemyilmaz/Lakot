@@ -29,7 +29,7 @@ void PasswordVerifier::verifyAsync(std::string pPassword, std::string pStoredHas
         }
         catch (const std::exception& tException)
         {
-            std::osyncstream(std::cerr) << "[PasswordVerifier] Dogrulama hatasi: " << tException.what() << std::endl;
+            std::osyncstream(std::cerr) << "[PasswordVerifier] Verification error: " << tException.what() << std::endl;
         }
 
         if (tCallback)

@@ -237,7 +237,7 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
 
             if (!mClassCatalog.find(pRecord.stats.classId))
             {
-                std::osyncstream(std::cerr) << "[Server] " << pRecord.name << " bilinmeyen sinifta: " << pRecord.stats.classId << std::endl;
+                std::osyncstream(std::cerr) << "[Server] " << pRecord.name << " has an unknown class: " << pRecord.stats.classId << std::endl;
 
                 if (mNetworkManager.abandonWorldEntry(pSession, tTicket))
                 {
@@ -266,7 +266,7 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
                 tY = tStartMap->getHeightAt(tX, tZ) + MovementRules::kBodyHalfHeight;
                 tYaw = tSpawn.yaw;
 
-                std::osyncstream(std::cout) << "[Server] " << pRecord.name << " baslangic noktasina tasindi (harita "
+                std::osyncstream(std::cout) << "[Server] " << pRecord.name << " moved to start point (map "
                           << pRecord.mapId << " -> " << tMapId << ")" << std::endl;
             }
 
@@ -329,14 +329,14 @@ void CharacterController::handleEnterWorldRequest(std::shared_ptr<NetworkSession
 
             if (!tIsAttached)
             {
-                std::osyncstream(std::cout) << "[Server] Dunyaya giris iptal (oturum degisti): " << pRecord.name << std::endl;
+                std::osyncstream(std::cout) << "[Server] World entry cancelled (session changed): " << pRecord.name << std::endl;
                 return;
             }
 
-            std::osyncstream(std::cout) << "[Server] Dunyaya giris: " << pRecord.name
+            std::osyncstream(std::cout) << "[Server] World entry: " << pRecord.name
                       << " (ID: " << pRecord.characterId
-                      << ", seviye " << tCharacter.getStats().level
-                      << ", " << tSnapshot.items.size() << " esya)" << std::endl;
+                      << ", level " << tCharacter.getStats().level
+                      << ", " << tSnapshot.items.size() << " items)" << std::endl;
         });
     });
 }
@@ -403,8 +403,8 @@ void CharacterController::handleDeleteCharacterRequest(std::shared_ptr<NetworkSe
             {
                 case CharacterRepository::DeleteResult::eDeleted:
                     tStatus = services::auth::DELETE_CHARACTER_OK;
-                    std::osyncstream(std::cout) << "[Server] Karakter silindi (hesap: " << tAccountId
-                                                << ", ID: " << tCharacterId << ", ad: " << tConfirmName << ")" << std::endl;
+                    std::osyncstream(std::cout) << "[Server] Character deleted (account: " << tAccountId
+                                                << ", ID: " << tCharacterId << ", name: " << tConfirmName << ")" << std::endl;
                     break;
                 case CharacterRepository::DeleteResult::eNotFound:
                     tStatus = services::auth::DELETE_CHARACTER_NOT_FOUND;
